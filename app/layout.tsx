@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/convex-client-provider";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stepperslife Events - Event Ticketing Platform",
-  description: "Event ticketing and management platform for Stepperslife community",
+  title: "SteppersLife Events - Discover Amazing Stepping Events",
+  description: "Your premier platform for discovering and attending stepping events. Buy tickets, manage events, and connect with the stepping community.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SL Events",
+  },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({
@@ -28,6 +43,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ServiceWorkerRegister />
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>

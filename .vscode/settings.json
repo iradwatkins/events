@@ -1,0 +1,24 @@
+{
+  "files.associations": {
+    "*.json": "jsonc"
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/build": true,
+    "**/dist": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true
+  },
+  "terminal.integrated.env.osx": {
+    "DEPLOYMENT_ENV": "production"
+  },
+  "terminal.integrated.env.linux": {
+    "DEPLOYMENT_ENV": "production"
+  },
+  "terminal.integrated.env.windows": {
+    "DEPLOYMENT_ENV": "production"
+  }
+}

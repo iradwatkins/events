@@ -1,0 +1,58 @@
+{
+  "name": "SteppersLife Events",
+  "short_name": "SL Events",
+  "description": "Discover and attend amazing stepping events",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["events", "entertainment", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Browse Events",
+      "short_name": "Events",
+      "description": "View all upcoming events",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "My Tickets",
+      "short_name": "Tickets",
+      "description": "View your purchased tickets",
+      "url": "/my-tickets",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "any"
+        }
+      ]
+    }
+  ]
+}

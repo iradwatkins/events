@@ -1,0 +1,144 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🚀 Deploy via SFTP",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "Use SFTP extension: Press Cmd+Shift+P → 'SFTP: Sync Local -> Remote'"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "📤 Git Push & Deploy",
+      "type": "shell",
+      "command": "git",
+      "args": [
+        "push",
+        "origin",
+        "main"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "🔗 SSH to Production",
+      "type": "shell",
+      "command": "sshpass",
+      "args": [
+        "-p",
+        "Bobby321&Gloria321Watkins?",
+        "ssh",
+        "-o",
+        "StrictHostKeyChecking=no",
+        "root@72.60.28.175"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "📥 Pull from Production",
+      "type": "shell",
+      "command": "sshpass",
+      "args": [
+        "-p",
+        "Bobby321&Gloria321Watkins?",
+        "ssh",
+        "-o",
+        "StrictHostKeyChecking=no",
+        "root@72.60.28.175",
+        "cd /root/websites/event.stepperslife.com && git status && git log -1"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "🔄 Sync Production -> Local",
+      "type": "shell",
+      "command": "echo",
+      "args": [
+        "Use SFTP extension: Press Cmd+Shift+P → 'SFTP: Sync Remote -> Local'"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "📊 Production Status",
+      "type": "shell",
+      "command": "sshpass",
+      "args": [
+        "-p",
+        "Bobby321&Gloria321Watkins?",
+        "ssh",
+        "-o",
+        "StrictHostKeyChecking=no",
+        "root@72.60.28.175",
+        "cd /root/websites/event.stepperslife.com && echo '=== Git Status ===' && git status && echo '' && echo '=== PM2 Status ===' && pm2 list"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "🔁 Restart Production App",
+      "type": "shell",
+      "command": "sshpass",
+      "args": [
+        "-p",
+        "Bobby321&Gloria321Watkins?",
+        "ssh",
+        "-o",
+        "StrictHostKeyChecking=no",
+        "root@72.60.28.175",
+        "cd /root/websites/event.stepperslife.com && pm2 restart event-stepperslife || pm2 start npm --name 'event-stepperslife' -- start"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "📜 View Production Logs",
+      "type": "shell",
+      "command": "sshpass",
+      "args": [
+        "-p",
+        "Bobby321&Gloria321Watkins?",
+        "ssh",
+        "-o",
+        "StrictHostKeyChecking=no",
+        "root@72.60.28.175",
+        "cd /root/websites/event.stepperslife.com && pm2 logs event-stepperslife --lines 50"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    }
+  ]
+}

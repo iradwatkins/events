@@ -1,0 +1,15 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_CONVEX_URL": "@convex_url",
+    "CONVEX_DEPLOYMENT": "@convex_deployment",
+    "NEXT_PUBLIC_SQUARE_APPLICATION_ID": "@square_app_id",
+    "NEXT_PUBLIC_SQUARE_LOCATION_ID": "@square_location_id",
+    "NEXT_PUBLIC_SQUARE_ENVIRONMENT": "@square_environment",
+    "NEXT_PUBLIC_APP_URL": "@app_url"
+  }
+}

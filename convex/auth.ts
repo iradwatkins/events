@@ -1,9 +1,10 @@
 import { convexAuth } from "@convex-dev/auth/server";
+import { Password } from "@convex-dev/auth/providers/Password";
 
+// Magic Link authentication using Convex Auth
+// Users receive email with one-time code to log in
 export const { auth, signIn, signOut, store } = convexAuth({
-  providers: [],
+  providers: [
+    Password({ id: "password-code" }),
+  ],
 });
-
-export const authConfig = {
-  providers: [],
-};

@@ -1,0 +1,50 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            cd /root/websites/event.stepperslife.com
+
+            echo "🔄 Pulling latest changes from Git..."
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "📦 Installing dependencies..."
+            npm install --production=false
+
+            echo "🏗️  Building application..."
+            npm run build
+
+            echo "🔄 Restarting application..."
+            pm2 restart event-stepperslife || pm2 start npm --name "event-stepperslife" -- start
+
+            echo "✅ Deployment completed successfully!"
+
+      - name: Deployment Status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+          fi

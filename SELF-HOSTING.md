@@ -5,14 +5,44 @@
 
 ---
 
-## 🎯 Self-Hosting Options
+## ⭐ RECOMMENDED: Dedicated IP / VPS Deployment
 
-### Option 1: DigitalOcean App Platform (Recommended - Easiest)
+**If you have a dedicated IP address**, use the complete VPS deployment guide:
+
+👉 **[DEPLOY-VPS.md](./DEPLOY-VPS.md)** - Full step-by-step VPS deployment guide
+
+This comprehensive guide includes:
+- ✅ Complete server setup (Ubuntu, Node.js, PM2, Nginx)
+- ✅ SSL certificate setup with Let's Encrypt
+- ✅ Automated deployment script
+- ✅ Production monitoring and maintenance
+- ✅ Troubleshooting guide
+- ✅ Cost breakdown ($12-18/month)
+
+**Quick Start for VPS**:
+```bash
+# 1. SSH into your server
+ssh root@YOUR_DEDICATED_IP
+
+# 2. Clone and set up
+git clone https://github.com/iradwatkins/event.stepperslife.com.git
+cd event.stepperslife.com
+
+# 3. Follow DEPLOY-VPS.md for complete setup
+```
+
+---
+
+## 🎯 Alternative Self-Hosting Options (Managed Platforms)
+
+If you don't have a dedicated IP or prefer managed hosting:
+
+### Option 1: DigitalOcean App Platform
 **Best for**: Simple deployment, managed infrastructure
 **Cost**: ~$12-25/month
 **Setup Time**: 15 minutes
 
-### Option 2: Railway
+### Option 2: Railway (Easiest)
 **Best for**: Developer-friendly, automatic deployments
 **Cost**: ~$5-20/month
 **Setup Time**: 10 minutes
@@ -22,10 +52,11 @@
 **Cost**: Free tier available, then $7+/month
 **Setup Time**: 15 minutes
 
-### Option 4: VPS (DigitalOcean Droplet, Linode, AWS EC2)
+### Option 4: VPS Manual Setup
 **Best for**: Full control, advanced users
 **Cost**: ~$6-20/month
 **Setup Time**: 1-2 hours
+**See**: [DEPLOY-VPS.md](./DEPLOY-VPS.md) for complete guide
 
 ---
 

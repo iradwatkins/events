@@ -44,9 +44,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const selectedTier = eventDetails.ticketTiers?.find(
-    (tier) => tier._id === selectedTierId
-  );
+  const selectedTier = eventDetails.ticketTiers?.find((tier) => tier._id === selectedTierId);
 
   const subtotal = selectedTier ? selectedTier.price * quantity : 0;
   const platformFee = Math.round((subtotal * 3.7) / 100) + 179; // 3.7% + $1.79
@@ -214,9 +212,7 @@ export default function CheckoutPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">
-              Checkout
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Checkout</h1>
 
             {/* Event Info */}
             <motion.div
@@ -225,9 +221,7 @@ export default function CheckoutPage() {
               transition={{ duration: 0.3, delay: 0.2 }}
               className="bg-white rounded-lg shadow-md p-6 mb-6"
             >
-              <h3 className="font-semibold text-gray-900 mb-2">
-                {eventDetails.name}
-              </h3>
+              <h3 className="font-semibold text-gray-900 mb-2">{eventDetails.name}</h3>
               <p className="text-sm text-gray-600">
                 {format(new Date(eventDetails.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
               </p>
@@ -235,15 +229,12 @@ export default function CheckoutPage() {
                 {eventDetails.location.venueName && `${eventDetails.location.venueName}, `}
                 {eventDetails.location.city}, {eventDetails.location.state}
               </p>
-            </div>
-
+            </motion.div>
             {!showPayment ? (
               <>
                 {/* Ticket Selection */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-4">
-                    Select Ticket Type
-                  </h3>
+                  <h3 className="font-semibold text-gray-900 mb-4">Select Ticket Type</h3>
                   <div className="space-y-3">
                     {eventDetails.ticketTiers?.map((tier) => (
                       <button
@@ -257,13 +248,9 @@ export default function CheckoutPage() {
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-semibold text-gray-900">
-                              {tier.name}
-                            </p>
+                            <p className="font-semibold text-gray-900">{tier.name}</p>
                             {tier.description && (
-                              <p className="text-sm text-gray-600 mt-1">
-                                {tier.description}
-                              </p>
+                              <p className="text-sm text-gray-600 mt-1">{tier.description}</p>
                             )}
                           </div>
                           <p className="text-lg font-bold text-gray-900">
@@ -278,9 +265,7 @@ export default function CheckoutPage() {
                 {/* Quantity */}
                 {selectedTierId && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-4">
-                      Quantity
-                    </h3>
+                    <h3 className="font-semibold text-gray-900 mb-4">Quantity</h3>
                     <input
                       type="number"
                       min="1"
@@ -295,9 +280,7 @@ export default function CheckoutPage() {
                 {/* Buyer Info */}
                 {selectedTierId && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-4">
-                      Your Information
-                    </h3>
+                    <h3 className="font-semibold text-gray-900 mb-4">Your Information</h3>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -329,9 +312,7 @@ export default function CheckoutPage() {
               </>
             ) : (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">
-                  Payment Details
-                </h3>
+                <h3 className="font-semibold text-gray-900 mb-4">Payment Details</h3>
                 <SquarePaymentForm
                   amount={total}
                   onPaymentSuccess={handlePaymentSuccess}
@@ -368,30 +349,22 @@ export default function CheckoutPage() {
                     <span className="text-gray-600">
                       {selectedTier.name} x {quantity}
                     </span>
-                    <span className="font-medium">
-                      ${(subtotal / 100).toFixed(2)}
-                    </span>
+                    <span className="font-medium">${(subtotal / 100).toFixed(2)}</span>
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Platform Fee</span>
-                    <span className="font-medium">
-                      ${(platformFee / 100).toFixed(2)}
-                    </span>
+                    <span className="font-medium">${(platformFee / 100).toFixed(2)}</span>
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Processing Fee</span>
-                    <span className="font-medium">
-                      ${(processingFee / 100).toFixed(2)}
-                    </span>
+                    <span className="font-medium">${(processingFee / 100).toFixed(2)}</span>
                   </div>
 
                   <div className="border-t pt-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-gray-900">
-                        Total
-                      </span>
+                      <span className="text-lg font-bold text-gray-900">Total</span>
                       <span className="text-2xl font-bold text-gray-900">
                         ${(total / 100).toFixed(2)}
                       </span>
@@ -413,9 +386,7 @@ export default function CheckoutPage() {
                   )}
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm">
-                  Select a ticket type to continue
-                </p>
+                <p className="text-gray-500 text-sm">Select a ticket type to continue</p>
               )}
             </motion.div>
           </motion.div>

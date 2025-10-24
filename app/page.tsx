@@ -9,8 +9,9 @@ import { ListView } from "@/components/events/ListView";
 import { SearchFilters } from "@/components/events/SearchFilters";
 import { ViewToggle } from "@/components/events/ViewToggle";
 import Link from "next/link";
-import { Calendar, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,9 +43,7 @@ export default function Home() {
 
     // Apply category filter
     if (selectedCategory) {
-      filtered = filtered.filter((event) =>
-        event.categories.includes(selectedCategory)
-      );
+      filtered = filtered.filter((event) => event.categories.includes(selectedCategory));
     }
 
     return filtered;
@@ -63,20 +62,22 @@ export default function Home() {
       >
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-3">
               <motion.div
-                whileHover={{ rotate: 360, scale: 1.1 }}
-                transition={{ duration: 0.5 }}
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+                className="relative w-12 h-12"
               >
-                <Calendar className="w-8 h-8 text-blue-600" />
+                <Image
+                  src="/logos/stepperslife-logo-dark.svg"
+                  alt="SteppersLife Events Logo"
+                  fill
+                  className="object-contain"
+                />
               </motion.div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  SteppersLife Events
-                </h1>
-                <p className="text-sm text-gray-500">
-                  Discover amazing stepping events
-                </p>
+                <h1 className="text-2xl font-bold text-gray-900">SteppersLife Events</h1>
+                <p className="text-sm text-gray-500">Discover amazing stepping events</p>
               </div>
             </Link>
 
@@ -137,8 +138,7 @@ export default function Home() {
         >
           {filteredEvents && (
             <p className="text-gray-600">
-              {filteredEvents.length}{" "}
-              {filteredEvents.length === 1 ? "event" : "events"} found
+              {filteredEvents.length} {filteredEvents.length === 1 ? "event" : "events"} found
             </p>
           )}
 
@@ -170,8 +170,8 @@ export default function Home() {
             <div>
               <h3 className="font-semibold mb-3">About</h3>
               <p className="text-sm text-gray-600">
-                SteppersLife Events is your premier platform for discovering and
-                attending stepping events.
+                SteppersLife Events is your premier platform for discovering and attending stepping
+                events.
               </p>
             </div>
             <div>

@@ -16,12 +16,20 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SteppersLife Events - Discover Amazing Stepping Events",
-  description: "Your premier platform for discovering and attending stepping events. Buy tickets, manage events, and connect with the stepping community.",
+  description:
+    "Your premier platform for discovering and attending stepping events. Buy tickets, manage events, and connect with the stepping community.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "SL Events",
+    title: "SteppersLife Events",
   },
 };
 
@@ -40,9 +48,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ServiceWorkerRegister />
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>

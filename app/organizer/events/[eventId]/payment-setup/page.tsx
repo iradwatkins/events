@@ -59,12 +59,10 @@ export default function PaymentSetupPage() {
           ticketPrice: 0.30,
         });
 
-        // Redirect to credit purchase if balance is low
-        if ((creditBalance || 0) < 100) {
-          router.push(`/organizer/credits/purchase?eventId=${eventId}`);
-        } else {
-          router.push(`/organizer/events/${eventId}/tickets/setup`);
-        }
+        // TESTING MODE: Skip credit purchase, go straight to dashboard
+        console.log("[PAYMENT SETUP] TESTING MODE - Skipping credit purchase, redirecting to dashboard");
+        alert("Payment configured successfully! Redirecting to dashboard...");
+        router.push("/organizer/events");
       } else {
         // Configure pay-as-sell model and create Stripe Connect account
         const { accountLinkUrl } = await createStripeConnectAccount({ eventId });

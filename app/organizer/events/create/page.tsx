@@ -186,8 +186,15 @@ export default function CreateEventPage() {
       // Keep spinning while redirecting
       alert("Event created successfully!");
 
-      console.log("[CREATE EVENT] Redirecting to payment setup...");
-      router.push(`/organizer/events/${eventId}/payment-setup`);
+      // Redirect based on event type
+      if (eventType === "TICKETED_EVENT") {
+        console.log("[CREATE EVENT] Redirecting to payment setup for ticketed event...");
+        router.push(`/organizer/events/${eventId}/payment-setup`);
+      } else {
+        // For SAVE_THE_DATE and FREE_EVENT, go straight to dashboard
+        console.log("[CREATE EVENT] Redirecting to dashboard...");
+        router.push("/organizer/events");
+      }
 
       // Reset after a delay to allow redirect to happen
       setTimeout(() => setIsSubmitting(false), 2000);

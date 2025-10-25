@@ -165,6 +165,27 @@ export const configurePayment = mutation({
       throw new Error("Payment model already configured for this event");
     }
 
+    // For PRE_PURCHASE model: Initialize 100 FREE ticket credits for new organizers
+    if (args.model === "PRE_PURCHASE") {
+      const credits = await ctx.db
+        .query("organizerCredits")
+        .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
+        .first();
+
+      if (!credits) {
+        console.log("[configurePayment] Initializing 100 FREE ticket credits for new organizer");
+        await ctx.db.insert("organizerCredits", {
+          organizerId: user._id,
+          creditsTotal: 100,
+          creditsUsed: 0,
+          creditsRemaining: 100,
+          firstEventFreeUsed: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      }
+    }
+
     // Create payment config
     const configId = await ctx.db.insert("eventPaymentConfig", {
       eventId: args.eventId,

@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 
 // Constants
-const FIRST_EVENT_FREE_TICKETS = 200;
+const FIRST_EVENT_FREE_TICKETS = 100; // First 100 tickets are FREE!
 const PRICE_PER_TICKET_CENTS = 30; // $0.30 per ticket
 
 /**

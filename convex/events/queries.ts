@@ -33,23 +33,17 @@ export const getPaymentConfig = query({
 
 /**
  * Get organizer's events
+ * TESTING MODE: Returns all events (no authentication)
  */
 export const getOrganizerEvents = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
+    // TESTING MODE: No authentication required
+    console.warn("[getOrganizerEvents] TESTING MODE - No authentication required");
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user) return [];
-
+    // Return all events for now
     const events = await ctx.db
       .query("events")
-      .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
       .order("desc")
       .collect();
 

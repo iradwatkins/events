@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery } from "convex/react";
-import { useSession, signOut } from "next-auth/react";
+// TESTING MODE: No authentication
+// import { useSession, signOut } from "next-auth/react";
 import { api } from "@/convex/_generated/api";
 import { MasonryGrid } from "@/components/events/MasonryGrid";
 import { GridView } from "@/components/events/GridView";
@@ -15,7 +16,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 export default function Home() {
-  const { data: session, status } = useSession();
+  // TESTING MODE: No authentication
+  // const { data: session, status } = useSession();
+  const session: any = null;
+  const status = "unauthenticated" as const;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list" | "masonry">("masonry");
@@ -102,7 +106,8 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="flex items-center gap-3"
             >
-              {status === "authenticated" ? (
+              {/* TESTING MODE: Authentication disabled */}
+              {false ? (
                 <>
                   {/* Profile Dropdown */}
                   <div className="relative" ref={profileRef}>
@@ -164,7 +169,7 @@ export default function Home() {
                           <button
                             onClick={() => {
                               setIsProfileOpen(false);
-                              signOut();
+                              // signOut();
                             }}
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100 mt-1"
                           >

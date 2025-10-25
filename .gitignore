@@ -43,10 +43,3 @@ next-env.d.ts
 
 # deployment credentials
 .vscode/sftp.json
-
-# pm2 logs
-/logs
-
-# playwright
-/test-results
-/playwright-report

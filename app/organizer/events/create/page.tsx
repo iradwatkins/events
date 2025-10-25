@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
-import { useSession } from "next-auth/react";
+// TESTING MODE: No authentication
+// import { useSession } from "next-auth/react";
 import { api } from "@/convex/_generated/api";
 import {
   ArrowLeft,
@@ -34,20 +35,13 @@ const EVENT_CATEGORIES = [
 
 export default function CreateEventPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  // TESTING MODE: No authentication
+  // const { data: session, status } = useSession();
+  const session = null;
+  const status = "unauthenticated";
   const currentUser = useQuery(api.users.queries.getCurrentUser);
-  const upsertUser = useMutation(api.users.mutations.upsertUserFromAuth);
 
-  // Auto-create user in Convex if authenticated but doesn't exist
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.email && currentUser === null) {
-      upsertUser({
-        email: session.user.email,
-        name: session.user.name || undefined,
-        image: session.user.image || undefined,
-      });
-    }
-  }, [status, session, currentUser, upsertUser]);
+  // TESTING MODE: Authentication disabled, user creation skipped
 
   const [step, setStep] = useState(1);
 
@@ -176,7 +170,7 @@ export default function CreateEventPage() {
 
       console.log("[CREATE EVENT] Submitting event data:", eventData);
       console.log("[CREATE EVENT] Session status:", status);
-      console.log("[CREATE EVENT] Session user:", session?.user);
+      // console.log("[CREATE EVENT] Session user:", session?.user);
       console.log("[CREATE EVENT] Current user from Convex:", currentUser);
 
       const eventId = await createEvent(eventData);

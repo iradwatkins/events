@@ -8,10 +8,11 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 
 export default function OrganizerEventsPage() {
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
+  // TESTING MODE: Commented out authentication check
+  // const currentUser = useQuery(api.users.queries.getCurrentUser);
   const events = useQuery(api.events.queries.getOrganizerEvents);
 
-  const isLoading = currentUser === undefined || events === undefined;
+  const isLoading = events === undefined;
 
   if (isLoading) {
     return (
@@ -21,18 +22,19 @@ export default function OrganizerEventsPage() {
     );
   }
 
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
-          <p className="text-gray-600 mb-4">Please sign in to access your organizer dashboard.</p>
-          <Link href="/login" className="text-blue-600 hover:underline font-medium">
-            Sign In
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // TESTING MODE: Skip auth check
+  // if (!currentUser) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  //       <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
+  //         <p className="text-gray-600 mb-4">Please sign in to access your organizer dashboard.</p>
+  //         <Link href="/login" className="text-blue-600 hover:underline font-medium">
+  //           Sign In
+  //         </Link>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">

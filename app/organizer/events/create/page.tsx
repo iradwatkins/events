@@ -68,6 +68,7 @@ export default function CreateEventPage() {
   // Details
   const [capacity, setCapacity] = useState("");
   const [uploadedImageId, setUploadedImageId] = useState<Id<"_storage"> | null>(null);
+  const [doorPrice, setDoorPrice] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -164,6 +165,7 @@ export default function CreateEventPage() {
           country,
         },
         capacity: capacity ? parseInt(capacity) : undefined,
+        doorPrice: doorPrice || undefined,
         imageUrl: undefined,
         images: uploadedImageId ? [uploadedImageId] : [],
       };
@@ -513,6 +515,25 @@ export default function CreateEventPage() {
                   Maximum number of attendees
                 </p>
               </div>
+
+              {/* Door Price - Only for FREE_EVENT */}
+              {eventType === "FREE_EVENT" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Door Price (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={doorPrice}
+                    onChange={(e) => setDoorPrice(e.target.value)}
+                    placeholder="e.g., $20 at the door, Free, Donation"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Price information for attendees (e.g., "$20 at the door" or "Free admission")
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

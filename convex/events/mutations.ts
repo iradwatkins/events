@@ -26,6 +26,7 @@ export const createEvent = mutation({
       country: v.string(),
     }),
     capacity: v.optional(v.number()),
+    doorPrice: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     images: v.optional(v.array(v.id("_storage"))),
   },
@@ -85,6 +86,7 @@ export const createEvent = mutation({
         endDate: args.endDate,
         timezone: args.timezone,
         location: args.location,
+        doorPrice: args.doorPrice,
         imageUrl: args.imageUrl,
         images: args.images || [],
         // TESTING MODE: Create events as PUBLISHED so they appear on public homepage immediately

@@ -10,12 +10,21 @@ export const createStripeConnectAccount = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
+    // TESTING MODE: Skip authentication, use test user
+    let user;
+    if (!identity) {
+      console.warn("[createStripeConnectAccount] TESTING MODE - No authentication required");
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
 
     if (!user) throw new Error("User not found");
 

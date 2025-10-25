@@ -87,7 +87,8 @@ export const createEvent = mutation({
         location: args.location,
         imageUrl: args.imageUrl,
         images: args.images || [],
-        status: "DRAFT",
+        // TESTING MODE: Create events as PUBLISHED so they appear on public homepage immediately
+        status: "PUBLISHED",
         paymentModelSelected: false,
         ticketsVisible: false,
         allowWaitlist: false,

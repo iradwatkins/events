@@ -17,10 +17,19 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ImageUpload } from "@/components/upload/ImageUpload";
+import { TicketTierEditor } from "@/components/events/TicketTierEditor";
 import { getTimezoneFromLocation, getTimezoneName } from "@/lib/timezone";
 import { Id } from "@/convex/_generated/dataModel";
 
 type EventType = "TICKETED_EVENT" | "FREE_EVENT" | "SAVE_THE_DATE";
+
+interface TicketTier {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  quantity: string;
+}
 
 const EVENT_CATEGORIES = [
   "Steppers Set",
@@ -70,6 +79,9 @@ export default function CreateEventPage() {
   const [uploadedImageId, setUploadedImageId] = useState<Id<"_storage"> | null>(null);
   const [doorPrice, setDoorPrice] = useState("");
 
+  // Ticket Tiers (for TICKETED_EVENT)
+  const [ticketTiers, setTicketTiers] = useState<TicketTier[]>([]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Auto-detect timezone when city or state changes
@@ -82,6 +94,7 @@ export default function CreateEventPage() {
   }, [city, state]);
 
   const createEvent = useMutation(api.events.mutations.createEvent);
+  const createTicketTier = useMutation(api.tickets.mutations.createTicketTier);
   const testAuth = useMutation(api.debug.testAuth);
 
   // Debug: Test authentication
@@ -140,6 +153,31 @@ export default function CreateEventPage() {
     if (!city) missingFields.push("City");
     if (!state) missingFields.push("State");
 
+    // Validate ticket tiers for TICKETED_EVENT
+    if (eventType === "TICKETED_EVENT") {
+      if (ticketTiers.length === 0) {
+        alert("Please add at least one ticket tier for your ticketed event.");
+        return;
+      }
+
+      // Validate each tier
+      for (let i = 0; i < ticketTiers.length; i++) {
+        const tier = ticketTiers[i];
+        if (!tier.name) {
+          alert(`Ticket Tier ${i + 1}: Please enter a tier name`);
+          return;
+        }
+        if (!tier.price || parseFloat(tier.price) <= 0) {
+          alert(`Ticket Tier ${i + 1}: Please enter a valid price greater than $0`);
+          return;
+        }
+        if (!tier.quantity || parseInt(tier.quantity) <= 0) {
+          alert(`Ticket Tier ${i + 1}: Please enter a valid quantity greater than 0`);
+          return;
+        }
+      }
+    }
+
     if (missingFields.length > 0) {
       alert(`Please fill in the following required fields:\n\n${missingFields.map(f => `• ${f}`).join('\n')}`);
       return;
@@ -183,6 +221,26 @@ export default function CreateEventPage() {
 
       if (!eventId) {
         throw new Error("No event ID returned from server");
+      }
+
+      // Create ticket tiers for TICKETED_EVENT
+      if (eventType === "TICKETED_EVENT" && ticketTiers.length > 0) {
+        console.log("[CREATE EVENT] Creating", ticketTiers.length, "ticket tiers...");
+
+        for (const tier of ticketTiers) {
+          const priceCents = Math.round(parseFloat(tier.price) * 100);
+          const quantity = parseInt(tier.quantity);
+
+          await createTicketTier({
+            eventId,
+            name: tier.name,
+            description: tier.description || undefined,
+            price: priceCents,
+            quantity,
+          });
+        }
+
+        console.log("[CREATE EVENT] All ticket tiers created successfully");
       }
 
       // Keep spinning while redirecting
@@ -534,6 +592,16 @@ export default function CreateEventPage() {
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Price information for attendees (e.g., "$20 at the door" or "Free admission")
+                  </p>
+                </div>
+              )}
+
+              {/* Ticket Tiers - Only for TICKETED_EVENT */}
+              {eventType === "TICKETED_EVENT" && (
+                <div>
+                  <TicketTierEditor tiers={ticketTiers} onChange={setTicketTiers} />
+                  <p className="text-xs text-gray-500 mt-2">
+                    * At least one ticket tier is required for ticketed events
                   </p>
                 </div>
               )}

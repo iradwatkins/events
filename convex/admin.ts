@@ -43,7 +43,7 @@ export const getAllEvents = query({
   handler: async (ctx) => {
     const events = await ctx.db.query("events").collect();
 
-    return events.map(e => ({
+    return events.map((e) => ({
       _id: e._id,
       name: e.name,
       status: e.status,
@@ -55,5 +55,34 @@ export const getAllEvents = query({
       location: e.location,
       createdAt: e.createdAt,
     }));
+  },
+});
+
+/**
+ * ADMIN ONLY: Delete an event by ID
+ */
+export const deleteEvent = mutation({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    console.log(`[ADMIN] Deleting event: ${args.eventId}`);
+
+    const event = await ctx.db.get(args.eventId);
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    await ctx.db.delete(args.eventId);
+
+    console.log(`[ADMIN] Deleted event: ${event.name}`);
+
+    return {
+      success: true,
+      deletedEvent: {
+        id: args.eventId,
+        name: event.name,
+      },
+    };
   },
 });

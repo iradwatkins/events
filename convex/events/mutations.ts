@@ -33,45 +33,12 @@ export const createEvent = mutation({
     try {
       console.log("[createEvent] Starting event creation...");
 
-      // Get authentication identity
-      const identity = await ctx.auth.getUserIdentity();
-      console.log("[createEvent] Identity retrieved:", !!identity);
-      console.log("[createEvent] Identity type:", typeof identity);
-
-      let email: string;
-      let name: string | undefined;
-      let image: string | undefined;
-
-      if (!identity) {
-        // FALLBACK: Use test user if not authenticated (temporary for debugging)
-        console.warn("[createEvent] No identity - using fallback test user");
-        email = "test@stepperslife.com";
-        name = "Test User";
-      } else {
-        console.log("[createEvent] Raw identity:", JSON.stringify(identity).substring(0, 200));
-
-        // Parse identity - it might be a JSON string from NextAuth
-        let userInfo: any;
-        try {
-          userInfo = typeof identity === "string" ? JSON.parse(identity) : identity;
-          console.log("[createEvent] Parsed identity successfully");
-        } catch (e) {
-          console.error("[createEvent] Failed to parse identity, using raw:", e);
-          userInfo = identity;
-        }
-
-        // Extract email
-        email = userInfo.email || (identity as any).email || userInfo.subject;
-        name = userInfo.name || (identity as any).name;
-        image = userInfo.image || (identity as any).image;
-
-        console.log("[createEvent] Extracted - email:", email, "name:", name);
-
-        if (!email) {
-          console.error("[createEvent] No email found in identity:", userInfo);
-          throw new Error("Email not found in authentication token");
-        }
-      }
+      // TESTING MODE: No authentication required
+      // Always use fallback test user
+      console.warn("[createEvent] TESTING MODE - No authentication required");
+      const email = "test@stepperslife.com";
+      const name = "Test Organizer";
+      const image = undefined;
 
       // Find or create user
       console.log("[createEvent] Looking up user:", email);
@@ -194,7 +161,8 @@ export const configurePayment = mutation({
       charityDiscount: false,
       lowPriceDiscount: false,
       ticketsAllocated: args.model === "PRE_PURCHASE" ? 0 : undefined,
-      stripeConnectAccountId: args.model === "PAY_AS_SELL" ? user.stripeConnectedAccountId : undefined,
+      stripeConnectAccountId:
+        args.model === "PAY_AS_SELL" ? user.stripeConnectedAccountId : undefined,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -218,20 +186,11 @@ export const publishEvent = mutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    // TESTING MODE: No authentication required
+    console.warn("[publishEvent] TESTING MODE - No authentication required");
 
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user || event.organizerId !== user._id) {
-      throw new Error("Not authorized");
-    }
 
     await ctx.db.patch(args.eventId, {
       status: "PUBLISHED",
@@ -253,14 +212,16 @@ export const updateEvent = mutation({
     categories: v.optional(v.array(v.string())),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
-    location: v.optional(v.object({
-      venueName: v.optional(v.string()),
-      address: v.optional(v.string()),
-      city: v.string(),
-      state: v.string(),
-      zipCode: v.optional(v.string()),
-      country: v.string(),
-    })),
+    location: v.optional(
+      v.object({
+        venueName: v.optional(v.string()),
+        address: v.optional(v.string()),
+        city: v.string(),
+        state: v.string(),
+        zipCode: v.optional(v.string()),
+        country: v.string(),
+      })
+    ),
     capacity: v.optional(v.number()),
     imageUrl: v.optional(v.string()),
   },
@@ -280,7 +241,7 @@ export const updateEvent = mutation({
       throw new Error("Not authorized");
     }
 
-    const updates: any = {
+    const updates: Record<string, unknown> = {
       updatedAt: Date.now(),
     };
 

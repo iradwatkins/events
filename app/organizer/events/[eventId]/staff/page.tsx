@@ -226,7 +226,7 @@ export default function StaffManagementPage() {
                           ) : (
                             <>
                               <DollarSign className="w-4 h-4" />
-                              ${(staff.commissionValue / 100).toFixed(2)} per ticket
+                              ${((staff.commissionValue || 0) / 100).toFixed(2)} per ticket
                             </>
                           )}
                         </div>

@@ -13,14 +13,14 @@ export const getPublishedEvents = query({
   handler: async (ctx, args) => {
     let eventsQuery = ctx.db
       .query("events")
-      .withIndex("by_published", (q) => q.eq("status", "PUBLISHED"))
+      .withIndex("by_status", (q) => q.eq("status", "PUBLISHED"))
       .order("desc");
 
     let events = await eventsQuery.collect();
 
     // Filter by category if specified
     if (args.category) {
-      events = events.filter((e) => e.categories.includes(args.category!));
+      events = events.filter((e) => e.categories?.includes(args.category!));
     }
 
     // Filter by search term if specified
@@ -30,7 +30,7 @@ export const getPublishedEvents = query({
         (e) =>
           e.name.toLowerCase().includes(searchLower) ||
           e.description.toLowerCase().includes(searchLower) ||
-          e.location.city.toLowerCase().includes(searchLower)
+          (e.location && typeof e.location === "object" && e.location.city && e.location.city.toLowerCase().includes(searchLower))
       );
     }
 
@@ -39,7 +39,25 @@ export const getPublishedEvents = query({
       events = events.slice(0, args.limit);
     }
 
-    return events;
+    // Convert storage IDs to URLs for images
+    const eventsWithImageUrls = await Promise.all(
+      events.map(async (event) => {
+        let imageUrl = event.imageUrl;
+
+        // If no imageUrl but has images array with storage IDs
+        if (!imageUrl && event.images && event.images.length > 0) {
+          const url = await ctx.storage.getUrl(event.images[0]);
+          imageUrl = url ?? undefined;
+        }
+
+        return {
+          ...event,
+          imageUrl,
+        };
+      })
+    );
+
+    return eventsWithImageUrls;
   },
 });
 
@@ -94,12 +112,23 @@ export const getPublicEventDetails = query({
         .collect();
     }
 
+    // Get ticket tiers if visible
+    let ticketTiers = null;
+    if (event.ticketsVisible && paymentConfig?.isActive) {
+      ticketTiers = await ctx.db
+        .query("ticketTiers")
+        .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+        .filter((q) => q.eq(q.field("isActive"), true))
+        .collect();
+    }
+
     // Get organizer info
-    const organizer = await ctx.db.get(event.organizerId);
+    const organizer = event.organizerId ? await ctx.db.get(event.organizerId) : null;
 
     return {
       ...event,
       tickets,
+      ticketTiers,
       organizer: {
         name: organizer?.name,
         email: organizer?.email,
@@ -129,9 +158,9 @@ export const searchEvents = query({
       (e) =>
         e.name.toLowerCase().includes(searchLower) ||
         e.description.toLowerCase().includes(searchLower) ||
-        e.location.city.toLowerCase().includes(searchLower) ||
-        e.location.state.toLowerCase().includes(searchLower) ||
-        e.categories.some((c) => c.toLowerCase().includes(searchLower))
+        (e.location && typeof e.location === "object" && e.location.city && e.location.city.toLowerCase().includes(searchLower)) ||
+        (e.location && typeof e.location === "object" && e.location.state && e.location.state.toLowerCase().includes(searchLower)) ||
+        (e.categories && e.categories.some((c) => c.toLowerCase().includes(searchLower)))
     );
 
     const limited = args.limit ? filtered.slice(0, args.limit) : filtered;
@@ -154,7 +183,7 @@ export const getEventsByCategory = query({
       .withIndex("by_status", (q) => q.eq("status", "PUBLISHED"))
       .collect();
 
-    const filtered = allEvents.filter((e) => e.categories.includes(args.category));
+    const filtered = allEvents.filter((e) => e.categories?.includes(args.category));
 
     const limited = args.limit ? filtered.slice(0, args.limit) : filtered;
 
@@ -181,13 +210,13 @@ export const getEventsByLocation = query({
 
     if (args.city) {
       filtered = filtered.filter(
-        (e) => e.location.city.toLowerCase() === args.city!.toLowerCase()
+        (e) => e.location && typeof e.location === "object" && e.location.city && e.location.city.toLowerCase() === args.city!.toLowerCase()
       );
     }
 
     if (args.state) {
       filtered = filtered.filter(
-        (e) => e.location.state.toLowerCase() === args.state!.toLowerCase()
+        (e) => e.location && typeof e.location === "object" && e.location.state && e.location.state.toLowerCase() === args.state!.toLowerCase()
       );
     }
 
@@ -213,8 +242,8 @@ export const getFeaturedEvents = query({
       .collect();
 
     const upcoming = events
-      .filter((e) => e.startDate >= Date.now())
-      .sort((a, b) => b.socialShareCount - a.socialShareCount)
+      .filter((e) => e.startDate && e.startDate >= Date.now())
+      .sort((a, b) => (b.socialShareCount || 0) - (a.socialShareCount || 0))
       .slice(0, args.limit || 10);
 
     return upcoming;
@@ -236,7 +265,7 @@ export const getCategories = query({
     const categoryCounts = new Map<string, number>();
 
     events.forEach((event) => {
-      event.categories.forEach((category) => {
+      event.categories?.forEach((category) => {
         categoryCounts.set(category, (categoryCounts.get(category) || 0) + 1);
       });
     });

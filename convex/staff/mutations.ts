@@ -198,6 +198,8 @@ export const inviteStaff = mutation({
       eventId: args.eventId,
       organizerId: organizer._id,
       staffUserId: staffUser._id,
+      email: args.staffEmail,
+      name: args.staffName,
       staffEmail: args.staffEmail,
       staffName: args.staffName,
       role: args.role,
@@ -207,6 +209,8 @@ export const inviteStaff = mutation({
       invitedAt: Date.now(),
       ticketsSold: 0,
       referralCode,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     });
 
     // TODO: Send invitation email to staff
@@ -388,7 +392,7 @@ export const recordStaffSale = mutation({
     }
 
     // Calculate commission
-    const commissionAmount = Math.round((args.saleAmount * staff.commissionPercent) / 100);
+    const commissionAmount = Math.round((args.saleAmount * (staff.commissionPercent || 0)) / 100);
 
     // Create staff sale record
     await ctx.db.insert("staffSales", {
@@ -399,7 +403,7 @@ export const recordStaffSale = mutation({
       ticketsSold: args.ticketsSold,
       saleAmount: args.saleAmount,
       commissionAmount,
-      commissionPercent: staff.commissionPercent,
+      commissionPercent: staff.commissionPercent || 0,
       soldAt: Date.now(),
     });
 

@@ -223,11 +223,11 @@ export default function CheckoutPage() {
             >
               <h3 className="font-semibold text-gray-900 mb-2">{eventDetails.name}</h3>
               <p className="text-sm text-gray-600">
-                {format(new Date(eventDetails.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                {eventDetails.startDate && format(new Date(eventDetails.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
               </p>
               <p className="text-sm text-gray-600 mt-1">
-                {eventDetails.location.venueName && `${eventDetails.location.venueName}, `}
-                {eventDetails.location.city}, {eventDetails.location.state}
+                {eventDetails.location && typeof eventDetails.location === "object" && eventDetails.location.venueName && `${eventDetails.location.venueName}, `}
+                {eventDetails.location && typeof eventDetails.location === "object" && eventDetails.location.city}, {eventDetails.location && typeof eventDetails.location === "object" && eventDetails.location.state}
               </p>
             </motion.div>
             {!showPayment ? (

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Calendar, MapPin, Ticket, ChevronRight } from "lucide-react";
-import { format } from "date-fns";
+import { formatEventDateTime } from "@/lib/date-format";
 
 interface ListViewProps {
   events: any[];
@@ -67,7 +67,7 @@ export function ListView({ events }: ListViewProps) {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="w-4 h-4 flex-shrink-0" />
-                  <span>{format(new Date(event.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
+                  <span>{formatEventDateTime(event.startDate, event.timezone)}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-gray-600">

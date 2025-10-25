@@ -28,7 +28,7 @@ export function SquarePaymentForm({
 
   useEffect(() => {
     const initializeSquare = async () => {
-      if (!window.Square) {
+      if (!(window as any).Square) {
         const script = document.createElement("script");
         script.src = "https://sandbox.web.squarecdn.com/v1/square.js";
         script.async = true;
@@ -41,7 +41,7 @@ export function SquarePaymentForm({
 
     const initializePaymentForm = async () => {
       try {
-        const payments = window.Square.payments(
+        const payments = (window as any).Square.payments(
           process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID!,
           process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!
         );
@@ -168,9 +168,5 @@ export function SquarePaymentForm({
   );
 }
 
-// Extend window type for Square
-declare global {
-  interface Window {
-    Square: any;
-  }
-}
+// Extend window type for Square - handled via type assertion where needed
+// Square SDK is loaded dynamically via script tag

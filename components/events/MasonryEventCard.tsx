@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Calendar, Ticket } from "lucide-react";
-import { format } from "date-fns";
+import { formatEventDate, formatEventTime } from "@/lib/date-format";
 import { motion } from "framer-motion";
 
 interface MasonryEventCardProps {
@@ -10,6 +10,7 @@ interface MasonryEventCardProps {
     _id: string;
     name: string;
     startDate: number;
+    timezone: string;
     imageUrl?: string;
     images: string[];
     eventType: string;
@@ -79,7 +80,7 @@ export function MasonryEventCard({ event }: MasonryEventCardProps) {
           <div className="flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm">
             <Calendar className="w-4 h-4 text-gray-700" />
             <span className="text-sm font-semibold text-gray-900">
-              {format(new Date(event.startDate), "MMM d, yyyy")}
+              {formatEventDate(event.startDate, event.timezone)}
             </span>
           </div>
         </motion.div>

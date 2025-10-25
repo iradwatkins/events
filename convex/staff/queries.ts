@@ -155,11 +155,13 @@ export const getStaffLeaderboard = query({
     const event = await ctx.db.get(args.eventId);
     if (!event) return [];
 
-    const globalStaff = await ctx.db
-      .query("eventStaff")
-      .withIndex("by_organizer", (q) => q.eq("organizerId", event.organizerId))
-      .filter((q) => q.eq(q.field("eventId"), undefined))
-      .collect();
+    const globalStaff = event.organizerId
+      ? await ctx.db
+          .query("eventStaff")
+          .withIndex("by_organizer", (q) => q.eq("organizerId", event.organizerId!))
+          .filter((q) => q.eq(q.field("eventId"), undefined))
+          .collect()
+      : [];
 
     const combinedStaff = [...allStaff, ...globalStaff];
 
@@ -251,7 +253,7 @@ export const getStaffAnalytics = query({
       totalTickets,
       averageCommissionPercent:
         allStaff.length > 0
-          ? allStaff.reduce((sum, s) => sum + s.commissionPercent, 0) / allStaff.length
+          ? allStaff.reduce((sum, s) => sum + (s.commissionPercent || 0), 0) / allStaff.length
           : 0,
     };
   },

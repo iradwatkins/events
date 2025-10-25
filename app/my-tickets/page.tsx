@@ -133,7 +133,7 @@ export default function MyTicketsPage() {
               <div className="space-y-4">
                 {upcomingEvents.map((item, index) => (
                   <motion.div
-                    key={item.order._id}
+                    key={item._id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 * index }}
@@ -156,7 +156,7 @@ export default function MyTicketsPage() {
               <div className="space-y-4">
                 {pastEvents.map((item, index) => (
                   <motion.div
-                    key={item.order._id}
+                    key={item._id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 * index }}
@@ -174,16 +174,14 @@ export default function MyTicketsPage() {
 }
 
 interface EventTicketCardProps {
-  item: {
-    event: any;
-    order: any;
-    tickets: any[];
-  };
+  item: any;
   isUpcoming: boolean;
 }
 
 function EventTicketCard({ item, isUpcoming }: EventTicketCardProps) {
-  const { event, order, tickets } = item;
+  const event = item;
+  const tickets = [];
+  const totalTickets = item.totalTickets || 0;
 
   const handleDownloadTickets = () => {
     // TODO: Implement PDF ticket download
@@ -253,35 +251,14 @@ function EventTicketCard({ item, isUpcoming }: EventTicketCardProps) {
           <div className="bg-gray-50 rounded-lg p-4 mb-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-gray-900">
-                Order #{order.orderNumber}
+                Your Tickets
               </span>
               <span className="text-sm text-gray-600">
-                {tickets.length} {tickets.length === 1 ? "ticket" : "tickets"}
+                {totalTickets} {totalTickets === 1 ? "ticket" : "tickets"}
               </span>
             </div>
 
-            <div className="space-y-1">
-              {tickets.slice(0, 3).map((ticket: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-700">{ticket.ticketType}</span>
-                  <span className="text-gray-600">
-                    ${(ticket.price / 100).toFixed(2)}
-                  </span>
-                </div>
-              ))}
-              {tickets.length > 3 && (
-                <p className="text-xs text-gray-500 mt-1">
-                  +{tickets.length - 3} more {tickets.length - 3 === 1 ? "ticket" : "tickets"}
-                </p>
-              )}
-            </div>
-
-            <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between">
-              <span className="text-sm font-semibold text-gray-900">Total</span>
-              <span className="text-sm font-bold text-gray-900">
-                ${(order.totalAmount / 100).toFixed(2)}
-              </span>
-            </div>
+            {/* Removed individual ticket display for now - will be re-added when query structure is updated */}
           </div>
 
           {/* Actions */}
@@ -306,10 +283,10 @@ function EventTicketCard({ item, isUpcoming }: EventTicketCardProps) {
             )}
 
             <Link
-              href={`/orders/${order._id}`}
+              href={`/events/${event._id}`}
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
             >
-              View Order Details
+              View Event Details
             </Link>
           </div>
         </div>

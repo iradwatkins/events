@@ -99,8 +99,8 @@ export default function OrganizerEventsPage() {
         ) : (
           <div className="space-y-4">
             {events.map((event, index) => {
-              const isUpcoming = event.startDate > Date.now();
-              const isPast = event.endDate < Date.now();
+              const isUpcoming = event.startDate ? event.startDate > Date.now() : false;
+              const isPast = event.endDate ? event.endDate < Date.now() : false;
 
               return (
                 <motion.div
@@ -135,13 +135,17 @@ export default function OrganizerEventsPage() {
                             {event.name}
                           </h3>
                           <div className="flex items-center gap-4 text-sm text-gray-600">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {format(new Date(event.startDate), "MMM d, yyyy")}
-                            </span>
-                            <span className="px-2 py-1 text-xs font-semibold bg-gray-100 rounded-full">
-                              {event.eventType.replace("_", " ")}
-                            </span>
+                            {event.startDate && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
+                                {format(new Date(event.startDate), "MMM d, yyyy")}
+                              </span>
+                            )}
+                            {event.eventType && (
+                              <span className="px-2 py-1 text-xs font-semibold bg-gray-100 rounded-full">
+                                {event.eventType.replace("_", " ")}
+                              </span>
+                            )}
                             {isPast && (
                               <span className="px-2 py-1 text-xs font-semibold bg-gray-200 text-gray-600 rounded-full">
                                 Ended

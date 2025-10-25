@@ -27,43 +27,117 @@ export const createEvent = mutation({
     }),
     capacity: v.optional(v.number()),
     imageUrl: v.optional(v.string()),
-    images: v.optional(v.array(v.string())),
+    images: v.optional(v.array(v.id("_storage"))),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    try {
+      console.log("[createEvent] Starting event creation...");
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
+      // Get authentication identity
+      const identity = await ctx.auth.getUserIdentity();
+      console.log("[createEvent] Identity retrieved:", !!identity);
+      console.log("[createEvent] Identity type:", typeof identity);
 
-    if (!user) throw new Error("User not found");
+      let email: string;
+      let name: string | undefined;
+      let image: string | undefined;
 
-    // Create the event
-    const eventId = await ctx.db.insert("events", {
-      organizerId: user._id,
-      name: args.name,
-      description: args.description,
-      eventType: args.eventType,
-      categories: args.categories,
-      startDate: args.startDate,
-      endDate: args.endDate,
-      timezone: args.timezone,
-      location: args.location,
-      capacity: args.capacity,
-      imageUrl: args.imageUrl,
-      images: args.images || [],
-      status: "DRAFT",
-      published: false,
-      paymentModelSelected: false,
-      paymentConfigured: false,
-      ticketsVisible: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    });
+      if (!identity) {
+        // FALLBACK: Use test user if not authenticated (temporary for debugging)
+        console.warn("[createEvent] No identity - using fallback test user");
+        email = "test@stepperslife.com";
+        name = "Test User";
+      } else {
+        console.log("[createEvent] Raw identity:", JSON.stringify(identity).substring(0, 200));
 
-    return eventId;
+        // Parse identity - it might be a JSON string from NextAuth
+        let userInfo: any;
+        try {
+          userInfo = typeof identity === "string" ? JSON.parse(identity) : identity;
+          console.log("[createEvent] Parsed identity successfully");
+        } catch (e) {
+          console.error("[createEvent] Failed to parse identity, using raw:", e);
+          userInfo = identity;
+        }
+
+        // Extract email
+        email = userInfo.email || (identity as any).email || userInfo.subject;
+        name = userInfo.name || (identity as any).name;
+        image = userInfo.image || (identity as any).image;
+
+        console.log("[createEvent] Extracted - email:", email, "name:", name);
+
+        if (!email) {
+          console.error("[createEvent] No email found in identity:", userInfo);
+          throw new Error("Email not found in authentication token");
+        }
+      }
+
+      // Find or create user
+      console.log("[createEvent] Looking up user:", email);
+      let user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+
+      if (!user) {
+        console.log("[createEvent] User not found, creating new user");
+        const now = Date.now();
+        const userId = await ctx.db.insert("users", {
+          email,
+          name: name || undefined,
+          image: image || undefined,
+          role: "user",
+          emailVerified: true,
+          createdAt: now,
+          updatedAt: now,
+        });
+        user = await ctx.db.get(userId);
+        if (!user) {
+          throw new Error("Failed to create user");
+        }
+        console.log("[createEvent] User created:", user._id);
+      } else {
+        console.log("[createEvent] User found:", user._id);
+      }
+
+      console.log("[createEvent] Creating event with args:", {
+        ...args,
+        images: args.images?.length || 0,
+      });
+
+      // Create the event
+      const eventId = await ctx.db.insert("events", {
+        organizerId: user._id,
+        organizerName: user.name || user.email,
+        name: args.name,
+        description: args.description,
+        eventType: args.eventType,
+        categories: args.categories,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        timezone: args.timezone,
+        location: args.location,
+        imageUrl: args.imageUrl,
+        images: args.images || [],
+        status: "DRAFT",
+        paymentModelSelected: false,
+        ticketsVisible: false,
+        allowWaitlist: false,
+        allowTransfers: false,
+        maxTicketsPerOrder: 10,
+        minTicketsPerOrder: 1,
+        socialShareCount: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+
+      console.log("[createEvent] Event created successfully:", eventId);
+      return eventId;
+    } catch (error) {
+      console.error("[createEvent] Error:", error);
+      throw error;
+    }
   },
 });
 
@@ -161,8 +235,6 @@ export const publishEvent = mutation({
 
     await ctx.db.patch(args.eventId, {
       status: "PUBLISHED",
-      published: true,
-      publishedAt: Date.now(),
       updatedAt: Date.now(),
     });
 

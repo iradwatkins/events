@@ -7,11 +7,9 @@ import { signIn } from "next-auth/react";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-function LoginForm() {
+function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
@@ -22,28 +20,6 @@ function LoginForm() {
     } catch (error) {
       console.error("Google sign in error:", error);
       setMessage("Failed to sign in with Google");
-      setIsLoading(false);
-    }
-  };
-
-  const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage("");
-    try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        callbackUrl,
-        redirect: true,
-      });
-      if (result?.error) {
-        setMessage("Invalid email or password");
-        setIsLoading(false);
-      }
-    } catch (error) {
-      console.error("Sign in error:", error);
-      setMessage("Failed to sign in");
       setIsLoading(false);
     }
   };
@@ -61,7 +37,7 @@ function LoginForm() {
             Back to Home
           </Link>
 
-          {/* Login Card */}
+          {/* Sign Up Card */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             {/* Header */}
             <div className="text-center mb-8">
@@ -77,8 +53,8 @@ function LoginForm() {
                 <span className="text-2xl font-bold text-gray-900">SteppersLife Events</span>
               </Link>
 
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-              <p className="text-gray-600">Sign in to manage your events and tickets</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Your Account</h1>
+              <p className="text-gray-600">Join SteppersLife to manage events and tickets</p>
             </div>
 
             {/* Message */}
@@ -87,57 +63,6 @@ function LoginForm() {
                 {message}
               </div>
             )}
-
-            {/* Email/Password Sign In Form */}
-            <form onSubmit={handleEmailSignIn} className="space-y-4 mb-6">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-              >
-                {isLoading ? "Signing in..." : "Sign In"}
-              </button>
-            </form>
-
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
-              </div>
-            </div>
 
             {/* Google Sign In */}
             <button
@@ -169,15 +94,13 @@ function LoginForm() {
             </button>
 
             <div className="mt-6 text-center text-sm text-gray-500">
-              <p className="text-xs">
-                Test accounts: bobbygwatkins@gmail.com or ira@irawatkins.com (password: pass)
-              </p>
+              <p>Additional sign-up methods coming soon</p>
             </div>
           </div>
 
           {/* Footer */}
           <p className="text-center text-sm text-gray-500 mt-6">
-            By signing in, you agree to our{" "}
+            By signing up, you agree to our{" "}
             <Link href="/terms" className="text-blue-600 hover:underline">
               Terms of Service
             </Link>{" "}
@@ -192,10 +115,10 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+export default function SignUpPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
-      <LoginForm />
+      <SignUpForm />
     </Suspense>
   );
 }

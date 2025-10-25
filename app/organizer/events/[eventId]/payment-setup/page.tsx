@@ -122,16 +122,16 @@ export default function PaymentSetupPage() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="font-semibold text-gray-900">Current Model:</p>
               <p className="text-lg text-blue-600 font-bold mt-1">
-                {paymentConfig.model === "PRE_PURCHASE" ? "Pre-Purchase Credits" : "Pay-As-You-Sell"}
+                {paymentConfig.paymentModel === "PRE_PURCHASE" ? "Pre-Purchase Credits" : "Pay-As-You-Sell"}
               </p>
 
-              {paymentConfig.model === "PRE_PURCHASE" && (
+              {paymentConfig.paymentModel === "PRE_PURCHASE" && (
                 <p className="text-sm text-gray-600 mt-2">
                   Cost: $0.30 per ticket
                 </p>
               )}
 
-              {paymentConfig.model === "PAY_AS_SELL" && (
+              {paymentConfig.paymentModel === "PAY_AS_SELL" && (
                 <p className="text-sm text-gray-600 mt-2">
                   Platform Fee: 3.7% + $1.79 + Stripe processing (2.9% + $0.30)
                 </p>

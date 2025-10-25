@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, MapPin, Ticket } from "lucide-react";
-import { format } from "date-fns";
+import { Calendar, MapPin, Ticket, Clock } from "lucide-react";
+import { formatEventDate, formatEventTime } from "@/lib/date-format";
 
 interface EventCardProps {
   event: {
@@ -10,6 +10,7 @@ interface EventCardProps {
     name: string;
     description: string;
     startDate: number;
+    timezone: string;
     location: {
       city: string;
       state: string;
@@ -62,10 +63,14 @@ export function EventCard({ event }: EventCardProps) {
             {event.name}
           </h3>
 
-          {/* Date */}
+          {/* Date & Time - Always in EVENT's timezone */}
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Calendar className="w-4 h-4" />
-            <span>{format(new Date(event.startDate), "MMM d, yyyy")}</span>
+            <span>{formatEventDate(event.startDate, event.timezone)}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Clock className="w-4 h-4" />
+            <span>{formatEventTime(event.startDate, event.timezone)}</span>
           </div>
 
           {/* Location */}

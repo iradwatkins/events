@@ -8,13 +8,15 @@
  * @module
  */
 
-import type * as auth from "../auth.js";
+import type * as admin from "../admin.js";
 import type * as clearOldData from "../clearOldData.js";
 import type * as credits_mutations from "../credits/mutations.js";
 import type * as credits_queries from "../credits/queries.js";
+import type * as debug from "../debug.js";
 import type * as events_mutations from "../events/mutations.js";
 import type * as events_queries from "../events/queries.js";
-import type * as http from "../http.js";
+import type * as files_mutations from "../files/mutations.js";
+import type * as files_queries from "../files/queries.js";
 import type * as paymentConfig_mutations from "../paymentConfig/mutations.js";
 import type * as paymentConfig_queries from "../paymentConfig/queries.js";
 import type * as payments_mutations from "../payments/mutations.js";
@@ -25,6 +27,7 @@ import type * as staff_mutations from "../staff/mutations.js";
 import type * as staff_queries from "../staff/queries.js";
 import type * as tickets_mutations from "../tickets/mutations.js";
 import type * as tickets_queries from "../tickets/queries.js";
+import type * as users_mutations from "../users/mutations.js";
 import type * as users_queries from "../users/queries.js";
 
 import type {
@@ -42,13 +45,15 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  auth: typeof auth;
+  admin: typeof admin;
   clearOldData: typeof clearOldData;
   "credits/mutations": typeof credits_mutations;
   "credits/queries": typeof credits_queries;
+  debug: typeof debug;
   "events/mutations": typeof events_mutations;
   "events/queries": typeof events_queries;
-  http: typeof http;
+  "files/mutations": typeof files_mutations;
+  "files/queries": typeof files_queries;
   "paymentConfig/mutations": typeof paymentConfig_mutations;
   "paymentConfig/queries": typeof paymentConfig_queries;
   "payments/mutations": typeof payments_mutations;
@@ -59,6 +64,7 @@ declare const fullApi: ApiFromModules<{
   "staff/queries": typeof staff_queries;
   "tickets/mutations": typeof tickets_mutations;
   "tickets/queries": typeof tickets_queries;
+  "users/mutations": typeof users_mutations;
   "users/queries": typeof users_queries;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

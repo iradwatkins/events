@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -35,8 +35,10 @@ export default function EventDashboardPage() {
 
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
+  const publishEvent = useMutation(api.events.mutations.publishEvent);
   const statistics = useQuery(api.events.queries.getEventStatistics, { eventId });
   const ticketTiers = useQuery(api.events.queries.getEventTicketTiers, { eventId });
   const orders = useQuery(api.events.queries.getEventOrders, { eventId });
@@ -68,8 +70,8 @@ export default function EventDashboardPage() {
   }
 
   const eventUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/events/${eventId}`;
-  const isUpcoming = event.startDate > Date.now();
-  const isPast = event.startDate < Date.now();
+  const isUpcoming = event.startDate ? event.startDate > Date.now() : false;
+  const isPast = event.startDate ? event.startDate < Date.now() : false;
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -86,6 +88,23 @@ export default function EventDashboardPage() {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(eventUrl);
       alert("Event link copied to clipboard!");
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!confirm("Are you sure you want to publish this event? It will be visible to the public.")) {
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      await publishEvent({ eventId });
+      alert("Event published successfully! It will now appear on the homepage.");
+      router.refresh();
+    } catch (error: any) {
+      alert(error.message || "Failed to publish event");
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -124,21 +143,35 @@ export default function EventDashboardPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>{format(new Date(event.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>
-                    {event.location.venueName && `${event.location.venueName}, `}
-                    {event.location.city}, {event.location.state}
-                  </span>
-                </div>
+                {event.startDate && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>{format(new Date(event.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
+                  </div>
+                )}
+                {event.location && typeof event.location === "object" && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>
+                      {event.location.venueName && `${event.location.venueName}, `}
+                      {event.location.city}, {event.location.state}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="flex items-center gap-2">
+              {event.status === "DRAFT" && (
+                <button
+                  onClick={handlePublish}
+                  disabled={isPublishing}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  {isPublishing ? "Publishing..." : "Publish Event"}
+                </button>
+              )}
               <button
                 onClick={handleShare}
                 className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"

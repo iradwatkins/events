@@ -14,8 +14,12 @@ export default defineSchema({
     stripeConnectedAccountId: v.optional(v.string()),
     stripeAccountSetupComplete: v.optional(v.boolean()),
     // Timestamps
-    createdAt: v.number(),
-    updatedAt: v.number(),
+    createdAt: v.optional(v.number()),
+    updatedAt: v.optional(v.number()),
+    // Legacy fields
+    userId: v.optional(v.string()), // Legacy Clerk user ID
+    stripeConnectId: v.optional(v.string()), // Legacy field (renamed to stripeConnectedAccountId)
+    isAdmin: v.optional(v.boolean()), // Legacy field (migrated to role field)
   })
     .index("by_email", ["email"])
     .index("by_role", ["role"]),
@@ -24,67 +28,77 @@ export default defineSchema({
     // Basic info
     name: v.string(),
     description: v.string(),
-    organizerId: v.id("users"),
-    organizerName: v.string(),
+    organizerId: v.optional(v.id("users")),
+    organizerName: v.optional(v.string()),
 
     // Event type
-    eventType: v.union(
+    eventType: v.optional(v.union(
       v.literal("SAVE_THE_DATE"),
       v.literal("FREE_EVENT"),
       v.literal("TICKETED_EVENT")
-    ),
+    )),
 
     // Date/time
-    startDate: v.number(),
+    startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
     startTime: v.optional(v.string()),
     endTime: v.optional(v.string()),
-    timezone: v.string(),
+    timezone: v.optional(v.string()),
 
-    // Location
-    location: v.object({
-      venueName: v.optional(v.string()),
-      address: v.optional(v.string()),
-      city: v.string(),
-      state: v.string(),
-      zipCode: v.optional(v.string()),
-      country: v.string(),
-    }),
+    // Location (supports both object and legacy string format)
+    location: v.optional(v.union(
+      v.object({
+        venueName: v.optional(v.string()),
+        address: v.optional(v.string()),
+        city: v.string(),
+        state: v.string(),
+        zipCode: v.optional(v.string()),
+        country: v.string(),
+      }),
+      v.string() // Legacy format: plain string address
+    )),
 
     // Media
-    images: v.array(v.id("_storage")),
+    images: v.optional(v.array(v.id("_storage"))),
     imageUrl: v.optional(v.string()), // Temporary: external image URLs (e.g., Unsplash)
 
     // Categories
-    categories: v.array(v.string()),
+    categories: v.optional(v.array(v.string())),
 
     // Status
-    status: v.union(
+    status: v.optional(v.union(
       v.literal("DRAFT"),
       v.literal("PUBLISHED"),
       v.literal("CANCELLED"),
       v.literal("COMPLETED")
-    ),
+    )),
 
     // Payment & ticketing visibility
-    ticketsVisible: v.boolean(),
-    paymentModelSelected: v.boolean(),
+    ticketsVisible: v.optional(v.boolean()),
+    paymentModelSelected: v.optional(v.boolean()),
 
     // Settings
-    allowWaitlist: v.boolean(),
-    allowTransfers: v.boolean(),
-    maxTicketsPerOrder: v.number(),
-    minTicketsPerOrder: v.number(),
+    allowWaitlist: v.optional(v.boolean()),
+    allowTransfers: v.optional(v.boolean()),
+    maxTicketsPerOrder: v.optional(v.number()),
+    minTicketsPerOrder: v.optional(v.number()),
 
     // Free event specific
     doorPrice: v.optional(v.string()),
 
     // Social
-    socialShareCount: v.number(),
+    socialShareCount: v.optional(v.number()),
 
     // Timestamps
-    createdAt: v.number(),
-    updatedAt: v.number(),
+    createdAt: v.optional(v.number()),
+    updatedAt: v.optional(v.number()),
+
+    // Legacy fields (for backward compatibility with old event schema)
+    eventDate: v.optional(v.number()),
+    imageStorageId: v.optional(v.id("_storage")),
+    price: v.optional(v.number()),
+    totalTickets: v.optional(v.number()),
+    userId: v.optional(v.string()), // Legacy Clerk user ID
   })
     .index("by_organizer", ["organizerId"])
     .index("by_status", ["status"])

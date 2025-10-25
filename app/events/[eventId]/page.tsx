@@ -84,8 +84,8 @@ export default function EventDetailPage() {
     }
   };
 
-  const isUpcoming = eventDetails.startDate > Date.now();
-  const isPast = eventDetails.endDate < Date.now();
+  const isUpcoming = eventDetails.startDate ? eventDetails.startDate > Date.now() : false;
+  const isPast = eventDetails.endDate ? eventDetails.endDate < Date.now() : false;
   const showTickets = eventDetails.eventType === "TICKETED_EVENT" &&
                        eventDetails.ticketsVisible &&
                        eventDetails.paymentConfigured &&
@@ -192,7 +192,7 @@ export default function EventDetailPage() {
               </h1>
 
               {/* Categories */}
-              {eventDetails.categories.length > 0 && (
+              {eventDetails.categories && eventDetails.categories.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-6">
                   {eventDetails.categories.map((category) => (
                     <span
@@ -211,22 +211,22 @@ export default function EventDetailPage() {
                 <p className="text-gray-700 whitespace-pre-wrap">{eventDetails.description}</p>
               </div>
 
-              {/* Additional Details */}
+              {/* Additional Details - Commented out until schema is updated
               {eventDetails.additionalDetails && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Important Information</h3>
                   <p className="text-gray-700 whitespace-pre-wrap">{eventDetails.additionalDetails}</p>
                 </div>
-              )}
+              )} */}
 
               {/* Organizer */}
               {eventDetails.organizer && (
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Organized By</h3>
                   <p className="text-gray-700 font-medium">{eventDetails.organizer.name || "Event Organizer"}</p>
-                  {eventDetails.contactEmail && (
+                  {eventDetails.organizer.email && (
                     <a
-                      href={`mailto:${eventDetails.contactEmail}`}
+                      href={`mailto:${eventDetails.organizer.email}`}
                       className="text-blue-600 hover:underline text-sm mt-1 inline-block"
                     >
                       Contact Organizer
@@ -245,34 +245,37 @@ export default function EventDetailPage() {
             >
               <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-24">
                 {/* Date & Time */}
-                <div className="flex items-start gap-3 mb-4">
-                  <Calendar className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {format(eventDetails.startDate, "EEEE, MMMM d, yyyy")}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {format(eventDetails.startDate, "h:mm a")}
-                      {eventDetails.endDate && ` - ${format(eventDetails.endDate, "h:mm a")}`}
-                    </p>
+                {eventDetails.startDate && (
+                  <div className="flex items-start gap-3 mb-4">
+                    <Calendar className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {format(eventDetails.startDate, "EEEE, MMMM d, yyyy")}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {format(eventDetails.startDate, "h:mm a")}
+                        {eventDetails.endDate && ` - ${format(eventDetails.endDate, "h:mm a")}`}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Location */}
-                <div className="flex items-start gap-3 mb-4">
-                  <MapPin className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold text-gray-900">{eventDetails.location.venueName}</p>
-                    <p className="text-sm text-gray-600">
-                      {eventDetails.location.address}
-                      <br />
-                      {eventDetails.location.city}, {eventDetails.location.state} {eventDetails.location.zipCode}
-                    </p>
-                    <a
-                      href={`https://maps.google.com/?q=${encodeURIComponent(
-                        `${eventDetails.location.address}, ${eventDetails.location.city}, ${eventDetails.location.state}`
-                      )}`}
-                      target="_blank"
+                {eventDetails.location && typeof eventDetails.location === "object" && (
+                  <div className="flex items-start gap-3 mb-4">
+                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-gray-900">{eventDetails.location.venueName}</p>
+                      <p className="text-sm text-gray-600">
+                        {eventDetails.location.address}
+                        <br />
+                        {eventDetails.location.city}, {eventDetails.location.state} {eventDetails.location.zipCode}
+                      </p>
+                      <a
+                        href={`https://maps.google.com/?q=${encodeURIComponent(
+                          `${eventDetails.location.address}, ${eventDetails.location.city}, ${eventDetails.location.state}`
+                        )}`}
+                        target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline text-sm mt-1 inline-flex items-center gap-1"
                     >
@@ -281,8 +284,9 @@ export default function EventDetailPage() {
                     </a>
                   </div>
                 </div>
+                )}
 
-                {/* Capacity */}
+                {/* Capacity - Commented out until schema is updated
                 {eventDetails.capacity && (
                   <div className="flex items-start gap-3 mb-6">
                     <Users className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
@@ -292,7 +296,7 @@ export default function EventDetailPage() {
                       </p>
                     </div>
                   </div>
-                )}
+                )} */}
 
                 {/* CTA Button */}
                 {showTickets && eventDetails.ticketTiers && eventDetails.ticketTiers.length > 0 ? (

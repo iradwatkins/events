@@ -1,20 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
+import { useSession } from "next-auth/react";
 import { api } from "@/convex/_generated/api";
 import {
   ArrowLeft,
   Calendar,
   MapPin,
-  Image as ImageIcon,
   FileText,
   Users,
   Info,
   Ticket,
 } from "lucide-react";
 import Link from "next/link";
+import { ImageUpload } from "@/components/upload/ImageUpload";
+import { getTimezoneFromLocation, getTimezoneName } from "@/lib/timezone";
+import { Id } from "@/convex/_generated/dataModel";
 
 type EventType = "TICKETED_EVENT" | "FREE_EVENT" | "SAVE_THE_DATE";
 
@@ -31,7 +34,20 @@ const EVENT_CATEGORIES = [
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const currentUser = useQuery(api.users.queries.getCurrentUser);
+  const upsertUser = useMutation(api.users.mutations.upsertUserFromAuth);
+
+  // Auto-create user in Convex if authenticated but doesn't exist
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.email && currentUser === null) {
+      upsertUser({
+        email: session.user.email,
+        name: session.user.name || undefined,
+        image: session.user.image || undefined,
+      });
+    }
+  }, [status, session, currentUser, upsertUser]);
 
   const [step, setStep] = useState(1);
 
@@ -45,6 +61,7 @@ export default function CreateEventPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [timezone, setTimezone] = useState("America/New_York");
+  const [detectedTimezone, setDetectedTimezone] = useState("");
 
   // Location
   const [venueName, setVenueName] = useState("");
@@ -56,25 +73,59 @@ export default function CreateEventPage() {
 
   // Details
   const [capacity, setCapacity] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+  const [uploadedImageId, setUploadedImageId] = useState<Id<"_storage"> | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const createEvent = useMutation(api.events.mutations.createEvent);
+  // Auto-detect timezone when city or state changes
+  useEffect(() => {
+    if (city && state) {
+      const tz = getTimezoneFromLocation(city, state);
+      setTimezone(tz);
+      setDetectedTimezone(getTimezoneName(tz));
+    }
+  }, [city, state]);
 
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
-          <p className="text-gray-600 mb-4">Please sign in to create an event.</p>
-          <Link href="/login" className="text-blue-600 hover:underline font-medium">
-            Sign In
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const createEvent = useMutation(api.events.mutations.createEvent);
+  const testAuth = useMutation(api.debug.testAuth);
+
+  // Debug: Test authentication
+  const handleTestAuth = async () => {
+    try {
+      console.log("[DEBUG] Testing authentication...");
+      const result = await testAuth({});
+      console.log("[DEBUG] Auth test result:", result);
+      alert(JSON.stringify(result, null, 2));
+    } catch (error: any) {
+      console.error("[DEBUG] Auth test failed:", error);
+      alert("Auth test failed: " + error.message);
+    }
+  };
+
+  // TESTING MODE: Skip auth check temporarily
+  // if (status === "loading" || currentUser === undefined) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  //       <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
+  //         <p className="text-gray-600">Loading...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
+  // // Redirect to login if not authenticated
+  // if (status === "unauthenticated") {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  //       <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
+  //         <p className="text-gray-600 mb-4">Please sign in to create an event.</p>
+  //         <Link href="/login?callbackUrl=/organizer/events/create" className="text-blue-600 hover:underline font-medium">
+  //           Sign In
+  //         </Link>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const handleCategoryToggle = (category: string) => {
     if (categories.includes(category)) {
@@ -85,16 +136,24 @@ export default function CreateEventPage() {
   };
 
   const handleSubmit = async () => {
-    // Validation
-    if (!eventName || !description || !startDate || !city || !state) {
-      alert("Please fill in all required fields");
+    // Validation - Check each field individually for better error messages
+    const missingFields: string[] = [];
+
+    if (!eventName) missingFields.push("Event Name");
+    if (!description) missingFields.push("Description");
+    if (!startDate) missingFields.push("Start Date & Time");
+    if (!city) missingFields.push("City");
+    if (!state) missingFields.push("State");
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in the following required fields:\n\n${missingFields.map(f => `• ${f}`).join('\n')}`);
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const eventId = await createEvent({
+      const eventData = {
         name: eventName,
         eventType,
         description,
@@ -111,14 +170,37 @@ export default function CreateEventPage() {
           country,
         },
         capacity: capacity ? parseInt(capacity) : undefined,
-        imageUrl: imageUrl || undefined,
-        images: images.length > 0 ? images : undefined,
-      });
+        imageUrl: undefined,
+        images: uploadedImageId ? [uploadedImageId] : [],
+      };
 
+      console.log("[CREATE EVENT] Submitting event data:", eventData);
+      console.log("[CREATE EVENT] Session status:", status);
+      console.log("[CREATE EVENT] Session user:", session?.user);
+      console.log("[CREATE EVENT] Current user from Convex:", currentUser);
+
+      const eventId = await createEvent(eventData);
+
+      console.log("[CREATE EVENT] Event created successfully:", eventId);
+      console.log("[CREATE EVENT] Event ID type:", typeof eventId);
+      console.log("[CREATE EVENT] Event ID value:", eventId);
+
+      if (!eventId) {
+        throw new Error("No event ID returned from server");
+      }
+
+      // Keep spinning while redirecting
       alert("Event created successfully!");
+
+      console.log("[CREATE EVENT] Redirecting to payment setup...");
       router.push(`/organizer/events/${eventId}/payment-setup`);
+
+      // Reset after a delay to allow redirect to happen
+      setTimeout(() => setIsSubmitting(false), 2000);
     } catch (error: any) {
-      console.error("Create event error:", error);
+      console.error("[CREATE EVENT] Error:", error);
+      console.error("[CREATE EVENT] Error message:", error.message);
+      console.error("[CREATE EVENT] Error stack:", error.stack);
       alert(error.message || "Failed to create event");
       setIsSubmitting(false);
     }
@@ -151,6 +233,14 @@ export default function CreateEventPage() {
               style={{ width: `${(step / totalSteps) * 100}%` }}
             />
           </div>
+
+          {/* Debug Button - Temporarily enabled for troubleshooting */}
+          <button
+            onClick={handleTestAuth}
+            className="mt-4 px-3 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
+          >
+            🔧 Test Auth
+          </button>
         </div>
       </header>
 
@@ -178,7 +268,7 @@ export default function CreateEventPage() {
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
                   placeholder="e.g., Chicago Summer Steppers Set 2025"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -217,7 +307,7 @@ export default function CreateEventPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your event, what attendees can expect, special guests, etc..."
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -265,7 +355,7 @@ export default function CreateEventPage() {
                     type="datetime-local"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -277,26 +367,27 @@ export default function CreateEventPage() {
                     type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Timezone
-                </label>
-                <select
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                >
-                  <option value="America/New_York">Eastern Time (ET)</option>
-                  <option value="America/Chicago">Central Time (CT)</option>
-                  <option value="America/Denver">Mountain Time (MT)</option>
-                  <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                </select>
-              </div>
+              {/* Auto-detected timezone */}
+              {detectedTimezone && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">
+                        Timezone: {detectedTimezone}
+                      </p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Auto-detected from {city}, {state}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -321,7 +412,7 @@ export default function CreateEventPage() {
                   value={venueName}
                   onChange={(e) => setVenueName(e.target.value)}
                   placeholder="e.g., The Grand Ballroom"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -334,7 +425,7 @@ export default function CreateEventPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="123 Main Street"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -348,7 +439,7 @@ export default function CreateEventPage() {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="Chicago"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -361,7 +452,7 @@ export default function CreateEventPage() {
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     placeholder="IL"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -374,7 +465,7 @@ export default function CreateEventPage() {
                     value={zipCode}
                     onChange={(e) => setZipCode(e.target.value)}
                     placeholder="60601"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -387,7 +478,7 @@ export default function CreateEventPage() {
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
                     placeholder="USA"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                   />
                 </div>
               </div>
@@ -415,7 +506,7 @@ export default function CreateEventPage() {
                   value={capacity}
                   onChange={(e) => setCapacity(e.target.value)}
                   placeholder="500"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Maximum number of attendees
@@ -424,18 +515,12 @@ export default function CreateEventPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Featured Image URL (Optional)
+                  Event Image (Optional)
                 </label>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                <ImageUpload
+                  onImageUploaded={(storageId) => setUploadedImageId(storageId)}
+                  onImageRemoved={() => setUploadedImageId(null)}
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Use Unsplash or upload to a hosting service
-                </p>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

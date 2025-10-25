@@ -47,7 +47,31 @@ export const getOrganizerEvents = query({
       .order("desc")
       .collect();
 
-    return events;
+    // Convert storage IDs to URLs for images
+    const eventsWithImageUrls = await Promise.all(
+      events.map(async (event) => {
+        let imageUrl = event.imageUrl;
+
+        // If images array exists and has items, get URL for first image
+        if (event.images && event.images.length > 0) {
+          try {
+            const url = await ctx.storage.getUrl(event.images[0]);
+            if (url) {
+              imageUrl = url;
+            }
+          } catch (error) {
+            console.error("[getOrganizerEvents] Error getting image URL:", error);
+          }
+        }
+
+        return {
+          ...event,
+          imageUrl,
+        };
+      })
+    );
+
+    return eventsWithImageUrls;
   },
 });
 

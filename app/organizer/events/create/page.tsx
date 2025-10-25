@@ -186,15 +186,18 @@ export default function CreateEventPage() {
       }
 
       // Keep spinning while redirecting
-      alert("Event created successfully!");
+      console.log("[CREATE EVENT] Event type selected:", eventType);
+      console.log("[CREATE EVENT] Event ID:", eventId);
 
       // Redirect based on event type
       if (eventType === "TICKETED_EVENT") {
         console.log("[CREATE EVENT] Redirecting to payment setup for ticketed event...");
+        alert("Ticketed Event created! Redirecting to payment setup...");
         router.push(`/organizer/events/${eventId}/payment-setup`);
       } else {
         // For SAVE_THE_DATE and FREE_EVENT, go straight to dashboard
-        console.log("[CREATE EVENT] Redirecting to dashboard...");
+        console.log("[CREATE EVENT] Event type is", eventType, "- Redirecting to dashboard...");
+        alert(`${eventType === "FREE_EVENT" ? "Free Event" : "Save the Date"} created successfully!`);
         router.push("/organizer/events");
       }
 

@@ -69,15 +69,16 @@ export const testAuth = mutation({
         rawIdentity: identity,
         parsedIdentity: userInfo,
       };
-    } catch (error: any) {
-      console.error("[DEBUG] ❌ Error in auth test:", error);
-      console.error("[DEBUG] Error message:", error.message);
-      console.error("[DEBUG] Error stack:", error.stack);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error("[DEBUG] ❌ Error in auth test:", err);
+      console.error("[DEBUG] Error message:", err.message);
+      console.error("[DEBUG] Error stack:", err.stack);
 
       return {
         success: false,
-        error: error.message,
-        errorStack: error.stack,
+        error: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
       };
     }
   },

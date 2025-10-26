@@ -30,8 +30,11 @@ import SeatTypePalette, {
   getSeatTypeIcon,
   getSeatTypeBgColor,
 } from "@/components/seating/SeatTypePalette";
+import VisualSeatingCanvas from "@/components/seating/VisualSeatingCanvas";
+import SeatingTemplates, { type SeatingTemplate } from "@/components/seating/SeatingTemplates";
 
 type SeatStatus = "AVAILABLE" | "RESERVED" | "UNAVAILABLE";
+type EditorMode = "visual" | "list" | "preview";
 
 interface Seat {
   id: string;
@@ -72,9 +75,14 @@ export default function SeatingChartBuilderPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
-  // Venue image state (NEW)
+  // Venue image state
   const [venueImageId, setVenueImageId] = useState<Id<"_storage"> | undefined>();
   const [venueImageUrl, setVenueImageUrl] = useState<string | undefined>();
+
+  // New visual editor state
+  const [editorMode, setEditorMode] = useState<EditorMode>("visual");
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | undefined>();
 
   // Initialize with existing chart data
   useState(() => {
@@ -263,6 +271,48 @@ export default function SeatingChartBuilderPage() {
     }, 0);
   };
 
+  // Apply template
+  const applyTemplate = (template: SeatingTemplate) => {
+    setSections(template.sections);
+    if (!chartName) {
+      setChartName(template.name);
+    }
+  };
+
+  // Update section (for visual canvas)
+  const updateSectionVisually = (sectionId: string, updates: Partial<Section>) => {
+    setSections(sections.map((s) => (s.id === sectionId ? { ...s, ...updates } : s)));
+  };
+
+  // Duplicate row
+  const duplicateRow = (sectionId: string, rowId: string) => {
+    setSections(
+      sections.map((s) => {
+        if (s.id === sectionId) {
+          const rowIndex = s.rows.findIndex((r) => r.id === rowId);
+          if (rowIndex === -1) return s;
+
+          const rowToDuplicate = s.rows[rowIndex];
+          const newRow: Row = {
+            ...rowToDuplicate,
+            id: generateId(),
+            label: String.fromCharCode(65 + s.rows.length), // Next letter
+            seats: rowToDuplicate.seats.map((seat) => ({
+              ...seat,
+              id: generateId(),
+            })),
+          };
+
+          return {
+            ...s,
+            rows: [...s.rows, newRow],
+          };
+        }
+        return s;
+      })
+    );
+  };
+
   if (!event) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -292,6 +342,49 @@ export default function SeatingChartBuilderPage() {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Template Button */}
+              <button
+                onClick={() => setShowTemplates(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm font-medium"
+              >
+                <Grid className="w-4 h-4" />
+                Templates
+              </button>
+
+              {/* Mode Switcher */}
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setEditorMode("visual")}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    editorMode === "visual"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Visual
+                </button>
+                <button
+                  onClick={() => setEditorMode("list")}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    editorMode === "list"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  List
+                </button>
+                <button
+                  onClick={() => setEditorMode("preview")}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    editorMode === "preview"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Preview
+                </button>
+              </div>
+
               {existingChart && (
                 <button
                   onClick={handleDelete}
@@ -300,13 +393,6 @@ export default function SeatingChartBuilderPage() {
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}
-              <button
-                onClick={() => setShowPreview(!showPreview)}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-              >
-                <Eye className="w-4 h-4" />
-                {showPreview ? "Edit" : "Preview"}
-              </button>
               <button
                 onClick={handleSave}
                 disabled={isSaving}
@@ -320,9 +406,110 @@ export default function SeatingChartBuilderPage() {
         </div>
       </div>
 
+      {/* Template Modal */}
+      {showTemplates && (
+        <SeatingTemplates
+          onSelectTemplate={applyTemplate}
+          onClose={() => setShowTemplates(false)}
+        />
+      )}
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        {!showPreview ? (
+        {editorMode === "visual" ? (
+          <div className="space-y-6">
+            {/* Chart Name */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Chart Name
+              </label>
+              <input
+                type="text"
+                value={chartName}
+                onChange={(e) => setChartName(e.target.value)}
+                placeholder="e.g., Main Hall Seating"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Venue Image Uploader */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <VenueImageUploader
+                currentImageUrl={venueImageUrl}
+                onImageUploaded={(storageId, url) => {
+                  setVenueImageId(storageId as Id<"_storage">);
+                  setVenueImageUrl(url);
+                }}
+                onImageRemoved={() => {
+                  setVenueImageId(undefined);
+                  setVenueImageUrl(undefined);
+                }}
+              />
+            </div>
+
+            {/* Visual Canvas */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <VisualSeatingCanvas
+                venueImageUrl={venueImageUrl}
+                sections={sections}
+                onSectionUpdate={updateSectionVisually}
+                selectedSectionId={selectedSectionId}
+                onSectionSelect={setSelectedSectionId}
+              />
+            </div>
+
+            {/* Quick Add Section Button */}
+            <button
+              onClick={addSection}
+              className="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600 font-medium"
+            >
+              <Plus className="w-5 h-5" />
+              Add Section to Canvas
+            </button>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <div className="flex items-center gap-3">
+                  <Grid className="w-8 h-8 text-blue-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Sections</p>
+                    <p className="text-2xl font-bold text-gray-900">{sections.length}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <div className="flex items-center gap-3">
+                  <CircleDot className="w-8 h-8 text-purple-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Total Seats</p>
+                    <p className="text-2xl font-bold text-gray-900">{getTotalSeats()}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <div className="flex items-center gap-3">
+                  <Accessibility className="w-8 h-8 text-green-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Wheelchair Seats</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {sections.reduce(
+                        (total, section) =>
+                          total +
+                          section.rows.reduce(
+                            (rowTotal, row) =>
+                              rowTotal + row.seats.filter((s) => s.type === "WHEELCHAIR").length,
+                            0
+                          ),
+                        0
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : editorMode === "list" ? (
           <div className="space-y-6">
             {/* Chart Name */}
             <div className="bg-white rounded-lg shadow-md p-6">
@@ -488,6 +675,14 @@ export default function SeatingChartBuilderPage() {
                             +5 Seats
                           </button>
                           <button
+                            onClick={() => duplicateRow(section.id, row.id)}
+                            className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors flex items-center gap-1"
+                            title="Duplicate this row"
+                          >
+                            <Plus className="w-3 h-3" />
+                            Copy Row
+                          </button>
+                          <button
                             onClick={() => deleteRow(section.id, row.id)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                           >
@@ -633,7 +828,10 @@ export default function SeatingChartBuilderPage() {
         ) : (
           // Preview Mode
           <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">{chartName}</h2>
+            <div className="mb-6 text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{chartName}</h2>
+              <p className="text-sm text-gray-600">Preview Mode - This is how customers will see your seating chart</p>
+            </div>
 
             <div className="space-y-8">
               {sections.map((section) => (

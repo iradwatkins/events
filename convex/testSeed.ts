@@ -216,6 +216,379 @@ export const seedTestEvents = mutation({
 });
 
 /**
+ * Create 4 diverse test events with Unsplash images for product showcase
+ * Run with: npx convex run testSeed:createShowcaseEvents
+ */
+export const createShowcaseEvents = mutation({
+  args: {},
+  handler: async (ctx) => {
+    console.log("[SHOWCASE] Creating 4 showcase events...");
+
+    // Get or create test organizer
+    let testOrganizer = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+      .first();
+
+    if (!testOrganizer) {
+      console.log("[SHOWCASE] Creating test organizer...");
+      const organizerId = await ctx.db.insert("users", {
+        email: "test@stepperslife.com",
+        name: "Test Organizer",
+        role: "organizer",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      testOrganizer = await ctx.db.get(organizerId);
+    }
+
+    console.log("[SHOWCASE] Using organizer:", testOrganizer?._id);
+
+    // EVENT 1: Intimate Jazz Night with Reserved Seating
+    console.log("[SHOWCASE] Creating Event 1: Jazz Night...");
+    const jazzEventId = await ctx.db.insert("events", {
+      name: "Intimate Jazz Night Under the Stars",
+      description: "Experience an unforgettable evening of smooth jazz in an elegant setting. Featuring Grammy-nominated saxophonist Marcus Williams and his quartet. Includes complimentary wine and cheese reception. Reserved seating ensures the perfect view of the stage. Dress code: Smart casual.",
+      organizerId: testOrganizer!._id,
+      organizerName: testOrganizer!.name,
+      eventType: "TICKETED_EVENT",
+      imageUrl: "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=1200&q=80",
+      startDate: new Date("2025-11-22T19:30:00").getTime(),
+      endDate: new Date("2025-11-22T22:30:00").getTime(),
+      location: {
+        venueName: "The Blue Note Lounge",
+        address: "567 Melody Lane",
+        city: "New Orleans",
+        state: "Louisiana",
+        zipCode: "70112",
+        country: "USA",
+      },
+      categories: ["Social", "Concert"],
+      status: "PUBLISHED",
+      ticketsVisible: true,
+      paymentModelSelected: true,
+      maxTicketsPerOrder: 6,
+      minTicketsPerOrder: 1,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Jazz event payment config
+    await ctx.db.insert("eventPaymentConfig", {
+      eventId: jazzEventId,
+      organizerId: testOrganizer!._id,
+      paymentModel: "PRE_PURCHASE",
+      isActive: true,
+      ticketsAllocated: 120,
+      platformFeePercent: 5.0,
+      platformFeeFixed: 179,
+      processingFeePercent: 2.9,
+      charityDiscount: false,
+      lowPriceDiscount: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Jazz event tiers
+    const jazzTier1 = await ctx.db.insert("ticketTiers", {
+      eventId: jazzEventId,
+      name: "Front Row Premium",
+      description: "Best seats in the house, first 3 rows",
+      price: 7500, // $75.00
+      quantity: 24,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    const jazzTier2 = await ctx.db.insert("ticketTiers", {
+      eventId: jazzEventId,
+      name: "General Seating",
+      description: "Great views, rows 4-8",
+      price: 5500, // $55.00
+      quantity: 60,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    console.log("[SHOWCASE] ✅ Jazz Night created:", jazzEventId);
+
+    // EVENT 2: Tech Innovation Summit
+    console.log("[SHOWCASE] Creating Event 2: Tech Summit...");
+    const techEventId = await ctx.db.insert("events", {
+      name: "Tech Innovation Summit 2025",
+      description: "Join 500+ tech leaders, entrepreneurs, and innovators for a full day of keynotes, workshops, and networking. Topics include AI, Web3, Cybersecurity, and SaaS growth strategies. Includes lunch, networking mixer, and exclusive access to startup pitch competition. Early bird pricing ends Nov 1st!",
+      organizerId: testOrganizer!._id,
+      organizerName: testOrganizer!.name,
+      eventType: "TICKETED_EVENT",
+      imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80",
+      startDate: new Date("2026-02-15T08:00:00").getTime(),
+      endDate: new Date("2026-02-15T18:00:00").getTime(),
+      location: {
+        venueName: "Convention Center West",
+        address: "1200 Innovation Drive",
+        city: "San Francisco",
+        state: "California",
+        zipCode: "94102",
+        country: "USA",
+      },
+      categories: ["Conference", "Workshop"],
+      status: "PUBLISHED",
+      ticketsVisible: true,
+      paymentModelSelected: true,
+      maxTicketsPerOrder: 10,
+      minTicketsPerOrder: 1,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Tech event payment config
+    await ctx.db.insert("eventPaymentConfig", {
+      eventId: techEventId,
+      organizerId: testOrganizer!._id,
+      paymentModel: "PRE_PURCHASE",
+      isActive: true,
+      ticketsAllocated: 500,
+      platformFeePercent: 5.0,
+      platformFeeFixed: 179,
+      processingFeePercent: 2.9,
+      charityDiscount: false,
+      lowPriceDiscount: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Tech event tiers
+    await ctx.db.insert("ticketTiers", {
+      eventId: techEventId,
+      name: "Early Bird",
+      description: "Limited time - save $150! Ends Nov 1st",
+      price: 19900, // $199.00
+      quantity: 100,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    await ctx.db.insert("ticketTiers", {
+      eventId: techEventId,
+      name: "Standard Admission",
+      description: "Full conference access",
+      price: 34900, // $349.00
+      quantity: 300,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    await ctx.db.insert("ticketTiers", {
+      eventId: techEventId,
+      name: "VIP All-Access",
+      description: "Speaker dinner, premium seating, swag bag",
+      price: 59900, // $599.00
+      quantity: 50,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    console.log("[SHOWCASE] ✅ Tech Summit created:", techEventId);
+
+    // EVENT 3: Summer Music Festival
+    console.log("[SHOWCASE] Creating Event 3: Music Festival...");
+    const festivalEventId = await ctx.db.insert("events", {
+      name: "Sunset Music Festival 2026",
+      description: "3 days of non-stop music featuring 40+ artists across 5 stages! Headliners include The Electric Dreams, Luna Sky, and Basswave. General admission, VIP, and camping passes available. Food trucks, art installations, yoga sessions, and more. Rain or shine event. Ages 18+. ID required.",
+      organizerId: testOrganizer!._id,
+      organizerName: testOrganizer!.name,
+      eventType: "TICKETED_EVENT",
+      imageUrl: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80",
+      startDate: new Date("2026-07-10T14:00:00").getTime(),
+      endDate: new Date("2026-07-12T23:00:00").getTime(),
+      location: {
+        venueName: "Riverside Festival Grounds",
+        address: "2500 Festival Way",
+        city: "Austin",
+        state: "Texas",
+        zipCode: "78701",
+        country: "USA",
+      },
+      categories: ["Concert", "Festival"],
+      status: "PUBLISHED",
+      ticketsVisible: true,
+      paymentModelSelected: true,
+      maxTicketsPerOrder: 8,
+      minTicketsPerOrder: 1,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Festival event payment config
+    await ctx.db.insert("eventPaymentConfig", {
+      eventId: festivalEventId,
+      organizerId: testOrganizer!._id,
+      paymentModel: "PRE_PURCHASE",
+      isActive: true,
+      ticketsAllocated: 10000,
+      platformFeePercent: 5.0,
+      platformFeeFixed: 179,
+      processingFeePercent: 2.9,
+      charityDiscount: false,
+      lowPriceDiscount: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Festival event tiers
+    await ctx.db.insert("ticketTiers", {
+      eventId: festivalEventId,
+      name: "3-Day GA Pass",
+      description: "General admission to all stages",
+      price: 27900, // $279.00
+      quantity: 8000,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    await ctx.db.insert("ticketTiers", {
+      eventId: festivalEventId,
+      name: "VIP Experience",
+      description: "Premium viewing areas, lounge access, express entry",
+      price: 54900, // $549.00
+      quantity: 1500,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    await ctx.db.insert("ticketTiers", {
+      eventId: festivalEventId,
+      name: "Camping + GA Pass",
+      description: "3-day pass + tent camping spot",
+      price: 39900, // $399.00
+      quantity: 500,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    console.log("[SHOWCASE] ✅ Music Festival created:", festivalEventId);
+
+    // EVENT 4: Wine Tasting & Networking
+    console.log("[SHOWCASE] Creating Event 4: Wine Tasting...");
+    const wineEventId = await ctx.db.insert("events", {
+      name: "Executive Wine Tasting & Networking",
+      description: "An exclusive evening for professionals to connect over premium wines from Napa Valley and Sonoma. Guided tasting of 8 wines paired with artisan cheeses and charcuterie. Sommelier-led discussion on wine regions, tasting notes, and pairing principles. Perfect for wine enthusiasts and business networking. Limited to 60 guests for intimate atmosphere.",
+      organizerId: testOrganizer!._id,
+      organizerName: testOrganizer!.name,
+      eventType: "TICKETED_EVENT",
+      imageUrl: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1200&q=80",
+      startDate: new Date("2025-12-05T18:00:00").getTime(),
+      endDate: new Date("2025-12-05T21:00:00").getTime(),
+      location: {
+        venueName: "The Vineyard Room",
+        address: "890 Sommelier Street",
+        city: "Seattle",
+        state: "Washington",
+        zipCode: "98101",
+        country: "USA",
+      },
+      categories: ["Social", "Workshop"],
+      status: "PUBLISHED",
+      ticketsVisible: true,
+      paymentModelSelected: true,
+      maxTicketsPerOrder: 4,
+      minTicketsPerOrder: 1,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Wine event payment config
+    await ctx.db.insert("eventPaymentConfig", {
+      eventId: wineEventId,
+      organizerId: testOrganizer!._id,
+      paymentModel: "PRE_PURCHASE",
+      isActive: true,
+      ticketsAllocated: 60,
+      platformFeePercent: 5.0,
+      platformFeeFixed: 179,
+      processingFeePercent: 2.9,
+      charityDiscount: false,
+      lowPriceDiscount: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Wine event tiers
+    await ctx.db.insert("ticketTiers", {
+      eventId: wineEventId,
+      name: "Individual Ticket",
+      description: "One guest admission with full tasting experience",
+      price: 8500, // $85.00
+      quantity: 40,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    await ctx.db.insert("ticketTiers", {
+      eventId: wineEventId,
+      name: "Couple's Package",
+      description: "Two guests - save $20!",
+      price: 15000, // $150.00
+      quantity: 10,
+      sold: 0,
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    console.log("[SHOWCASE] ✅ Wine Tasting created:", wineEventId);
+
+    console.log("[SHOWCASE] ========================================");
+    console.log("[SHOWCASE] ✅ ALL 4 SHOWCASE EVENTS CREATED!");
+    console.log("[SHOWCASE] ========================================");
+    console.log("[SHOWCASE]");
+    console.log("[SHOWCASE] 🎵 Jazz Night:", jazzEventId);
+    console.log("[SHOWCASE]    URL: https://events.stepperslife.com/events/" + jazzEventId);
+    console.log("[SHOWCASE]");
+    console.log("[SHOWCASE] 💻 Tech Summit:", techEventId);
+    console.log("[SHOWCASE]    URL: https://events.stepperslife.com/events/" + techEventId);
+    console.log("[SHOWCASE]");
+    console.log("[SHOWCASE] 🎸 Music Festival:", festivalEventId);
+    console.log("[SHOWCASE]    URL: https://events.stepperslife.com/events/" + festivalEventId);
+    console.log("[SHOWCASE]");
+    console.log("[SHOWCASE] 🍷 Wine Tasting:", wineEventId);
+    console.log("[SHOWCASE]    URL: https://events.stepperslife.com/events/" + wineEventId);
+    console.log("[SHOWCASE]");
+    console.log("[SHOWCASE] 📱 View all at: https://events.stepperslife.com");
+    console.log("[SHOWCASE] ========================================");
+
+    return {
+      success: true,
+      events: {
+        jazzNight: jazzEventId,
+        techSummit: techEventId,
+        musicFestival: festivalEventId,
+        wineTasting: wineEventId,
+      },
+      message: "4 showcase events created successfully!",
+    };
+  },
+});
+
+/**
  * Create a simple $1 test event for production payment testing
  * Run with: npx convex run testSeed:createDollarTest
  */

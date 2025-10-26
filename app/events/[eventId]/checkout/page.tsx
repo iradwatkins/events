@@ -63,9 +63,10 @@ export default function CheckoutPage() {
     }
   }, [searchParams]);
 
-  const isLoading = !eventDetails || !currentUser;
+  // Only require eventDetails to show tickets, not authentication
+  const isLoading = eventDetails === undefined;
 
-  if (isLoading) {
+  if (isLoading || !eventDetails) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>

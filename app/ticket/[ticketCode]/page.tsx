@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Ticket,
   Clock,
+  Armchair,
 } from "lucide-react";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
@@ -62,7 +63,7 @@ export default function TicketValidationPage() {
     );
   }
 
-  const { ticket, event, tier, order, attendee } = ticketData;
+  const { ticket, event, tier, order, attendee, seat } = ticketData;
   const isValid = ticket.status === "VALID";
   const isUpcoming = event.startDate && event.startDate >= Date.now();
 
@@ -226,6 +227,18 @@ export default function TicketValidationPage() {
                         </div>
                       )}
                     </>
+                  )}
+
+                  {seat && (
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 -mx-2">
+                      <dt className="text-blue-700 font-semibold flex items-center gap-2 mb-2">
+                        <Armchair className="w-5 h-5" />
+                        Assigned Seat
+                      </dt>
+                      <dd className="text-blue-900 font-bold text-xl">
+                        {seat.sectionName} • Row {seat.rowLabel} • Seat {seat.seatNumber}
+                      </dd>
+                    </div>
                   )}
 
                   <div>

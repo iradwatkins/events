@@ -27,6 +27,7 @@ import {
   Power,
   Bell,
   Mail,
+  Armchair,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -328,6 +329,15 @@ export default function EventDashboardPage() {
                 <Edit className="w-4 h-4" />
                 Edit Event
               </Link>
+              {event.eventType === "TICKETED_EVENT" && (
+                <Link
+                  href={`/organizer/events/${eventId}/seating`}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                >
+                  <Armchair className="w-4 h-4" />
+                  Manage Seating
+                </Link>
+              )}
             </div>
           </div>
         </div>

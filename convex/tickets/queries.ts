@@ -307,6 +307,30 @@ export const getTicketByCode = query({
       imageUrl = url ?? undefined;
     }
 
+    // Get seat reservation if exists
+    const seatReservation = await ctx.db
+      .query("seatReservations")
+      .withIndex("by_ticket", (q) => q.eq("ticketId", ticket._id))
+      .filter((q) => q.eq(q.field("status"), "RESERVED"))
+      .first();
+
+    // Get section and row names from seating chart
+    let seatInfo = null;
+    if (seatReservation) {
+      const seatingChart = await ctx.db.get(seatReservation.seatingChartId);
+      if (seatingChart) {
+        const section = seatingChart.sections.find((s: any) => s.id === seatReservation.sectionId);
+        if (section) {
+          const row = section.rows.find((r: any) => r.id === seatReservation.rowId);
+          seatInfo = {
+            sectionName: section.name,
+            rowLabel: row?.label || "",
+            seatNumber: seatReservation.seatNumber,
+          };
+        }
+      }
+    }
+
     return {
       ticket: {
         _id: ticket._id,
@@ -339,6 +363,7 @@ export const getTicketByCode = query({
         name: attendee.name,
         email: attendee.email,
       } : null,
+      seat: seatInfo,
     };
   },
 });

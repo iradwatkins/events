@@ -102,6 +102,82 @@ export const deleteTicketTier = mutation({
 });
 
 /**
+ * Update a ticket tier
+ * SAFEGUARDS: Prevents dangerous changes after tickets have been sold
+ */
+export const updateTicketTier = mutation({
+  args: {
+    tierId: v.id("ticketTiers"),
+    name: v.optional(v.string()),
+    description: v.optional(v.string()),
+    price: v.optional(v.number()),
+    quantity: v.optional(v.number()),
+    saleStart: v.optional(v.number()),
+    saleEnd: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    const tier = await ctx.db.get(args.tierId);
+    if (!tier) throw new Error("Ticket tier not found");
+
+    // TESTING MODE: Skip authentication check
+    if (!identity) {
+      console.warn("[updateTicketTier] TESTING MODE - No authentication required");
+    } else {
+      // Production mode: Verify event ownership
+      const event = await ctx.db.get(tier.eventId);
+      if (!event) throw new Error("Event not found");
+
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+
+      if (!user || event.organizerId !== user._id) {
+        throw new Error("Not authorized");
+      }
+    }
+
+    // SAFEGUARD: Check if tickets have been sold
+    if (tier.sold > 0) {
+      // RESTRICTION: Cannot change price after tickets sold
+      if (args.price !== undefined && args.price !== tier.price) {
+        throw new Error(
+          `Cannot change ticket price after ${tier.sold} ticket${tier.sold === 1 ? ' has' : 's have'} been sold. ` +
+          `This would create pricing inconsistency for customers who already purchased at $${(tier.price / 100).toFixed(2)}. ` +
+          `If you need different pricing, please create a new ticket tier.`
+        );
+      }
+
+      // RESTRICTION: Cannot reduce quantity below sold count
+      if (args.quantity !== undefined && args.quantity < tier.sold) {
+        throw new Error(
+          `Cannot reduce quantity to ${args.quantity} because ${tier.sold} ticket${tier.sold === 1 ? ' has' : 's have'} already been sold. ` +
+          `Quantity must be at least ${tier.sold}.`
+        );
+      }
+    }
+
+    // Build update object with only provided fields
+    const updates: Record<string, unknown> = {
+      updatedAt: Date.now(),
+    };
+
+    if (args.name !== undefined) updates.name = args.name;
+    if (args.description !== undefined) updates.description = args.description;
+    if (args.price !== undefined) updates.price = args.price;
+    if (args.quantity !== undefined) updates.quantity = args.quantity;
+    if (args.saleStart !== undefined) updates.saleStart = args.saleStart;
+    if (args.saleEnd !== undefined) updates.saleEnd = args.saleEnd;
+
+    await ctx.db.patch(args.tierId, updates);
+
+    return { success: true };
+  },
+});
+
+/**
  * Create a new order for ticket purchase
  */
 export const createOrder = mutation({

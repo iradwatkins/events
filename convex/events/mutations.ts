@@ -279,18 +279,54 @@ export const updateEvent = mutation({
       throw new Error("Not authorized");
     }
 
+    // SAFEGUARD: Check if event has any ticket sales
+    const hasTicketSales = event.status === "PUBLISHED" && event.eventType === "TICKETED_EVENT";
+    let ticketsSold = 0;
+
+    if (hasTicketSales) {
+      // Count total tickets sold across all tiers
+      const ticketTiers = await ctx.db
+        .query("ticketTiers")
+        .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+        .collect();
+
+      ticketsSold = ticketTiers.reduce((sum, tier) => sum + tier.sold, 0);
+    }
+
+    // RESTRICTION: Prevent date/time changes if tickets have been sold
+    if (ticketsSold > 0 && (args.startDate || args.endDate)) {
+      throw new Error(
+        `Cannot change event date/time after ${ticketsSold} ticket${ticketsSold === 1 ? ' has' : 's have'} been sold. ` +
+        `This would affect customers who already purchased tickets. ` +
+        `If you must reschedule, please cancel this event and create a new one.`
+      );
+    }
+
     const updates: Record<string, unknown> = {
       updatedAt: Date.now(),
     };
 
+    // ALLOWED: Always allow these edits (even with sales)
     if (args.name) updates.name = args.name;
     if (args.description) updates.description = args.description;
     if (args.categories) updates.categories = args.categories;
-    if (args.startDate) updates.startDate = args.startDate;
-    if (args.endDate) updates.endDate = args.endDate;
     if (args.location) updates.location = args.location;
-    if (args.capacity) updates.capacity = args.capacity;
     if (args.imageUrl) updates.imageUrl = args.imageUrl;
+
+    // RESTRICTED: Only allow date changes if no sales
+    if (args.startDate && ticketsSold === 0) updates.startDate = args.startDate;
+    if (args.endDate && ticketsSold === 0) updates.endDate = args.endDate;
+
+    // ALLOWED: Capacity can increase but not decrease below sold
+    if (args.capacity) {
+      if (ticketsSold > 0 && args.capacity < ticketsSold) {
+        throw new Error(
+          `Cannot reduce capacity to ${args.capacity} because ${ticketsSold} tickets have already been sold. ` +
+          `Capacity must be at least ${ticketsSold}.`
+        );
+      }
+      updates.capacity = args.capacity;
+    }
 
     await ctx.db.patch(args.eventId, updates);
 

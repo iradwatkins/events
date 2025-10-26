@@ -1,0 +1,369 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Move,
+  Maximize2,
+  Grid as GridIcon,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { motion } from "framer-motion";
+
+interface Section {
+  id: string;
+  name: string;
+  color?: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  rotation?: number;
+  rows: any[];
+  ticketTierId?: any;
+}
+
+interface VisualSeatingCanvasProps {
+  venueImageUrl?: string;
+  sections: Section[];
+  onSectionUpdate: (sectionId: string, updates: Partial<Section>) => void;
+  selectedSectionId?: string;
+  onSectionSelect: (sectionId: string) => void;
+}
+
+export default function VisualSeatingCanvas({
+  venueImageUrl,
+  sections,
+  onSectionUpdate,
+  selectedSectionId,
+  onSectionSelect,
+}: VisualSeatingCanvasProps) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
+  const [showSectionLabels, setShowSectionLabels] = useState(true);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const dragStartPos = useRef({ x: 0, y: 0, sectionX: 0, sectionY: 0 });
+  const resizeStartPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
+
+  const handleSectionDragStart = (
+    e: React.MouseEvent,
+    section: Section
+  ) => {
+    e.stopPropagation();
+    setIsDragging(true);
+    onSectionSelect(section.id);
+
+    dragStartPos.current = {
+      x: e.clientX,
+      y: e.clientY,
+      sectionX: section.x || 0,
+      sectionY: section.y || 0,
+    };
+  };
+
+  const handleSectionDrag = useCallback(
+    (e: MouseEvent, sectionId: string) => {
+      if (!isDragging) return;
+
+      const deltaX = e.clientX - dragStartPos.current.x;
+      const deltaY = e.clientY - dragStartPos.current.y;
+
+      onSectionUpdate(sectionId, {
+        x: dragStartPos.current.sectionX + deltaX,
+        y: dragStartPos.current.sectionY + deltaY,
+      });
+    },
+    [isDragging, onSectionUpdate]
+  );
+
+  const handleSectionDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleResizeStart = (
+    e: React.MouseEvent,
+    section: Section,
+    corner: string
+  ) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    onSectionSelect(section.id);
+
+    resizeStartPos.current = {
+      x: e.clientX,
+      y: e.clientY,
+      width: section.width || 200,
+      height: section.height || 150,
+    };
+  };
+
+  const handleResize = useCallback(
+    (e: MouseEvent, sectionId: string, corner: string) => {
+      if (!isResizing) return;
+
+      const deltaX = e.clientX - resizeStartPos.current.x;
+      const deltaY = e.clientY - resizeStartPos.current.y;
+
+      let newWidth = resizeStartPos.current.width;
+      let newHeight = resizeStartPos.current.height;
+
+      if (corner.includes("e")) newWidth += deltaX;
+      if (corner.includes("w")) newWidth -= deltaX;
+      if (corner.includes("s")) newHeight += deltaY;
+      if (corner.includes("n")) newHeight -= deltaY;
+
+      onSectionUpdate(sectionId, {
+        width: Math.max(100, newWidth),
+        height: Math.max(80, newHeight),
+      });
+    },
+    [isResizing, onSectionUpdate]
+  );
+
+  const handleResizeEnd = () => {
+    setIsResizing(false);
+  };
+
+  const rotateSection = (sectionId: string, currentRotation: number = 0) => {
+    onSectionUpdate(sectionId, {
+      rotation: (currentRotation + 15) % 360,
+    });
+  };
+
+  const getTotalSeats = (section: Section) => {
+    return section.rows.reduce((total, row) => total + row.seats.length, 0);
+  };
+
+  if (!venueImageUrl) {
+    return (
+      <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+        <GridIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          Upload a Venue Image First
+        </h3>
+        <p className="text-sm text-gray-600">
+          Upload a floor plan or venue photo above to start positioning your sections
+          visually
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative bg-white rounded-lg border border-gray-200 overflow-hidden">
+      {/* Controls Bar */}
+      <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex flex-col gap-2">
+          <button
+            onClick={() => setShowGrid(!showGrid)}
+            className={`p-2 rounded transition-colors ${
+              showGrid
+                ? "bg-blue-100 text-blue-700"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+            title={showGrid ? "Hide Grid" : "Show Grid"}
+          >
+            <GridIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowSectionLabels(!showSectionLabels)}
+            className={`p-2 rounded transition-colors ${
+              showSectionLabels
+                ? "bg-blue-100 text-blue-700"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+            title={showSectionLabels ? "Hide Labels" : "Show Labels"}
+          >
+            {showSectionLabels ? (
+              <Eye className="w-5 h-5" />
+            ) : (
+              <EyeOff className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
+          <p className="text-blue-900 font-semibold mb-1">Quick Tips:</p>
+          <ul className="text-blue-800 space-y-1">
+            <li>• Drag sections to position</li>
+            <li>• Drag corners to resize</li>
+            <li>• Click rotate button</li>
+            <li>• Scroll to zoom</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="absolute top-4 left-4 z-20 bg-white rounded-lg shadow-lg border border-gray-200 p-3">
+        <h4 className="font-semibold text-gray-900 text-sm mb-2">Sections</h4>
+        <div className="space-y-1 max-h-48 overflow-y-auto">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => onSectionSelect(section.id)}
+              className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors flex items-center gap-2 ${
+                selectedSectionId === section.id
+                  ? "bg-blue-100 text-blue-900"
+                  : "hover:bg-gray-100 text-gray-700"
+              }`}
+            >
+              <div
+                className="w-3 h-3 rounded flex-shrink-0"
+                style={{ backgroundColor: section.color || "#3B82F6" }}
+              />
+              <span className="font-medium truncate">{section.name}</span>
+              <span className="text-gray-500 ml-auto">{getTotalSeats(section)}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Canvas */}
+      <TransformWrapper
+        initialScale={1}
+        minScale={0.5}
+        maxScale={3}
+        centerOnInit
+        wheel={{ step: 0.1 }}
+      >
+        {({ zoomIn, zoomOut, resetTransform }) => (
+          <>
+            {/* Zoom Controls */}
+            <div className="absolute bottom-4 right-4 z-20 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex gap-2">
+              <button
+                onClick={() => zoomIn()}
+                className="p-2 hover:bg-gray-100 rounded transition-colors"
+                title="Zoom In"
+              >
+                <ZoomIn className="w-5 h-5 text-gray-700" />
+              </button>
+              <button
+                onClick={() => zoomOut()}
+                className="p-2 hover:bg-gray-100 rounded transition-colors"
+                title="Zoom Out"
+              >
+                <ZoomOut className="w-5 h-5 text-gray-700" />
+              </button>
+              <button
+                onClick={() => resetTransform()}
+                className="p-2 hover:bg-gray-100 rounded transition-colors"
+                title="Reset View"
+              >
+                <Maximize2 className="w-5 h-5 text-gray-700" />
+              </button>
+            </div>
+
+            <TransformComponent
+              wrapperStyle={{ width: "100%", height: "600px" }}
+              contentStyle={{ width: "100%", height: "100%" }}
+            >
+              <div
+                ref={canvasRef}
+                className="relative w-full h-full"
+                style={{
+                  backgroundImage: `url(${venueImageUrl})`,
+                  backgroundSize: "contain",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+              >
+                {/* Grid Overlay */}
+                {showGrid && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      backgroundImage: `
+                        linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)
+                      `,
+                      backgroundSize: "50px 50px",
+                    }}
+                  />
+                )}
+
+                {/* Section Boxes */}
+                {sections.map((section) => {
+                  const isSelected = selectedSectionId === section.id;
+                  const sectionX = section.x || 100;
+                  const sectionY = section.y || 100;
+                  const sectionWidth = section.width || 200;
+                  const sectionHeight = section.height || 150;
+                  const sectionRotation = section.rotation || 0;
+
+                  return (
+                    <motion.div
+                      key={section.id}
+                      className={`absolute cursor-move transition-shadow ${
+                        isSelected ? "ring-4 ring-blue-500 shadow-2xl z-10" : "shadow-lg"
+                      }`}
+                      style={{
+                        left: sectionX,
+                        top: sectionY,
+                        width: sectionWidth,
+                        height: sectionHeight,
+                        backgroundColor: `${section.color || "#3B82F6"}40`,
+                        border: `3px solid ${section.color || "#3B82F6"}`,
+                        borderRadius: "8px",
+                        transform: `rotate(${sectionRotation}deg)`,
+                      }}
+                      onMouseDown={(e) => handleSectionDragStart(e, section)}
+                      whileHover={{ scale: isDragging ? 1 : 1.02 }}
+                    >
+                      {/* Section Label */}
+                      {showSectionLabels && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <div className="bg-white bg-opacity-90 px-3 py-2 rounded-lg shadow-sm">
+                            <p className="font-bold text-gray-900 text-sm">
+                              {section.name}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {getTotalSeats(section)} seats
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Resize Handles (only show when selected) */}
+                      {isSelected && (
+                        <>
+                          {["nw", "ne", "sw", "se"].map((corner) => (
+                            <div
+                              key={corner}
+                              className="absolute w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-150 transition-transform"
+                              style={{
+                                [corner.includes("n") ? "top" : "bottom"]: "-8px",
+                                [corner.includes("w") ? "left" : "right"]: "-8px",
+                              }}
+                              onMouseDown={(e) => handleResizeStart(e, section, corner)}
+                            />
+                          ))}
+
+                          {/* Rotate Button */}
+                          <button
+                            className="absolute -top-10 left-1/2 -translate-x-1/2 p-2 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              rotateSection(section.id, sectionRotation);
+                            }}
+                            title="Rotate 15°"
+                          >
+                            <RotateCw className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </TransformComponent>
+          </>
+        )}
+      </TransformWrapper>
+    </div>
+  );
+}

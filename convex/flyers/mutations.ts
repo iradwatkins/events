@@ -163,6 +163,42 @@ export const getUploadedFlyers = mutation({
 });
 
 /**
+ * Update flyer with AI-extracted data
+ */
+export const updateFlyerWithExtractedData = mutation({
+  args: {
+    flyerId: v.id("uploadedFlyers"),
+    extractedData: v.object({
+      eventName: v.optional(v.string()),
+      date: v.optional(v.string()),
+      time: v.optional(v.string()),
+      location: v.optional(v.string()),
+      venueName: v.optional(v.string()),
+      address: v.optional(v.string()),
+      city: v.optional(v.string()),
+      state: v.optional(v.string()),
+      zipCode: v.optional(v.string()),
+      description: v.optional(v.string()),
+      hostOrganizer: v.optional(v.string()),
+      contactInfo: v.optional(v.string()),
+      ticketPrice: v.optional(v.string()),
+      ageRestriction: v.optional(v.string()),
+      specialNotes: v.optional(v.string()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.flyerId, {
+      extractedData: args.extractedData,
+      aiProcessed: true,
+      aiProcessedAt: Date.now(),
+      status: "EXTRACTED",
+    });
+
+    return { success: true };
+  },
+});
+
+/**
  * Get statistics for flyer uploads (for analytics)
  */
 export const getFlyerStats = mutation({

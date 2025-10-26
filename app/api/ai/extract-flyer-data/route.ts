@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { readFile } from "fs/promises";
 import path from "path";
 
 export async function POST(request: NextRequest) {
-  // Initialize OpenAI client only when needed
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || "placeholder-key-for-build",
-  });
   try {
     const { filepath } = await request.json();
 
@@ -18,9 +14,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    // Check for Gemini API key
+    const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+
+    if (!geminiApiKey) {
       return NextResponse.json(
-        { error: "OpenAI API key not configured. Please add OPENAI_API_KEY to environment variables." },
+        {
+          error: "Gemini API key not configured",
+          details: "Please add GEMINI_API_KEY or GOOGLE_API_KEY to environment variables."
+        },
         { status: 500 }
       );
     }
@@ -33,14 +35,12 @@ export async function POST(request: NextRequest) {
     const imageBuffer = await readFile(fullPath);
     const base64Image = imageBuffer.toString("base64");
 
-    // Call OpenAI Vision API to extract event data
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert at extracting event information from flyers.
-Extract ALL relevant information from the event flyer and return it as JSON.
+    // Initialize Gemini
+    const genAI = new GoogleGenerativeAI(geminiApiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `You are an expert at extracting event information from flyers.
+Extract ALL relevant information from this event flyer and return it as JSON.
 
 Extract the following fields:
 - eventName: The name/title of the event
@@ -60,31 +60,24 @@ Extract the following fields:
 - specialNotes: Any special notes (dress code, special guests, etc.)
 
 If any field is not clearly visible on the flyer, set it to null.
-Return ONLY valid JSON, no markdown formatting.`,
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "Extract all event information from this flyer:",
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`,
-              },
-            },
-          ],
-        },
-      ],
-      max_tokens: 1000,
-      temperature: 0.2, // Low temperature for consistent extraction
-    });
+Return ONLY valid JSON, no markdown formatting or explanation.`;
 
-    const extractedText = response.choices[0]?.message?.content;
+    // Call Gemini Vision API
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: base64Image,
+        },
+      },
+    ]);
+
+    const response = await result.response;
+    const extractedText = response.text();
+
     if (!extractedText) {
-      throw new Error("No response from OpenAI");
+      throw new Error("No response from Gemini");
     }
 
     // Parse the JSON response
@@ -97,14 +90,14 @@ Return ONLY valid JSON, no markdown formatting.`,
         .trim();
       extractedData = JSON.parse(cleanedText);
     } catch (parseError) {
-      console.error("Failed to parse OpenAI response:", extractedText);
+      console.error("Failed to parse Gemini response:", extractedText);
       throw new Error("Failed to parse AI response as JSON");
     }
 
     return NextResponse.json({
       success: true,
       extractedData,
-      tokensUsed: response.usage?.total_tokens,
+      provider: "gemini",
     });
   } catch (error) {
     console.error("AI extraction error:", error);

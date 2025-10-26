@@ -377,31 +377,54 @@ export default function TicketSetupPage() {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {/* Sale Start */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Sale Start Date
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={tier.saleStart}
-                        onChange={(e) => handleTierChange(index, "saleStart", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                      />
+                  {/* Early Bird Pricing Section */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start gap-2 mb-3">
+                      <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-white text-xs">i</span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-blue-900 mb-1">Early Bird Pricing</h4>
+                        <p className="text-sm text-blue-800">
+                          Set sale dates to create time-based pricing. Leave blank for always-available tiers.
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Sale End */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Sale End Date
-                      </label>
-                      <input
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {/* Sale Start */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Sale Start Date
+                        </label>
+                        <input
+                          type="datetime-local"
+                          value={tier.saleStart}
+                          onChange={(e) => handleTierChange(index, "saleStart", e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">When this tier becomes available</p>
+                      </div>
+
+                      {/* Sale End */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Sale End Date
+                        </label>
+                        <input
                         type="datetime-local"
                         value={tier.saleEnd}
                         onChange={(e) => handleTierChange(index, "saleEnd", e.target.value)}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                       />
+                        <p className="text-xs text-gray-500 mt-1">When this tier stops being available</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 p-3 bg-white border border-blue-200 rounded">
+                      <p className="text-xs text-blue-800">
+                        <strong>Example:</strong> Create "Early Bird" tier with sale end date, then "General Admission" tier with no dates for automatic price increase!
+                      </p>
                     </div>
                   </div>
                 </div>

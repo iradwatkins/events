@@ -15,20 +15,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SteppersLife Events - Discover Amazing Stepping Events",
+  title: "SteppersLife Events - Discover Amazing Stepping Events Nationwide",
   description:
-    "Your premier platform for discovering and attending stepping events. Buy tickets, manage events, and connect with the stepping community.",
+    "Your premier platform for discovering and attending stepping events. Buy tickets, manage events with advanced seating charts, and connect with the stepping community.",
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon-light-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-light-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/stepperslife-logo-light.svg", type: "image/svg+xml" },
     ],
-    apple: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [
+      { url: "/icon-light-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-light-512.png", sizes: "512x512", type: "image/png" },
+    ],
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "SteppersLife Events",
   },
 };
@@ -38,7 +42,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#2563eb",
+  themeColor: "#DC2626",
 };
 
 export default function RootLayout({
@@ -49,7 +53,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ServiceWorkerRegister />
+        {/* ServiceWorkerRegister disabled during testing */}
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>

@@ -1,0 +1,276 @@
+"use client";
+
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import {
+  Calendar,
+  MapPin,
+  CheckCircle,
+  XCircle,
+  ArrowLeft,
+  Ticket,
+  Clock,
+} from "lucide-react";
+import { format } from "date-fns";
+import { QRCodeSVG } from "qrcode.react";
+
+export default function TicketValidationPage() {
+  const params = useParams();
+  const ticketCode = params.ticketCode as string;
+
+  const ticketData = useQuery(api.tickets.queries.getTicketByCode, {
+    ticketCode: ticketCode,
+  });
+
+  if (ticketData === undefined) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600">Validating ticket...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ticketData) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <XCircle className="w-10 h-10 text-red-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Ticket Not Found</h1>
+              <p className="text-gray-600 mb-6">
+                The ticket code <span className="font-mono font-semibold">{ticketCode}</span> could not be found.
+              </p>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Events
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { ticket, event, tier, order, attendee } = ticketData;
+  const isValid = ticket.status === "VALID";
+  const isUpcoming = event.startDate && event.startDate >= Date.now();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Back to Events</span>
+          </Link>
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Ticket Status Banner */}
+          <div className={`rounded-lg p-6 mb-6 ${
+            isValid
+              ? "bg-gradient-to-r from-green-500 to-green-600 text-white"
+              : "bg-gradient-to-r from-red-500 to-red-600 text-white"
+          }`}>
+            <div className="flex items-center gap-4">
+              {isValid ? (
+                <CheckCircle className="w-12 h-12 flex-shrink-0" />
+              ) : (
+                <XCircle className="w-12 h-12 flex-shrink-0" />
+              )}
+              <div>
+                <h1 className="text-2xl font-bold mb-1">
+                  {isValid ? "Valid Ticket" : "Invalid Ticket"}
+                </h1>
+                <p className="text-white/90">
+                  {isValid
+                    ? "This ticket is valid and ready for use"
+                    : "This ticket has been used or is no longer valid"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Left Column - Event Details */}
+            <div className="space-y-6">
+              {/* Event Card */}
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                {event.imageUrl && (
+                  <div className="h-48 bg-gray-200">
+                    <img
+                      src={event.imageUrl}
+                      alt={event.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">{event.name}</h2>
+
+                  {event.description && (
+                    <p className="text-gray-600 mb-6">{event.description}</p>
+                  )}
+
+                  <div className="space-y-3">
+                    {event.startDate && (
+                      <div className="flex items-start gap-3">
+                        <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {format(event.startDate, "EEEE, MMMM d, yyyy")}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {format(event.startDate, "h:mm a")}
+                            {event.endDate && ` - ${format(event.endDate, "h:mm a")}`}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {event.location && typeof event.location === 'object' && (
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          {event.location.venueName && (
+                            <p className="font-semibold text-gray-900">{event.location.venueName}</p>
+                          )}
+                          <p className="text-sm text-gray-600">
+                            {event.location.address && `${event.location.address}, `}
+                            {event.location.city}, {event.location.state} {event.location.zipCode}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Attendee Info */}
+              {attendee && (
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Attendee Information</h3>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-sm text-gray-500">Name</p>
+                      <p className="font-semibold text-gray-900">{attendee.name || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="font-semibold text-gray-900">{attendee.email}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column - Ticket Details */}
+            <div className="space-y-6">
+              {/* QR Code */}
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">Ticket QR Code</h3>
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 bg-white border-4 border-gray-200 rounded-lg">
+                    <QRCodeSVG
+                      value={`https://events.stepperslife.com/ticket/${ticket.ticketCode}`}
+                      size={200}
+                      level="H"
+                      includeMargin={false}
+                    />
+                  </div>
+                </div>
+                <p className="text-center text-sm text-gray-500">
+                  Scan at event entrance
+                </p>
+              </div>
+
+              {/* Ticket Details */}
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Ticket Details</h3>
+                <dl className="space-y-3">
+                  <div>
+                    <dt className="text-sm text-gray-500">Ticket Code</dt>
+                    <dd className="font-mono text-lg font-bold text-gray-900">{ticket.ticketCode}</dd>
+                  </div>
+
+                  {tier && (
+                    <>
+                      <div>
+                        <dt className="text-sm text-gray-500">Ticket Type</dt>
+                        <dd className="font-semibold text-gray-900">{tier.name}</dd>
+                      </div>
+                      {tier.price && (
+                        <div>
+                          <dt className="text-sm text-gray-500">Price</dt>
+                          <dd className="font-semibold text-gray-900">
+                            ${(tier.price / 100).toFixed(2)}
+                          </dd>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div>
+                    <dt className="text-sm text-gray-500">Status</dt>
+                    <dd className={`font-semibold ${
+                      isValid ? "text-green-600" : "text-red-600"
+                    }`}>
+                      {ticket.status}
+                    </dd>
+                  </div>
+
+                  {order?.paidAt && (
+                    <div>
+                      <dt className="text-sm text-gray-500">Purchased</dt>
+                      <dd className="text-gray-900">
+                        {format(order.paidAt, "MMM d, yyyy 'at' h:mm a")}
+                      </dd>
+                    </div>
+                  )}
+
+                  {ticket.scannedAt && (
+                    <div>
+                      <dt className="text-sm text-gray-500">Scanned</dt>
+                      <dd className="text-gray-900 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        {format(ticket.scannedAt, "MMM d, yyyy 'at' h:mm a")}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+
+              {/* Action Button */}
+              {isUpcoming && isValid && (
+                <Link
+                  href="/my-tickets"
+                  className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                >
+                  View All My Tickets
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

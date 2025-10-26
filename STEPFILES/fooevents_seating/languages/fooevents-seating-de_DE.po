@@ -1,0 +1,347 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: FooEvents Seating\n"
+"POT-Creation-Date: 2024-08-21 13:46-0700\n"
+"PO-Revision-Date: 2024-08-21 13:46-0700\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.4.4\n"
+"X-Poedit-KeywordsList: __;_e;esc_attr_e;esc_attr__;esc_html_e\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: class-fooevents-seating.php:176 class-fooevents-seating.php:186
+#: class-fooevents-seating.php:356 class-fooevents-seating.php:392
+#: class-fooevents-seating.php:578 class-fooevents-seating.php:710
+#: class-fooevents-seating.php:807 class-fooevents-seating.php:1299
+#: class-fooevents-seating.php:1302 class-fooevents-seating.php:1753
+#: class-fooevents-seating.php:1756 class-fooevents-seating.php:2012
+#: class-fooevents-seating.php:2015
+msgid "Row"
+msgstr "Reihe"
+
+#: class-fooevents-seating.php:182 class-fooevents-seating.php:185
+#: class-fooevents-seating.php:348 class-fooevents-seating.php:351
+#: class-fooevents-seating.php:402 class-fooevents-seating.php:403
+#: class-fooevents-seating.php:840 class-fooevents-seating.php:843
+#: class-fooevents-seating.php:1747 class-fooevents-seating.php:1775
+#: class-fooevents-seating.php:1778 class-fooevents-seating.php:2006
+#: class-fooevents-seating.php:2032 class-fooevents-seating.php:2035
+#: class-fooevents-seating.php:2291
+msgid "Seating Chart"
+msgstr "Sitzplan"
+
+#: class-fooevents-seating.php:185 class-fooevents-seating.php:843
+#: class-fooevents-seating.php:1778 class-fooevents-seating.php:2035
+msgid "View seating chart"
+msgstr "Seating-Plan anzeigen"
+
+#: class-fooevents-seating.php:186
+msgid "New Row"
+msgstr "Neue Zeile"
+
+#: class-fooevents-seating.php:314
+msgid "Available"
+msgstr "Verfügbar"
+
+#: class-fooevents-seating.php:315
+msgid "Already Booked"
+msgstr "Bereits gebucht"
+
+#: class-fooevents-seating.php:316
+msgid "Blocked"
+msgstr "Blockiert"
+
+#: class-fooevents-seating.php:317 class-fooevents-seating.php:400
+msgid "Selected for another attendee in this order"
+msgstr "Ausgewählt für einen anderen Teilnehmer in dieser Reihenfolge"
+
+#: class-fooevents-seating.php:318 class-fooevents-seating.php:401
+msgid "Selected for this attendee"
+msgstr "Ausgewählt für diesen Teilnehmer"
+
+#: class-fooevents-seating.php:319 class-fooevents-seating.php:380
+msgid "FRONT"
+msgstr "VORDERSEITE"
+
+#: class-fooevents-seating.php:320 class-fooevents-seating.php:390
+msgid "Select seats"
+msgstr "Wähle Sitze aus"
+
+#: class-fooevents-seating.php:321 class-fooevents-seating.php:389
+#: class-fooevents-seating.php:809
+msgid "Select seat"
+msgstr "Wähle einen Sitzplatz"
+
+#: class-fooevents-seating.php:322 class-fooevents-seating.php:392
+msgid "No seats to show. Add rows and seats by clicking on the <i>+ new Row</i> button."
+msgstr "Keine Sitze vorhanden. Fügen Sie Zeilen und Sitze hinzu, indem Sie auf die Schaltfläche <i>+ Neue Zeile</i> klicken."
+
+#: class-fooevents-seating.php:323 class-fooevents-seating.php:391
+msgid "Selected seat"
+msgstr "Ausgewählter Sitzplatz"
+
+#: class-fooevents-seating.php:324 class-fooevents-seating.php:393
+msgid "(No seats available)"
+msgstr "(Keine Plätze verfügbar)"
+
+#: class-fooevents-seating.php:325 class-fooevents-seating.php:368
+#: class-fooevents-seating.php:389 class-fooevents-seating.php:391
+#: class-fooevents-seating.php:394 class-fooevents-seating.php:402
+#: class-fooevents-seating.php:403 class-fooevents-seating.php:590
+#: class-fooevents-seating.php:808 class-fooevents-seating.php:809
+#: class-fooevents-seating.php:1044 class-fooevents-seating.php:1074
+#: class-fooevents-seating.php:1089 class-fooevents-seating.php:1141
+#: class-fooevents-seating.php:1167 class-fooevents-seating.php:1184
+#: class-fooevents-seating.php:1307 class-fooevents-seating.php:1310
+#: class-fooevents-seating.php:1761 class-fooevents-seating.php:1764
+#: class-fooevents-seating.php:2020 class-fooevents-seating.php:2023
+#: class-fooevents-seating.php:2268 fooevents-seating.php:57
+#: fooevents-seating.php:66 fooevents-seating.php:67
+msgid "Seat"
+msgstr "Sitzplatz"
+
+#: class-fooevents-seating.php:326 class-fooevents-seating.php:394
+msgid "is already selected. Please select another seat."
+msgstr "ist bereits ausgewählt. Bitte wählen Sie einen anderen Sitzplatz."
+
+#: class-fooevents-seating.php:327 class-fooevents-seating.php:395
+msgid "Make selected seats available"
+msgstr "Machen Sie ausgewählte Sitze verfügbar"
+
+#: class-fooevents-seating.php:328 class-fooevents-seating.php:351
+msgid "Refresh seating chart"
+msgstr "Seating-Plan aktualisieren"
+
+#: class-fooevents-seating.php:329 class-fooevents-seating.php:396
+msgid "Make selected seats unavailable"
+msgstr "Machen Sie ausgewählte Sitze nicht verfügbar"
+
+#: class-fooevents-seating.php:330 class-fooevents-seating.php:397
+msgid "Block selected seats"
+msgstr "Ausgewählte Sitze blockieren"
+
+#: class-fooevents-seating.php:331 class-fooevents-seating.php:398
+msgid "Add aisle to the right of selected seats"
+msgstr "Fügen Sie einen Gang rechts von den ausgewählten Sitzen hinzu"
+
+#: class-fooevents-seating.php:332 class-fooevents-seating.php:399
+msgid "Remove aisle from selected seats"
+msgstr "Entferne den Gang aus den ausgewählten Sitzen"
+
+#: class-fooevents-seating.php:333
+msgid "Apply"
+msgstr "Bewerben"
+
+#: class-fooevents-seating.php:334 class-fooevents-seating.php:402
+msgid "DISCLAIMER: Please note that the action of making seats available or unavailable cannot be reversed. You have to <i>Update</i> your event before changes will take effect. Making seats available will mean that your customers will be able to select these seats again. This could result in more than one attendee booking the same seat. Only use this functionality if you are sure that this will not result in double bookings. Before making any changes, click on the <i>Refresh seating chart</i> button to ensure that you are working with the latest seating chart."
+msgstr "Bitte beachten Sie, dass die Aktion, Sitzplätze verfügbar oder nicht verfügbar zu machen, nicht rückgängig gemacht werden kann. Sie müssen Ihr Ereignis aktualisieren, bevor Änderungen wirksam werden. Wenn Sie Sitzplätze verfügbar machen, können Ihre Kunden diese Sitze wieder auswählen. Dies könnte dazu führen, dass mehr als ein Teilnehmer denselben Sitz bucht. Verwenden Sie diese Funktion nur, wenn Sie sicher sind, dass dies nicht zu doppelten Buchungen führt. Bevor Sie Änderungen vornehmen, klicken Sie auf die Schaltfläche <i>Sitzplan aktualisieren</i>, um sicherzustellen, dass Sie mit dem neuesten Sitzplan arbeiten."
+
+#: class-fooevents-seating.php:335
+msgid "DISCLAIMER: Please note that the action of reassigning seats cannot be reversed. You have to <i>Update</i> this ticket before changes will take effect. Making seats available will mean that your customers will be able to select these seats again. This could result in more than one attendee booking the same seat. Only use this functionality if you are sure that this will not result in double bookings."
+msgstr "Bitte beachten Sie, dass die Aktion des Neuzuweisens von Sitzen nicht rückgängig gemacht werden kann. Sie müssen dieses Ticket aktualisieren, damit die Änderungen wirksam werden. Wenn Sie Sitze freigeben, können Ihre Kunden diese Sitze erneut auswählen. Dies könnte dazu führen, dass mehr als ein Teilnehmer denselben Sitz bucht. Verwenden Sie diese Funktion nur, wenn Sie sicher sind, dass dies nicht zu doppelten Buchungen führt."
+
+#: class-fooevents-seating.php:362 class-fooevents-seating.php:392
+#: class-fooevents-seating.php:584
+msgid "Rows"
+msgstr "Reihen"
+
+#: class-fooevents-seating.php:374 class-fooevents-seating.php:390
+#: class-fooevents-seating.php:392 class-fooevents-seating.php:393
+#: class-fooevents-seating.php:395 class-fooevents-seating.php:396
+#: class-fooevents-seating.php:397 class-fooevents-seating.php:398
+#: class-fooevents-seating.php:399 class-fooevents-seating.php:402
+#: class-fooevents-seating.php:403 class-fooevents-seating.php:596
+#: class-fooevents-seating.php:2282 class-fooevents-seating.php:2285
+#: class-fooevents-seating.php:2324 class-fooevents-seating.php:2352
+msgid "Seats"
+msgstr "Plätze"
+
+#: class-fooevents-seating.php:386 class-fooevents-seating.php:400
+#: class-fooevents-seating.php:401 class-fooevents-seating.php:402
+#: class-fooevents-seating.php:403 class-fooevents-seating.php:1038
+#: class-fooevents-seating.php:1073 class-fooevents-seating.php:1088
+#: class-fooevents-seating.php:1135 class-fooevents-seating.php:1166
+#: class-fooevents-seating.php:1183 fooevents-seating.php:63
+#: fooevents-seating.php:67
+msgid "Attendee"
+msgstr "Teilnehmer"
+
+#: class-fooevents-seating.php:403
+msgid "DISCLAIMER: Please note that the action of reassigning seats cannot be reversed. You have to Update this ticket before changes will take effect. Making seats available will mean that your customers will be able to select these seats again. This could result in more than one attendee booking the same seat. Only use this functionality if you are sure that this will not result in double bookings."
+msgstr "Bitte beachten Sie, dass die Aktion des Neuzuweisens von Sitzen nicht rückgängig gemacht werden kann. Sie müssen dieses Ticket aktualisieren, bevor Änderungen wirksam werden. Wenn Sie Sitze wieder verfügbar machen, bedeutet dies, dass Ihre Kunden diese Sitze erneut auswählen können. Dies könnte dazu führen, dass mehr als ein Teilnehmer denselben Sitz bucht. Verwenden Sie diese Funktion nur, wenn Sie sicher sind, dass dies nicht zu doppelten Buchungen führt."
+
+#: class-fooevents-seating.php:454
+msgid "The FooEvents Seating plugin requires FooEvents for WooCommerce to be installed."
+msgstr "Das FooEvents Seating-Plugin erfordert die Installation von FooEvents für WooCommerce."
+
+#: class-fooevents-seating.php:710
+msgid "Select row"
+msgstr "Wähle eine Reihe"
+
+#: class-fooevents-seating.php:807
+msgid "Row name"
+msgstr "Reihenname"
+
+#: class-fooevents-seating.php:808
+msgid "Seat number"
+msgstr "Sitznummer"
+
+#: class-fooevents-seating.php:1073
+#, php-format
+msgid "The seat for %1$s attendee %2$d has already been booked. Please select a different seat."
+msgstr "Der Sitzplatz für %1$s Teilnehmer %2$d wurde bereits gebucht. Bitte wählen Sie einen anderen Sitzplatz aus."
+
+#: class-fooevents-seating.php:1088
+#, php-format
+msgid "The seat for %1$s attendee %2$d has been blocked and is not available for booking. Please select a different seat."
+msgstr "Der Sitzplatz für %1$s Teilnehmer %2$d wurde blockiert und steht nicht zur Buchung zur Verfügung. Bitte wählen Sie einen anderen Sitzplatz aus."
+
+#: class-fooevents-seating.php:1166
+msgid "This seat has already been booked. Please select a different seat."
+msgstr "Dieser Sitzplatz wurde bereits gebucht. Bitte wählen Sie einen anderen Sitzplatz aus."
+
+#: class-fooevents-seating.php:1183
+msgid "This seat has been blocked and is not available for booking. Please select a different seat."
+msgstr "Dieser Sitzplatz wurde blockiert und steht nicht zur Verfügung. Bitte wählen Sie einen anderen Sitzplatz aus."
+
+#: class-fooevents-seating.php:1251
+#, php-format
+msgid "A row and seat number is required for %1$s attendee %2$d"
+msgstr "Für den Teilnehmer %1$s wird eine Reihe und Sitzplatznummer benötigt %2$d"
+
+#: class-fooevents-seating.php:1302
+msgid "Row Name"
+msgstr "Reihenname"
+
+#: class-fooevents-seating.php:1310
+msgid "Seat Number"
+msgstr "Sitznummer"
+
+#: class-fooevents-seating.php:1756 class-fooevents-seating.php:2015
+msgid "Row name:"
+msgstr "Reihenname:"
+
+#: class-fooevents-seating.php:1764 class-fooevents-seating.php:2023
+msgid "Seat number:"
+msgstr "Sitzplatznummer:"
+
+#: class-fooevents-seating.php:2285
+msgid "Choose seats"
+msgstr "Wähle Plätze aus"
+
+#: class-fooevents-seating.php:2352
+msgid "The selected seats are unfortunately not available anymore. Please select different seats."
+msgstr "Die ausgewählten Plätze sind leider nicht mehr verfügbar. Bitte wählen Sie andere Plätze aus."
+
+#: classes/updatehelper.php:275
+msgid "Important:"
+msgstr "Wichtig:"
+
+#: classes/updatehelper.php:288
+msgid "Please backup your files and database before updates!"
+msgstr "Bitte sichern Sie Ihre Dateien und Datenbank vor Updates!"
+
+#: fooevents-seating.php:66
+msgid "Make seat selection required for this variation "
+msgstr "Machen Sie die Sitzplatzwahl für diese Variation erforderlich"
+
+#: fooevents-seating.php:67
+msgid "If an attendee is buying a FooEvents ticket for this variation, and there exists an \"Area\" associated with this variation, then the attendee will be required to select a seat if this option is checked."
+msgstr "Wenn ein Teilnehmer ein FooEvents-Ticket für diese Variation kauft und es eine 'Area' gibt, die mit dieser Variation verbunden ist, muss der Teilnehmer einen Sitzplatz auswählen, wenn diese Option aktiviert ist."
+
+#: templates/seating-options.php:15
+msgid "Event Seating"
+msgstr "Veranstaltungssitzplätze"
+
+#: templates/seating-options.php:24
+msgid "Area Name (e.g. Row 1, Table 1, etc.)"
+msgstr "Bereichsname (z.B. Reihe 1, Tisch 1, etc.)"
+
+#: templates/seating-options.php:25
+msgid "Available Seats / Spaces"
+msgstr "Verfügbare Plätze / Räume"
+
+#: templates/seating-options.php:26
+msgid "Variation"
+msgstr "Variante"
+
+#: templates/seating-options.php:27
+msgid "Icon Type"
+msgstr "Symbolart"
+
+#: templates/seating-options.php:121
+msgid "No Seating found."
+msgstr "Keine Sitzplätze gefunden."
+
+#: templates/seating-settings.php:14
+msgid "Seating"
+msgstr "Sitzplätze"
+
+#: templates/seating-settings.php:19
+msgid "Available seat color"
+msgstr "Verfügbare Sitzfarbe"
+
+#: templates/seating-settings.php:22
+msgid "Color of the seats that are available for purchase in the seating chart."
+msgstr "Farbe der Sitze, die im Sitzplan zum Kauf verfügbar sind."
+
+#: templates/seating-settings.php:26
+msgid "Selected seat color"
+msgstr "Farbe des ausgewählten Sitzplatzes"
+
+#: templates/seating-settings.php:29
+msgid "Color of the seat that is currently selected in the seating chart."
+msgstr "Farbe des Sitzes, der derzeit in der Sitzplatzkarte ausgewählt ist."
+
+#: templates/seating-settings.php:33
+msgid "Selected seat color for other attendees"
+msgstr "Ausgewählte Sitzfarbe für andere Teilnehmer"
+
+#: templates/seating-settings.php:36
+msgid "Color of the seats that are selected for other attendees in the same order in the seating chart."
+msgstr "Farbe der Sitze, die für andere Teilnehmer in derselben Bestellung in der Sitzplatzkarte ausgewählt sind."
+
+#: templates/seating-settings.php:40
+msgid "Make seats available on order status"
+msgstr "Plätze bei Bestellstatus verfügbar machen"
+
+#: templates/seating-settings.php:48
+msgid "Set the order statuses on which you want to make seats available again. Please use this setting with caution since making seats available at the wrong time could result in unexpected behaviour. If your setup allows customers to pay failed orders at a later stage then do not select \"Failed\" here since this could result in double booking seats. We recommend leaving this setting to \"Cancelled\"."
+msgstr "Legen Sie die Bestellstatus fest, für die Sie die Plätze wieder verfügbar machen möchten. Bitte verwenden Sie diese Einstellung mit Vorsicht, da das Freigeben von Plätzen zur falschen Zeit zu unerwartetem Verhalten führen könnte. Wenn Ihr Setup es Kunden ermöglicht, fehlgeschlagene Bestellungen zu einem späteren Zeitpunkt zu bezahlen, wählen Sie hier nicht \"Fehlgeschlagen\" aus, da dies zu doppelten Buchungen führen könnte. Wir empfehlen, diese Einstellung auf \"Storniert\" zu belassen."
+
+#: templates/seating-term-options.php:13
+msgid "Row:"
+msgstr "Zeile:"
+
+#: templates/seating-term-options.php:16
+msgid "Change 'Row' to your own custom text for this event."
+msgstr "Ändern Sie 'Row' in Ihren eigenen benutzerdefinierten Text für diese Veranstaltung."
+
+#: templates/seating-term-options.php:21
+msgid "Seat:"
+msgstr "Sitzplatz:"
+
+#: templates/seating-term-options.php:24
+msgid "Change 'Seat' to your own custom text for this event."
+msgstr "Ändern Sie 'Sitzplatz' in Ihren eigenen benutzerdefinierten Text für diese Veranstaltung."
+
+#: templates/seating-term-options.php:29
+msgid "Seating Chart:"
+msgstr "Sitzplan:"
+
+#: templates/seating-term-options.php:32
+msgid "Change 'Seating Chart' to your own custom text for this event."
+msgstr "Ändern Sie 'Sitzplan' in Ihren eigenen benutzerdefinierten Text für diese Veranstaltung."
+
+#: templates/seating-term-options.php:37
+msgid "Front:"
+msgstr "Vorderseite:"
+
+#: templates/seating-term-options.php:40
+msgid "Change 'Front' to your own custom text for this event."
+msgstr "Ändern Sie 'Front' in Ihren eigenen benutzerdefinierten Text für diese Veranstaltung."

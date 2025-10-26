@@ -80,6 +80,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('[Square Payment] Error:', error)
+    console.error('[Square Payment] Error details:', JSON.stringify(error, null, 2))
+    console.error('[Square Payment] Error statusCode:', error?.statusCode)
+    console.error('[Square Payment] Error body:', error?.body)
 
     // Handle specific Square API errors
     if (error?.errors && Array.isArray(error.errors)) {

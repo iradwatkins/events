@@ -125,8 +125,16 @@ export const getPublicEventDetails = query({
     // Get organizer info
     const organizer = event.organizerId ? await ctx.db.get(event.organizerId) : null;
 
+    // Convert storage IDs to URLs for images
+    let imageUrl = event.imageUrl;
+    if (!imageUrl && event.images && event.images.length > 0) {
+      const url = await ctx.storage.getUrl(event.images[0]);
+      imageUrl = url ?? undefined;
+    }
+
     return {
       ...event,
+      imageUrl,
       tickets,
       ticketTiers,
       organizer: {

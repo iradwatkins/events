@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useParams, useRouter } from "next/navigation";
@@ -14,10 +15,12 @@ import {
   ArrowLeft,
   Ticket,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Bell,
+  X
 } from "lucide-react";
 import { format } from "date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -27,6 +30,16 @@ export default function EventDetailPage() {
   const eventDetails = useQuery(api.public.queries.getPublicEventDetails, {
     eventId,
   });
+
+  // Waitlist state
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [waitlistTierId, setWaitlistTierId] = useState<Id<"ticketTiers"> | undefined>(undefined);
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistName, setWaitlistName] = useState("");
+  const [waitlistQuantity, setWaitlistQuantity] = useState(1);
+  const [isJoiningWaitlist, setIsJoiningWaitlist] = useState(false);
+
+  const joinWaitlist = useMutation(api.waitlist.mutations.joinWaitlist);
 
   if (eventDetails === undefined) {
     return (
@@ -84,12 +97,50 @@ export default function EventDetailPage() {
     }
   };
 
+  const handleJoinWaitlist = (tierId?: Id<"ticketTiers">) => {
+    setWaitlistTierId(tierId);
+    setShowWaitlistModal(true);
+  };
+
+  const handleSubmitWaitlist = async () => {
+    if (!waitlistEmail || !waitlistName || waitlistQuantity < 1) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    setIsJoiningWaitlist(true);
+    try {
+      await joinWaitlist({
+        eventId,
+        ticketTierId: waitlistTierId,
+        email: waitlistEmail,
+        name: waitlistName,
+        quantity: waitlistQuantity,
+      });
+      alert("Successfully joined the waitlist! We'll notify you when tickets become available.");
+      setShowWaitlistModal(false);
+      setWaitlistEmail("");
+      setWaitlistName("");
+      setWaitlistQuantity(1);
+      setWaitlistTierId(undefined);
+    } catch (error: any) {
+      alert(error.message || "Failed to join waitlist");
+    } finally {
+      setIsJoiningWaitlist(false);
+    }
+  };
+
   const isUpcoming = eventDetails.startDate ? eventDetails.startDate > Date.now() : false;
   const isPast = eventDetails.endDate ? eventDetails.endDate < Date.now() : false;
   const showTickets = eventDetails.eventType === "TICKETED_EVENT" &&
                        eventDetails.ticketsVisible &&
                        eventDetails.paymentConfigured &&
                        isUpcoming;
+
+  // Check if all tickets are sold out
+  const allTicketsSoldOut = eventDetails.ticketTiers?.every(
+    tier => tier.quantity !== undefined && tier.sold !== undefined && tier.quantity - tier.sold <= 0
+  ) ?? false;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -298,20 +349,113 @@ export default function EventDetailPage() {
                   </div>
                 )} */}
 
+                {/* Ticket Tiers Display for TICKETED_EVENT */}
+                {eventDetails.eventType === "TICKETED_EVENT" && eventDetails.ticketTiers && eventDetails.ticketTiers.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.5 }}
+                    className="mb-6 pb-6 border-b border-gray-200"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <Ticket className="w-4 h-4 text-blue-600" />
+                      <h3 className="text-sm font-semibold text-gray-900">Available Tickets</h3>
+                    </div>
+                    <div className="space-y-2">
+                      {eventDetails.ticketTiers.map((tier, index) => {
+                        const isSoldOut = tier.quantity !== undefined && tier.sold !== undefined && tier.quantity - tier.sold <= 0;
+                        return (
+                          <motion.div
+                            key={tier._id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
+                            className="bg-gradient-to-r from-blue-50 to-white border border-blue-100 rounded-lg p-3 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <p className="font-semibold text-gray-900">{tier.name}</p>
+                              <p className="font-bold text-blue-600 text-lg">
+                                ${(tier.price / 100).toFixed(2)}
+                              </p>
+                            </div>
+                            {tier.description && (
+                              <p className="text-xs text-gray-600 mb-1">{tier.description}</p>
+                            )}
+                            {tier.quantity !== undefined && tier.sold !== undefined && (
+                              <div className="flex items-center justify-between gap-2 mt-2">
+                                <p className={`text-xs font-medium ${
+                                  tier.quantity - tier.sold > 0 ? "text-green-600" : "text-red-600"
+                                }`}>
+                                  {tier.quantity - tier.sold > 0
+                                    ? `${tier.quantity - tier.sold} tickets available`
+                                    : "Sold out"}
+                                </p>
+                                {isSoldOut && (
+                                  <button
+                                    onClick={() => handleJoinWaitlist(tier._id)}
+                                    className="flex items-center gap-1 px-2 py-1 bg-orange-500 text-white rounded text-xs font-medium hover:bg-orange-600 transition-colors"
+                                  >
+                                    <Bell className="w-3 h-3" />
+                                    Waitlist
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Door Price Display for FREE_EVENT */}
+                {eventDetails.eventType === "FREE_EVENT" && eventDetails.doorPrice && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.5 }}
+                    className="mb-6 pb-6 border-b border-gray-200"
+                  >
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Ticket className="w-5 h-5 text-green-600" />
+                        <p className="font-semibold text-green-900">Door Price</p>
+                      </div>
+                      <p className="text-green-800 font-bold text-lg">{eventDetails.doorPrice}</p>
+                      <p className="text-xs text-green-700 mt-1">Payment accepted at venue</p>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* CTA Button */}
                 {showTickets && eventDetails.ticketTiers && eventDetails.ticketTiers.length > 0 ? (
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Link
-                      href={`/events/${eventId}/checkout`}
-                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg shadow-md hover:shadow-lg"
+                  allTicketsSoldOut ? (
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <Ticket className="w-5 h-5" />
-                      Buy Tickets
-                    </Link>
-                  </motion.div>
+                      <button
+                        onClick={() => handleJoinWaitlist()}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-semibold text-lg shadow-md hover:shadow-lg"
+                      >
+                        <Bell className="w-5 h-5" />
+                        Join Waitlist
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Link
+                        href={`/events/${eventId}/checkout`}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg shadow-md hover:shadow-lg"
+                      >
+                        <Ticket className="w-5 h-5" />
+                        Buy Tickets
+                      </Link>
+                    </motion.div>
+                  )
                 ) : eventDetails.eventType === "FREE_EVENT" && isUpcoming ? (
                   <motion.div
                     whileHover={{ scale: 1.02 }}
@@ -354,6 +498,112 @@ export default function EventDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Waitlist Modal */}
+      <AnimatePresence>
+        {showWaitlistModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-6 h-6 text-orange-500" />
+                  <h2 className="text-xl font-bold text-gray-900">Join Waitlist</h2>
+                </div>
+                <button
+                  onClick={() => setShowWaitlistModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <p className="text-gray-600 mb-6">
+                We'll notify you when tickets become available for this event.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="waitlist-email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    id="waitlist-email"
+                    type="email"
+                    value={waitlistEmail}
+                    onChange={(e) => setWaitlistEmail(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="your@email.com"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="waitlist-name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name
+                  </label>
+                  <input
+                    id="waitlist-name"
+                    type="text"
+                    value={waitlistName}
+                    onChange={(e) => setWaitlistName(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Your Name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="waitlist-quantity" className="block text-sm font-medium text-gray-700 mb-1">
+                    Number of Tickets
+                  </label>
+                  <input
+                    id="waitlist-quantity"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={waitlistQuantity}
+                    onChange={(e) => setWaitlistQuantity(parseInt(e.target.value) || 1)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleSubmitWaitlist}
+                  disabled={isJoiningWaitlist}
+                  className="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isJoiningWaitlist ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Joining...
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-5 h-5" />
+                      Join Waitlist
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowWaitlistModal(false)}
+                  className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

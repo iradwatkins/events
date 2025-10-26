@@ -194,12 +194,12 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  {/* Logged out navigation */}
+                  {/* Logged out navigation - TESTING MODE */}
                   <Link
-                    href="/login"
+                    href="/my-tickets"
                     className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
                   >
-                    Sign In
+                    My Tickets
                   </Link>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link

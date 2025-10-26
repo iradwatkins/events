@@ -27,17 +27,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract filename from filepath (handles both old and new format)
+    // Old format: /STEPFILES/event-flyers/filename.jpg
+    // New format: /api/flyers/filename.jpg
+    const filename = filepath.includes('/api/flyers/')
+      ? filepath.split('/api/flyers/')[1]
+      : path.basename(filepath);
+
     // Read the flyer image from disk
     const fullPath = path.join(
       "/root/websites/events-stepperslife/STEPFILES/event-flyers",
-      path.basename(filepath)
+      filename
     );
     const imageBuffer = await readFile(fullPath);
     const base64Image = imageBuffer.toString("base64");
 
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const prompt = `You are an expert at extracting event information from flyers.
 Extract ALL relevant information from this event flyer and return it as JSON.

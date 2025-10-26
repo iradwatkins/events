@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       optimizedSize,
       savedBytes,
       savedPercent: `${savedPercent}%`,
-      path: `/STEPFILES/event-flyers/${filename}`,
+      path: `/api/flyers/${filename}`,
     });
   } catch (error) {
     console.error("Flyer upload error:", error);

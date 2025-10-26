@@ -78,7 +78,11 @@ export default function BulkFlyerUploadPage() {
         });
 
         if (!response.ok) {
-          throw new Error("Upload failed");
+          const errorData = await response.json();
+          if (response.status === 409) {
+            throw new Error("Duplicate flyer - this file has already been uploaded");
+          }
+          throw new Error(errorData.error || "Upload failed");
         }
 
         const data = await response.json();

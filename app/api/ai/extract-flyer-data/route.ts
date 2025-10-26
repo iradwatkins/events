@@ -52,12 +52,24 @@ Extract the following fields:
 - city: City name
 - state: State (2-letter code if possible, e.g., "GA")
 - zipCode: Zip code if visible
-- description: Brief description of the event (1-2 sentences summarizing what's on the flyer)
+- description: COMPREHENSIVE description that includes EVERYTHING on the flyer. Include:
+  * Main event summary
+  * ALL performers, DJs, special guests mentioned
+  * ALL activities, performances, or entertainment
+  * Any themes, dress codes, or special features
+  * Prizes, giveaways, or special offers
+  * Music genres or entertainment types
+  * Food, drinks, or amenities mentioned
+  * Parking information
+  * ANY other details, text, or information visible on the flyer
+  Write this as detailed paragraphs capturing EVERY piece of information.
 - hostOrganizer: Name of the host, organizer, or promoter
 - contactInfo: Any contact information (phone, email, website, social media)
 - ticketPrice: Ticket price if mentioned (e.g., "$25", "Free", "$15-$30")
 - ageRestriction: Age restriction if mentioned (e.g., "21+", "18+", "All ages")
-- specialNotes: Any special notes (dress code, special guests, etc.)
+- specialNotes: Any additional special notes not captured elsewhere
+
+IMPORTANT: The description field should be VERY DETAILED and include ALL text and information from the flyer. Don't summarize - include everything!
 
 If any field is not clearly visible on the flyer, set it to null.
 Return ONLY valid JSON, no markdown formatting or explanation.`;

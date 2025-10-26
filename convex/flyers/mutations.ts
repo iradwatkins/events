@@ -13,9 +13,29 @@ export const logUploadedFlyer = mutation({
     optimizedSize: v.number(),
   },
   handler: async (ctx, args) => {
-    // TESTING MODE: Skip authentication check
-    // In production, verify user is admin
-    const userId = "temp-admin-id"; // Replace with actual user ID from auth
+    // Get current user (in TESTING MODE, returns test user)
+    const identity = await ctx.auth.getUserIdentity();
+
+    let user;
+    if (!identity) {
+      // TESTING MODE: Get test user
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      // Production: Get user by email from identity
+      const userInfo = typeof identity === "string" ? JSON.parse(identity) : identity;
+      const email = userInfo.email || identity.email;
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+    }
+
+    if (!user) {
+      throw new Error("User not found");
+    }
 
     const flyerId = await ctx.db.insert("uploadedFlyers", {
       filename: args.filename,
@@ -23,7 +43,7 @@ export const logUploadedFlyer = mutation({
       filepath: args.filepath,
       originalSize: args.originalSize,
       optimizedSize: args.optimizedSize,
-      uploadedBy: userId as any, // TEMP: will be real user ID
+      uploadedBy: user._id,
       uploadedAt: Date.now(),
       aiProcessed: false,
       eventCreated: false,

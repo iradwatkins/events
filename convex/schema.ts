@@ -93,6 +93,11 @@ export default defineSchema({
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
 
+    // Claiming system (for admin-created events that organizers can claim)
+    isClaimable: v.optional(v.boolean()),
+    claimCode: v.optional(v.string()),
+    claimedAt: v.optional(v.number()),
+
     // Legacy fields (for backward compatibility with old event schema)
     eventDate: v.optional(v.number()),
     imageStorageId: v.optional(v.id("_storage")),
@@ -104,7 +109,8 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_event_type", ["eventType"])
     .index("by_start_date", ["startDate"])
-    .index("by_published", ["status", "startDate"]),
+    .index("by_published", ["status", "startDate"])
+    .index("by_claimable", ["isClaimable"]),
 
   // Organizer credit balance for pre-purchase model
   organizerCredits: defineTable({
@@ -170,9 +176,49 @@ export default defineSchema({
     eventId: v.id("events"),
     name: v.string(), // "General Admission", "VIP", etc.
     description: v.optional(v.string()),
-    price: v.number(), // in cents
+    price: v.number(), // Base price in cents (used if no pricingTiers)
+
+    // Early Bird Pricing - time-based pricing tiers
+    pricingTiers: v.optional(v.array(v.object({
+      name: v.string(), // "Early Bird", "Regular", "Last Chance"
+      price: v.number(), // Price in cents for this tier
+      availableFrom: v.number(), // Start timestamp
+      availableUntil: v.optional(v.number()), // End timestamp (optional for last tier)
+    }))),
+    // If pricingTiers exists, system uses current tier price based on date
+    // Otherwise falls back to base price field
+
     quantity: v.number(), // total available
     sold: v.number(), // number sold
+    saleStart: v.optional(v.number()),
+    saleEnd: v.optional(v.number()),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_event", ["eventId"]),
+
+  // Ticket Bundles - Package multiple tickets together
+  ticketBundles: defineTable({
+    eventId: v.id("events"),
+    name: v.string(), // "3-Day Weekend Pass", "VIP Package"
+    description: v.optional(v.string()),
+    price: v.number(), // Bundle price in cents
+
+    // Which ticket tiers are included in this bundle
+    includedTiers: v.array(v.object({
+      tierId: v.id("ticketTiers"),
+      tierName: v.string(), // Cache tier name for display
+      quantity: v.number(), // Usually 1, but could be multiple
+    })),
+
+    totalQuantity: v.number(), // Total bundles available
+    sold: v.number(), // Number of bundles sold
+
+    // Calculated savings (for display)
+    regularPrice: v.optional(v.number()), // Sum of included tier prices
+    savings: v.optional(v.number()), // How much saved vs buying separately
+
     saleStart: v.optional(v.number()),
     saleEnd: v.optional(v.number()),
     isActive: v.boolean(),
@@ -351,6 +397,14 @@ export default defineSchema({
     staffReferralCode: v.optional(v.string()), // Legacy field
     staffCommission: v.optional(v.number()),
 
+    // Bundle purchase tracking
+    bundleId: v.optional(v.id("ticketBundles")), // If this is a bundle purchase
+    isBundlePurchase: v.optional(v.boolean()), // Quick flag for filtering
+
+    // Discount tracking
+    discountCodeId: v.optional(v.id("discountCodes")),
+    discountAmountCents: v.optional(v.number()),
+
     // Legacy fields for backward compatibility
     userId: v.optional(v.id("users")),
 
@@ -358,8 +412,13 @@ export default defineSchema({
     selectedSeats: v.optional(v.array(v.object({
       sectionId: v.string(),
       sectionName: v.string(),
-      rowId: v.string(),
-      rowLabel: v.string(),
+      // Row-based seating (optional)
+      rowId: v.optional(v.string()),
+      rowLabel: v.optional(v.string()),
+      // Table-based seating (optional)
+      tableId: v.optional(v.string()),
+      tableNumber: v.optional(v.union(v.string(), v.number())),
+      // Common fields
       seatId: v.string(),
       seatNumber: v.string(),
     }))),
@@ -497,6 +556,13 @@ export default defineSchema({
     eventId: v.id("events"),
     name: v.string(), // e.g., "Main Hall", "VIP Section"
 
+    // Seating style (NEW - for table-based vs row-based layouts)
+    seatingStyle: v.optional(v.union(
+      v.literal("ROW_BASED"),    // Traditional theater/stadium rows
+      v.literal("TABLE_BASED"),  // Tables for weddings/galas/banquets
+      v.literal("MIXED")         // Hybrid: both rows and tables
+    )),
+
     // Venue image overlay (NEW - for visual seating chart placement)
     venueImageId: v.optional(v.id("_storage")), // Uploaded floor plan/venue image
     venueImageUrl: v.optional(v.string()), // Temporary URL for external images
@@ -514,7 +580,15 @@ export default defineSchema({
       width: v.optional(v.number()), // Section width
       height: v.optional(v.number()), // Section height
       rotation: v.optional(v.number()), // Section rotation in degrees
-      rows: v.array(v.object({
+
+      // Container type (NEW - determines if section uses rows or tables)
+      containerType: v.optional(v.union(
+        v.literal("ROWS"),   // Traditional row-based seating
+        v.literal("TABLES")  // Table-based seating
+      )),
+
+      // ROW-BASED: Rows with seats (existing)
+      rows: v.optional(v.array(v.object({
         id: v.string(),
         label: v.string(), // e.g., "A", "B", "1", "2"
         curved: v.optional(v.boolean()), // For curved theater rows
@@ -533,7 +607,52 @@ export default defineSchema({
           ),
           status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE")),
         })),
-      })),
+      }))),
+
+      // TABLE-BASED: Tables with seats (NEW)
+      tables: v.optional(v.array(v.object({
+        id: v.string(),
+        number: v.union(v.string(), v.number()), // Table number or name (e.g., 1, "VIP 1", "Head Table")
+        shape: v.union(
+          v.literal("ROUND"),
+          v.literal("RECTANGULAR"),
+          v.literal("SQUARE"),
+          v.literal("CUSTOM")
+        ),
+        // Position on canvas
+        x: v.number(),
+        y: v.number(),
+        // Table dimensions
+        width: v.number(),  // Diameter for round, width for rect/square
+        height: v.number(), // Same as width for round, height for rect/square
+        rotation: v.optional(v.number()), // Rotation in degrees
+        // Custom polygon points (for CUSTOM shape)
+        customPath: v.optional(v.string()), // SVG path data
+        // Capacity and seats
+        capacity: v.number(), // Max seats at this table
+        seats: v.array(v.object({
+          id: v.string(),
+          number: v.string(), // Seat number at table (e.g., "1", "2", "3")
+          type: v.union(
+            v.literal("STANDARD"),
+            v.literal("WHEELCHAIR"),
+            v.literal("COMPANION"),
+            v.literal("VIP"),
+            v.literal("BLOCKED"),
+            v.literal("STANDING"),
+            v.literal("PARKING"),
+            v.literal("TENT")
+          ),
+          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE")),
+          // Seat position relative to table (for visual rendering)
+          position: v.optional(v.object({
+            angle: v.optional(v.number()),     // Angle around table (0-360) for round/custom tables
+            side: v.optional(v.string()),      // "top", "bottom", "left", "right" for rectangular tables
+            offset: v.optional(v.number()),    // Distance from table edge
+          }))
+        }))
+      }))),
+
       ticketTierId: v.optional(v.id("ticketTiers")), // Link section to tier pricing
     })),
 
@@ -556,11 +675,20 @@ export default defineSchema({
     ticketId: v.id("tickets"),
     orderId: v.id("orders"),
 
-    // Seat location
+    // Seat location (supports both row-based and table-based)
     sectionId: v.string(),
-    rowId: v.string(),
+
+    // ROW-BASED fields (optional, only for row-based seating)
+    rowId: v.optional(v.string()),
+    rowLabel: v.optional(v.string()), // e.g., "A", "B", "1"
+
+    // TABLE-BASED fields (optional, only for table-based seating)
+    tableId: v.optional(v.string()),
+    tableNumber: v.optional(v.union(v.string(), v.number())), // e.g., 5, "Head Table", "VIP 1"
+
+    // Common fields
     seatId: v.string(),
-    seatNumber: v.string(), // Full seat identifier e.g., "Section A, Row 1, Seat 5"
+    seatNumber: v.string(), // Full seat identifier e.g., "Section A, Row 1, Seat 5" or "Table 5, Seat 3"
 
     // Reservation status
     status: v.union(
@@ -577,7 +705,8 @@ export default defineSchema({
     .index("by_seating_chart", ["seatingChartId"])
     .index("by_ticket", ["ticketId"])
     .index("by_order", ["orderId"])
-    .index("by_seat", ["seatingChartId", "sectionId", "rowId", "seatId"])
+    .index("by_seat", ["seatingChartId", "sectionId", "seatId"])
+    .index("by_table", ["seatingChartId", "sectionId", "tableId"])
     .index("by_status", ["status"]),
 
   // Waitlist for sold-out events
@@ -614,4 +743,101 @@ export default defineSchema({
     .index("by_tier", ["ticketTierId"])
     .index("by_status", ["status"])
     .index("by_event_and_status", ["eventId", "status"]),
+
+  // Room/Seating Templates - Reusable room layouts
+  roomTemplates: defineTable({
+    // Basic info
+    name: v.string(),
+    description: v.string(),
+    category: v.union(
+      v.literal("theater"),
+      v.literal("stadium"),
+      v.literal("concert"),
+      v.literal("conference"),
+      v.literal("outdoor"),
+      v.literal("wedding"),
+      v.literal("gala"),
+      v.literal("banquet"),
+      v.literal("custom")
+    ),
+
+    // Creator info
+    createdBy: v.optional(v.id("users")), // null for system templates
+    isPublic: v.boolean(), // Public templates visible to all users
+    isSystemTemplate: v.optional(v.boolean()), // Built-in templates (cannot be deleted)
+
+    // Seating configuration
+    seatingStyle: v.union(
+      v.literal("ROW_BASED"),
+      v.literal("TABLE_BASED"),
+      v.literal("MIXED")
+    ),
+    estimatedCapacity: v.number(),
+
+    // Template data (JSON structure matching seating chart sections)
+    sections: v.array(v.any()), // Flexible array to store both row and table configurations
+
+    // Optional preview image
+    thumbnailUrl: v.optional(v.string()),
+
+    // Usage statistics
+    timesUsed: v.optional(v.number()),
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_creator", ["createdBy"])
+    .index("by_category", ["category"])
+    .index("by_public", ["isPublic"])
+    .index("by_creator_and_category", ["createdBy", "category"]),
+
+  // Uploaded Event Flyers - For bulk uploads and AI extraction
+  uploadedFlyers: defineTable({
+    // File info
+    filename: v.string(),
+    fileHash: v.string(), // SHA-256 hash for duplicate detection
+    filepath: v.string(), // Path on server
+    originalSize: v.number(), // Original file size in bytes
+    optimizedSize: v.number(), // Optimized file size in bytes
+
+    // Upload info
+    uploadedBy: v.id("users"), // Admin who uploaded
+    uploadedAt: v.number(),
+
+    // AI extraction status
+    aiProcessed: v.boolean(), // Has AI extracted data?
+    aiProcessedAt: v.optional(v.number()),
+
+    // Extracted event data (from AI)
+    extractedData: v.optional(v.object({
+      eventName: v.optional(v.string()),
+      date: v.optional(v.string()),
+      time: v.optional(v.string()),
+      location: v.optional(v.string()),
+      description: v.optional(v.string()),
+      hostOrganizer: v.optional(v.string()),
+      contactInfo: v.optional(v.string()),
+    })),
+
+    // Event creation status
+    eventCreated: v.boolean(), // Has event been created from this flyer?
+    eventId: v.optional(v.id("events")), // Link to created event
+    eventCreatedAt: v.optional(v.number()),
+
+    // Status
+    status: v.union(
+      v.literal("UPLOADED"), // Just uploaded
+      v.literal("PROCESSING"), // AI is processing
+      v.literal("EXTRACTED"), // Data extracted, pending review
+      v.literal("EVENT_CREATED"), // Event created
+      v.literal("ERROR") // Processing error
+    ),
+    errorMessage: v.optional(v.string()),
+  })
+    .index("by_uploader", ["uploadedBy"])
+    .index("by_hash", ["fileHash"])
+    .index("by_status", ["status"])
+    .index("by_event", ["eventId"])
+    .index("by_upload_date", ["uploadedAt"]),
 });

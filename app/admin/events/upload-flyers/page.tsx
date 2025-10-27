@@ -2,13 +2,13 @@
 
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
   Upload, X, CheckCircle, AlertCircle, Sparkles, DollarSign,
-  Loader2, Eye, ImageIcon, Zap, TrendingUp, Package
+  Loader2, Zap, TrendingUp, Package, Trash2, Send
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Id } from "@/convex/_generated/dataModel";
 
 interface UploadedFlyer {
@@ -21,22 +21,161 @@ interface UploadedFlyer {
   errorMessage?: string;
   optimizedSize?: number;
   extractedData?: any;
+  extractionProgress?: string;
 }
 
 export default function BulkFlyerUploadPage() {
   const [flyers, setFlyers] = useState<UploadedFlyer[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [selectedFlyerId, setSelectedFlyerId] = useState<string | null>(null);
+  const [editingFlyerId, setEditingFlyerId] = useState<string | null>(null);
+  const [editedData, setEditedData] = useState<Record<string, any>>({});
 
   const logFlyer = useMutation(api.flyers.mutations.logUploadedFlyer);
   const updateExtractedData = useMutation(api.flyers.mutations.updateFlyerWithExtractedData);
-  const createEvent = useMutation(api.flyers.mutations.createClaimableEventFromFlyer);
+  const autoCreateEvent = useMutation(api.flyers.mutations.autoCreateEventFromExtractedData);
+  const deleteFlyer = useAction(api.flyers.mutations.deleteFlyerWithCleanup);
 
   const creditStats = useQuery(api.admin.queries.getCreditStats);
   const flyerStats = useQuery(api.admin.queries.getFlyerUploadStats);
-  const recentFlyers = useQuery(api.flyers.queries.getRecentFlyers, { limit: 8 });
+  const draftFlyers = useQuery(api.flyers.queries.getDraftFlyers);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const processFlyer = async (flyer: UploadedFlyer) => {
+    setFlyers((prev) =>
+      prev.map((f) => (f.id === flyer.id ? { ...f, status: "uploading" } : f))
+    );
+
+    try {
+      const formData = new FormData();
+      formData.append("file", flyer.file);
+
+      const response = await fetch("/api/admin/upload-flyer", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 409) {
+          throw new Error("Duplicate flyer - this file has already been uploaded");
+        }
+        throw new Error(errorData.error || "Upload failed");
+      }
+
+      const data = await response.json();
+
+      const logResult = await logFlyer({
+        filename: data.filename,
+        fileHash: data.hash,
+        filepath: data.path,
+        originalSize: data.originalSize,
+        optimizedSize: data.optimizedSize,
+      });
+
+      setFlyers((prev) =>
+        prev.map((f) =>
+          f.id === flyer.id
+            ? {
+                ...f,
+                status: "extracting",
+                optimizedSize: data.optimizedSize,
+                flyerId: logResult.flyerId,
+                filepath: data.path,
+              }
+            : f
+        )
+      );
+
+      // Automatically extract AI data with single-read extraction
+      try {
+        setFlyers((prev) =>
+          prev.map((f) =>
+            f.id === flyer.id
+              ? { ...f, status: "extracting", extractionProgress: "Reading flyer with AI..." }
+              : f
+          )
+        );
+
+        const extractResponse = await fetch("/api/ai/extract-flyer-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filepath: data.path }),
+        });
+
+        const extractData = await extractResponse.json();
+
+        let extractedData: any;
+
+        // Handle incomplete flyer data (Save the Date flyers, etc.)
+        if (!extractResponse.ok && extractData.error === "INCOMPLETE_FLYER_DATA") {
+          console.warn("⚠️ Incomplete flyer data:", extractData.message);
+          console.warn("Partial data:", extractData.partialData);
+          // Use partial data if available, otherwise throw
+          if (extractData.partialData && Object.keys(extractData.partialData).length > 0) {
+            extractedData = extractData.partialData;
+          } else {
+            throw new Error(extractData.message || "AI extraction failed: Missing required fields");
+          }
+        } else if (!extractResponse.ok) {
+          throw new Error(extractData.details || extractData.error || "AI extraction failed");
+        } else {
+          extractedData = extractData.extractedData;
+        }
+
+        console.log("✅ AI Extraction Complete:", extractedData);
+
+        // Save extracted data to database
+        await updateExtractedData({
+          flyerId: logResult.flyerId,
+          extractedData: extractedData,
+        });
+
+        setFlyers((prev) =>
+          prev.map((f) =>
+            f.id === flyer.id
+              ? {
+                  ...f,
+                  status: "success",
+                  extractedData: extractedData,
+                  extractionProgress: undefined,
+                }
+              : f
+          )
+        );
+
+        // Remove from upload queue after 2 seconds
+        setTimeout(() => {
+          setFlyers((prev) => prev.filter((f) => f.id !== flyer.id));
+        }, 2000);
+      } catch (aiError) {
+        console.error("AI processing error:", aiError);
+        setFlyers((prev) =>
+          prev.map((f) =>
+            f.id === flyer.id
+              ? {
+                  ...f,
+                  status: "error",
+                  errorMessage: aiError instanceof Error ? aiError.message : "AI processing failed",
+                  extractionProgress: undefined,
+                }
+              : f
+          )
+        );
+      }
+    } catch (error) {
+      setFlyers((prev) =>
+        prev.map((f) =>
+          f.id === flyer.id
+            ? {
+                ...f,
+                status: "error",
+                errorMessage: error instanceof Error ? error.message : "Upload failed",
+              }
+            : f
+        )
+      );
+    }
+  };
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const newFlyers = acceptedFiles.map((file) => ({
       id: Math.random().toString(36).substring(7),
       file,
@@ -44,7 +183,12 @@ export default function BulkFlyerUploadPage() {
       status: "pending" as const,
     }));
     setFlyers((prev) => [...prev, ...newFlyers]);
-  }, []);
+
+    // Automatically start processing immediately
+    for (const flyer of newFlyers) {
+      processFlyer(flyer);
+    }
+  }, [logFlyer, updateExtractedData]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -58,177 +202,103 @@ export default function BulkFlyerUploadPage() {
     setFlyers((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const uploadAllFlyers = async () => {
-    setUploading(true);
-
-    for (const flyer of flyers) {
-      if (flyer.status !== "pending") continue;
-
-      setFlyers((prev) =>
-        prev.map((f) => (f.id === flyer.id ? { ...f, status: "uploading" } : f))
-      );
-
-      try {
-        const formData = new FormData();
-        formData.append("file", flyer.file);
-
-        const response = await fetch("/api/admin/upload-flyer", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          if (response.status === 409) {
-            throw new Error("Duplicate flyer - this file has already been uploaded");
-          }
-          throw new Error(errorData.error || "Upload failed");
-        }
-
-        const data = await response.json();
-
-        const logResult = await logFlyer({
-          filename: data.filename,
-          fileHash: data.hash,
-          filepath: data.path,
-          originalSize: data.originalSize,
-          optimizedSize: data.optimizedSize,
-        });
-
-        setFlyers((prev) =>
-          prev.map((f) =>
-            f.id === flyer.id
-              ? {
-                  ...f,
-                  status: "success",
-                  optimizedSize: data.optimizedSize,
-                  flyerId: logResult.flyerId,
-                  filepath: data.path,
-                }
-              : f
-          )
-        );
-      } catch (error) {
-        setFlyers((prev) =>
-          prev.map((f) =>
-            f.id === flyer.id
-              ? {
-                  ...f,
-                  status: "error",
-                  errorMessage: error instanceof Error ? error.message : "Upload failed",
-                }
-              : f
-          )
-        );
-      }
+  const handleDeleteFlyer = async (flyerId: Id<"uploadedFlyers">) => {
+    try {
+      await deleteFlyer({ flyerId });
+      // Page will auto-refresh via Convex reactivity
+    } catch (error) {
+      alert("Failed to delete flyer: " + (error instanceof Error ? error.message : "Unknown error"));
     }
-
-    setUploading(false);
   };
 
-  const extractFlyerData = async (flyer: UploadedFlyer | any, isFromDatabase = false) => {
-    const filepath = isFromDatabase ? flyer.filepath : flyer.filepath;
-    const flyerId = isFromDatabase ? flyer._id : flyer.flyerId;
-
-    if (!filepath) return;
-
-    if (!isFromDatabase) {
-      setFlyers((prev) =>
-        prev.map((f) => (f.id === flyer.id ? { ...f, status: "extracting" } : f))
-      );
-    }
+  const handleSaveEdit = async (flyerId: Id<"uploadedFlyers">) => {
+    const dataToSave = editedData[flyerId];
+    if (!dataToSave) return;
 
     try {
-      const response = await fetch("/api/ai/extract-flyer-data", {
+      await updateExtractedData({
+        flyerId,
+        extractedData: dataToSave,
+      });
+      setEditingFlyerId(null);
+      // Page will auto-refresh via Convex reactivity
+    } catch (error) {
+      alert("Failed to save changes: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
+  };
+
+  const handleRetryExtraction = async (flyerId: Id<"uploadedFlyers">, filepath: string) => {
+    try {
+      // Find the draft flyer to update its status
+      const draftFlyer = draftFlyers?.find(f => f._id === flyerId);
+      if (!draftFlyer) return;
+
+      console.log(`🔄 Retrying AI extraction for: ${filepath}`);
+
+      const extractResponse = await fetch("/api/ai/extract-flyer-data", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ filepath }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.details || "Extraction failed");
+      const extractData = await extractResponse.json();
+
+      let extractedData: any;
+
+      // Handle incomplete flyer data (Save the Date flyers, etc.)
+      if (!extractResponse.ok && extractData.error === "INCOMPLETE_FLYER_DATA") {
+        console.warn("⚠️ Incomplete flyer data:", extractData.message);
+        console.warn("Partial data:", extractData.partialData);
+        // Use partial data if available, otherwise throw
+        if (extractData.partialData && Object.keys(extractData.partialData).length > 0) {
+          extractedData = extractData.partialData;
+        } else {
+          throw new Error(extractData.message || "AI extraction failed: Missing required fields");
+        }
+      } else if (!extractResponse.ok) {
+        throw new Error(extractData.details || extractData.error || "AI extraction failed");
+      } else {
+        extractedData = extractData.extractedData;
       }
 
-      const data = await response.json();
+      console.log("✅ AI Retry Extraction Complete:", extractedData);
 
-      if (flyerId) {
-        await updateExtractedData({
-          flyerId: flyerId,
-          extractedData: data.extractedData,
-        });
-      }
-
-      if (!isFromDatabase) {
-        setFlyers((prev) =>
-          prev.map((f) =>
-            f.id === flyer.id
-              ? {
-                  ...f,
-                  status: "extracted",
-                  extractedData: data.extractedData,
-                }
-              : f
-          )
-        );
-      }
-    } catch (error) {
-      if (!isFromDatabase) {
-        setFlyers((prev) =>
-          prev.map((f) =>
-            f.id === flyer.id
-              ? {
-                  ...f,
-                  status: "error",
-                  errorMessage: error instanceof Error ? error.message : "Extraction failed",
-                }
-              : f
-          )
-        );
-      }
-      alert("Extraction failed: " + (error instanceof Error ? error.message : "Unknown error"));
-    }
-  };
-
-  const createEventFromFlyer = async (flyer: UploadedFlyer | any, isFromDatabase = false) => {
-    const flyerId = isFromDatabase ? flyer._id : flyer.flyerId;
-    const extractedData = flyer.extractedData;
-
-    if (!flyerId || !extractedData) return;
-
-    try {
-      const result = await createEvent({
+      // Save extracted data to database
+      await updateExtractedData({
         flyerId: flyerId,
-        eventData: {
-          name: extractedData.eventName || "Untitled Event",
-          description: extractedData.description || "",
-          eventType: "TICKETED_EVENT",
-          location: extractedData.city && extractedData.state ? {
-            venueName: extractedData.venueName,
-            address: extractedData.address,
-            city: extractedData.city,
-            state: extractedData.state,
-            zipCode: extractedData.zipCode,
-            country: "USA",
-          } : undefined,
-          isClaimable: true,
-          claimCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        },
+        extractedData: extractedData,
       });
 
-      if (result.success) {
-        alert("Event created successfully! Organizers can now claim this event.");
-        if (!isFromDatabase) {
-          setFlyers((prev) => prev.filter((f) => f.id !== flyer.id));
-        }
-      }
+      // Success - page will auto-refresh via Convex reactivity
     } catch (error) {
-      alert("Failed to create event: " + (error instanceof Error ? error.message : "Unknown error"));
+      console.error("Retry extraction error:", error);
+      alert("Retry failed: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
 
-  const pendingCount = flyers.filter((f) => f.status === "pending").length;
-  const selectedFlyer = selectedFlyerId ? recentFlyers?.find(f => f._id === selectedFlyerId) : null;
+  const handlePublish = async (flyerId: Id<"uploadedFlyers">) => {
+    try {
+      const result = await autoCreateEvent({ flyerId });
+      // Success - page will auto-refresh via Convex reactivity
+    } catch (error) {
+      alert("Failed to publish event: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
+  };
+
+  const startEditing = (flyerId: string, data: any) => {
+    setEditingFlyerId(flyerId);
+    setEditedData({ ...editedData, [flyerId]: data });
+  };
+
+  const updateField = (flyerId: string, field: string, value: string) => {
+    setEditedData({
+      ...editedData,
+      [flyerId]: {
+        ...editedData[flyerId],
+        [field]: value,
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
@@ -240,7 +310,7 @@ export default function BulkFlyerUploadPage() {
             AI Flyer Manager
           </h1>
           <p className="text-lg text-gray-600">
-            Upload event flyers and let AI extract all the details automatically
+            Upload flyers, review AI-extracted data, and publish events
           </p>
         </div>
 
@@ -295,312 +365,478 @@ export default function BulkFlyerUploadPage() {
           )}
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Upload Area */}
-          <div className="space-y-6">
-            {/* Upload Dropzone */}
-            <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Upload New Flyers</h2>
+        {/* Upload Dropzone */}
+        <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Upload className="w-7 h-7 text-blue-600" />
+            Upload New Flyers
+          </h2>
 
-              <div
-                {...getRootProps()}
-                className={`border-3 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-                  isDragActive
-                    ? "border-blue-500 bg-blue-50 scale-105"
-                    : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50"
-                }`}
-              >
-                <input {...getInputProps()} />
-                <Upload className={`w-16 h-16 mx-auto mb-4 ${isDragActive ? "text-blue-500" : "text-gray-400"}`} />
-                {isDragActive ? (
-                  <p className="text-xl text-blue-600 font-semibold">Drop your flyers here!</p>
-                ) : (
-                  <>
-                    <p className="text-xl text-gray-700 font-semibold mb-2">
-                      Drag & Drop Flyers
-                    </p>
-                    <p className="text-sm text-gray-500 mb-4">
-                      or click to browse your computer
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Supports: JPG, PNG, WEBP • Multiple files OK
-                    </p>
-                  </>
-                )}
-              </div>
-
-              {/* Pending Flyers */}
-              {flyers.length > 0 && (
-                <div className="mt-6 space-y-3">
-                  {flyers.map((flyer) => (
-                    <div
-                      key={flyer.id}
-                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200"
-                    >
-                      <img
-                        src={flyer.preview}
-                        alt={flyer.file.name}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {flyer.file.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {(flyer.file.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {flyer.status === "pending" && (
-                          <button
-                            onClick={() => removeFlyer(flyer.id)}
-                            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        )}
-                        {flyer.status === "uploading" && (
-                          <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                        )}
-                        {flyer.status === "success" && (
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                        )}
-                        {flyer.status === "error" && (
-                          <AlertCircle className="w-5 h-5 text-red-600" />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      onClick={uploadAllFlyers}
-                      disabled={uploading || pendingCount === 0}
-                      className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md"
-                    >
-                      {uploading ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Uploading...
-                        </span>
-                      ) : (
-                        `Upload ${pendingCount} Flyer${pendingCount !== 1 ? "s" : ""}`
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setFlyers([])}
-                      className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Instructions */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
-              <h3 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                How It Works
-              </h3>
-              <ol className="space-y-2 text-sm text-blue-800">
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-blue-600">1.</span>
-                  <span>Upload flyers - system optimizes and checks for duplicates</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-blue-600">2.</span>
-                  <span>Click "Extract with AI" - Gemini reads the flyer</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-blue-600">3.</span>
-                  <span>Review extracted data - verify accuracy</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-blue-600">4.</span>
-                  <span>Create event - organizers can claim it</span>
-                </li>
-              </ol>
-            </div>
+          <div
+            {...getRootProps()}
+            className={`
+              border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all
+              ${
+                isDragActive
+                  ? "border-blue-600 bg-blue-50 scale-[1.02]"
+                  : "border-gray-300 hover:border-blue-500 hover:bg-gray-50"
+              }
+            `}
+          >
+            <input {...getInputProps()} />
+            <Upload className={`w-16 h-16 mx-auto mb-4 ${isDragActive ? "text-blue-600" : "text-gray-400"}`} />
+            {isDragActive ? (
+              <p className="text-xl text-blue-600 font-semibold">Drop your flyers here!</p>
+            ) : (
+              <>
+                <p className="text-xl text-gray-700 font-semibold mb-2">
+                  Drag & Drop Flyers
+                </p>
+                <p className="text-sm text-gray-500 mb-3">
+                  or click to browse your computer
+                </p>
+                <p className="text-xs text-gray-400">
+                  Supports: JPG, PNG, WEBP • Multiple files OK
+                </p>
+              </>
+            )}
           </div>
 
-          {/* Right Column - Recent Flyers */}
-          <div>
-            <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <ImageIcon className="w-6 h-6 text-gray-600" />
-                Recently Uploaded Flyers
-              </h2>
-
-              {!recentFlyers || recentFlyers.length === 0 ? (
-                <div className="text-center py-12">
-                  <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No flyers uploaded yet</p>
-                  <p className="text-sm text-gray-400 mt-2">Upload your first flyer to get started!</p>
+          {flyers.length > 0 && (
+            <div className="mt-6 space-y-3">
+              {flyers.map((flyer) => (
+                <div
+                  key={flyer.id}
+                  className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                >
+                  <img
+                    src={flyer.preview}
+                    alt={flyer.file.name}
+                    className="w-16 h-16 object-cover rounded-lg"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {flyer.file.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {(flyer.file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                    {flyer.errorMessage && (
+                      <p className="text-xs text-red-600 mt-1">{flyer.errorMessage}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {flyer.status === "pending" && (
+                      <button
+                        onClick={() => removeFlyer(flyer.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    )}
+                    {flyer.status === "uploading" && (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                        <span className="text-sm text-blue-600">Uploading...</span>
+                      </div>
+                    )}
+                    {flyer.status === "extracting" && (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
+                        <span className="text-sm text-purple-600">AI Processing...</span>
+                      </div>
+                    )}
+                    {flyer.status === "success" && (
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <span className="text-sm text-green-600">Ready for review!</span>
+                      </div>
+                    )}
+                    {flyer.status === "error" && (
+                      <AlertCircle className="w-5 h-5 text-red-600" />
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  {recentFlyers.map((flyer) => (
-                    <motion.div
-                      key={flyer._id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="group relative cursor-pointer"
-                      onClick={() => setSelectedFlyerId(flyer._id)}
-                    >
-                      <div className="aspect-[3/4] rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-500 transition-all shadow-sm hover:shadow-md">
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Draft Flyers Grid */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Draft Flyers Awaiting Review ({draftFlyers?.length || 0})
+          </h2>
+
+          {!draftFlyers || draftFlyers.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-16 text-center">
+              <Sparkles className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg mb-2">No draft flyers</p>
+              <p className="text-sm text-gray-400">Upload flyers above to get started</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {draftFlyers.map((flyer) => {
+                const isEditing = editingFlyerId === flyer._id;
+                const data = isEditing ? editedData[flyer._id] : flyer.extractedData;
+
+                return (
+                  <motion.div
+                    key={flyer._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-xl shadow-md border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-all"
+                  >
+                    <div className="flex flex-col md:flex-row">
+                      {/* Flyer Image - Left */}
+                      <div className="w-full md:w-2/5 lg:w-2/5 bg-gray-100 p-4 flex items-center justify-center flex-shrink-0">
                         <img
                           src={flyer.filepath}
                           alt={flyer.filename}
-                          className="w-full h-full object-cover"
+                          className="max-w-full h-auto rounded-lg shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(flyer.filepath, '_blank')}
+                          title="Click to view full-size flyer"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="absolute bottom-0 left-0 right-0 p-3">
-                            <p className="text-white text-xs font-medium truncate">
-                              {flyer.filename}
-                            </p>
+                      </div>
+
+                      {/* Editable Fields - Right */}
+                      <div className="w-full md:w-3/5 lg:w-3/5 p-6 flex flex-col">
+                        <div className="flex-1 space-y-3 max-h-[500px] overflow-y-auto">
+                          {/* Event Name */}
+                          <div>
+                            <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                              Event Name *
+                            </label>
+                            <input
+                              type="text"
+                              value={data?.eventName || ""}
+                              onChange={(e) =>
+                                isEditing && updateField(flyer._id, "eventName", e.target.value)
+                              }
+                              disabled={!isEditing}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                            />
                           </div>
-                        </div>
 
-                        {/* Status Badge */}
-                        <div className="absolute top-2 right-2">
-                          {flyer.eventCreated && (
-                            <div className="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded-full">
-                              Event Created
+                          {/* Date & Time */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                Start Date *
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.eventDate || data?.date || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "eventDate", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                                placeholder="e.g. Saturday, December 27, 2025"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                Start Time *
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.eventTime || data?.time || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "eventTime", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                                placeholder="e.g. 7:00 PM"
+                              />
+                            </div>
+                          </div>
+
+                          {/* End Date & Time (for multi-day events) */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                End Date <span className="text-gray-400 font-normal">(if multi-day)</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.eventEndDate || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "eventEndDate", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                                placeholder="e.g. Sunday, December 29, 2025"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                End Time <span className="text-gray-400 font-normal">(optional)</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.eventEndTime || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "eventEndTime", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                                placeholder="e.g. 2:00 AM"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Venue Name */}
+                          <div>
+                            <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                              Venue Name
+                            </label>
+                            <input
+                              type="text"
+                              value={data?.venueName || ""}
+                              onChange={(e) =>
+                                isEditing && updateField(flyer._id, "venueName", e.target.value)
+                              }
+                              disabled={!isEditing}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                            />
+                          </div>
+
+                          {/* Address */}
+                          <div>
+                            <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                              Address
+                            </label>
+                            <input
+                              type="text"
+                              value={data?.address || ""}
+                              onChange={(e) =>
+                                isEditing && updateField(flyer._id, "address", e.target.value)
+                              }
+                              disabled={!isEditing}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                            />
+                          </div>
+
+                          {/* City, State, Zip */}
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                City
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.city || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "city", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                State
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.state || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "state", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                Zip Code
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.zipCode || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "zipCode", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Description */}
+                          <div>
+                            <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                              Description
+                            </label>
+                            <textarea
+                              value={data?.description || ""}
+                              onChange={(e) =>
+                                isEditing && updateField(flyer._id, "description", e.target.value)
+                              }
+                              disabled={!isEditing}
+                              rows={4}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                            />
+                          </div>
+
+                          {/* Organizer & Contact */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                Host/Organizer
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.hostOrganizer || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "hostOrganizer", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                Contact Info
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.contactInfo || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "contactInfo", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Ticket Price & Age Restriction */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                Ticket Price
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.ticketPrice || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "ticketPrice", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                Age Restriction
+                              </label>
+                              <input
+                                type="text"
+                                value={data?.ageRestriction || ""}
+                                onChange={(e) =>
+                                  isEditing && updateField(flyer._id, "ageRestriction", e.target.value)
+                                }
+                                disabled={!isEditing}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Categories */}
+                          {data?.categories && (
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                Categories
+                              </label>
+                              <div className="flex flex-wrap gap-2">
+                                {data.categories.map((cat: string, idx: number) => (
+                                  <span
+                                    key={idx}
+                                    className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full"
+                                  >
+                                    {cat}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           )}
-                          {!flyer.eventCreated && flyer.aiProcessed && (
-                            <div className="px-2 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full">
-                              AI Extracted
-                            </div>
-                          )}
-                          {!flyer.eventCreated && !flyer.aiProcessed && (
-                            <div className="px-2 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full">
-                              New
+
+                          {/* Event Type */}
+                          {data?.eventType && (
+                            <div>
+                              <label className="text-xs font-bold text-gray-600 uppercase block mb-1">
+                                Event Type
+                              </label>
+                              <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-lg">
+                                {data.eventType}
+                              </span>
                             </div>
                           )}
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
 
-        {/* Flyer Detail Modal */}
-        <AnimatePresence>
-          {selectedFlyer && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => setSelectedFlyerId(null)}
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex flex-col md:flex-row max-h-[90vh]">
-                  {/* Left - Image */}
-                  <div className="md:w-1/2 bg-gray-100 flex items-center justify-center p-6">
-                    <img
-                      src={selectedFlyer.filepath}
-                      alt={selectedFlyer.filename}
-                      className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
-                    />
-                  </div>
-
-                  {/* Right - Details */}
-                  <div className="md:w-1/2 flex flex-col">
-                    <div className="p-6 border-b border-gray-200">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                            {selectedFlyer.extractedData?.eventName || selectedFlyer.filename}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {new Date(selectedFlyer.uploadedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => setSelectedFlyerId(null)}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <X className="w-6 h-6 text-gray-500" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-6">
-                      {selectedFlyer.extractedData ? (
-                        <div className="space-y-4">
-                          <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-                            <Sparkles className="w-5 h-5 text-purple-600" />
-                            AI Extracted Data
-                          </h4>
-                          <div className="grid grid-cols-1 gap-3">
-                            {Object.entries(selectedFlyer.extractedData)
-                              .filter(([_, value]) => value)
-                              .map(([key, value]) => (
-                                <div key={key} className="bg-gray-50 rounded-lg p-3">
-                                  <p className="text-xs font-semibold text-gray-600 uppercase mb-1">
-                                    {key.replace(/([A-Z])/g, ' $1').trim()}
-                                  </p>
-                                  <p className="text-sm text-gray-900">{String(value)}</p>
+                        {/* Action Buttons */}
+                        <div className="mt-6 space-y-3">
+                          {isEditing ? (
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => handleSaveEdit(flyer._id)}
+                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all shadow-sm hover:shadow-md"
+                              >
+                                Save Changes
+                              </button>
+                              <button
+                                onClick={() => setEditingFlyerId(null)}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handlePublish(flyer._id)}
+                                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-lg"
+                              >
+                                <Send className="w-5 h-5" />
+                                Publish Event
+                              </button>
+                              <div className="space-y-2">
+                                <button
+                                  onClick={() => handleRetryExtraction(flyer._id, flyer.filepath)}
+                                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+                                >
+                                  <Zap className="w-4 h-4" />
+                                  Retry AI Extraction
+                                </button>
+                                <div className="flex gap-3">
+                                  <button
+                                    onClick={() => startEditing(flyer._id, flyer.extractedData)}
+                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteFlyer(flyer._id)}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                  </button>
                                 </div>
-                              ))}
-                          </div>
+                              </div>
+                            </>
+                          )}
                         </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                          <p className="text-gray-500 mb-4">No AI data extracted yet</p>
-                        </div>
-                      )}
+                      </div>
                     </div>
-
-                    <div className="p-6 border-t border-gray-200 space-y-3">
-                      {!selectedFlyer.aiProcessed && (
-                        <button
-                          onClick={() => extractFlyerData(selectedFlyer, true)}
-                          className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-                        >
-                          <Sparkles className="w-5 h-5" />
-                          Extract with AI
-                        </button>
-                      )}
-                      {selectedFlyer.aiProcessed && !selectedFlyer.eventCreated && (
-                        <button
-                          onClick={() => createEventFromFlyer(selectedFlyer, true)}
-                          className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all shadow-sm hover:shadow-md"
-                        >
-                          Create Claimable Event
-                        </button>
-                      )}
-                      {selectedFlyer.eventCreated && (
-                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
-                          <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                          <p className="text-green-800 font-semibold">Event Created!</p>
-                          <p className="text-sm text-green-600 mt-1">
-                            Organizers can now claim this event
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
     </div>
   );

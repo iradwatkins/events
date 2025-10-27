@@ -15,6 +15,8 @@ import {
   FileText,
   XCircle,
   AlertCircle,
+  Gift,
+  Edit,
 } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -24,6 +26,8 @@ type EventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED" | "COMPLETED";
 
 export default function EventsModerationPage() {
   const [statusFilter, setStatusFilter] = useState<EventStatus | "all">("all");
+  const [claimModalEventId, setClaimModalEventId] = useState<Id<"events"> | null>(null);
+  const [claimCode, setClaimCode] = useState("");
 
   const allEvents = useQuery(
     api.adminPanel.queries.getAllEvents,
@@ -32,6 +36,8 @@ export default function EventsModerationPage() {
 
   const updateEventStatus = useMutation(api.adminPanel.mutations.updateEventStatus);
   const deleteEvent = useMutation(api.adminPanel.mutations.deleteEvent);
+  const markClaimable = useMutation(api.adminPanel.mutations.markEventAsClaimable);
+  const unmarkClaimable = useMutation(api.adminPanel.mutations.unmarkEventAsClaimable);
 
   const handleStatusChange = async (eventId: Id<"events">, newStatus: EventStatus) => {
     if (!confirm(`Are you sure you want to change this event's status to ${newStatus}?`)) {
@@ -47,19 +53,40 @@ export default function EventsModerationPage() {
   };
 
   const handleDeleteEvent = async (eventId: Id<"events">, eventName: string) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete event "${eventName}"? This action cannot be undone.`
-      )
-    ) {
+    try {
+      await deleteEvent({ eventId });
+      // Page will auto-refresh via Convex reactivity
+    } catch (error: unknown) {
+      alert(`Failed to delete event: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  const handleMakeClaimable = async () => {
+    if (!claimModalEventId) return;
+
+    try {
+      await markClaimable({
+        eventId: claimModalEventId,
+        claimCode: claimCode || undefined
+      });
+      alert("Event marked as claimable!");
+      setClaimModalEventId(null);
+      setClaimCode("");
+    } catch (error: unknown) {
+      alert(`Failed to mark event as claimable: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  const handleUnmarkClaimable = async (eventId: Id<"events">) => {
+    if (!confirm("Remove this event from the claimable list?")) {
       return;
     }
 
     try {
-      await deleteEvent({ eventId });
-      alert("Event deleted successfully");
+      await unmarkClaimable({ eventId });
+      alert("Event removed from claimable list");
     } catch (error: unknown) {
-      alert(`Failed to delete event: ${error instanceof Error ? error.message : String(error)}`);
+      alert(`Failed to unmark event: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -182,26 +209,57 @@ export default function EventsModerationPage() {
         <div className="grid grid-cols-1 gap-6">
           {allEvents.map((event) => (
             <div key={event._id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-900">{event.name}</h3>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          event.status === "PUBLISHED"
-                            ? "bg-green-100 text-green-800"
-                            : event.status === "DRAFT"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : event.status === "CANCELLED"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-purple-100 text-purple-800"
-                        }`}
-                      >
-                        {event.status || "DRAFT"}
-                      </span>
+              <div className="flex flex-col md:flex-row">
+                {/* Event Flyer - Left Side (Enlarged for better readability) */}
+                <div className="md:w-[420px] flex-shrink-0 bg-gray-100">
+                  {event.imageUrl ? (
+                    <img
+                      src={event.imageUrl}
+                      alt={event.name}
+                      className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => window.open(event.imageUrl, '_blank')}
+                      title="Click to view full-size flyer"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
+                      <Calendar className="w-16 h-16 text-gray-400" />
                     </div>
-                    <p className="text-gray-600 mb-3">{event.description || "No description"}</p>
+                  )}
+                </div>
+
+                {/* Event Details - Right Side */}
+                <div className="flex-1 p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-bold text-gray-900">{event.name}</h3>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            event.status === "PUBLISHED"
+                              ? "bg-green-100 text-green-800"
+                              : event.status === "DRAFT"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : event.status === "CANCELLED"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-purple-100 text-purple-800"
+                          }`}
+                        >
+                          {event.status || "DRAFT"}
+                        </span>
+                        {event.isClaimable && !event.organizerId && (
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                            <Gift className="w-3 h-3" />
+                            Claimable
+                          </span>
+                        )}
+                        {event.isClaimable && event.organizerId && (
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Claimed
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-600 mb-3 line-clamp-2">{event.description || "No description"}</p>
 
                     {/* Event Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -279,6 +337,32 @@ export default function EventsModerationPage() {
                   </div>
 
                   <div className="ml-auto flex items-center gap-2">
+                    {event.isClaimable ? (
+                      <button
+                        onClick={() => handleUnmarkClaimable(event._id)}
+                        className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1"
+                        title="Remove from claimable list"
+                      >
+                        <Gift className="w-4 h-4" />
+                        Unmark Claimable
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setClaimModalEventId(event._id)}
+                        className="px-3 py-1 text-sm bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors flex items-center gap-1"
+                        title="Make event claimable by organizers"
+                      >
+                        <Gift className="w-4 h-4" />
+                        Make Claimable
+                      </button>
+                    )}
+                    <a
+                      href={`/organizer/events/${event._id}/edit`}
+                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      title="Edit event"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </a>
                     <a
                       href={`/events/${event._id}`}
                       target="_blank"
@@ -297,6 +381,7 @@ export default function EventsModerationPage() {
                     </button>
                   </div>
                 </div>
+                </div>
               </div>
             </div>
           ))}
@@ -314,9 +399,57 @@ export default function EventsModerationPage() {
             <li>Draft events are only visible to the organizer</li>
             <li>Cancelled events show as cancelled to ticket holders</li>
             <li>Completed events are archived but still accessible</li>
+            <li>Claimable events appear in organizers' dashboards to claim ownership</li>
           </ul>
         </div>
       </div>
+
+      {/* Claim Code Modal */}
+      {claimModalEventId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <Gift className="w-6 h-6 text-emerald-600" />
+              <h3 className="text-xl font-bold text-gray-900">Make Event Claimable</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              This event will be available for organizers to claim ownership. You can optionally set a claim code for security.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Claim Code (Optional)
+              </label>
+              <input
+                type="text"
+                value={claimCode}
+                onChange={(e) => setClaimCode(e.target.value)}
+                placeholder="Enter a claim code or leave empty"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                If set, organizers must enter this code to claim the event
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleMakeClaimable}
+                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                Make Claimable
+              </button>
+              <button
+                onClick={() => {
+                  setClaimModalEventId(null);
+                  setClaimCode("");
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

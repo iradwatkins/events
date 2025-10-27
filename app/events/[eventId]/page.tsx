@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -17,10 +17,14 @@ import {
   AlertCircle,
   ExternalLink,
   Bell,
-  X
+  X,
+  TrendingDown,
+  Package,
+  Zap
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatEventDate, formatEventTime, formatEventDateTime } from "@/lib/date-format";
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -30,9 +34,12 @@ export default function EventDetailPage() {
   const eventDetails = useQuery(api.public.queries.getPublicEventDetails, {
     eventId,
   });
+  const seatingChart = useQuery(api.seating.queries.getPublicSeatingChart, { eventId });
 
   // Waitlist state
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [showSeatingModal, setShowSeatingModal] = useState(false);
+  const [showFlyerModal, setShowFlyerModal] = useState(false);
   const [waitlistTierId, setWaitlistTierId] = useState<Id<"ticketTiers"> | undefined>(undefined);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistName, setWaitlistName] = useState("");
@@ -40,6 +47,17 @@ export default function EventDetailPage() {
   const [isJoiningWaitlist, setIsJoiningWaitlist] = useState(false);
 
   const joinWaitlist = useMutation(api.waitlist.mutations.joinWaitlist);
+
+  // Close flyer modal on ESC key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showFlyerModal) {
+        setShowFlyerModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [showFlyerModal]);
 
   if (eventDetails === undefined) {
     return (
@@ -167,75 +185,70 @@ export default function EventDetailPage() {
         </div>
       </header>
 
-      {/* Hero Image */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="relative w-full h-64 md:h-96 bg-gray-200"
-      >
-        {eventDetails.imageUrl ? (
-          <motion.img
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.8 }}
-            src={eventDetails.imageUrl}
-            alt={eventDetails.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-            <Calendar className="w-24 h-24 text-white opacity-50" />
-          </div>
-        )}
-
-        {/* Event Type Badge */}
-        <motion.div
-          initial={{ x: -50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="absolute top-4 left-4"
-        >
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            eventDetails.eventType === "SAVE_THE_DATE"
-              ? "bg-yellow-500 text-white"
-              : eventDetails.eventType === "FREE_EVENT"
-              ? "bg-green-500 text-white"
-              : "bg-blue-500 text-white"
-          }`}>
-            {eventDetails.eventType === "SAVE_THE_DATE"
-              ? "Save the Date"
-              : eventDetails.eventType === "FREE_EVENT"
-              ? "Free Event"
-              : "Ticketed Event"}
-          </span>
-        </motion.div>
-
-        {/* Past Event Badge */}
-        {isPast && (
-          <motion.div
-            initial={{ x: 50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="absolute top-4 right-4"
-          >
-            <span className="px-3 py-1 bg-gray-700 text-white rounded-full text-xs font-semibold">
-              Past Event
-            </span>
-          </motion.div>
-        )}
-      </motion.div>
-
       {/* Content */}
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Main Content */}
+        <div className="max-w-7xl mx-auto">
+          {/* Top Section: Flyer (Left) + Event Info (Right) */}
+          <div className="grid md:grid-cols-5 gap-8 mb-8">
+            {/* Flyer Image - Left (2/5 width) */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
               className="md:col-span-2"
+            >
+              <div className="relative w-full bg-gray-200 rounded-xl overflow-hidden shadow-lg sticky top-24">
+                {eventDetails.imageUrl ? (
+                  <div
+                    onClick={() => setShowFlyerModal(true)}
+                    className="cursor-pointer"
+                  >
+                    <img
+                      src={eventDetails.imageUrl}
+                      alt={eventDetails.name}
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full aspect-[3/4] flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+                    <Calendar className="w-24 h-24 text-white opacity-50" />
+                  </div>
+                )}
+
+                {/* Event Type Badge */}
+                <div className="absolute top-4 left-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${
+                    eventDetails.eventType === "SAVE_THE_DATE"
+                      ? "bg-yellow-500 text-white"
+                      : eventDetails.eventType === "FREE_EVENT"
+                      ? "bg-green-500 text-white"
+                      : "bg-blue-500 text-white"
+                  }`}>
+                    {eventDetails.eventType === "SAVE_THE_DATE"
+                      ? "Save the Date"
+                      : eventDetails.eventType === "FREE_EVENT"
+                      ? "Free Event"
+                      : "Ticketed Event"}
+                  </span>
+                </div>
+
+                {/* Past Event Badge */}
+                {isPast && (
+                  <div className="absolute top-4 right-4">
+                    <span className="px-3 py-1 bg-gray-700 text-white rounded-full text-xs font-semibold shadow-lg">
+                      Past Event
+                    </span>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Event Info - Right (3/5 width) */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="md:col-span-3"
             >
               {/* Event Title */}
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -256,56 +269,19 @@ export default function EventDetailPage() {
                 </div>
               )}
 
-              {/* Description */}
-              <div className="prose max-w-none mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">About This Event</h2>
-                <p className="text-gray-700 whitespace-pre-wrap">{eventDetails.description}</p>
-              </div>
-
-              {/* Additional Details - Commented out until schema is updated
-              {eventDetails.additionalDetails && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Important Information</h3>
-                  <p className="text-gray-700 whitespace-pre-wrap">{eventDetails.additionalDetails}</p>
-                </div>
-              )} */}
-
-              {/* Organizer */}
-              {eventDetails.organizer && (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Organized By</h3>
-                  <p className="text-gray-700 font-medium">{eventDetails.organizer.name || "Event Organizer"}</p>
-                  {eventDetails.organizer.email && (
-                    <a
-                      href={`mailto:${eventDetails.organizer.email}`}
-                      className="text-blue-600 hover:underline text-sm mt-1 inline-block"
-                    >
-                      Contact Organizer
-                    </a>
-                  )}
-                </div>
-              )}
-            </motion.div>
-
-            {/* Sidebar */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="md:col-span-1"
-            >
-              <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-24">
+              {/* Event Details Card */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
                 {/* Date & Time */}
                 {eventDetails.startDate && (
-                  <div className="flex items-start gap-3 mb-4">
+                  <div className="flex items-start gap-3 mb-4 pb-4 border-b border-gray-200">
                     <Calendar className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="font-semibold text-gray-900">
-                        {format(eventDetails.startDate, "EEEE, MMMM d, yyyy")}
+                        {formatEventDate(eventDetails.startDate, eventDetails.timezone)}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {format(eventDetails.startDate, "h:mm a")}
-                        {eventDetails.endDate && ` - ${format(eventDetails.endDate, "h:mm a")}`}
+                        {formatEventTime(eventDetails.startDate, eventDetails.timezone)}
+                        {eventDetails.endDate && ` - ${formatEventTime(eventDetails.endDate, eventDetails.timezone)}`}
                       </p>
                     </div>
                   </div>
@@ -327,63 +303,86 @@ export default function EventDetailPage() {
                           `${eventDetails.location.address}, ${eventDetails.location.city}, ${eventDetails.location.state}`
                         )}`}
                         target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm mt-1 inline-flex items-center gap-1"
-                    >
-                      View Map
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm mt-1 inline-flex items-center gap-1"
+                      >
+                        View Map
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
                   </div>
-                </div>
                 )}
+              </div>
 
-                {/* Capacity - Commented out until schema is updated
-                {eventDetails.capacity && (
-                  <div className="flex items-start gap-3 mb-6">
-                    <Users className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        Capacity: {eventDetails.capacity} attendees
-                      </p>
+              {/* Ticket Tiers Display for TICKETED_EVENT */}
+              {eventDetails.eventType === "TICKETED_EVENT" && eventDetails.ticketTiers && eventDetails.ticketTiers.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                  className="mb-6"
+                >
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Ticket className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Available Tickets</h3>
                     </div>
-                  </div>
-                )} */}
-
-                {/* Ticket Tiers Display for TICKETED_EVENT */}
-                {eventDetails.eventType === "TICKETED_EVENT" && eventDetails.ticketTiers && eventDetails.ticketTiers.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.5 }}
-                    className="mb-6 pb-6 border-b border-gray-200"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <Ticket className="w-4 h-4 text-blue-600" />
-                      <h3 className="text-sm font-semibold text-gray-900">Available Tickets</h3>
-                    </div>
-                    <div className="space-y-2">
-                      {eventDetails.ticketTiers.map((tier, index) => {
+                    <div className="space-y-3">
+                      {eventDetails.ticketTiers.map((tier: any, index: number) => {
                         const isSoldOut = tier.quantity !== undefined && tier.sold !== undefined && tier.quantity - tier.sold <= 0;
+                        const showEarlyBird = tier.isEarlyBird && tier.currentTierName;
+                        const nextPriceIncrease = tier.nextPriceChange && tier.nextPriceChange.price > tier.currentPrice;
+
                         return (
                           <motion.div
                             key={tier._id}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
-                            className="bg-gradient-to-r from-blue-50 to-white border border-blue-100 rounded-lg p-3 hover:shadow-md transition-shadow"
+                            className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                              showEarlyBird
+                                ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200'
+                                : 'bg-gradient-to-r from-blue-50 to-white border-blue-100'
+                            }`}
                           >
-                            <div className="flex justify-between items-start mb-1">
-                              <p className="font-semibold text-gray-900">{tier.name}</p>
-                              <p className="font-bold text-blue-600 text-lg">
-                                ${(tier.price / 100).toFixed(2)}
-                              </p>
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="font-semibold text-gray-900">{tier.name}</p>
+                                  {showEarlyBird && (
+                                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-amber-500 text-white rounded-full font-medium">
+                                      <Zap className="w-3 h-3" />
+                                      {tier.currentTierName}
+                                    </span>
+                                  )}
+                                </div>
+                                {tier.description && (
+                                  <p className="text-sm text-gray-600">{tier.description}</p>
+                                )}
+                              </div>
+                              <div className="text-right ml-2">
+                                <p className={`font-bold text-xl ${showEarlyBird ? 'text-amber-600' : 'text-blue-600'}`}>
+                                  ${(tier.currentPrice / 100).toFixed(2)}
+                                </p>
+                                {showEarlyBird && tier.price !== tier.currentPrice && (
+                                  <p className="text-sm text-gray-500 line-through">
+                                    ${(tier.price / 100).toFixed(2)}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            {tier.description && (
-                              <p className="text-xs text-gray-600 mb-1">{tier.description}</p>
+
+                            {nextPriceIncrease && (
+                              <div className="mt-2 mb-2 p-2 bg-orange-50 border border-orange-200 rounded text-sm">
+                                <p className="text-orange-700 font-medium">
+                                  Price increases to ${(tier.nextPriceChange.price / 100).toFixed(2)} on {format(tier.nextPriceChange.date, "MMM d, yyyy")}
+                                </p>
+                              </div>
                             )}
+
                             {tier.quantity !== undefined && tier.sold !== undefined && (
                               <div className="flex items-center justify-between gap-2 mt-2">
-                                <p className={`text-xs font-medium ${
+                                <p className={`text-sm font-medium ${
                                   tier.quantity - tier.sold > 0 ? "text-green-600" : "text-red-600"
                                 }`}>
                                   {tier.quantity - tier.sold > 0
@@ -393,7 +392,7 @@ export default function EventDetailPage() {
                                 {isSoldOut && (
                                   <button
                                     onClick={() => handleJoinWaitlist(tier._id)}
-                                    className="flex items-center gap-1 px-2 py-1 bg-orange-500 text-white rounded text-xs font-medium hover:bg-orange-600 transition-colors"
+                                    className="flex items-center gap-1 px-3 py-1 bg-orange-500 text-white rounded text-sm font-medium hover:bg-orange-600 transition-colors"
                                   >
                                     <Bell className="w-3 h-3" />
                                     Waitlist
@@ -405,17 +404,87 @@ export default function EventDetailPage() {
                         );
                       })}
                     </div>
-                  </motion.div>
-                )}
+                  </div>
+                </motion.div>
+              )}
 
-                {/* Door Price Display for FREE_EVENT */}
-                {eventDetails.eventType === "FREE_EVENT" && eventDetails.doorPrice && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.5 }}
-                    className="mb-6 pb-6 border-b border-gray-200"
-                  >
+              {/* Ticket Bundles Display */}
+              {eventDetails.eventType === "TICKETED_EVENT" && eventDetails.bundles && eventDetails.bundles.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.7 }}
+                  className="mb-6"
+                >
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Package className="w-5 h-5 text-purple-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Ticket Bundles</h3>
+                      <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                        Save More
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {eventDetails.bundles.map((bundle: any, index: number) => (
+                        <motion.div
+                          key={bundle._id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: 0.8 + index * 0.1 }}
+                          className="bg-gradient-to-r from-purple-50 to-white border border-purple-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-semibold text-gray-900">{bundle.name}</p>
+                                <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-green-500 text-white rounded-full font-bold">
+                                  <TrendingDown className="w-3 h-3" />
+                                  Save {bundle.percentageSavings}%
+                                </span>
+                              </div>
+                              {bundle.description && (
+                                <p className="text-sm text-gray-600 mb-2">{bundle.description}</p>
+                              )}
+                              <div className="flex flex-wrap gap-1">
+                                {bundle.includedTiers.map((includedTier: any) => (
+                                  <span key={includedTier.tierId} className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                    {includedTier.quantity}x {includedTier.tierName}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="text-right ml-2">
+                              <p className="font-bold text-purple-600 text-xl">
+                                ${(bundle.price / 100).toFixed(2)}
+                              </p>
+                              {bundle.regularPrice && (
+                                <p className="text-sm text-gray-500 line-through">
+                                  ${(bundle.regularPrice / 100).toFixed(2)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="mt-2">
+                            <p className="text-sm font-medium text-green-600">
+                              {bundle.available} bundle{bundle.available !== 1 ? 's' : ''} available
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Door Price Display for FREE_EVENT */}
+              {eventDetails.eventType === "FREE_EVENT" && eventDetails.doorPrice && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 }}
+                  className="mb-6"
+                >
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 shadow-sm">
                       <div className="flex items-center gap-2 mb-2">
                         <Ticket className="w-5 h-5 text-green-600" />
@@ -424,80 +493,279 @@ export default function EventDetailPage() {
                       <p className="text-green-800 font-bold text-lg">{eventDetails.doorPrice}</p>
                       <p className="text-xs text-green-700 mt-1">Payment accepted at venue</p>
                     </div>
-                  </motion.div>
-                )}
+                  </div>
+                </motion.div>
+              )}
 
-                {/* CTA Button */}
-                {showTickets && eventDetails.ticketTiers && eventDetails.ticketTiers.length > 0 ? (
-                  allTicketsSoldOut ? (
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <button
-                        onClick={() => handleJoinWaitlist()}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-semibold text-lg shadow-md hover:shadow-lg"
-                      >
-                        <Bell className="w-5 h-5" />
-                        Join Waitlist
-                      </button>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Link
-                        href={`/events/${eventId}/checkout`}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg shadow-md hover:shadow-lg"
-                      >
-                        <Ticket className="w-5 h-5" />
-                        Buy Tickets
-                      </Link>
-                    </motion.div>
-                  )
-                ) : eventDetails.eventType === "FREE_EVENT" && isUpcoming ? (
+              {/* View Seating Chart Button */}
+              {seatingChart && seatingChart.sections.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.6 }}
+                  className="mb-6"
+                >
+                  <button
+                    onClick={() => setShowSeatingModal(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                  >
+                    <MapPin className="w-5 h-5" />
+                    View Seating Chart
+                  </button>
+                </motion.div>
+              )}
+
+              {/* CTA Button */}
+              {showTickets && eventDetails.ticketTiers && eventDetails.ticketTiers.length > 0 ? (
+                allTicketsSoldOut ? (
                   <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    className="mb-6"
+                  >
+                    <button
+                      onClick={() => handleJoinWaitlist()}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-semibold text-lg shadow-md hover:shadow-lg"
+                    >
+                      <Bell className="w-5 h-5" />
+                      Join Waitlist
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="mb-6"
                   >
                     <Link
-                      href={`/events/${eventId}/register`}
-                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-lg"
+                      href={`/events/${eventId}/checkout`}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg shadow-md hover:shadow-lg"
                     >
                       <Ticket className="w-5 h-5" />
-                      Register Free
+                      Buy Tickets
                     </Link>
                   </motion.div>
-                ) : eventDetails.eventType === "SAVE_THE_DATE" ? (
-                  <div className="text-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                    <p className="text-sm text-yellow-800 font-medium">
-                      Tickets coming soon!
-                    </p>
-                    <p className="text-xs text-yellow-700 mt-1">
-                      Save this date on your calendar
-                    </p>
-                  </div>
-                ) : isPast ? (
-                  <div className="text-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                    <p className="text-sm text-gray-600">This event has ended</p>
-                  </div>
-                ) : null}
+                )
+              ) : eventDetails.eventType === "FREE_EVENT" && isUpcoming ? (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="mb-6"
+                >
+                  <Link
+                    href={`/events/${eventId}/register`}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-lg"
+                  >
+                    <Ticket className="w-5 h-5" />
+                    Register Free
+                  </Link>
+                </motion.div>
+              ) : eventDetails.eventType === "SAVE_THE_DATE" ? (
+                <div className="text-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
+                  <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                  <p className="text-sm text-yellow-800 font-medium">
+                    Tickets coming soon!
+                  </p>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    Save this date on your calendar
+                  </p>
+                </div>
+              ) : isPast ? (
+                <div className="text-center p-4 bg-gray-50 border border-gray-200 rounded-lg mb-6">
+                  <p className="text-sm text-gray-600">This event has ended</p>
+                </div>
+              ) : null}
 
-                {/* Ticket Info */}
-                {!eventDetails.ticketsVisible && eventDetails.eventType === "TICKETED_EVENT" && (
-                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                    <p className="text-xs text-gray-600">
-                      Ticket sales have not started yet. Check back soon!
-                    </p>
+              {/* Ticket Info */}
+              {!eventDetails.ticketsVisible && eventDetails.eventType === "TICKETED_EVENT" && (
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg mb-6">
+                  <p className="text-xs text-gray-600">
+                    Ticket sales have not started yet. Check back soon!
+                  </p>
+                </div>
+              )}
+
+              {/* Organizer */}
+              {eventDetails.organizer && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Organized By</h3>
+                  <p className="text-gray-700 font-medium">{eventDetails.organizer.name || "Event Organizer"}</p>
+                  {eventDetails.organizer.email && (
+                    <a
+                      href={`mailto:${eventDetails.organizer.email}`}
+                      className="text-blue-600 hover:underline text-sm mt-1 inline-block"
+                    >
+                      Contact Organizer
+                    </a>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          </div>
+
+          {/* Description Section - Full Width Below */}
+          {eventDetails.description && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="mt-8"
+            >
+              <div className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Event</h2>
+                <div className="prose max-w-none text-gray-700">
+                  <p className="whitespace-pre-wrap">{eventDetails.description}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Seating Chart Modal */}
+      <AnimatePresence>
+        {showSeatingModal && seatingChart && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl max-w-5xl w-full p-6 my-8"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Users className="w-6 h-6 text-blue-600" />
+                  <h2 className="text-2xl font-bold text-gray-900">Seating Chart</h2>
+                </div>
+                <button
+                  onClick={() => setShowSeatingModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Venue Image */}
+              {seatingChart.venueImageUrl && (
+                <div className="mb-6 rounded-lg overflow-hidden border border-gray-200">
+                  <img
+                    src={seatingChart.venueImageUrl}
+                    alt="Venue Layout"
+                    className="w-full h-auto"
+                  />
+                </div>
+              )}
+
+              {/* Sections */}
+              <div className="space-y-6">
+                {seatingChart.sections.map((section: any, sectionIndex: number) => (
+                  <div key={section.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: section.color || "#3B82F6" }}
+                      ></div>
+                      <h3 className="text-lg font-bold text-gray-900">{section.name}</h3>
+                    </div>
+
+                    {/* Row-based seating */}
+                    {section.rows && section.rows.length > 0 && (
+                      <div className="space-y-2">
+                        {section.rows.map((row: any) => (
+                          <div key={row.id} className="flex items-center gap-2">
+                            <span className="w-8 text-sm font-medium text-gray-600 text-right">
+                              {row.label}
+                            </span>
+                            <div className="flex gap-1 flex-wrap">
+                              {row.seats.map((seat: any) => (
+                                <div
+                                  key={seat.id}
+                                  className={`w-8 h-8 rounded flex items-center justify-center text-xs font-medium border-2 ${
+                                    seat.status === "RESERVED"
+                                      ? "bg-gray-300 text-gray-600 border-gray-400"
+                                      : seat.status === "UNAVAILABLE"
+                                      ? "bg-gray-200 text-gray-500 border-gray-400"
+                                      : "bg-white text-gray-900 border-gray-900"
+                                  }`}
+                                  title={`Seat ${seat.number} - ${seat.status}`}
+                                >
+                                  {seat.number}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Table-based seating */}
+                    {section.tables && section.tables.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {section.tables.map((table: any) => (
+                          <div
+                            key={table.id}
+                            className="border border-gray-200 rounded-lg p-3 bg-gray-50"
+                          >
+                            <p className="font-semibold text-gray-900 mb-2">
+                              Table {table.number}
+                            </p>
+                            <div className="flex gap-1 flex-wrap">
+                              {table.seats.map((seat: any) => (
+                                <div
+                                  key={seat.id}
+                                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 ${
+                                    seat.status === "RESERVED"
+                                      ? "bg-gray-300 text-gray-600 border-gray-400"
+                                      : "bg-white text-gray-900 border-gray-900"
+                                  }`}
+                                  title={`Seat ${seat.number}`}
+                                >
+                                  {seat.number}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
+              </div>
+
+              {/* Legend */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-3">Legend</h4>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-white border-2 border-gray-900 rounded"></div>
+                    <span className="text-gray-700">Available</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-gray-300 border-2 border-gray-400 rounded"></div>
+                    <span className="text-gray-700">Reserved</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-gray-200 border-2 border-gray-400 rounded"></div>
+                    <span className="text-gray-700">Unavailable</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <Link
+                  href={`/events/${eventId}/checkout`}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                  onClick={() => setShowSeatingModal(false)}
+                >
+                  <Ticket className="w-5 h-5" />
+                  Buy Tickets
+                </Link>
               </div>
             </motion.div>
           </div>
-        </div>
-      </div>
+        )}
+      </AnimatePresence>
 
       {/* Waitlist Modal */}
       <AnimatePresence>
@@ -602,6 +870,47 @@ export default function EventDetailPage() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Flyer Enlargement Modal */}
+      <AnimatePresence>
+        {showFlyerModal && eventDetails.imageUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowFlyerModal(false)}
+            className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4 cursor-pointer"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-6xl max-h-[90vh] cursor-default"
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setShowFlyerModal(false)}
+                className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+              >
+                <X className="w-8 h-8" />
+              </button>
+
+              {/* Full-size flyer image */}
+              <img
+                src={eventDetails.imageUrl}
+                alt={eventDetails.name}
+                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              />
+
+              {/* Hint text */}
+              <p className="absolute -bottom-10 left-0 right-0 text-center text-white text-sm opacity-75">
+                Click outside or press ESC to close
+              </p>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

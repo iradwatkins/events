@@ -149,11 +149,13 @@ export default defineSchema({
     eventId: v.id("events"),
     organizerId: v.id("users"),
 
-    // Payment model - Updated with clearer names
+    // Payment model - Updated with clearer names (includes legacy for migration)
     paymentModel: v.union(
       v.literal("PREPAY"),         // Formerly PRE_PURCHASE - Pay upfront for tickets
       v.literal("CONSIGNMENT"),    // NEW - Float tickets, settle day-of/morning-of
-      v.literal("CREDIT_CARD")     // Formerly PAY_AS_SELL - Standard online payments
+      v.literal("CREDIT_CARD"),    // Formerly PAY_AS_SELL - Standard online payments
+      v.literal("PRE_PURCHASE"),   // Legacy - will be migrated to PREPAY
+      v.literal("PAY_AS_SELL")     // Legacy - will be migrated to CREDIT_CARD
     ),
 
     // Status

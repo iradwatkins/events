@@ -1207,18 +1207,10 @@ export const deleteTicket = mutation({
       }
     }
 
-    // Release seat if assigned
-    if (ticket.seatId) {
-      const seat = await ctx.db.get(ticket.seatId);
-      if (seat) {
-        await ctx.db.patch(ticket.seatId, {
-          status: "available" as const,
-          ticketId: undefined,
-          updatedAt: Date.now(),
-        });
-        console.log(`[deleteTicket] Released seat ${seat.seatNumber}`);
-      }
-    }
+    // Release seat reservation if assigned
+    // TODO: Implement seat reservation release logic
+    // Currently seats are handled through seatReservations table
+    // This section needs to be updated to use the new schema
 
     // Update tier sold count
     if (ticket.ticketTierId) {

@@ -120,7 +120,7 @@ export const seedTestEvents = mutation({
     const paymentConfigId = await ctx.db.insert("eventPaymentConfig", {
       eventId: ticketedEventId,
       organizerId: testOrganizer!._id,
-      paymentModel: "PRE_PURCHASE",
+      paymentModel: "PREPAY",
       isActive: true,
       ticketsAllocated: 100,
       platformFeePercent: 5.0,
@@ -277,7 +277,7 @@ export const createShowcaseEvents = mutation({
     await ctx.db.insert("eventPaymentConfig", {
       eventId: jazzEventId,
       organizerId: testOrganizer!._id,
-      paymentModel: "PRE_PURCHASE",
+      paymentModel: "PREPAY",
       isActive: true,
       ticketsAllocated: 120,
       platformFeePercent: 5.0,
@@ -349,7 +349,7 @@ export const createShowcaseEvents = mutation({
     await ctx.db.insert("eventPaymentConfig", {
       eventId: techEventId,
       organizerId: testOrganizer!._id,
-      paymentModel: "PRE_PURCHASE",
+      paymentModel: "PREPAY",
       isActive: true,
       ticketsAllocated: 500,
       platformFeePercent: 5.0,
@@ -433,7 +433,7 @@ export const createShowcaseEvents = mutation({
     await ctx.db.insert("eventPaymentConfig", {
       eventId: festivalEventId,
       organizerId: testOrganizer!._id,
-      paymentModel: "PRE_PURCHASE",
+      paymentModel: "PREPAY",
       isActive: true,
       ticketsAllocated: 10000,
       platformFeePercent: 5.0,
@@ -517,7 +517,7 @@ export const createShowcaseEvents = mutation({
     await ctx.db.insert("eventPaymentConfig", {
       eventId: wineEventId,
       organizerId: testOrganizer!._id,
-      paymentModel: "PRE_PURCHASE",
+      paymentModel: "PREPAY",
       isActive: true,
       ticketsAllocated: 60,
       platformFeePercent: 5.0,
@@ -647,7 +647,7 @@ export const createDollarTest = mutation({
     const paymentConfigId = await ctx.db.insert("eventPaymentConfig", {
       eventId: testEventId,
       organizerId: testOrganizer!._id,
-      paymentModel: "PRE_PURCHASE",
+      paymentModel: "PREPAY",
       isActive: true,
       ticketsAllocated: 10,
       platformFeePercent: 5.0,

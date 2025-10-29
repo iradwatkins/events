@@ -308,12 +308,15 @@ export const searchClaimableEvents = query({
     if (args.searchTerm) {
       const searchLower = args.searchTerm.toLowerCase();
       claimableEvents = claimableEvents.filter(
-        (event) =>
-          event.name.toLowerCase().includes(searchLower) ||
-          (event.description?.toLowerCase().includes(searchLower) ?? false) ||
-          (event.location?.toLowerCase().includes(searchLower) ?? false) ||
-          (event.venueName?.toLowerCase().includes(searchLower) ?? false) ||
-          (event.city?.toLowerCase().includes(searchLower) ?? false)
+        (event) => {
+          const locationString = typeof event.location === 'string'
+            ? event.location
+            : event.location?.venueName || event.location?.city || '';
+
+          return event.name.toLowerCase().includes(searchLower) ||
+            (event.description?.toLowerCase().includes(searchLower) ?? false) ||
+            (locationString?.toLowerCase().includes(searchLower) ?? false)
+        }
       );
     }
 

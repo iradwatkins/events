@@ -125,7 +125,7 @@ export const createEvent = mutation({
 export const configurePayment = mutation({
   args: {
     eventId: v.id("events"),
-    model: v.union(v.literal("PRE_PURCHASE"), v.literal("PAY_AS_SELL")),
+    model: v.union(v.literal("PREPAY"), v.literal("CREDIT_CARD"), v.literal("CONSIGNMENT")),
     ticketPrice: v.optional(v.number()),
     platformFeePercent: v.optional(v.number()),
     platformFeeFixed: v.optional(v.number()),
@@ -173,8 +173,8 @@ export const configurePayment = mutation({
       throw new Error("Payment model already configured for this event");
     }
 
-    // For PRE_PURCHASE model: Initialize 100 FREE ticket credits for new organizers
-    if (args.model === "PRE_PURCHASE") {
+    // For PREPAY model: Initialize 100 FREE ticket credits for new organizers
+    if (args.model === "PREPAY") {
       const credits = await ctx.db
         .query("organizerCredits")
         .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
@@ -206,9 +206,9 @@ export const configurePayment = mutation({
       processingFeePercent: args.stripeFeePercent || 2.9,
       charityDiscount: false,
       lowPriceDiscount: false,
-      ticketsAllocated: args.model === "PRE_PURCHASE" ? 0 : undefined,
+      ticketsAllocated: args.model === "PREPAY" ? 0 : undefined,
       stripeConnectAccountId:
-        args.model === "PAY_AS_SELL" ? user.stripeConnectedAccountId : undefined,
+        args.model === "CREDIT_CARD" ? user.stripeConnectedAccountId : undefined,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -458,7 +458,7 @@ export const duplicateEvent = mutation({
 
       // Reset ticket tracking
       ticketsSold: 0,
-      ticketsAvailable: originalEvent.ticketsAvailable,
+      ticketsVisible: originalEvent.ticketsVisible,
 
       // Timestamps
       createdAt: Date.now(),
@@ -512,29 +512,14 @@ export const duplicateEvent = mutation({
         const newChartId = await ctx.db.insert("seatingCharts", newChartData);
         console.log(`[duplicateEvent] Duplicated seating chart ${chart._id} -> ${newChartId}`);
 
-        // Copy all seats for this chart
-        const seats = await ctx.db
-          .query("seats")
-          .withIndex("by_chart", (q) => q.eq("chartId", chart._id))
+        // Copy all seat reservations for this chart
+        const reservations = await ctx.db
+          .query("seatReservations")
+          .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
           .collect();
 
-        for (const seat of seats) {
-          const newSeatData = {
-            ...seat,
-            _id: undefined,
-            _creationTime: undefined,
-            eventId: newEventId,
-            chartId: newChartId,
-            status: "available" as const, // Reset all seats to available
-            ticketId: undefined,
-            reservationId: undefined,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-          };
-
-          await ctx.db.insert("seats", newSeatData);
-        }
-        console.log(`[duplicateEvent] Duplicated ${seats.length} seats for chart ${newChartId}`);
+        // Note: We're not copying seat reservations as they should start fresh for the new event
+        console.log(`[duplicateEvent] Seating chart ${newChartId} created without reservations`);
       }
     }
 

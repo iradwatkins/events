@@ -211,7 +211,7 @@ export const createSampleEvents = mutation({
         await ctx.db.insert("eventPaymentConfig", {
           eventId,
           organizerId,
-          paymentModel: "PRE_PURCHASE",
+          paymentModel: "PREPAY",
           platformFeePercent: 0,
           platformFeeFixed: 0,
           processingFeePercent: 2.9,

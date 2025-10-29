@@ -40,7 +40,7 @@ export const createRealTestEvents = mutation({
 
     await ctx.runMutation(api.events.mutations.configurePayment, {
       eventId: event1Id,
-      model: "PRE_PURCHASE",
+      model: "PREPAY",
     });
 
     await ctx.runMutation(api.tickets.mutations.createTicketTier, {
@@ -80,7 +80,7 @@ export const createRealTestEvents = mutation({
 
     await ctx.runMutation(api.events.mutations.configurePayment, {
       eventId: event2Id,
-      model: "PRE_PURCHASE",
+      model: "PREPAY",
     });
 
     // Early Bird Pricing for Holiday Event
@@ -141,7 +141,7 @@ export const createRealTestEvents = mutation({
 
     await ctx.runMutation(api.events.mutations.configurePayment, {
       eventId: event3Id,
-      model: "PRE_PURCHASE",
+      model: "PREPAY",
     });
 
     const vipTierId: Id<"ticketTiers"> = await ctx.runMutation(api.tickets.mutations.createTicketTier, {
@@ -189,7 +189,7 @@ export const createRealTestEvents = mutation({
 
     await ctx.runMutation(api.events.mutations.configurePayment, {
       eventId: event4Id,
-      model: "PRE_PURCHASE",
+      model: "PREPAY",
     });
 
     await ctx.runMutation(api.tickets.mutations.createTicketTier, {

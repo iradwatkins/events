@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-type StaffRole = "SELLER" | "SCANNER" | "ASSISTANT";
+type StaffRole = "SELLER" | "SCANNER";
 
 export default function StaffManagementPage() {
   const params = useParams();
@@ -38,6 +38,7 @@ export default function StaffManagementPage() {
   const [staffPhone, setStaffPhone] = useState("");
   const [commissionType, setCommissionType] = useState<"PERCENTAGE" | "FIXED">("PERCENTAGE");
   const [commissionValue, setCommissionValue] = useState("");
+  const [canScan, setCanScan] = useState(false);
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
   const currentUser = useQuery(api.users.queries.getCurrentUser);
@@ -87,6 +88,7 @@ export default function StaffManagementPage() {
         name: staffName,
         phone: staffPhone || undefined,
         role: selectedRole,
+        canScan: selectedRole === "SELLER" ? canScan : undefined,
         commissionType,
         commissionValue: commissionAmount,
       });
@@ -96,6 +98,7 @@ export default function StaffManagementPage() {
       setStaffName("");
       setStaffPhone("");
       setCommissionValue("");
+      setCanScan(false);
       setShowAddStaff(false);
       alert("Staff member added successfully!");
     } catch (error: any) {
@@ -269,8 +272,8 @@ export default function StaffManagementPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Role
                 </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {["SELLER", "SCANNER", "ASSISTANT"].map((role) => (
+                <div className="grid grid-cols-2 gap-3">
+                  {["SELLER", "SCANNER"].map((role) => (
                     <button
                       key={role}
                       onClick={() => setSelectedRole(role as StaffRole)}
@@ -283,12 +286,28 @@ export default function StaffManagementPage() {
                       <p className="font-semibold text-gray-900">{role}</p>
                       <p className="text-xs text-gray-600 mt-1">
                         {role === "SELLER" && "Sells tickets"}
-                        {role === "SCANNER" && "Scans tickets"}
-                        {role === "ASSISTANT" && "General help"}
+                        {role === "SCANNER" && "Scans at entry"}
                       </p>
                     </button>
                   ))}
                 </div>
+
+                {/* Additional Permissions for Sellers */}
+                {selectedRole === "SELLER" && (
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={canScan}
+                        onChange={(e) => setCanScan(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        Also allow this seller to scan tickets at entry
+                      </span>
+                    </label>
+                  </div>
+                )}
               </div>
 
               {/* Staff Information */}

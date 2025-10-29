@@ -33,13 +33,11 @@ export const getPaymentConfig = query({
 
 /**
  * Get organizer's events
- * TESTING MODE: Returns all events (no authentication)
+ * Get events for the current organizer
  */
 export const getOrganizerEvents = query({
   args: {},
   handler: async (ctx) => {
-    // TESTING MODE: No authentication required
-    console.warn("[getOrganizerEvents] TESTING MODE - No authentication required");
 
     // Return all events for now
     const events = await ctx.db

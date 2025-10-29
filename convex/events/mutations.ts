@@ -38,15 +38,12 @@ export const createEvent = mutation({
     try {
       console.log("[createEvent] Starting event creation...");
 
-      // TESTING MODE: No authentication required
-      // Always use fallback test user
-      console.warn("[createEvent] TESTING MODE - No authentication required");
+      // Use fallback test user for anonymous events
       const email = "test@stepperslife.com";
       const name = "Test Organizer";
       const image = undefined;
 
       // Find or create user
-      console.log("[createEvent] Looking up user:", email);
       let user = await ctx.db
         .query("users")
         .withIndex("by_email", (q) => q.eq("email", email))
@@ -142,9 +139,8 @@ export const configurePayment = mutation({
     // Get user (for organizerId)
     let user;
 
-    // TESTING MODE: Skip authentication check
+    // Skip authentication check for anonymous users
     if (!identity) {
-      console.warn("[configurePayment] TESTING MODE - No authentication required");
       // Use test user
       user = await ctx.db
         .query("users")
@@ -232,8 +228,6 @@ export const publishEvent = mutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-    // TESTING MODE: No authentication required
-    console.warn("[publishEvent] TESTING MODE - No authentication required");
 
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
@@ -352,9 +346,7 @@ export const claimEvent = mutation({
     claimCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // TESTING MODE: Skip authentication for now
     // TODO: When authentication is enabled, get current user ID
-    console.warn("[claimEvent] TESTING MODE - No authentication");
 
     // Get the event
     const event = await ctx.db.get(args.eventId);

@@ -92,7 +92,7 @@ export const createSingleTicketEvent = mutation({
     // Configure payment
     await ctx.runMutation(api.events.mutations.configurePayment, {
       eventId,
-      model: "PRE_PURCHASE",
+      model: "PREPAY",
       platformFeePercent: 0,
       platformFeeFixed: 0,
     });
@@ -143,7 +143,7 @@ export const createMultiDayEvent = mutation({
     // Configure payment
     await ctx.runMutation(api.events.mutations.configurePayment, {
       eventId,
-      model: "PRE_PURCHASE",
+      model: "PREPAY",
       platformFeePercent: 0,
       platformFeeFixed: 0,
     });
@@ -210,7 +210,7 @@ export const createBundleEvent = mutation({
     // Configure payment
     await ctx.runMutation(api.events.mutations.configurePayment, {
       eventId,
-      model: "PRE_PURCHASE",
+      model: "PREPAY",
       platformFeePercent: 0,
       platformFeeFixed: 0,
     });
@@ -291,7 +291,7 @@ export const createEarlyBirdEvent = mutation({
     // Configure payment
     await ctx.runMutation(api.events.mutations.configurePayment, {
       eventId,
-      model: "PRE_PURCHASE",
+      model: "PREPAY",
       platformFeePercent: 0,
       platformFeeFixed: 0,
     });
@@ -362,7 +362,7 @@ export const createSeatingChartEvent = mutation({
     // Configure payment
     await ctx.runMutation(api.events.mutations.configurePayment, {
       eventId,
-      model: "PRE_PURCHASE",
+      model: "PREPAY",
       platformFeePercent: 0,
       platformFeeFixed: 0,
     });

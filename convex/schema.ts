@@ -354,7 +354,8 @@ export default defineSchema({
     staffName: v.optional(v.string()),
 
     // Role and permissions
-    role: v.union(v.literal("SELLER"), v.literal("SCANNER"), v.literal("ASSISTANT")),
+    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
+    canScan: v.optional(v.boolean()), // Sellers can also scan if approved by organizer
 
     // Commission
     commissionType: v.optional(v.union(v.literal("PERCENTAGE"), v.literal("FIXED"))),

@@ -146,8 +146,12 @@ export const isAuthorizedScanner = query({
       .first();
 
     if (staffRecord) {
+      // Check if staff member is authorized to scan
+      const canScan = staffRecord.role === "SCANNER" ||
+                      (staffRecord.role === "SELLER" && staffRecord.canScan === true);
+
       return {
-        isAuthorized: true,
+        isAuthorized: canScan,
         role: staffRecord.role,
         name: staffRecord.name,
       };
@@ -211,7 +215,7 @@ export const getMyScannableEvents = query({
         .collect();
       organizedEvents.forEach((e) => eventIds.add(e._id));
 
-      // Get events where user is staff
+      // Get events where user is staff with scanning permission
       const staffRecords = await ctx.db
         .query("eventStaff")
         .withIndex("by_staff_user", (q) => q.eq("staffUserId", user._id))
@@ -219,16 +223,22 @@ export const getMyScannableEvents = query({
         .collect();
 
       for (const staff of staffRecords) {
-        if (staff.eventId) {
-          eventIds.add(staff.eventId);
-        } else {
-          // Staff for all events under this organizer
-          const organizerEvents = await ctx.db
-            .query("events")
-            .withIndex("by_organizer", (q) => q.eq("organizerId", staff.organizerId))
-            .filter((q) => q.eq(q.field("status"), "PUBLISHED"))
-            .collect();
-          organizerEvents.forEach((e) => eventIds.add(e._id));
+        // Only include events where staff can scan
+        const canScan = staff.role === "SCANNER" ||
+                       (staff.role === "SELLER" && staff.canScan === true);
+
+        if (canScan) {
+          if (staff.eventId) {
+            eventIds.add(staff.eventId);
+          } else {
+            // Staff for all events under this organizer
+            const organizerEvents = await ctx.db
+              .query("events")
+              .withIndex("by_organizer", (q) => q.eq("organizerId", staff.organizerId))
+              .filter((q) => q.eq(q.field("status"), "PUBLISHED"))
+              .collect();
+            organizerEvents.forEach((e) => eventIds.add(e._id));
+          }
         }
       }
     }

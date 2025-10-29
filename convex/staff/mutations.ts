@@ -22,7 +22,8 @@ export const addStaffMember = mutation({
     name: v.string(),
     email: v.string(),
     phone: v.optional(v.string()),
-    role: v.union(v.literal("SELLER"), v.literal("SCANNER"), v.literal("ASSISTANT")),
+    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
+    canScan: v.optional(v.boolean()), // Sellers can also scan if approved
     commissionType: v.optional(v.union(v.literal("PERCENTAGE"), v.literal("FIXED"))),
     commissionValue: v.optional(v.number()),
     allocatedTickets: v.optional(v.number()),
@@ -100,6 +101,7 @@ export const addStaffMember = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
+      canScan: args.canScan || (args.role === "SCANNER"), // Scanners can always scan, sellers only if approved
       commissionType: args.commissionType,
       commissionValue: args.commissionValue,
       commissionPercent: args.commissionType === "PERCENTAGE" ? args.commissionValue : undefined,
@@ -128,6 +130,7 @@ export const updateStaffMember = mutation({
     staffId: v.id("eventStaff"),
     name: v.optional(v.string()),
     phone: v.optional(v.string()),
+    canScan: v.optional(v.boolean()), // Allow updating scan permissions
     commissionType: v.optional(v.union(v.literal("PERCENTAGE"), v.literal("FIXED"))),
     commissionValue: v.optional(v.number()),
     allocatedTickets: v.optional(v.number()),
@@ -171,6 +174,7 @@ export const updateStaffMember = mutation({
 
     if (args.name !== undefined) updates.name = args.name;
     if (args.phone !== undefined) updates.phone = args.phone;
+    if (args.canScan !== undefined) updates.canScan = args.canScan;
     if (args.commissionType !== undefined) updates.commissionType = args.commissionType;
     if (args.commissionValue !== undefined) {
       updates.commissionValue = args.commissionValue;

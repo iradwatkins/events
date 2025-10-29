@@ -17,6 +17,10 @@ export const createEvent = mutation({
     startDate: v.number(),
     endDate: v.number(),
     timezone: v.string(),
+    // Literal date/time fields for display without timezone conversion
+    eventDateLiteral: v.optional(v.string()),
+    eventTimeLiteral: v.optional(v.string()),
+    eventTimezone: v.optional(v.string()),
     location: v.object({
       venueName: v.optional(v.string()),
       address: v.optional(v.string()),
@@ -85,6 +89,10 @@ export const createEvent = mutation({
         startDate: args.startDate,
         endDate: args.endDate,
         timezone: args.timezone,
+        // Store literal date/time strings for accurate display
+        eventDateLiteral: args.eventDateLiteral,
+        eventTimeLiteral: args.eventTimeLiteral,
+        eventTimezone: args.eventTimezone || args.timezone,
         location: args.location,
         doorPrice: args.doorPrice,
         imageUrl: args.imageUrl,
@@ -173,12 +181,12 @@ export const configurePayment = mutation({
         .first();
 
       if (!credits) {
-        console.log("[configurePayment] Initializing 100 FREE ticket credits for new organizer");
+        console.log("[configurePayment] Initializing 10,000 FREE ticket credits for new organizer");
         await ctx.db.insert("organizerCredits", {
           organizerId: user._id,
-          creditsTotal: 100,
+          creditsTotal: 10000,
           creditsUsed: 0,
-          creditsRemaining: 100,
+          creditsRemaining: 10000,
           firstEventFreeUsed: false,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -331,5 +339,260 @@ export const updateEvent = mutation({
     await ctx.db.patch(args.eventId, updates);
 
     return { success: true };
+  },
+});
+
+/**
+ * Claim an event
+ * Allows an organizer to take ownership of a claimable event
+ */
+export const claimEvent = mutation({
+  args: {
+    eventId: v.id("events"),
+    claimCode: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // TESTING MODE: Skip authentication for now
+    // TODO: When authentication is enabled, get current user ID
+    console.warn("[claimEvent] TESTING MODE - No authentication");
+
+    // Get the event
+    const event = await ctx.db.get(args.eventId);
+
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Check if event is claimable
+    if (!event.isClaimable) {
+      throw new Error("This event is not available for claiming");
+    }
+
+    // Check if event already has an organizer
+    if (event.organizerId) {
+      throw new Error("This event has already been claimed");
+    }
+
+    // Validate claim code if required
+    if (event.claimCode) {
+      if (!args.claimCode || args.claimCode !== event.claimCode) {
+        throw new Error("Invalid claim code");
+      }
+    }
+
+    // TESTING MODE: Use first user as organizer
+    // TODO: Replace with actual authenticated user ID
+    const users = await ctx.db.query("users").first();
+    if (!users) {
+      throw new Error("No users found in system");
+    }
+
+    // Claim the event
+    await ctx.db.patch(args.eventId, {
+      organizerId: users._id,
+      organizerName: users.name,
+      isClaimable: false,
+      claimedAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return {
+      success: true,
+      eventId: args.eventId,
+      organizerId: users._id,
+    };
+  },
+});
+
+/**
+ * Duplicate an event with all its configurations
+ */
+export const duplicateEvent = mutation({
+  args: {
+    eventId: v.id("events"),
+    options: v.object({
+      copyTickets: v.boolean(),
+      copySeating: v.boolean(),
+      copyStaff: v.boolean(),
+      newName: v.optional(v.string()),
+      newDate: v.optional(v.number()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: Skip authentication check
+    if (!identity) {
+      console.warn("[duplicateEvent] TESTING MODE - No authentication required");
+    }
+
+    // Get original event
+    const originalEvent = await ctx.db.get(args.eventId);
+    if (!originalEvent) {
+      throw new Error("Event not found");
+    }
+
+    // Check ownership (skip in testing mode)
+    if (identity) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+
+      if (user && originalEvent.organizerId !== user._id) {
+        throw new Error("You can only duplicate your own events");
+      }
+    }
+
+    // Create new event with duplicated data
+    const newEventData = {
+      ...originalEvent,
+      _id: undefined, // Remove ID to create new record
+      _creationTime: undefined, // Remove system fields
+      name: args.options.newName || `${originalEvent.name} (Copy)`,
+      startDate: args.options.newDate || originalEvent.startDate,
+      status: "DRAFT" as const, // Reset to draft status
+      isClaimable: false,
+      claimCode: undefined,
+      claimedAt: undefined,
+
+      // Reset ticket tracking
+      ticketsSold: 0,
+      ticketsAvailable: originalEvent.ticketsAvailable,
+
+      // Timestamps
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    // Create the new event
+    const newEventId = await ctx.db.insert("events", newEventData);
+    console.log(`[duplicateEvent] Created new event ${newEventId} from ${args.eventId}`);
+
+    // Copy ticket tiers if requested
+    if (args.options.copyTickets) {
+      const ticketTiers = await ctx.db
+        .query("ticketTiers")
+        .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+        .collect();
+
+      for (const tier of ticketTiers) {
+        const newTierData = {
+          ...tier,
+          _id: undefined,
+          _creationTime: undefined,
+          eventId: newEventId,
+          sold: 0, // Reset sold count
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+
+        const newTierId = await ctx.db.insert("ticketTiers", newTierData);
+        console.log(`[duplicateEvent] Duplicated ticket tier ${tier._id} -> ${newTierId}`);
+      }
+    }
+
+    // Copy seating chart if requested
+    if (args.options.copySeating) {
+      const seatingCharts = await ctx.db
+        .query("seatingCharts")
+        .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+        .collect();
+
+      for (const chart of seatingCharts) {
+        const newChartData = {
+          ...chart,
+          _id: undefined,
+          _creationTime: undefined,
+          eventId: newEventId,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+
+        const newChartId = await ctx.db.insert("seatingCharts", newChartData);
+        console.log(`[duplicateEvent] Duplicated seating chart ${chart._id} -> ${newChartId}`);
+
+        // Copy all seats for this chart
+        const seats = await ctx.db
+          .query("seats")
+          .withIndex("by_chart", (q) => q.eq("chartId", chart._id))
+          .collect();
+
+        for (const seat of seats) {
+          const newSeatData = {
+            ...seat,
+            _id: undefined,
+            _creationTime: undefined,
+            eventId: newEventId,
+            chartId: newChartId,
+            status: "available" as const, // Reset all seats to available
+            ticketId: undefined,
+            reservationId: undefined,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          };
+
+          await ctx.db.insert("seats", newSeatData);
+        }
+        console.log(`[duplicateEvent] Duplicated ${seats.length} seats for chart ${newChartId}`);
+      }
+    }
+
+    // Copy staff if requested
+    if (args.options.copyStaff) {
+      const eventStaff = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+        .collect();
+
+      for (const staff of eventStaff) {
+        const newStaffData = {
+          ...staff,
+          _id: undefined,
+          _creationTime: undefined,
+          eventId: newEventId,
+          allocatedTickets: 0, // Reset allocations
+          ticketsSold: 0,
+          totalCommissionEarned: 0,
+          totalCashCollected: 0,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+
+        const newStaffId = await ctx.db.insert("eventStaff", newStaffData);
+        console.log(`[duplicateEvent] Duplicated staff member ${staff._id} -> ${newStaffId}`);
+      }
+    }
+
+    // Copy payment configuration
+    const paymentConfig = await ctx.db
+      .query("eventPaymentConfig")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .first();
+
+    if (paymentConfig) {
+      const newPaymentConfig = {
+        ...paymentConfig,
+        _id: undefined,
+        _creationTime: undefined,
+        eventId: newEventId,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+
+      await ctx.db.insert("eventPaymentConfig", newPaymentConfig);
+      console.log(`[duplicateEvent] Duplicated payment configuration`);
+    }
+
+    return {
+      success: true,
+      originalEventId: args.eventId,
+      newEventId,
+      duplicatedItems: {
+        tickets: args.options.copyTickets,
+        seating: args.options.copySeating,
+        staff: args.options.copyStaff,
+      },
+    };
   },
 });

@@ -23,7 +23,7 @@ export function ListView({ events }: ListViewProps) {
         <Link
           key={event._id}
           href={`/events/${event._id}`}
-          className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden"
+          className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
         >
           <div className="flex flex-col sm:flex-row">
             {/* Event Image */}
@@ -70,13 +70,17 @@ export function ListView({ events }: ListViewProps) {
                   <span>{formatEventDateTime(event.startDate, event.timezone)}</span>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span>
-                    {event.location.venueName && `${event.location.venueName}, `}
-                    {event.location.city}, {event.location.state}
-                  </span>
-                </div>
+                {event.location && (event.location.city || event.location.state) && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span>
+                      {event.location.venueName && `${event.location.venueName}, `}
+                      {event.location.city && event.location.state
+                        ? `${event.location.city}, ${event.location.state}`
+                        : event.location.city || event.location.state}
+                    </span>
+                  </div>
+                )}
 
                 {event.ticketsVisible && (
                   <div className="flex items-center gap-2 text-sm text-green-600 font-medium">

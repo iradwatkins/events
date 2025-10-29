@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, action } from "../_generated/server";
 import { api } from "../_generated/api";
+import { Doc } from "../_generated/dataModel";
 import { getTimezoneFromLocation, parseEventDateTime } from "../lib/timezone";
 
 /**
@@ -265,9 +266,19 @@ export const autoCreateEventFromExtractedData = mutation({
         eventTimezone
       );
       console.log(`[AI Extraction] Weekend Event - Start: ${data.eventDate}, End: ${data.eventEndDate}`);
+    } else if (data.eventEndTime) {
+      // Single-day event with END TIME - parse end time on the same date
+      // Example: Event from 8PM to 2AM on the same night
+      endDate = parseEventDateTime(
+        data.eventDate || data.date,
+        data.eventEndTime, // Use the END time
+        eventTimezone
+      );
+      console.log(`[AI Extraction] Single-day event with end time - Start: ${data.eventTime}, End: ${data.eventEndTime}`);
     } else {
-      // Single-day event - end date same as start
+      // Single-day event without end time - end date same as start
       endDate = startDate;
+      console.log(`[AI Extraction] Single-day event without end time specified`);
     }
 
     if (startDate) {
@@ -472,9 +483,16 @@ export const deleteFlyerWithCleanup = action({
   args: {
     flyerId: v.id("uploadedFlyers"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{
+    success: boolean;
+    message: string;
+    deletedFileHash: string;
+    deletedFilepath: string;
+  }> => {
+    console.log(`🗑️ [deleteFlyerWithCleanup] Starting deletion for flyer: ${args.flyerId}`);
+
     // Get the flyer to find the filepath
-    const flyer = await ctx.runQuery(api.flyers.queries.getFlyerById, {
+    const flyer: Doc<"uploadedFlyers"> | null = await ctx.runQuery(api.flyers.queries.getFlyerById, {
       flyerId: args.flyerId,
     });
 
@@ -482,8 +500,11 @@ export const deleteFlyerWithCleanup = action({
       throw new Error("Flyer not found");
     }
 
+    console.log(`📄 [deleteFlyerWithCleanup] Flyer details: ${flyer.filename}, hash: ${flyer.fileHash}`);
+
     // Call API to delete physical file
     try {
+      console.log(`🔥 [deleteFlyerWithCleanup] Deleting physical file: ${flyer.filepath}`);
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://events.stepperslife.com'}/api/admin/delete-flyer-file`, {
         method: "POST",
         headers: {
@@ -495,10 +516,12 @@ export const deleteFlyerWithCleanup = action({
       });
 
       if (!response.ok) {
-        console.warn(`⚠️ Failed to delete physical file: ${flyer.filepath}`);
+        const errorData = await response.json();
+        console.warn(`⚠️ Failed to delete physical file: ${flyer.filepath}`, errorData);
         // Continue anyway - we still want to delete the database record
       } else {
-        console.log(`✅ Physical file deleted: ${flyer.filepath}`);
+        const successData = await response.json();
+        console.log(`✅ Physical file deleted successfully: ${flyer.filepath}`, successData);
       }
     } catch (error) {
       console.warn(`⚠️ Error deleting physical file:`, error);
@@ -506,13 +529,67 @@ export const deleteFlyerWithCleanup = action({
     }
 
     // Now delete from database
+    console.log(`🗄️ [deleteFlyerWithCleanup] Deleting database record: ${args.flyerId}`);
     await ctx.runMutation(api.flyers.mutations.deleteFlyerFromDb, {
       flyerId: args.flyerId,
     });
 
+    console.log(`✅ [deleteFlyerWithCleanup] Deletion complete for flyer: ${args.flyerId}`);
+
     return {
       success: true,
       message: "Flyer, physical file, and associated event deleted successfully",
+      deletedFileHash: flyer.fileHash,
+      deletedFilepath: flyer.filepath,
+    };
+  },
+});
+
+/**
+ * Bulk delete ALL flyers - deletes all flyers from database and file system
+ * WARNING: This is destructive and cannot be undone!
+ */
+export const deleteAllFlyers = action({
+  args: {},
+  handler: async (ctx): Promise<{
+    success: boolean;
+    totalFlyers: number;
+    successCount: number;
+    failCount: number;
+    message: string;
+  }> => {
+    console.log("🗑️ Starting bulk delete of ALL flyers...");
+
+    // Get all flyers
+    const flyers: Array<any> = await ctx.runQuery(api.flyers.queries.getAllFlyers, {});
+
+    console.log(`Found ${flyers.length} flyers to delete`);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // Delete each flyer
+    for (const flyer of flyers) {
+      try {
+        await ctx.runAction(api.flyers.mutations.deleteFlyerWithCleanup, {
+          flyerId: flyer._id,
+        });
+        successCount++;
+        console.log(`✅ Deleted flyer ${successCount}/${flyers.length}: ${flyer.filename}`);
+      } catch (error) {
+        failCount++;
+        console.error(`❌ Failed to delete flyer ${flyer.filename}:`, error);
+      }
+    }
+
+    console.log(`🎉 Bulk delete complete: ${successCount} deleted, ${failCount} failed`);
+
+    return {
+      success: true,
+      totalFlyers: flyers.length,
+      successCount,
+      failCount,
+      message: `Deleted ${successCount} of ${flyers.length} flyers`,
     };
   },
 });
@@ -639,6 +716,31 @@ export const getFlyerStats = mutation({
         claimableCount: claimableEvents.length,
         claimedCount: claimedEvents.length,
       },
+    };
+  },
+});
+
+/**
+ * Delete all flyer records from database only (for cleanup when events are already deleted)
+ * Does NOT delete physical files or events
+ */
+export const deleteAllFlyerRecordsOnly = mutation({
+  args: {},
+  handler: async (ctx) => {
+    console.log("🗑️ Deleting all flyer records from database...");
+
+    const allFlyers = await ctx.db.query("uploadedFlyers").collect();
+    console.log(`Found ${allFlyers.length} flyer records to delete`);
+
+    for (const flyer of allFlyers) {
+      await ctx.db.delete(flyer._id);
+    }
+
+    console.log(`✅ Deleted ${allFlyers.length} flyer records from database`);
+
+    return {
+      success: true,
+      deleted: allFlyers.length,
     };
   },
 });

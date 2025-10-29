@@ -28,13 +28,16 @@ import {
   Bell,
   Mail,
   Armchair,
+  FileText,
+  Layout,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { convertToCSV, downloadCSV, generateAttendeeExportFilename } from "@/lib/csv";
+import { BundleEditor } from "@/components/events/BundleEditor";
 
-type TabType = "overview" | "orders" | "attendees" | "staff" | "discounts" | "waitlist";
+type TabType = "overview" | "orders" | "attendees" | "seating" | "staff" | "discounts" | "bundles" | "waitlist";
 
 export default function EventDashboardPage() {
   const params = useParams();
@@ -67,8 +70,11 @@ export default function EventDashboardPage() {
   const staffSummary = useQuery(api.staff.queries.getOrganizerStaffSummary, { eventId });
   const currentUser = useQuery(api.users.queries.getCurrentUser);
   const discountCodes = useQuery(api.discounts.queries.getEventDiscountCodes, { eventId });
+  const bundles = useQuery(api.bundles.queries.getBundlesForEvent, { eventId });
   const waitlist = useQuery(api.waitlist.queries.getEventWaitlist, { eventId });
   const waitlistCount = useQuery(api.waitlist.queries.getWaitlistCount, { eventId });
+  const seatReservations = useQuery(api.seating.queries.getEventSeatReservations, { eventId });
+  const tableAssignments = useQuery(api.seating.queries.getEventTableAssignments, { eventId });
 
   const createDiscountCode = useMutation(api.discounts.mutations.createDiscountCode);
   const updateDiscountCode = useMutation(api.discounts.mutations.updateDiscountCode);
@@ -136,6 +142,19 @@ export default function EventDashboardPage() {
     } finally {
       setIsPublishing(false);
     }
+  };
+
+  const getSeatAssignment = (ticketId: Id<"tickets">) => {
+    if (!seatReservations) return null;
+    const reservation = seatReservations.find((r) => r.ticketId === ticketId);
+    if (!reservation) return null;
+
+    if (reservation.tableId) {
+      return `Table ${reservation.tableNumber}, Seat ${reservation.seatNumber}`;
+    } else if (reservation.rowId) {
+      return `Row ${reservation.rowLabel}, Seat ${reservation.seatNumber}`;
+    }
+    return null;
   };
 
   const handleExportAttendees = () => {
@@ -377,6 +396,18 @@ export default function EventDashboardPage() {
           >
             Attendees ({statistics.totalAttendees})
           </button>
+          {tableAssignments && tableAssignments.totalAssignedSeats > 0 && (
+            <button
+              onClick={() => setActiveTab("seating")}
+              className={`px-6 py-3 font-medium transition-colors relative ${
+                activeTab === "seating"
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Seating ({tableAssignments.totalAssignedSeats})
+            </button>
+          )}
           <button
             onClick={() => setActiveTab("staff")}
             className={`px-6 py-3 font-medium transition-colors relative ${
@@ -396,6 +427,16 @@ export default function EventDashboardPage() {
             }`}
           >
             Discounts ({discountCodes?.length || 0})
+          </button>
+          <button
+            onClick={() => setActiveTab("bundles")}
+            className={`px-6 py-3 font-medium transition-colors relative ${
+              activeTab === "bundles"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Bundles ({bundles?.length || 0})
           </button>
           <button
             onClick={() => setActiveTab("waitlist")}
@@ -761,6 +802,9 @@ export default function EventDashboardPage() {
                       Tier
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Seat Assignment
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -785,6 +829,11 @@ export default function EventDashboardPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {ticket.tierName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {getSeatAssignment(ticket._id) || (
+                            <span className="text-gray-400 italic">No seat assigned</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
@@ -819,6 +868,243 @@ export default function EventDashboardPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Seating Tab */}
+        {activeTab === "seating" && (
+          <div className="space-y-6">
+            {/* Seating Overview */}
+            {tableAssignments && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="bg-white rounded-lg shadow-md p-6"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-600">Total Assigned Seats</span>
+                      <Users className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <p className="text-3xl font-bold text-gray-900">{tableAssignments.totalAssignedSeats}</p>
+                    <p className="text-xs text-gray-500 mt-1">Seats with attendees</p>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    className="bg-white rounded-lg shadow-md p-6"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-600">Total Sections</span>
+                      <Layout className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <p className="text-3xl font-bold text-gray-900">{tableAssignments.sections.length}</p>
+                    <p className="text-xs text-gray-500 mt-1">Seating areas</p>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                    className="bg-white rounded-lg shadow-md p-6"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-600">Total Tables</span>
+                      <Calendar className="w-5 h-5 text-green-600" />
+                    </div>
+                    <p className="text-3xl font-bold text-gray-900">
+                      {tableAssignments.sections.reduce((sum, section) =>
+                        sum + (section.tables?.length || 0), 0
+                      )}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Active tables</p>
+                  </motion.div>
+                </div>
+
+                {/* Table Assignments by Section */}
+                <div className="space-y-6">
+                  {tableAssignments.sections.map((section, sectionIndex) => (
+                    <motion.div
+                      key={section.sectionId}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: sectionIndex * 0.1 }}
+                      className="bg-white rounded-lg shadow-md overflow-hidden"
+                    >
+                      <div
+                        className="px-6 py-4 border-l-4"
+                        style={{
+                          borderColor: tableAssignments.seatingChart.sections.find(
+                            s => s.id === section.sectionId
+                          )?.color || '#3B82F6'
+                        }}
+                      >
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {section.sectionName}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {section.tables && section.tables.length > 0
+                            ? `${section.tables.length} tables, ${section.tables.reduce((sum, t) => sum + t.seats.length, 0)} attendees`
+                            : section.rows && section.rows.length > 0
+                            ? `${section.rows.length} rows, ${section.rows.reduce((sum, r) => sum + r.seats.length, 0)} attendees`
+                            : "No assignments"
+                          }
+                        </p>
+                      </div>
+
+                      {/* Tables */}
+                      {section.tables && section.tables.length > 0 && (
+                        <div className="p-6 space-y-6">
+                          {section.tables.map((table) => (
+                            <div key={table.tableId} className="border rounded-lg overflow-hidden">
+                              <div className="bg-gray-50 px-4 py-3 border-b">
+                                <h4 className="font-medium text-gray-900">
+                                  Table {table.tableNumber}
+                                </h4>
+                                <p className="text-sm text-gray-600">{table.seats.length} attendees</p>
+                              </div>
+                              <div className="divide-y">
+                                {table.seats.map((seat, seatIndex) => (
+                                  <div key={seatIndex} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                          <span className="text-sm font-medium text-blue-600">
+                                            {seat.seatNumber}
+                                          </span>
+                                        </div>
+                                        <div>
+                                          <p className="font-medium text-gray-900">{seat.attendeeName}</p>
+                                          <p className="text-sm text-gray-600">{seat.attendeeEmail}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-sm text-gray-500">Ticket: {seat.ticketCode}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Rows (for row-based seating) */}
+                      {section.rows && section.rows.length > 0 && (
+                        <div className="p-6 space-y-6">
+                          {section.rows.map((row) => (
+                            <div key={row.rowId} className="border rounded-lg overflow-hidden">
+                              <div className="bg-gray-50 px-4 py-3 border-b">
+                                <h4 className="font-medium text-gray-900">
+                                  Row {row.rowLabel}
+                                </h4>
+                                <p className="text-sm text-gray-600">{row.seats.length} attendees</p>
+                              </div>
+                              <div className="divide-y">
+                                {row.seats.map((seat, seatIndex) => (
+                                  <div key={seatIndex} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                          <span className="text-sm font-medium text-blue-600">
+                                            {seat.seatNumber}
+                                          </span>
+                                        </div>
+                                        <div>
+                                          <p className="font-medium text-gray-900">{seat.attendeeName}</p>
+                                          <p className="text-sm text-gray-600">{seat.attendeeEmail}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-sm text-gray-500">Ticket: {seat.ticketCode}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Export Options */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Options</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => {
+                        const csvContent = [
+                          ["Section", "Table/Row", "Seat", "Attendee Name", "Email", "Ticket Code"],
+                          ...tableAssignments.sections.flatMap(section =>
+                            [
+                              ...(section.tables?.flatMap(table =>
+                                table.seats.map(seat => [
+                                  section.sectionName,
+                                  `Table ${table.tableNumber}`,
+                                  seat.seatNumber,
+                                  seat.attendeeName,
+                                  seat.attendeeEmail,
+                                  seat.ticketCode,
+                                ])
+                              ) || []),
+                              ...(section.rows?.flatMap(row =>
+                                row.seats.map(seat => [
+                                  section.sectionName,
+                                  `Row ${row.rowLabel}`,
+                                  seat.seatNumber,
+                                  seat.attendeeName,
+                                  seat.attendeeEmail,
+                                  seat.ticketCode,
+                                ])
+                              ) || []),
+                            ]
+                          ),
+                        ].map(row => row.join(",")).join("\n");
+
+                        const blob = new Blob([csvContent], { type: "text/csv" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `seating-assignments-${event.name.replace(/\s+/g, "-").toLowerCase()}.csv`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Export as CSV
+                    </button>
+
+                    <button
+                      onClick={() => window.print()}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Print Assignments
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* No Assignments Message */}
+            {!tableAssignments || tableAssignments.totalAssignedSeats === 0 && (
+              <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Seat Assignments Yet</h3>
+                <p className="text-gray-600 mb-4">
+                  Attendees will appear here once they select their seats during checkout.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -1392,6 +1678,25 @@ export default function EventDashboardPage() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Bundles Tab */}
+        {activeTab === "bundles" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Ticket Bundles</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Create package deals by bundling multiple ticket tiers together at a discounted price
+                </p>
+              </div>
+
+              <BundleEditor
+                eventId={eventId}
+                ticketTiers={ticketTiers || []}
+              />
             </div>
           </div>
         )}

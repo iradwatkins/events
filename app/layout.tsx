@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SteppersLife Events - Discover Amazing Stepping Events Nationwide",
+  title: "SteppersLife Events - Discover Amazing Steppin Events Nationwide",
   description:
-    "Your premier platform for discovering and attending stepping events. Buy tickets, manage events with advanced seating charts, and connect with the stepping community.",
+    "Your premier platform for discovering and attending steppin events. Buy tickets, manage events with advanced seating charts, and connect with the steppin community.",
   manifest: "/manifest.json",
   icons: {
     icon: [

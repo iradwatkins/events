@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import {
   ZoomIn,
@@ -13,6 +13,20 @@ import {
   EyeOff,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import TableRenderer from "./TableRenderer";
+
+interface Table {
+  id: string;
+  number: string | number;
+  shape: "ROUND" | "RECTANGULAR" | "SQUARE" | "CUSTOM";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation?: number;
+  capacity: number;
+  seats: any[];
+}
 
 interface Section {
   id: string;
@@ -23,7 +37,9 @@ interface Section {
   width?: number;
   height?: number;
   rotation?: number;
-  rows: any[];
+  containerType?: "ROWS" | "TABLES";
+  rows?: any[];
+  tables?: Table[];
   ticketTierId?: any;
 }
 
@@ -33,6 +49,10 @@ interface VisualSeatingCanvasProps {
   onSectionUpdate: (sectionId: string, updates: Partial<Section>) => void;
   selectedSectionId?: string;
   onSectionSelect: (sectionId: string) => void;
+  // Table-specific props
+  selectedTableId?: string;
+  onTableSelect?: (sectionId: string, tableId: string) => void;
+  onTableUpdate?: (sectionId: string, tableId: string, updates: Partial<Table>) => void;
 }
 
 export default function VisualSeatingCanvas({
@@ -41,14 +61,91 @@ export default function VisualSeatingCanvas({
   onSectionUpdate,
   selectedSectionId,
   onSectionSelect,
+  selectedTableId,
+  onTableSelect,
+  onTableUpdate,
 }: VisualSeatingCanvasProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [showSectionLabels, setShowSectionLabels] = useState(true);
+  const [isDraggingTable, setIsDraggingTable] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragStartPos = useRef({ x: 0, y: 0, sectionX: 0, sectionY: 0 });
   const resizeStartPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  const tableDragStartPos = useRef({ x: 0, y: 0, tableX: 0, tableY: 0 });
+  const currentDraggingTable = useRef<{ sectionId: string; tableId: string } | null>(null);
+
+  // Handle section dragging
+  useEffect(() => {
+    if (!isDragging || !selectedSectionId) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      handleSectionDrag(e, selectedSectionId);
+    };
+
+    const handleMouseUp = () => {
+      handleSectionDragEnd();
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDragging, selectedSectionId]);
+
+  // Handle section resizing
+  useEffect(() => {
+    if (!isResizing || !selectedSectionId) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // We need to track which corner is being resized
+      // For now, we'll use a simple approach
+      handleResize(e, selectedSectionId, "se");
+    };
+
+    const handleMouseUp = () => {
+      handleResizeEnd();
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isResizing, selectedSectionId]);
+
+  // Handle table dragging
+  useEffect(() => {
+    if (!isDraggingTable || !currentDraggingTable.current) return;
+
+    const { sectionId, tableId } = currentDraggingTable.current;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      handleTableDrag(e, sectionId, tableId);
+    };
+
+    const handleMouseUp = () => {
+      handleTableDragEnd();
+      currentDraggingTable.current = null;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDraggingTable]);
 
   const handleSectionDragStart = (
     e: React.MouseEvent,
@@ -136,7 +233,53 @@ export default function VisualSeatingCanvas({
   };
 
   const getTotalSeats = (section: Section) => {
-    return section.rows.reduce((total, row) => total + row.seats.length, 0);
+    let total = 0;
+    if (section.rows) {
+      total += section.rows.reduce((sum, row) => sum + row.seats.length, 0);
+    }
+    if (section.tables) {
+      total += section.tables.reduce((sum, table) => sum + table.seats.length, 0);
+    }
+    return total;
+  };
+
+  const handleTableDragStart = (
+    e: React.MouseEvent,
+    sectionId: string,
+    table: Table
+  ) => {
+    e.stopPropagation();
+    setIsDraggingTable(true);
+    currentDraggingTable.current = { sectionId, tableId: table.id };
+    if (onTableSelect) {
+      onTableSelect(sectionId, table.id);
+    }
+
+    tableDragStartPos.current = {
+      x: e.clientX,
+      y: e.clientY,
+      tableX: table.x,
+      tableY: table.y,
+    };
+  };
+
+  const handleTableDrag = useCallback(
+    (e: MouseEvent, sectionId: string, tableId: string) => {
+      if (!isDraggingTable || !onTableUpdate) return;
+
+      const deltaX = e.clientX - tableDragStartPos.current.x;
+      const deltaY = e.clientY - tableDragStartPos.current.y;
+
+      onTableUpdate(sectionId, tableId, {
+        x: tableDragStartPos.current.tableX + deltaX,
+        y: tableDragStartPos.current.tableY + deltaY,
+      });
+    },
+    [isDraggingTable, onTableUpdate]
+  );
+
+  const handleTableDragEnd = () => {
+    setIsDraggingTable(false);
   };
 
   if (!venueImageUrl) {
@@ -158,13 +301,13 @@ export default function VisualSeatingCanvas({
     <div className="relative bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* Controls Bar */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex flex-col gap-2">
+        <div className="bg-white rounded-lg shadow border border-gray-300 p-2 flex flex-col gap-2">
           <button
             onClick={() => setShowGrid(!showGrid)}
             className={`p-2 rounded transition-colors ${
               showGrid
-                ? "bg-blue-100 text-blue-700"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-gray-800 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
             title={showGrid ? "Hide Grid" : "Show Grid"}
           >
@@ -174,8 +317,8 @@ export default function VisualSeatingCanvas({
             onClick={() => setShowSectionLabels(!showSectionLabels)}
             className={`p-2 rounded transition-colors ${
               showSectionLabels
-                ? "bg-blue-100 text-blue-700"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-gray-800 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
             title={showSectionLabels ? "Hide Labels" : "Show Labels"}
           >
@@ -187,9 +330,9 @@ export default function VisualSeatingCanvas({
           </button>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
-          <p className="text-blue-900 font-semibold mb-1">Quick Tips:</p>
-          <ul className="text-blue-800 space-y-1">
+        <div className="bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs">
+          <p className="text-gray-900 font-semibold mb-1">Quick Tips:</p>
+          <ul className="text-gray-700 space-y-1">
             <li>• Drag sections to position</li>
             <li>• Drag corners to resize</li>
             <li>• Click rotate button</li>
@@ -208,16 +351,16 @@ export default function VisualSeatingCanvas({
               onClick={() => onSectionSelect(section.id)}
               className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors flex items-center gap-2 ${
                 selectedSectionId === section.id
-                  ? "bg-blue-100 text-blue-900"
+                  ? "bg-gray-800 text-white"
                   : "hover:bg-gray-100 text-gray-700"
               }`}
             >
               <div
-                className="w-3 h-3 rounded flex-shrink-0"
-                style={{ backgroundColor: section.color || "#3B82F6" }}
+                className="w-3 h-3 border-2 flex-shrink-0"
+                style={{ borderColor: "#000000" }}
               />
               <span className="font-medium truncate">{section.name}</span>
-              <span className="text-gray-500 ml-auto">{getTotalSeats(section)}</span>
+              <span className={`ml-auto ${selectedSectionId === section.id ? "text-gray-300" : "text-gray-500"}`}>{getTotalSeats(section)}</span>
             </button>
           ))}
         </div>
@@ -298,21 +441,21 @@ export default function VisualSeatingCanvas({
                   return (
                     <motion.div
                       key={section.id}
-                      className={`absolute cursor-move transition-shadow ${
-                        isSelected ? "ring-4 ring-blue-500 shadow-2xl z-10" : "shadow-lg"
+                      className={`absolute cursor-move transition-all ${
+                        isSelected ? "z-10" : ""
                       }`}
                       style={{
                         left: sectionX,
                         top: sectionY,
                         width: sectionWidth,
                         height: sectionHeight,
-                        backgroundColor: `${section.color || "#3B82F6"}40`,
-                        border: `3px solid ${section.color || "#3B82F6"}`,
-                        borderRadius: "8px",
+                        backgroundColor: "transparent",
+                        border: isSelected ? "2px solid #000000" : "2px dashed #9E9E9E",
+                        borderRadius: "4px",
                         transform: `rotate(${sectionRotation}deg)`,
                       }}
                       onMouseDown={(e) => handleSectionDragStart(e, section)}
-                      whileHover={{ scale: isDragging ? 1 : 1.02 }}
+                      whileHover={{ scale: isDragging ? 1 : 1.01 }}
                     >
                       {/* Section Label */}
                       {showSectionLabels && (
@@ -334,10 +477,10 @@ export default function VisualSeatingCanvas({
                           {["nw", "ne", "sw", "se"].map((corner) => (
                             <div
                               key={corner}
-                              className="absolute w-4 h-4 bg-blue-600 border-2 border-white rounded-full cursor-nwse-resize hover:scale-150 transition-transform"
+                              className="absolute w-3 h-3 bg-black border-2 border-white rounded-sm cursor-nwse-resize hover:scale-125 transition-transform"
                               style={{
-                                [corner.includes("n") ? "top" : "bottom"]: "-8px",
-                                [corner.includes("w") ? "left" : "right"]: "-8px",
+                                [corner.includes("n") ? "top" : "bottom"]: "-6px",
+                                [corner.includes("w") ? "left" : "right"]: "-6px",
                               }}
                               onMouseDown={(e) => handleResizeStart(e, section, corner)}
                             />
@@ -345,20 +488,62 @@ export default function VisualSeatingCanvas({
 
                           {/* Rotate Button */}
                           <button
-                            className="absolute -top-10 left-1/2 -translate-x-1/2 p-2 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors"
+                            className="absolute -top-10 left-1/2 -translate-x-1/2 p-1.5 bg-gray-700 text-white rounded-full border-2 border-white hover:bg-gray-900 transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
                               rotateSection(section.id, sectionRotation);
                             }}
                             title="Rotate 15°"
                           >
-                            <RotateCw className="w-4 h-4" />
+                            <RotateCw className="w-3 h-3" />
                           </button>
                         </>
                       )}
                     </motion.div>
                   );
                 })}
+
+                {/* Tables SVG Overlay */}
+                <svg
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ width: "100%", height: "100%", overflow: "visible" }}
+                >
+                  {sections.map((section) => {
+                    if (!section.tables || section.tables.length === 0) return null;
+
+                    return section.tables.map((table) => {
+                      const isSelected = selectedTableId === table.id;
+
+                      return (
+                        <g
+                          key={table.id}
+                          className="pointer-events-auto"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            handleTableDragStart(
+                              e as unknown as React.MouseEvent,
+                              section.id,
+                              table
+                            );
+                          }}
+                        >
+                          <TableRenderer
+                            table={table}
+                            isSelected={isSelected}
+                            onClick={() => {
+                              if (onTableSelect) {
+                                onTableSelect(section.id, table.id);
+                              }
+                            }}
+                            showSeats={true}
+                            showLabel={true}
+                            scale={1}
+                          />
+                        </g>
+                      );
+                    });
+                  })}
+                </svg>
               </div>
             </TransformComponent>
           </>

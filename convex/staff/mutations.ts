@@ -372,10 +372,29 @@ export const createCashSale = mutation({
     }
     const totalCommission = commissionPerTicket * args.quantity;
 
-    // Generate tickets
+    // Generate tickets with 4-digit activation codes for cash sales
     const ticketIds = [];
+    const activationCodes = [];
+
     for (let i = 0; i < args.quantity; i++) {
-      const ticketCode = `TKT-${Date.now()}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      // Generate unique 4-digit activation code
+      let activationCode: string = "";
+      let isUnique = false;
+
+      while (!isUnique) {
+        // Generate random 4-digit code (0000-9999)
+        activationCode = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+
+        // Check if code already exists
+        const existing = await ctx.db
+          .query("tickets")
+          .withIndex("by_activation_code", (q) => q.eq("activationCode", activationCode))
+          .first();
+
+        if (!existing) {
+          isUnique = true;
+        }
+      }
 
       const ticketId = await ctx.db.insert("tickets", {
         orderId,
@@ -384,8 +403,9 @@ export const createCashSale = mutation({
         attendeeId: currentUser._id,
         attendeeEmail: args.buyerEmail || `cash-${Date.now()}@stepperslife.com`,
         attendeeName: args.buyerName,
-        ticketCode,
-        status: "VALID",
+        activationCode, // Store 4-digit code
+        ticketCode: undefined, // Will be generated upon activation
+        status: "PENDING_ACTIVATION", // Customer must activate first
         soldByStaffId: args.staffId,
         paymentMethod: args.paymentMethod,
         staffCommissionAmount: commissionPerTicket,
@@ -394,6 +414,7 @@ export const createCashSale = mutation({
       });
 
       ticketIds.push(ticketId);
+      activationCodes.push(activationCode);
     }
 
     // Update ticket tier sold count
@@ -427,6 +448,7 @@ export const createCashSale = mutation({
       success: true,
       orderId,
       ticketIds,
+      activationCodes, // Return 4-digit codes for staff to give to customer
       totalPrice: subtotalCents,
       commission: totalCommission,
     };

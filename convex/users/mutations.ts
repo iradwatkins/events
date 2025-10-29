@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "../_generated/server";
+import { mutation, internalMutation } from "../_generated/server";
 
 /**
  * Create or update user from OAuth sign-in
@@ -39,6 +39,19 @@ export const upsertUserFromAuth = mutation({
         createdAt: now,
         updatedAt: now,
       });
+
+      // AUTO-GRANT 10,000 FREE TICKETS for new organizers!
+      // Initialize credit balance with first event free promotion
+      await ctx.db.insert("organizerCredits", {
+        organizerId: userId,
+        creditsTotal: 10000, // First 10,000 tickets FREE!
+        creditsUsed: 0,
+        creditsRemaining: 10000,
+        firstEventFreeUsed: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+
       return userId;
     }
   },

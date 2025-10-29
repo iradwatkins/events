@@ -2,8 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery } from "convex/react";
-// TESTING MODE: No authentication
-// import { useSession, signOut } from "next-auth/react";
+import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/convex/_generated/api";
 import { MasonryGrid } from "@/components/events/MasonryGrid";
 import { GridView } from "@/components/events/GridView";
@@ -11,19 +10,17 @@ import { ListView } from "@/components/events/ListView";
 import { SearchFilters } from "@/components/events/SearchFilters";
 import { ViewToggle } from "@/components/events/ViewToggle";
 import Link from "next/link";
-import { Plus, LogOut, User, Ticket, Calendar } from "lucide-react";
+import { Plus, LogOut, User, Ticket, Calendar, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 export default function Home() {
-  // TESTING MODE: No authentication
-  // const { data: session, status } = useSession();
-  const session: any = null;
-  const status = "unauthenticated" as const;
+  const { user, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list" | "masonry">("masonry");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [showPastEvents, setShowPastEvents] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -37,16 +34,34 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch published events
-  const events = useQuery(api.public.queries.getPublishedEvents, {
-    limit: 100,
-  });
+  // Fetch published events (upcoming or past based on toggle)
+  const upcomingEvents = useQuery(
+    api.public.queries.getPublishedEvents,
+    !showPastEvents ? { limit: 100 } : "skip"
+  );
+
+  const pastEvents = useQuery(
+    api.public.queries.getPastEvents,
+    showPastEvents ? { limit: 100 } : "skip"
+  );
+
+  const events = showPastEvents ? pastEvents : upcomingEvents;
 
   // Filter events based on search and category
   const filteredEvents = useMemo(() => {
     if (!events) return [];
 
     let filtered = events;
+
+    // Remove duplicates based on _id (just in case)
+    const seen = new Set();
+    filtered = filtered.filter((event) => {
+      if (seen.has(event._id)) {
+        return false;
+      }
+      seen.add(event._id);
+      return true;
+    });
 
     // Apply search filter
     if (searchQuery) {
@@ -106,8 +121,7 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="flex items-center gap-3"
             >
-              {/* TESTING MODE: Authentication disabled */}
-              {false ? (
+              {isAuthenticated ? (
                 <>
                   {/* Profile Dropdown */}
                   <div className="relative" ref={profileRef}>
@@ -115,9 +129,9 @@ export default function Home() {
                       onClick={() => setIsProfileOpen(!isProfileOpen)}
                       className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                     >
-                      {session?.user?.image ? (
+                      {user?.image ? (
                         <Image
-                          src={session.user.image}
+                          src={user.image}
                           alt="Profile"
                           width={32}
                           height={32}
@@ -142,9 +156,9 @@ export default function Home() {
                           {/* User Info */}
                           <div className="px-4 py-3 border-b border-gray-100">
                             <p className="text-sm font-medium text-gray-900 truncate">
-                              {session?.user?.name}
+                              {user?.name || "User"}
                             </p>
-                            <p className="text-xs text-gray-500 truncate">{session?.user?.email}</p>
+                            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                           </div>
 
                           {/* Menu Items */}
@@ -164,12 +178,22 @@ export default function Home() {
                             <Calendar className="w-4 h-4" />
                             My Events
                           </Link>
+                          {user?.role === "admin" && (
+                            <Link
+                              href="/admin"
+                              onClick={() => setIsProfileOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <User className="w-4 h-4" />
+                              Admin Panel
+                            </Link>
+                          )}
 
                           {/* Sign Out */}
                           <button
                             onClick={() => {
                               setIsProfileOpen(false);
-                              // signOut();
+                              logout();
                             }}
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100 mt-1"
                           >
@@ -188,26 +212,29 @@ export default function Home() {
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      <span className="hidden sm:inline">Create</span>
+                      <span className="hidden sm:inline">Create Event</span>
                     </Link>
                   </motion.div>
                 </>
               ) : (
                 <>
-                  {/* Logged out navigation - TESTING MODE */}
-                  <Link
-                    href="/my-tickets"
-                    className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-                  >
-                    My Tickets
-                  </Link>
+                  {/* Logged out navigation */}
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link
+                      href="/login"
+                      className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span className="hidden sm:inline">Sign In</span>
+                    </Link>
+                  </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link
                       href="/organizer/events/create"
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      <span className="hidden sm:inline">Create</span>
+                      <span className="hidden sm:inline">Create Event</span>
                     </Link>
                   </motion.div>
                 </>
@@ -230,6 +257,8 @@ export default function Home() {
             onSearchChange={setSearchQuery}
             onCategoryChange={setSelectedCategory}
             selectedCategory={selectedCategory}
+            showPastEvents={showPastEvents}
+            onTogglePastEvents={setShowPastEvents}
           />
         </motion.div>
 

@@ -36,14 +36,30 @@ export async function POST(request: NextRequest) {
 
     // Calculate file hash for duplicate detection
     const fileHash = await calculateFileHash(buffer);
+    console.log(`📊 Calculated file hash: ${fileHash}`);
 
     // Check for duplicates
-    if (checkDuplicateByHash(fileHash)) {
+    const isDuplicate = checkDuplicateByHash(fileHash);
+    const duplicateFilePath = path.join(FLYER_STORAGE_PATH, `${fileHash}.jpg`);
+    console.log(`🔍 Checking for duplicate: ${duplicateFilePath}`);
+    console.log(`🔍 File exists on disk: ${isDuplicate}`);
+
+    if (isDuplicate) {
+      console.warn(`⚠️ Duplicate detected! File already exists: ${duplicateFilePath}`);
       return NextResponse.json(
-        { error: "Duplicate flyer detected", isDuplicate: true },
+        {
+          error: "Duplicate flyer detected - this file has already been uploaded",
+          isDuplicate: true,
+          fileHash: fileHash,
+          existingFilePath: duplicateFilePath,
+          message: "This exact flyer has already been uploaded. You can find and delete the existing flyer below if you want to re-upload it."
+        },
         { status: 409 }
       );
     }
+
+    console.log(`✅ No duplicate found - proceeding with upload`);
+
 
     // Ensure storage directory exists
     if (!existsSync(FLYER_STORAGE_PATH)) {

@@ -6,3 +6,185 @@
 > events-stepperslife@0.1.0 start
 > next start -p 3004
 
+2025-10-25T17:31:38: 
+2025-10-25T17:31:38: > events-stepperslife@0.1.0 start
+2025-10-25T17:31:38: > next start -p 3004
+2025-10-25T17:31:38: 
+2025-10-25T17:31:39:  ⨯ Failed to start server
+2025-10-25T17:31:39: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:31:39:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:31:39:     at new Promise (<anonymous>) {
+2025-10-25T17:31:39:   code: 'EADDRINUSE',
+2025-10-25T17:31:39:   errno: -98,
+2025-10-25T17:31:39:   syscall: 'listen',
+2025-10-25T17:31:39:   address: '::',
+2025-10-25T17:31:39:   port: 3004
+2025-10-25T17:31:39: }
+2025-10-25T17:31:43: 
+2025-10-25T17:31:43: > events-stepperslife@0.1.0 start
+2025-10-25T17:31:43: > next start -p 3004
+2025-10-25T17:31:43: 
+2025-10-25T17:31:43:  ⨯ Failed to start server
+2025-10-25T17:31:43: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:31:43:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:31:43:     at new Promise (<anonymous>) {
+2025-10-25T17:31:43:   code: 'EADDRINUSE',
+2025-10-25T17:31:43:   errno: -98,
+2025-10-25T17:31:43:   syscall: 'listen',
+2025-10-25T17:31:43:   address: '::',
+2025-10-25T17:31:43:   port: 3004
+2025-10-25T17:31:43: }
+2025-10-25T17:31:47: 
+2025-10-25T17:31:47: > events-stepperslife@0.1.0 start
+2025-10-25T17:31:47: > next start -p 3004
+2025-10-25T17:31:47: 
+2025-10-25T17:31:48:  ⨯ Failed to start server
+2025-10-25T17:31:48: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:31:48:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:31:48:     at new Promise (<anonymous>) {
+2025-10-25T17:31:48:   code: 'EADDRINUSE',
+2025-10-25T17:31:48:   errno: -98,
+2025-10-25T17:31:48:   syscall: 'listen',
+2025-10-25T17:31:48:   address: '::',
+2025-10-25T17:31:48:   port: 3004
+2025-10-25T17:31:48: }
+2025-10-25T17:31:52: 
+2025-10-25T17:31:52: > events-stepperslife@0.1.0 start
+2025-10-25T17:31:52: > next start -p 3004
+2025-10-25T17:31:52: 
+2025-10-25T17:31:52:  ⨯ Failed to start server
+2025-10-25T17:31:52: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:31:52:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:31:52:     at new Promise (<anonymous>) {
+2025-10-25T17:31:52:   code: 'EADDRINUSE',
+2025-10-25T17:31:52:   errno: -98,
+2025-10-25T17:31:52:   syscall: 'listen',
+2025-10-25T17:31:52:   address: '::',
+2025-10-25T17:31:52:   port: 3004
+2025-10-25T17:31:52: }
+2025-10-25T17:31:56: 
+2025-10-25T17:31:56: > events-stepperslife@0.1.0 start
+2025-10-25T17:31:56: > next start -p 3004
+2025-10-25T17:31:56: 
+2025-10-25T17:31:56:  ⨯ Failed to start server
+2025-10-25T17:31:56: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:31:56:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:31:56:     at new Promise (<anonymous>) {
+2025-10-25T17:31:56:   code: 'EADDRINUSE',
+2025-10-25T17:31:56:   errno: -98,
+2025-10-25T17:31:56:   syscall: 'listen',
+2025-10-25T17:31:56:   address: '::',
+2025-10-25T17:31:56:   port: 3004
+2025-10-25T17:31:56: }
+2025-10-25T17:32:01: 
+2025-10-25T17:32:01: > events-stepperslife@0.1.0 start
+2025-10-25T17:32:01: > next start -p 3004
+2025-10-25T17:32:01: 
+2025-10-25T17:32:01:  ⨯ Failed to start server
+2025-10-25T17:32:01: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:32:01:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:32:01:     at new Promise (<anonymous>) {
+2025-10-25T17:32:01:   code: 'EADDRINUSE',
+2025-10-25T17:32:01:   errno: -98,
+2025-10-25T17:32:01:   syscall: 'listen',
+2025-10-25T17:32:01:   address: '::',
+2025-10-25T17:32:01:   port: 3004
+2025-10-25T17:32:01: }
+2025-10-25T17:32:05: 
+2025-10-25T17:32:05: > events-stepperslife@0.1.0 start
+2025-10-25T17:32:05: > next start -p 3004
+2025-10-25T17:32:05: 
+2025-10-25T17:32:05:  ⨯ Failed to start server
+2025-10-25T17:32:05: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:32:05:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:32:05:     at new Promise (<anonymous>) {
+2025-10-25T17:32:05:   code: 'EADDRINUSE',
+2025-10-25T17:32:05:   errno: -98,
+2025-10-25T17:32:05:   syscall: 'listen',
+2025-10-25T17:32:05:   address: '::',
+2025-10-25T17:32:05:   port: 3004
+2025-10-25T17:32:05: }
+2025-10-25T17:32:09: 
+2025-10-25T17:32:09: > events-stepperslife@0.1.0 start
+2025-10-25T17:32:09: > next start -p 3004
+2025-10-25T17:32:09: 
+2025-10-25T17:32:10:  ⨯ Failed to start server
+2025-10-25T17:32:10: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:32:10:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:32:10:     at new Promise (<anonymous>) {
+2025-10-25T17:32:10:   code: 'EADDRINUSE',
+2025-10-25T17:32:10:   errno: -98,
+2025-10-25T17:32:10:   syscall: 'listen',
+2025-10-25T17:32:10:   address: '::',
+2025-10-25T17:32:10:   port: 3004
+2025-10-25T17:32:10: }
+2025-10-25T17:32:14: 
+2025-10-25T17:32:14: > events-stepperslife@0.1.0 start
+2025-10-25T17:32:14: > next start -p 3004
+2025-10-25T17:32:14: 
+2025-10-25T17:32:14:  ⨯ Failed to start server
+2025-10-25T17:32:14: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:32:14:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:32:14:     at new Promise (<anonymous>) {
+2025-10-25T17:32:14:   code: 'EADDRINUSE',
+2025-10-25T17:32:14:   errno: -98,
+2025-10-25T17:32:14:   syscall: 'listen',
+2025-10-25T17:32:14:   address: '::',
+2025-10-25T17:32:14:   port: 3004
+2025-10-25T17:32:14: }
+2025-10-25T17:32:19: 
+2025-10-25T17:32:19: > events-stepperslife@0.1.0 start
+2025-10-25T17:32:19: > next start -p 3004
+2025-10-25T17:32:19: 
+2025-10-25T17:32:19:  ⨯ Failed to start server
+2025-10-25T17:32:19: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:32:19:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:32:19:     at new Promise (<anonymous>) {
+2025-10-25T17:32:19:   code: 'EADDRINUSE',
+2025-10-25T17:32:19:   errno: -98,
+2025-10-25T17:32:19:   syscall: 'listen',
+2025-10-25T17:32:19:   address: '::',
+2025-10-25T17:32:19:   port: 3004
+2025-10-25T17:32:19: }
+2025-10-25T17:32:23: 
+2025-10-25T17:32:23: > events-stepperslife@0.1.0 start
+2025-10-25T17:32:23: > next start -p 3004
+2025-10-25T17:32:23: 
+2025-10-25T17:32:23:  ⨯ Failed to start server
+2025-10-25T17:32:23: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:32:23:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:32:23:     at new Promise (<anonymous>) {
+2025-10-25T17:32:23:   code: 'EADDRINUSE',
+2025-10-25T17:32:23:   errno: -98,
+2025-10-25T17:32:23:   syscall: 'listen',
+2025-10-25T17:32:23:   address: '::',
+2025-10-25T17:32:23:   port: 3004
+2025-10-25T17:32:23: }
+2025-10-25T17:32:27: 
+2025-10-25T17:32:27: > events-stepperslife@0.1.0 start
+2025-10-25T17:32:27: > next start -p 3004
+2025-10-25T17:32:27: 
+2025-10-25T17:32:28:  ⨯ Failed to start server
+2025-10-25T17:32:28: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:32:28:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:32:28:     at new Promise (<anonymous>) {
+2025-10-25T17:32:28:   code: 'EADDRINUSE',
+2025-10-25T17:32:28:   errno: -98,
+2025-10-25T17:32:28:   syscall: 'listen',
+2025-10-25T17:32:28:   address: '::',
+2025-10-25T17:32:28:   port: 3004
+2025-10-25T17:32:28: }
+2025-10-25T17:32:32: 
+2025-10-25T17:32:32: > events-stepperslife@0.1.0 start
+2025-10-25T17:32:32: > next start -p 3004
+2025-10-25T17:32:32: 
+2025-10-25T17:32:32:  ⨯ Failed to start server
+2025-10-25T17:32:32: Error: listen EADDRINUSE: address already in use :::3004
+2025-10-25T17:32:32:     at <unknown> (Error: listen EADDRINUSE: address already in use :::3004)
+2025-10-25T17:32:32:     at new Promise (<anonymous>) {
+2025-10-25T17:32:32:   code: 'EADDRINUSE',
+2025-10-25T17:32:32:   errno: -98,
+2025-10-25T17:32:32:   syscall: 'listen',
+2025-10-25T17:32:32:   address: '::',
+2025-10-25T17:32:32:   port: 3004
+2025-10-25T17:32:32: }

@@ -1,5 +1,7 @@
 import { v } from "convex/values";
-import { mutation } from "../_generated/server";
+import { mutation, internalMutation, action, internalQuery } from "../_generated/server";
+import { internal } from "../_generated/api";
+import { parseEventDateTime } from "../lib/timezone";
 
 /**
  * Admin mutations - requires admin role
@@ -123,28 +125,113 @@ export const updateEventStatus = mutation({
 });
 
 /**
- * Delete event (admin override)
+ * Delete event and all associated data (admin override)
+ * This is an ACTION so it can call the flyer deletion API
  */
-export const deleteEvent = mutation({
+export const deleteEvent = action({
   args: {
     eventId: v.id("events"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{
+    success: boolean;
+    deleted: {
+      event: boolean;
+      tiers: number;
+      bundles: number;
+      contacts: number;
+      flyer: boolean;
+    };
+  }> => {
+    console.log(`🗑️ [deleteEvent] Starting deletion for event: ${args.eventId}`);
+
     // TEMPORARY: Authentication disabled for testing
     // const identity = await ctx.auth.getUserIdentity();
     // if (!identity) throw new Error("Not authenticated");
 
-    // const admin = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
+    // Get event details first (before deletion)
+    const event = await ctx.runQuery(internal.adminPanel.mutations.getEventForDeletion, {
+      eventId: args.eventId,
+    });
 
-    // if (!admin || admin.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
+    if (!event.event) {
+      throw new Error("Event not found");
+    }
 
+    // Find associated flyer
+    if (event.flyer) {
+      console.log(`🖼️ Found associated flyer: ${event.flyer.filename}`);
+
+      // Delete physical flyer file first
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_APP_URL || 'https://events.stepperslife.com'}/api/admin/delete-flyer-file`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              filepath: event.flyer.filepath,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.warn(`⚠️ Failed to delete physical flyer file: ${event.flyer.filepath}`, errorData);
+        } else {
+          console.log(`✅ Physical flyer file deleted: ${event.flyer.filepath}`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Error deleting physical flyer file:`, error);
+      }
+    }
+
+    // Now delete all database records
+    return await ctx.runMutation(internal.adminPanel.mutations.deleteEventInternal, {
+      eventId: args.eventId,
+      flyerId: event.flyer?._id,
+    });
+  },
+});
+
+/**
+ * Get event and flyer info for deletion (internal query)
+ */
+export const getEventForDeletion = internalQuery({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.eventId);
+
+    // Find associated flyer
+    const flyer = event ? await ctx.db
+      .query("uploadedFlyers")
+      .filter((q) => q.eq(q.field("eventId"), args.eventId))
+      .first() : null;
+
+    return {
+      event,
+      flyer,
+    };
+  },
+});
+
+/**
+ * Internal mutation to delete event and all associated database records
+ * Called by deleteEvent action after physical files are deleted
+ */
+export const deleteEventInternal = internalMutation({
+  args: {
+    eventId: v.id("events"),
+    flyerId: v.optional(v.id("uploadedFlyers")),
+  },
+  handler: async (ctx, args) => {
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
+
+    console.log(`📄 [deleteEventInternal] Event: ${event.name}`);
 
     // Check if event has tickets sold
     const tickets = await ctx.db
@@ -167,11 +254,50 @@ export const deleteEvent = mutation({
     for (const tier of tiers) {
       await ctx.db.delete(tier._id);
     }
+    console.log(`✅ Deleted ${tiers.length} ticket tiers`);
 
-    // Delete the event
+    // Delete bundles
+    const bundles = await ctx.db
+      .query("ticketBundles")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .collect();
+
+    for (const bundle of bundles) {
+      await ctx.db.delete(bundle._id);
+    }
+    console.log(`✅ Deleted ${bundles.length} bundles`);
+
+    // Delete event contacts (CRM data from flyer extraction)
+    const contacts = await ctx.db
+      .query("eventContacts")
+      .filter((q) => q.eq(q.field("eventId"), args.eventId))
+      .collect();
+
+    for (const contact of contacts) {
+      await ctx.db.delete(contact._id);
+    }
+    console.log(`✅ Deleted ${contacts.length} contacts`);
+
+    // Delete flyer database record if provided
+    if (args.flyerId) {
+      await ctx.db.delete(args.flyerId);
+      console.log(`✅ Deleted flyer record: ${args.flyerId}`);
+    }
+
+    // Delete the event itself
     await ctx.db.delete(args.eventId);
+    console.log(`✅ Deleted event: ${args.eventId}`);
 
-    return { success: true };
+    return {
+      success: true,
+      deleted: {
+        event: true,
+        tiers: tiers.length,
+        bundles: bundles.length,
+        contacts: contacts.length,
+        flyer: !!args.flyerId,
+      }
+    };
   },
 });
 
@@ -216,37 +342,16 @@ export const createAdminUser = mutation({
 });
 
 /**
- * Refund order (admin override)
+ * Mark order as refunded (internal mutation - called after Square refund succeeds)
  */
-export const refundOrder = mutation({
+export const markOrderRefunded = internalMutation({
   args: {
     orderId: v.id("orders"),
-    reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // TEMPORARY: Authentication disabled for testing
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Not authenticated");
-
-    // const admin = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
-
-    // if (!admin || admin.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
-
-    const order = await ctx.db.get(args.orderId);
-    if (!order) throw new Error("Order not found");
-
-    if (order.status !== "COMPLETED") {
-      throw new Error("Can only refund completed orders");
-    }
-
     // Mark order as refunded
     await ctx.db.patch(args.orderId, {
-      status: "CANCELLED",
+      status: "REFUNDED",
       updatedAt: Date.now(),
     });
 
@@ -263,8 +368,115 @@ export const refundOrder = mutation({
       });
     }
 
-    // TODO: Process actual refund via payment processor (Square/Stripe)
-
     return { success: true, ticketsRefunded: tickets.length };
+  },
+});
+
+/**
+ * Mark event as claimable
+ * Allows admins to make an event available for organizers to claim
+ */
+export const markEventAsClaimable = mutation({
+  args: {
+    eventId: v.id("events"),
+    claimCode: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // TESTING MODE: Skip admin authentication
+    console.warn("[markEventAsClaimable] TESTING MODE - No admin auth check");
+
+    // Get the event
+    const event = await ctx.db.get(args.eventId);
+
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Mark as claimable
+    await ctx.db.patch(args.eventId, {
+      isClaimable: true,
+      claimCode: args.claimCode || undefined,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+/**
+ * Unmark event as claimable
+ * Removes event from the claimable list
+ */
+export const unmarkEventAsClaimable = mutation({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    // TESTING MODE: Skip admin authentication
+    console.warn("[unmarkEventAsClaimable] TESTING MODE - No admin auth check");
+
+    // Get the event
+    const event = await ctx.db.get(args.eventId);
+
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Unmark as claimable
+    await ctx.db.patch(args.eventId, {
+      isClaimable: false,
+      claimCode: undefined,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+/**
+ * Fix event timestamps by re-parsing literal dates
+ * Used to fix events created with broken date parser
+ */
+export const fixEventTimestamps = mutation({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    // TESTING MODE: Skip admin authentication
+    console.warn("[fixEventTimestamps] TESTING MODE - No admin auth check");
+
+    // Get the event
+    const event = await ctx.db.get(args.eventId);
+
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Re-parse the literal dates using the updated parser
+    const startDate = parseEventDateTime(
+      event.eventDateLiteral,
+      event.eventTimeLiteral,
+      event.timezone || "America/New_York"
+    );
+
+    const endDate = startDate; // For now, use same as start date
+
+    console.log(`[fixEventTimestamps] Event: ${event.name}`);
+    console.log(`[fixEventTimestamps] Literal date: ${event.eventDateLiteral}`);
+    console.log(`[fixEventTimestamps] Parsed startDate: ${startDate} (${startDate ? new Date(startDate).toISOString() : 'undefined'})`);
+
+    // Update the event with parsed timestamps
+    await ctx.db.patch(args.eventId, {
+      startDate,
+      endDate,
+      updatedAt: Date.now(),
+    });
+
+    return {
+      success: true,
+      startDate,
+      endDate,
+      startDateISO: startDate ? new Date(startDate).toISOString() : undefined
+    };
   },
 });

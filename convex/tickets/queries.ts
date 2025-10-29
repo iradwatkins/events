@@ -60,7 +60,7 @@ export const getMyTickets = query({
           if (seatingChart) {
             const section = seatingChart.sections.find((s: any) => s.id === seatReservation.sectionId);
             if (section) {
-              const row = section.rows.find((r: any) => r.id === seatReservation.rowId);
+              const row = section.rows?.find((r: any) => r.id === seatReservation.rowId);
               seatInfo = {
                 sectionName: section.name,
                 rowLabel: row?.label || "",
@@ -170,10 +170,14 @@ export const getMyUpcomingEvents = query({
         // Only return upcoming events
         if (event.startDate && event.startDate < Date.now()) return null;
 
-        // Get user's tickets for this event
-        const userOrders = orders.filter((o) => o.eventId === eventId);
-        // TODO: Restore quantity calculation when orders schema is updated
-        const totalTickets = userOrders.length;
+        // Get user's actual tickets for this event (not orders)
+        const userTickets = await ctx.db
+          .query("tickets")
+          .withIndex("by_attendee", (q) => q.eq("attendeeId", user._id))
+          .filter((q) => q.eq(q.field("eventId"), eventId))
+          .collect();
+
+        const totalTickets = userTickets.length;
 
         return {
           ...event,
@@ -217,9 +221,14 @@ export const getMyPastEvents = query({
         // Only return past events
         if (!event.startDate || event.startDate >= Date.now()) return null;
 
-        const userOrders = orders.filter((o) => o.eventId === eventId);
-        // TODO: Restore quantity calculation when orders schema is updated
-        const totalTickets = userOrders.length;
+        // Get user's actual tickets for this event (not orders)
+        const userTickets = await ctx.db
+          .query("tickets")
+          .withIndex("by_attendee", (q) => q.eq("attendeeId", user._id))
+          .filter((q) => q.eq(q.field("eventId"), eventId))
+          .collect();
+
+        const totalTickets = userTickets.length;
 
         return {
           ...event,
@@ -321,7 +330,7 @@ export const getTicketByCode = query({
       if (seatingChart) {
         const section = seatingChart.sections.find((s: any) => s.id === seatReservation.sectionId);
         if (section) {
-          const row = section.rows.find((r: any) => r.id === seatReservation.rowId);
+          const row = section.rows?.find((r: any) => r.id === seatReservation.rowId);
           seatInfo = {
             sectionName: section.name,
             rowLabel: row?.label || "",
@@ -365,5 +374,146 @@ export const getTicketByCode = query({
       } : null,
       seat: seatInfo,
     };
+  },
+});
+
+/**
+ * Get current price for a ticket tier based on pricing tiers
+ * Returns the active price tier and when the next price change occurs
+ */
+export const getCurrentPrice = query({
+  args: {
+    tierId: v.id("ticketTiers"),
+  },
+  handler: async (ctx, args) => {
+    const tier = await ctx.db.get(args.tierId);
+    if (!tier) throw new Error("Ticket tier not found");
+
+    const now = Date.now();
+
+    // If no pricing tiers, return base price
+    if (!tier.pricingTiers || tier.pricingTiers.length === 0) {
+      return {
+        currentPrice: tier.price,
+        tierName: null,
+        nextPriceChange: null,
+        nextPrice: null,
+        nextTierName: null,
+      };
+    }
+
+    // Find current active pricing tier
+    let currentTier = null;
+    let nextTier = null;
+
+    // Sort pricing tiers by availableFrom (earliest first)
+    const sortedTiers = [...tier.pricingTiers].sort((a, b) => a.availableFrom - b.availableFrom);
+
+    for (let i = 0; i < sortedTiers.length; i++) {
+      const pricingTier = sortedTiers[i];
+      const nextPricingTier = i < sortedTiers.length - 1 ? sortedTiers[i + 1] : null;
+
+      // Check if current time is within this tier's range
+      const isAfterStart = now >= pricingTier.availableFrom;
+      const isBeforeEnd = !pricingTier.availableUntil || now < pricingTier.availableUntil;
+
+      if (isAfterStart && isBeforeEnd) {
+        currentTier = pricingTier;
+        nextTier = nextPricingTier;
+        break;
+      }
+    }
+
+    // If no current tier found (before first tier starts), use first tier
+    if (!currentTier) {
+      currentTier = sortedTiers[0];
+      nextTier = sortedTiers.length > 1 ? sortedTiers[1] : null;
+    }
+
+    return {
+      currentPrice: currentTier.price,
+      tierName: currentTier.name,
+      nextPriceChange: currentTier.availableUntil || nextTier?.availableFrom || null,
+      nextPrice: nextTier?.price || null,
+      nextTierName: nextTier?.name || null,
+      savings: nextTier ? nextTier.price - currentTier.price : 0, // How much saved by buying now
+    };
+  },
+});
+
+/**
+ * Get pricing information for all tiers of an event
+ * Useful for displaying on event detail pages
+ */
+export const getEventPricingInfo = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    const tiers = await ctx.db
+      .query("ticketTiers")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    const now = Date.now();
+
+    // Get current pricing for each tier (inline logic to avoid nested query call)
+    const tiersWithPricing = tiers.map((tier) => {
+      // If no pricing tiers, use base price
+      if (!tier.pricingTiers || tier.pricingTiers.length === 0) {
+        return {
+          ...tier,
+          pricingInfo: {
+            currentPrice: tier.price,
+            tierName: null,
+            nextPriceChange: null,
+            nextPrice: null,
+            nextTierName: null,
+            savings: 0,
+          },
+        };
+      }
+
+      // Find current active pricing tier
+      const sortedTiers = [...tier.pricingTiers].sort((a, b) => a.availableFrom - b.availableFrom);
+
+      let currentTier = null;
+      let nextTier = null;
+
+      for (let i = 0; i < sortedTiers.length; i++) {
+        const pricingTier = sortedTiers[i];
+        const nextPricingTier = i < sortedTiers.length - 1 ? sortedTiers[i + 1] : null;
+
+        const isAfterStart = now >= pricingTier.availableFrom;
+        const isBeforeEnd = !pricingTier.availableUntil || now < pricingTier.availableUntil;
+
+        if (isAfterStart && isBeforeEnd) {
+          currentTier = pricingTier;
+          nextTier = nextPricingTier;
+          break;
+        }
+      }
+
+      // If no current tier found, use first tier
+      if (!currentTier) {
+        currentTier = sortedTiers[0];
+        nextTier = sortedTiers.length > 1 ? sortedTiers[1] : null;
+      }
+
+      return {
+        ...tier,
+        pricingInfo: {
+          currentPrice: currentTier.price,
+          tierName: currentTier.name,
+          nextPriceChange: currentTier.availableUntil || nextTier?.availableFrom || null,
+          nextPrice: nextTier?.price || null,
+          nextTierName: nextTier?.name || null,
+          savings: nextTier ? nextTier.price - currentTier.price : 0,
+        },
+      };
+    });
+
+    return tiersWithPricing;
   },
 });

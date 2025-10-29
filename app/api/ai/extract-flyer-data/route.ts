@@ -46,35 +46,186 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const prompt = `EXPERT EVENT FLYER EXTRACTION PROMPT
+    const prompt = `EXPERT EVENT FLYER EXTRACTION PROMPT - TWO-PHASE EXTRACTION
 
 You are an expert at extracting event information from party flyers, club flyers, and promotional event materials.
 
-Your task: Extract ALL information from this flyer and return it as clean, structured JSON.
+Your task: Extract ALL text from this flyer using a TWO-PHASE APPROACH and return it as clean, structured JSON.
+
+═══════════════════════════════════════════════════════════════════
+🚨 CRITICAL: SAVE THE DATE FLYERS - DATE IS MANDATORY
+═══════════════════════════════════════════════════════════════════
+
+⚠️ **IF THIS IS A "SAVE THE DATE" FLYER:**
+
+The DATE is the ABSOLUTE MOST CRITICAL piece of information. You MUST find it.
+
+**How to identify Save the Date flyers:**
+- Contains text: "save the date", "save-the-date", "STD"
+- Contains: "details to follow", "coming soon", "more info coming"
+- Has event name and date but missing venue/time details
+
+**FOR SAVE THE DATE FLYERS - DATE EXTRACTION RULES:**
+
+1. **THE DATE IS MANDATORY - YOU MUST FIND IT**
+   - Search the ENTIRE flyer for date information
+   - Look EVERYWHERE: top, bottom, center, corners, sides, watermarks, background
+   - Check ALL text sizes: large headlines, small print, decorative text
+   - Look for ANY date format: "January 8-11", "Jan 8", "1/8/26", "January 2026"
+
+2. **Search locations to find dates:**
+   - Large prominent text in the center
+   - Small text at the bottom
+   - Decorative text in corners
+   - Background watermarks
+   - Text rotated or at angles
+   - Fine print or footer text
+   - Date integrated into graphics or logos
+   - Secondary headlines below main title
+
+3. **Date formats you might find:**
+   - Full dates: "January 8-11, 2026" / "March 12-15, 2026"
+   - Short dates: "Jan 8-11" / "3/12-15"
+   - Date ranges: "November 20-23" / "Dec 27-29"
+   - Single dates: "January 8th" / "March 15, 2026"
+   - Month/year only: "January 2026" / "Summer 2026"
+   - Abbreviated: "NOV 20-23" / "JAN 8-11"
+
+4. **If you cannot find the date:**
+   - Search again - look at EVERY piece of text on the flyer
+   - Check if dates are embedded in graphics or stylized text
+   - Look for partial date info (month only, year only) and extract that
+   - NEVER give up - the date MUST be somewhere on the flyer
+
+5. **For Save the Date flyers:**
+   - Description field: MUST include "Save the Date" and the DATE
+   - eventName: Required
+   - **eventDate: ABSOLUTELY REQUIRED - THIS IS THE MOST IMPORTANT FIELD**
+   - venueName: Can be null (details to follow)
+   - eventTime: Can be null (details to follow)
+   - city/state: Extract if shown, null if not
+   - containsSaveTheDateText: Must be true
+   - eventType: Must be "SAVE_THE_DATE"
+
+**REMEMBER: For Save the Date flyers, finding the DATE is your PRIMARY MISSION.**
+If the flyer says "Save the Date" but you cannot find a date, search again.
+The date MUST be extracted - it is the whole purpose of a Save the Date flyer.
+
+═══════════════════════════════════════════════════════════════════
+🎯 TWO-PHASE EXTRACTION STRATEGY
+═══════════════════════════════════════════════════════════════════
+
+**PHASE 1: COMPLETE TEXT EXTRACTION WITH FORMATTING (MOST IMPORTANT)**
+First, you MUST extract 100% of ALL visible text from the entire flyer image.
+This goes in the "description" field and is the foundation for Phase 2.
+
+Read the ENTIRE flyer carefully and capture:
+- Main event title/headline
+- All dates and times mentioned anywhere (including END time if shown)
+- Venue name and address details
+- ALL performer names, DJ names, special guests
+- **TICKET PRICING INFORMATION** (very important - include all ticket types, prices, and details)
+- Contact information (phone, email, social media)
+- Age restrictions, dress codes, parking info
+- Sponsors, hosts, organizers
+- Fine print, disclaimers, legal text
+- Any other visible text (don't skip anything!)
+
+🚫 **CRITICAL EXCLUSION - DO NOT INCLUDE DESIGNER INFORMATION IN DESCRIPTION:**
+- **COMPLETELY EXCLUDE** any text about graphic design, flyer design, or designer credits
+- **DO NOT include** phrases like:
+  * "Design by [name]"
+  * "Designed by [name]"
+  * "Graphic design by [name]"
+  * "Graphics by [name]"
+  * "Flyer by [name]"
+  * "Contact [name] for graphic design"
+  * "Contact us for flyers/graphics"
+- **Skip these lines entirely** - do not include them in the description
+- Only include text relevant to the EVENT itself, not the flyer's creation
+
+**CRITICAL: FORMAT THE DESCRIPTION WITH PROPER STRUCTURE**
+
+The description must be formatted with clear sections and line breaks for readability:
+
+1. **Opening Paragraph**: Brief overview of the event
+2. **Event Details Section**: Date, time, location info
+3. **Entertainment/Features**: DJs, performers, special guests, music, etc.
+4. **Ticket Information Section**: All pricing, where to purchase
+5. **Additional Details**: Age restrictions, dress code, parking, etc.
+6. **Contact Information**: How to get more info or RSVP
+
+**CRITICAL JSON FORMATTING:**
+- In the JSON output, use the escape sequence \\n (backslash-n) for line breaks
+- DO NOT use actual/literal newlines in the JSON string - this breaks JSON parsing
+- Example CORRECT: "description": "Paragraph 1\\n\\nParagraph 2\\n\\nParagraph 3"
+- Example WRONG: "description": "Paragraph 1
+Paragraph 2" (actual newline breaks JSON)
+
+Use double line breaks (\\n\\n) between sections for clear separation.
+Use single line breaks (\\n) within sections when listing multiple items.
+
+**Example format for description (as it appears in JSON):**
+
+"description": "[Event name] presents [theme/celebration]. [Brief overview of what the event is about].\\n\\nThe event takes place on [date] from [time] at [venue name], located at [address].\\n\\nMusic by [DJ name]. Special performances by [artists]. [MC info]. [Additional entertainment details].\\n\\nTickets: [List all ticket types and prices]. [Where to purchase tickets]. [Any early bird or discount info].\\n\\n[Age restrictions]. [Dress code]. [Parking information]. [Any other important details].\\n\\nFor more information, contact [name] at [phone] or [email]. [Social media handles]."
+
+**REMEMBER:**
+- Use \\n (escaped newline) in the JSON, NOT actual newlines
+- The description value must be a valid JSON string with escaped newlines
+- DO NOT use markdown headers (#) or bullet points (•/-/*) - use plain text with \\n line breaks only
+
+**PHASE 2: STRUCTURED FIELD EXTRACTION**
+After Phase 1 is complete, use the description text you extracted to fill out the structured fields below (eventName, eventDate, eventTime, venueName, etc.).
 
 ═══════════════════════════════════════════════════════════════════
 🚨 CRITICAL MANDATORY FIELDS (CANNOT BE NULL)
 ═══════════════════════════════════════════════════════════════════
 
-These fields are ABSOLUTELY REQUIRED. Search the ENTIRE flyer - top, bottom, corners, watermarks, background text - EVERYWHERE.
+These fields are ABSOLUTELY REQUIRED. Use the description text from Phase 1 to extract these.
 
-1. EVENT NAME (eventName)
+1. DESCRIPTION (description) - **PHASE 1: EXTRACT FIRST WITH FORMATTING**
+   - This is the FIRST and MOST IMPORTANT field
+   - Extract 100% of ALL visible text from the entire flyer
+   - **MUST be formatted with proper structure using line breaks (\\n\\n between sections)**
+   - **CRITICAL: Use escaped newlines (\\n) in the JSON string, NOT actual newlines which break JSON**
+   - Organize into clear sections: Overview, Event Details, Entertainment, Tickets, Additional Info, Contact
+   - Use double line breaks (\\n\\n) between major sections
+   - Use single line breaks (\\n) within sections for lists
+   - This text will be the source for all other fields
+   - Make this VERY comprehensive and detailed
+   - **MUST include a dedicated ticket pricing section** listing all ticket types, prices, and where to purchase
+   - **Include END time if shown** on the flyer (when the event ends)
+   - **DO NOT use markdown formatting** - plain text with line breaks only
+   - **JSON FORMAT:** "description": "Paragraph 1\\n\\nParagraph 2\\n\\nParagraph 3"
+
+   🚫 **EXCLUDE from description:**
+   - **NEVER include** graphic designer credits, "Design by...", "Flyer by...", designer contact info
+   - **Skip these lines completely** - they are not event information
+
+   - Example structure:
+     "[Overview paragraph]\\n\\n[Event details: date, time, end time, location]\\n\\n[Entertainment details]\\n\\n[Ticket pricing section]\\n\\n[Additional details]\\n\\n[Contact information]"
+
+2. EVENT NAME (eventName) - **PHASE 2: From description**
    - The main title, theme, or name of the event
    - This is usually the largest or most prominent text
    - Examples: "Summer Night Bash", "New Year's Eve Party", "DJ Smooth Presents"
 
-2. EVENT DATE (eventDate)
-   - Extract the date and format it as: "Day, Month DD, YYYY"
-   - Always use full month name and 4-digit year
-   - Examples of CORRECT format:
-     * "Saturday, November 25, 2025"
-     * "Friday, January 8, 2026"
-     * "Sunday, December 27, 2025"
-   - If flyer shows "Sat, Dec 27, 2025" → format as "Saturday, December 27, 2025"
-   - If flyer shows "11/25/25" → format as "Saturday, November 25, 2025"
-   - If flyer shows "1ST SATURDAY NOV. 1ST, 2025" → format as "Saturday, November 1, 2025"
+3. EVENT DATE (eventDate) - **PHASE 2: From description** ⚠️ CRITICAL FIELD
+   - **FOR SAVE THE DATE FLYERS: THIS IS THE MOST IMPORTANT FIELD - YOU MUST FIND IT**
+   - Extract the date EXACTLY as it appears on the flyer - DO NOT REFORMAT OR ADD DAY NAMES
+   - Keep the original text from the flyer as-is
+   - Examples of CORRECT extraction:
+     * Flyer shows "March 12-15, 2026" → extract as "March 12-15, 2026"
+     * Flyer shows "Jan 8-11" → extract as "Jan 8-11"
+     * Flyer shows "Saturday, November 25, 2025" → extract as "Saturday, November 25, 2025"
+     * Flyer shows "11/25/25" → extract as "11/25/25"
+     * Flyer shows "NOV 20-23, 2025" → extract as "NOV 20-23, 2025"
+   - DO NOT add day names if they're not on the flyer
+   - DO NOT reformat the date to a different style
+   - The text MUST match exactly what appears in the description field
+   - **If this is a Save the Date flyer and you cannot find the date in the description, SEARCH AGAIN. The date MUST be somewhere on the flyer.**
 
-3. EVENT TIME (eventTime)
+4. EVENT TIME (eventTime) - **PHASE 2: From description**
    - Extract and format the start time as: "H:MM PM" or "H:MM AM"
    - Always include space before AM/PM
    - Examples of CORRECT format:
@@ -85,21 +236,21 @@ These fields are ABSOLUTELY REQUIRED. Search the ENTIRE flyer - top, bottom, cor
    - If flyer shows "9p" → format as "9:00 PM"
    - If flyer shows "8P.M" → format as "8:00 PM"
 
-4. VENUE NAME (venueName)
+5. VENUE NAME (venueName) - **PHASE 2: From description**
    - The name of the location/club/venue
    - Look for words like: Venue, @, At, Location, Where, Club, Lounge, or just a bold location name
    - Examples: "The Grand Ballroom", "Club Paradise", "Marriott Hotel Downtown"
 
-5. CITY (city)
+6. CITY (city) - **PHASE 2: From description**
    - Extract the city name
    - Examples: "Atlanta", "Chicago", "Los Angeles", "Miami"
 
-6. STATE (state)
+7. STATE (state) - **PHASE 2: From description**
    - Extract state as 2-letter abbreviation if shown (GA, IL, CA, FL, NY)
    - If full name shown, extract that (Georgia, Illinois, California)
    - Look for formats like: "Atlanta, GA" / "Atlanta • GA" / "Atlanta | GA"
 
-⚠️ IF YOU CANNOT FIND ANY OF THESE 6 FIELDS AFTER SEARCHING THE ENTIRE FLYER:
+⚠️ IF YOU CANNOT FIND ANY OF THESE 7 FIELDS AFTER SEARCHING THE ENTIRE FLYER:
 Return this error JSON instead:
 {
   "error": "EXTRACTION_FAILED",
@@ -111,30 +262,35 @@ Return this error JSON instead:
 📋 ADDITIONAL FIELDS (Extract if present, null if not)
 ═══════════════════════════════════════════════════════════════════
 
-7. EVENT END DATE (eventEndDate)
+All fields below should be extracted from the description text you captured in Phase 1.
+
+8. EVENT END DATE (eventEndDate)
    - Only for multi-day events (weekend events, festivals, etc.)
    - Extract EXACT end date as shown: "January 9th" / "Sunday, Dec 29"
    - If single-day event: null
 
-8. EVENT END TIME (eventEndTime)
-   - The end time if shown: "2:00 AM" / "til Late" / "Midnight"
-   - If not shown: null
+9. EVENT END TIME (eventEndTime) - **IMPORTANT: Extract if present**
+   - If the flyer shows when the event ENDS, extract it
+   - Format as "H:MM PM" or "H:MM AM": "2:00 AM" / "12:00 AM" (midnight)
+   - Also accept: "til Late" / "Midnight" / "til 2AM" → format as "2:00 AM"
+   - **ALWAYS look for end time information** - it's valuable for attendees
+   - If not shown anywhere on the flyer: null
 
-9. FULL ADDRESS (address)
-   - MUST include street number AND street name: "123 Main Street" / "456 Peachtree Rd NE, Suite 200"
-   - NEVER just the street name alone - must have the number
-   - If address incomplete (just says "Downtown" or city name): extract what's there
-   - If no street address visible: null
+10. FULL ADDRESS (address)
+    - MUST include street number AND street name: "123 Main Street" / "456 Peachtree Rd NE, Suite 200"
+    - NEVER just the street name alone - must have the number
+    - If address incomplete (just says "Downtown" or city name): extract what's there
+    - If no street address visible: null
 
-10. ZIP CODE (zipCode)
+11. ZIP CODE (zipCode)
     - Extract if visible: "30303" / "60601-1234"
     - If not shown: null
 
-11. TIMEZONE (eventTimezone)
+12. TIMEZONE (eventTimezone)
     - ONLY if explicitly mentioned on flyer: "EST", "PST", "CST", "EDT"
     - If NOT explicitly shown: null (system will determine from city/state)
 
-12. HOST/ORGANIZER (hostOrganizer)
+13. HOST/ORGANIZER (hostOrganizer)
     - The person, company, or organization hosting/presenting the event
     - Look for these phrases:
       * Presented by [Name]
@@ -148,31 +304,31 @@ Return this error JSON instead:
     - Extract the NAME after these phrases
     - If multiple hosts: "Company A, Company B"
     - DO NOT extract performer/DJ names as hosts (those go in description)
+
+    🚫 **CRITICAL EXCLUSION - DO NOT EXTRACT DESIGNER INFORMATION:**
+    - **NEVER extract** names associated with graphic design/flyer design
+    - **IGNORE and EXCLUDE** phrases like:
+      * "Design by [name]"
+      * "Designed by [name]"
+      * "Graphic design by [name]"
+      * "Graphics by [name]"
+      * "Flyer by [name]"
+      * "Contact [name] for graphic design"
+      * "Contact us for flyers"
+    - Designer credits are NOT organizers and should be completely ignored
     - If not shown: null
 
-13. TICKET PRICES (ticketPrices)
-    - Extract ALL ticket tiers as an array of objects
-    - Each ticket: {name: "tier name", price: "amount", description: "details if any"}
+14. TICKET PRICES (ticketPrices)
+    - DO NOT extract tickets as structured data
+    - Leave this field as an empty array: []
+    - ALL ticket pricing information should ONLY go in the description field
+    - The description field will show where tickets are available and their prices
 
-    🎫 IMPORTANT TICKET RULES:
-    - If you see "Ticket", "Tickets Available", "Purchase Tickets", "Buy Tickets" → This is NOT a free event
-    - Look for the actual prices on the flyer
-
-    Common formats:
-    - "$20 Advance / $25 Door" → [{name: "Advance", price: "$20"}, {name: "Door", price: "$25"}]
-    - "Early Bird $15 / Advance $20 / Door $25" → three separate ticket objects
-    - "VIP: $50 / General Admission: $20" → two separate ticket objects
-    - "Free before 10PM / $15 After" → two separate ticket objects
-    - "Weekend Pass: $100 / Day Pass: $40" → two separate ticket objects
-
-    - If truly FREE with no tickets mentioned: []
-    - If prices not visible: []
-
-14. AGE RESTRICTION (ageRestriction)
+15. AGE RESTRICTION (ageRestriction)
     - Common formats: "21+", "18+", "18 and over", "All ages", "Ages 21 and up"
     - If not mentioned: null
 
-15. CONTACT INFORMATION (contacts)
+16. CONTACT INFORMATION (contacts)
     - Extract ALL contacts as array of objects
     - Each contact: {name, phoneNumber, email, role, socialMedia: {instagram, facebook, twitter, tiktok}}
 
@@ -191,24 +347,17 @@ Return this error JSON instead:
     - Example: If only Instagram found, return {socialMedia: {instagram: "@handle"}}
     - If NO social media found, omit the socialMedia field entirely
 
+    🚫 **CRITICAL EXCLUSION - DO NOT EXTRACT DESIGNER CONTACTS:**
+    - **NEVER extract** contact information for graphic designers
+    - **IGNORE and EXCLUDE** contacts related to:
+      * "Contact [name] for graphic design services"
+      * "For flyer design contact..."
+      * Designer social media handles/portfolios
+      * "Graphics/Flyers available from [name]"
+    - Only extract contacts relevant to EVENT information (RSVP, tickets, event questions)
+    - Designer contacts must be completely excluded
+
     - If no contacts shown: []
-
-16. COMPREHENSIVE DESCRIPTION (description)
-    - This should include EVERYTHING visible on the flyer
-    - Write as detailed paragraphs covering:
-      * Event overview and theme
-      * ALL performers, DJs, MCs, special guests (list every name you see)
-      * ALL activities, performances, entertainment scheduled
-      * Music genres or types of entertainment
-      * Dress code or theme requirements
-      * Prizes, giveaways, contests, special offers
-      * Food, drinks, amenities mentioned
-      * Parking information
-      * Sponsors mentioned
-      * Any other text, details, or information on the flyer
-
-    - Make this VERY detailed - capture every piece of information
-    - If flyer has very little text: describe what IS there
 
 17. SPECIAL NOTES (specialNotes)
     - Anything important not captured in other fields
@@ -217,16 +366,19 @@ Return this error JSON instead:
 
 18. SAVE THE DATE CHECK (containsSaveTheDateText)
     - Boolean: true or false ONLY
-    - Does the flyer contain the exact phrase "save the date" or "save-the-date"?
-    - Only return true if you literally see those words
+    - Does the flyer contain "save the date", "save-the-date", "details to follow", or "coming soon"?
+    - Return true if you see ANY of these phrases
     - Return false if not present
 
 19. EVENT TYPE (eventType)
     - Determine using this EXACT logic in order:
 
     STEP 1: If containsSaveTheDateText is true → return "SAVE_THE_DATE"
-    STEP 2: If ticketPrices array is empty OR all prices say "Free" → return "FREE_EVENT"
-    STEP 3: If ticketPrices array has any paid tickets → return "TICKETED_EVENT"
+    STEP 2: If description mentions "details to follow", "coming soon", or if venue/time info is missing → return "SAVE_THE_DATE"
+    STEP 3: Check the description text for pricing:
+           - If description mentions "Free", "No cover", "Free admission", "Free entry" → return "FREE_EVENT"
+           - If description mentions "$", ticket prices, "Tickets:", entry fee → return "TICKETED_EVENT"
+           - If no pricing mentioned at all → return "FREE_EVENT"
 
     - Return EXACTLY one of: "FREE_EVENT", "TICKETED_EVENT", "SAVE_THE_DATE"
 
@@ -258,18 +410,21 @@ If this is a MULTI-DAY EVENT (weekend event, festival, conference, etc.), follow
 📋 REQUIRED MULTI-DAY EXTRACTION:
 
 1. **eventDate** (Start Date)
-   - Extract the FIRST/START date and format as "Day, Month DD, YYYY"
+   - Extract EXACTLY as shown on flyer - DO NOT REFORMAT
+   - For date ranges, extract the full range as shown
    - Examples:
-     * "November 15th-17th" → eventDate: "Friday, November 15, 2025"
-     * "Friday-Sunday, Jan 8-10" → eventDate: "Friday, January 8, 2026"
-     * "Dec 27, 28, 29" → eventDate: "Friday, December 27, 2025"
+     * Flyer shows "November 15th-17th" → eventDate: "November 15th-17th"
+     * Flyer shows "Jan 8-10" → eventDate: "Jan 8-10"
+     * Flyer shows "March 12-15, 2026" → eventDate: "March 12-15, 2026"
+     * Flyer shows "Dec 27, 28, 29" → eventDate: "Dec 27, 28, 29"
 
 2. **eventEndDate** (End Date)
-   - Extract the LAST/END date and format as "Day, Month DD, YYYY"
+   - For multi-day events, extract the END date if shown separately
+   - If the date is shown as a range (e.g., "March 12-15"), leave eventEndDate as null
+   - Only use eventEndDate if start and end dates are listed separately
    - Examples:
-     * "November 15th-17th" → eventEndDate: "Sunday, November 17, 2025"
-     * "Friday-Sunday, Jan 8-10" → eventEndDate: "Sunday, January 10, 2026"
-     * "Dec 27, 28, 29" → eventEndDate: "Sunday, December 29, 2025"
+     * Flyer shows "March 12-15" → eventDate: "March 12-15", eventEndDate: null
+     * Flyer shows "Start: March 12 / End: March 15" → eventDate: "March 12", eventEndDate: "March 15"
 
 3. **eventTime** (Start Time)
    - Extract and format the time for Day 1 as "H:MM PM" or "H:MM AM"
@@ -277,11 +432,14 @@ If this is a MULTI-DAY EVENT (weekend event, festival, conference, etc.), follow
    - Example: "Starts Friday at 7PM" → eventTime: "7:00 PM"
    - Example: "Friday 7PM / Saturday 8PM" → eventTime: "7:00 PM" (earliest)
 
-4. **eventEndTime** (End Time)
+4. **eventEndTime** (End Time) - **IMPORTANT: Extract if shown**
    - Extract and format the end time for the final day as "H:MM PM" or "H:MM AM"
    - Example: "Sunday til Midnight" → eventEndTime: "12:00 AM"
    - Example: "Ends at 2AM" → eventEndTime: "2:00 AM"
+   - Example: "Saturday 8PM-2AM" → eventEndTime: "2:00 AM"
+   - **Look for end time information** - it's valuable for attendees to know when the event ends
    - If each day has different hours, note in description
+   - If not shown: null
 
 5. **categories**
    - ALWAYS include "Weekend Event" in the categories array
@@ -289,12 +447,11 @@ If this is a MULTI-DAY EVENT (weekend event, festival, conference, etc.), follow
 
 6. **description**
    - Must include the FULL SCHEDULE if shown on flyer
-   - Break down what happens each day
+   - **FORMAT with proper structure using line breaks (\\n\\n)**
+   - Break down what happens each day with clear section separation
+   - **MUST include ticket pricing section** with all pass types and day passes
    - Example format:
-     "This is a 3-day weekend event. Friday, November 15th: Opening night
-     party starting at 7PM featuring DJ Smooth. Saturday, November 16th:
-     Main event from 8PM-2AM with performances by Artist X and Artist Y.
-     Sunday, November 17th: Closing brunch and day party 12PM-6PM."
+     "[Event name] is a 3-day weekend event taking place [dates].\\n\\nFriday, November 15th: Opening night party starting at 7PM featuring DJ Smooth.\\n\\nSaturday, November 16th: Main event from 8PM-2AM with performances by Artist X and Artist Y.\\n\\nSunday, November 17th: Closing brunch and day party 12PM-6PM.\\n\\nTickets: Weekend Pass $99 for all 3 days, Single Day Pass $40 per day.\\n\\n[Additional details]."
 
 📌 MULTI-DAY DATE FORMAT EXAMPLES YOU'LL SEE:
 
@@ -325,37 +482,26 @@ If this is a MULTI-DAY EVENT (weekend event, festival, conference, etc.), follow
 
 🎫 MULTI-DAY TICKET PRICING:
 
-For multi-day events, extract tickets carefully:
+For multi-day events, include ALL ticket pricing in the description field:
 
-**Pass Types (extract as separate tickets):**
-- "Weekend Pass: $100" → {name: "Weekend Pass", price: "$100"}
-- "3-Day Pass: $150" → {name: "3-Day Pass", price: "$150"}
-- "Full Event Pass: $200" → {name: "Full Event Pass", price: "$200"}
+**Include in description:**
+- "Tickets: Weekend Pass $100 for all 3 days"
+- "Tickets: 3-Day Pass $150, or Single Day Pass $50 per day"
+- "Tickets: Friday Pass $30, Saturday Pass $40, Sunday Pass $30. Weekend Pass $75."
 
-**Day Passes (extract each day separately):**
-- "Friday Pass: $30 / Saturday Pass: $40 / Sunday Pass: $30"
-  → [
-      {name: "Friday Pass", price: "$30"},
-      {name: "Saturday Pass", price: "$40"},
-      {name: "Sunday Pass", price: "$30"}
-    ]
-
-**Bundle Options:**
-- "Single Day $30 / Weekend Pass $75"
-  → [
-      {name: "Single Day", price: "$30"},
-      {name: "Weekend Pass", price: "$75"}
-    ]
+**DO NOT create structured ticket objects - all pricing goes in description only**
 
 ⚠️ CRITICAL MULTI-DAY VALIDATION:
 
 Before returning JSON, verify:
-✅ eventDate has the FIRST date
-✅ eventEndDate has the LAST date (not null for multi-day events)
+✅ eventDate contains the date EXACTLY as shown on flyer (no reformatting)
+✅ eventEndDate is null for date ranges (e.g., "March 12-15")
 ✅ eventTime has the EARLIEST time (if multiple times shown)
 ✅ "Weekend Event" is in categories array
 ✅ description explains what happens each day if schedule is shown
-✅ Ticket pricing includes all pass types and day options
+✅ description includes ticket pricing section with all pass types and day options
+✅ ticketPrices array is empty []
+✅ Date in eventDate field matches the date text in description field
 
 EXAMPLE MULTI-DAY EXTRACTION:
 
@@ -364,38 +510,36 @@ Weekend Pass $99 or Single Day $40"
 
 Correct extraction:
 {
+  "description": "Summer Weekend Fest is a 3-day music festival from June 14-16. Friday night kicks off at 8PM, Saturday main event 7PM-2AM, Sunday closing party 4PM-10PM. Tickets: Weekend Pass $99 for all 3 days, Single Day Pass $40 per day.",
   "eventName": "Summer Weekend Fest",
-  "eventDate": "June 14th",
-  "eventEndDate": "June 16th",
+  "eventDate": "JUNE 14-16",
+  "eventEndDate": null,
   "eventTime": "[extract earliest time from flyer]",
   "eventEndTime": "[extract latest time from flyer]",
-  "ticketPrices": [
-    {name: "Weekend Pass", price: "$99", description: "All 3 days"},
-    {name: "Single Day", price: "$40", description: "One day admission"}
-  ],
+  "ticketPrices": [],
   "categories": ["Weekend Event"]
 }
 
 ═══════════════════════════════════════════════════════════════════
-📤 JSON OUTPUT FORMAT
+📤 JSON OUTPUT FORMAT - TWO-PHASE RESULT
 ═══════════════════════════════════════════════════════════════════
 
-Return this EXACT structure:
+Return this EXACT structure with DESCRIPTION FIRST:
 
 {
-  "eventName": "string (REQUIRED)",
-  "eventDate": "string (REQUIRED - exact text from flyer)",
-  "eventEndDate": "string or null",
-  "eventTime": "string (REQUIRED - exact text from flyer)",
-  "eventEndTime": "string or null",
-  "eventTimezone": "string or null",
-  "venueName": "string (REQUIRED)",
-  "address": "string or null",
-  "city": "string (REQUIRED)",
-  "state": "string (REQUIRED)",
-  "zipCode": "string or null",
-  "hostOrganizer": "string or null",
-  "description": "string (detailed)",
+  "description": "string (REQUIRED - PHASE 1: ALL text from flyer, very comprehensive)",
+  "eventName": "string (REQUIRED - PHASE 2: From description)",
+  "eventDate": "string (REQUIRED - PHASE 2: From description, EXACT text as shown on flyer)",
+  "eventEndDate": "string or null (PHASE 2: From description)",
+  "eventTime": "string (REQUIRED - PHASE 2: From description, formatted as 'H:MM PM/AM')",
+  "eventEndTime": "string or null (PHASE 2: From description)",
+  "eventTimezone": "string or null (PHASE 2: From description)",
+  "venueName": "string (REQUIRED - PHASE 2: From description)",
+  "address": "string or null (PHASE 2: From description)",
+  "city": "string (REQUIRED - PHASE 2: From description)",
+  "state": "string (REQUIRED - PHASE 2: From description)",
+  "zipCode": "string or null (PHASE 2: From description)",
+  "hostOrganizer": "string or null (PHASE 2: From description)",
   "contacts": [
     {
       "name": "string",
@@ -410,56 +554,85 @@ Return this EXACT structure:
       }
     }
   ],
-  "ticketPrices": [
-    {
-      "name": "string",
-      "price": "string",
-      "description": "string"
-    }
-  ],
-  "ageRestriction": "string or null",
-  "specialNotes": "string or null",
+  "ticketPrices": [],
+  "ageRestriction": "string or null (PHASE 2: From description)",
+  "specialNotes": "string or null (PHASE 2: From description)",
   "containsSaveTheDateText": boolean,
   "eventType": "FREE_EVENT or TICKETED_EVENT or SAVE_THE_DATE",
   "categories": ["array of applicable categories"]
 }
 
 CRITICAL RULES:
+✅ PHASE 1 FIRST: Extract ALL text from flyer → put in description field WITH PROPER FORMATTING
+✅ Description MUST use double line breaks (\\n\\n) between sections for readability
+✅ **CRITICAL:** In JSON, use escaped newlines (\\n) NOT actual newlines - actual newlines break JSON parsing
+✅ NO markdown formatting in description - plain text with line breaks only
+✅ PHASE 2 SECOND: Use description text to fill all other structured fields
 ✅ Return ONLY valid JSON - no markdown, no code blocks, no explanations
 ✅ Use null for missing fields (not empty strings, not "N/A", not "Not found")
-✅ Empty arrays [] for contacts/tickets/categories if none found
-✅ Extract dates and times EXACTLY as shown - do not convert or reformat
-✅ Search the ENTIRE flyer for required fields before giving up
-✅ Make description field very comprehensive and detailed
+✅ Empty arrays [] for contacts/categories if none found
+✅ Description must contain 100% of all visible text from the flyer INCLUDING ticket pricing
+✅ ticketPrices array must ALWAYS be empty [] - all pricing goes in description only
+✅ All other fields are extracted FROM the description text
+
+🚨 JSON VALIDATION BEFORE RETURNING:
+- Verify your JSON is valid by checking all string values use \\n not actual newlines
+- Ensure all quotes in text are properly escaped with \\
+- Make sure JSON can be parsed without errors
 
 ═══════════════════════════════════════════════════════════════════
-🔍 EXTRACTION STRATEGY
+🔍 TWO-PHASE EXTRACTION STRATEGY - STEP BY STEP
 ═══════════════════════════════════════════════════════════════════
 
-1. SCAN ENTIRE FLYER FIRST
-   - Look at all areas: top, middle, bottom, corners, sides
+**STEP 1: COMPLETE TEXT EXTRACTION WITH FORMATTING (PHASE 1)**
+   - Scan ENTIRE flyer: top, middle, bottom, corners, sides
    - Check for watermarks, background text, rotated text
-   - Note all visible text before extracting
+   - Note ALL visible text - don't skip anything
+   - Extract 100% of all text and put it in the description field
+   - **FORMAT with proper structure**: Use double line breaks (\\n\\n) between sections
+   - Organize into sections: Overview, Event Details, Entertainment, Tickets, Additional Info, Contact
+   - NO markdown formatting - plain text with line breaks only
+   - Capture EVERYTHING but make it readable with clear section separation
 
-2. IDENTIFY REQUIRED FIELDS FIRST
-   - Event name (usually largest/most prominent)
-   - Date (search everywhere - can be in any format)
-   - Time (search everywhere - many possible formats)
-   - Venue name (look for location indicators)
-   - City and State
+**STEP 2: STRUCTURED FIELD EXTRACTION (PHASE 2)**
+   Now use the description text you just extracted to fill these fields:
 
-3. EXTRACT ADDITIONAL DETAILS
-   - Look for organizer phrases
-   - Find ticket pricing information
-   - Locate contact information
-   - Read all remaining text for description
+   a) IDENTIFY REQUIRED FIELDS:
+      - Event name (usually largest/most prominent text in description)
+      - **Date (CRITICAL - search description for date text - extract EXACTLY as shown, NO REFORMATTING)**
+        * **FOR SAVE THE DATE FLYERS: The date is MANDATORY and THE MOST IMPORTANT field**
+        * If you don't see a date in the description, SEARCH THE FLYER AGAIN
+        * Look everywhere: headlines, subheadings, corners, bottom, watermarks, fine print
+        * The date MUST be found - it's the whole purpose of a Save the Date flyer
+      - Time (search description for time formats - can be null for Save the Date)
+      - Venue name (look for location indicators in description - can be null for Save the Date)
+      - City and State (extract from description)
 
-4. VALIDATE BEFORE RETURNING
-   - Confirm all 6 required fields are present
-   - Check that dates/times are extracted exactly as shown
+   b) EXTRACT ADDITIONAL DETAILS:
+      - Look for organizer phrases in description
+      - Find ticket pricing information in description
+      - Locate contact information in description
+      - Special notes, age restrictions, etc.
+
+**STEP 3: VALIDATE BEFORE RETURNING**
+   - Confirm description field contains ALL text from flyer
+   - Confirm all 7 required fields are present (description + 6 structured fields)
+   - **CRITICAL:** Verify eventDate field matches the EXACT date text in description (no reformatting)
    - Verify JSON is valid
 
-BEGIN EXTRACTION NOW.`;
+REMEMBER: Description field is FIRST and MOST IMPORTANT.
+All other fields are extracted FROM the description text.
+Date fields must contain EXACT text from flyer - DO NOT reformat or add day names.
+
+🚨 FINAL JSON CHECK BEFORE RETURNING:
+1. In the description field, did you use \\n (escaped) or actual newlines? → MUST be \\n
+2. Can your JSON be parsed without errors? → Test it mentally
+3. Are all quotes in text properly escaped with backslash? → "He said \\"hello\\""
+4. Did you return ONLY the JSON object, no markdown, no code blocks? → Clean JSON only
+
+If you used actual newlines in the JSON string values, GO BACK and replace them with \\n escape sequences.
+
+BEGIN TWO-PHASE EXTRACTION NOW.`;
 
     // Call Gemini Vision API
     const result = await model.generateContent([
@@ -499,7 +672,17 @@ BEGIN EXTRACTION NOW.`;
 
       cleanedText = cleanedText.trim();
 
+      // Try to parse the JSON
       extractedData = JSON.parse(cleanedText);
+
+      // Post-processing: If description contains literal newlines instead of \n escape sequences,
+      // this could have been parsed correctly by JSON.parse. Let's verify it has proper structure.
+      if (extractedData && extractedData.description && typeof extractedData.description === 'string') {
+        // The description should already have \n characters from proper JSON
+        // No need to modify it - JSON.parse handles this correctly
+        console.log('[AI Extraction] Description length:', extractedData.description.length);
+        console.log('[AI Extraction] Description contains line breaks:', extractedData.description.includes('\n'));
+      }
 
       // Check if AI returned an error response
       if (extractedData.error === "EXTRACTION_FAILED") {
@@ -522,6 +705,18 @@ BEGIN EXTRACTION NOW.`;
               provider: "gemini",
               warning: "Save the Date flyer - missing venue/time details (expected)"
             });
+          } else if (!partialData.eventDate) {
+            // CRITICAL ERROR: Save the Date flyer without a date
+            console.error("🚨 CRITICAL: Save the Date flyer is MISSING THE DATE!");
+            console.error("This is unacceptable - the DATE is the most important field on Save the Date flyers.");
+            console.error("Partial data found:", partialData);
+            return NextResponse.json({
+              success: false,
+              error: "SAVE_THE_DATE_MISSING_DATE",
+              message: "This is a Save the Date flyer but THE DATE IS MISSING. The date is the most critical piece of information and MUST be found on the flyer.",
+              partialData: partialData,
+              suggestion: "Please retry extraction. The AI must search the entire flyer more carefully to find the date."
+            }, { status: 400 });
           }
         }
 
@@ -538,23 +733,42 @@ BEGIN EXTRACTION NOW.`;
       }
 
       // Validate required fields are present
-      // For Save the Date flyers, only require name and date
-      const isSaveTheDate = extractedData.containsSaveTheDateText === true || extractedData.eventType === "SAVE_THE_DATE";
+      // Description is ALWAYS required (contains all text from flyer)
+      // For Save the Date flyers, only require description, name and date
+      // Check multiple ways to detect Save the Date flyers
+      const isSaveTheDate =
+        extractedData.containsSaveTheDateText === true ||
+        extractedData.eventType === "SAVE_THE_DATE" ||
+        (extractedData.description && extractedData.description.toLowerCase().includes("save the date")) ||
+        (extractedData.description && extractedData.description.toLowerCase().includes("details to follow"));
+
       const requiredFields = isSaveTheDate
-        ? ["eventName", "eventDate"]
-        : ["eventName", "eventDate", "eventTime", "venueName", "city", "state"];
+        ? ["description", "eventName", "eventDate"]
+        : ["description", "eventName", "eventDate", "eventTime", "venueName", "city", "state"];
       const missingFields = requiredFields.filter(field => !extractedData[field]);
 
       if (missingFields.length > 0) {
         console.error("⚠️ MISSING REQUIRED FIELDS:", missingFields);
         console.error("Extracted data:", extractedData);
 
-        // Special emphasis on date/time being missing
-        const missingDateTime = missingFields.filter(f => f === "eventDate" || f === "eventTime");
-        if (missingDateTime.length > 0) {
-          console.error("🚨 CRITICAL: Date and/or Time are MISSING from extraction!");
-          console.error("This is MANDATORY information. The AI must search the entire flyer for date/time.");
-          throw new Error(`❌ MANDATORY FIELDS MISSING: ${missingFields.join(", ")}. Date and Time are REQUIRED - extraction cannot proceed without them.`);
+        // Special emphasis on date being missing (especially for Save the Date)
+        if (missingFields.includes("eventDate")) {
+          console.error("🚨 CRITICAL: DATE IS MISSING from extraction!");
+          if (isSaveTheDate) {
+            console.error("🚨 THIS IS A SAVE THE DATE FLYER - THE DATE IS THE MOST IMPORTANT FIELD!");
+            console.error("The AI MUST search the ENTIRE flyer for the date. Look everywhere: top, bottom, center, corners, watermarks, fine print.");
+            throw new Error(`❌ SAVE THE DATE FLYER MISSING DATE: This is unacceptable. The DATE is the PRIMARY purpose of a Save the Date flyer. AI must search the entire image more carefully.`);
+          } else {
+            console.error("The AI must search the entire flyer for date/time information.");
+            throw new Error(`❌ MANDATORY FIELD MISSING: eventDate. The date is REQUIRED - extraction cannot proceed without it.`);
+          }
+        }
+
+        // Check for missing time (only required for non-Save the Date events)
+        if (missingFields.includes("eventTime") && !isSaveTheDate) {
+          console.error("🚨 CRITICAL: Time is MISSING from extraction!");
+          console.error("This is MANDATORY information for regular events. The AI must search the entire flyer for time.");
+          throw new Error(`❌ MANDATORY FIELD MISSING: eventTime. Time is REQUIRED for regular events.`);
         }
 
         throw new Error(`AI failed to extract required fields: ${missingFields.join(", ")}`);
@@ -583,10 +797,28 @@ BEGIN EXTRACTION NOW.`;
       }
     } catch (parseError) {
       console.error("❌ FAILED TO PARSE GEMINI RESPONSE");
-      console.error("Raw response (first 500 chars):", extractedText.substring(0, 500));
-      console.error("Raw response (last 500 chars):", extractedText.substring(Math.max(0, extractedText.length - 500)));
       console.error("Parse error:", parseError instanceof Error ? parseError.message : String(parseError));
-      throw new Error("Failed to parse AI response as JSON");
+      console.error("Raw response (first 1000 chars):", cleanedText.substring(0, 1000));
+      console.error("Raw response (last 1000 chars):", cleanedText.substring(Math.max(0, cleanedText.length - 1000)));
+
+      // Check for common JSON formatting issues
+      if (cleanedText.includes('\n') && !cleanedText.includes('\\n')) {
+        console.error("🚨 DETECTED: AI used actual newlines instead of \\n escape sequences");
+        console.error("This is the most common cause of JSON parsing failures");
+      }
+
+      // Log character positions around the error if available
+      if (parseError instanceof Error && parseError.message.includes('position')) {
+        const match = parseError.message.match(/position (\d+)/);
+        if (match) {
+          const pos = parseInt(match[1]);
+          const start = Math.max(0, pos - 100);
+          const end = Math.min(cleanedText.length, pos + 100);
+          console.error(`Context around error position ${pos}:`, cleanedText.substring(start, end));
+        }
+      }
+
+      throw new Error("Failed to parse AI response as JSON - see server logs for details");
     }
 
     return NextResponse.json({

@@ -11,6 +11,7 @@ import {
   DollarSign,
   BarChart3,
   ChevronDown,
+  Gift,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -49,7 +50,8 @@ const navItems = [
     url: '/organizer/events',
     icon: Calendar,
     items: [
-      { title: 'All Events', url: '/organizer/events' },
+      { title: 'My Events', url: '/organizer/events' },
+      { title: 'Claim Events', url: '/organizer/claim-events' },
       { title: 'Create Event', url: '/organizer/events/create' },
     ],
   },

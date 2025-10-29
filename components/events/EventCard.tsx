@@ -9,8 +9,8 @@ interface EventCardProps {
     _id: string;
     name: string;
     description: string;
-    startDate: number;
-    timezone: string;
+    startDate?: number;
+    timezone?: string;
     location: {
       city: string;
       state: string;
@@ -20,6 +20,8 @@ interface EventCardProps {
     eventType: string;
     categories: string[];
     ticketsVisible?: boolean;
+    organizerName?: string;
+    isClaimable?: boolean;
   };
 }
 
@@ -28,8 +30,8 @@ export function EventCard({ event }: EventCardProps) {
   const imageUrl = event.imageUrl || (event.images && event.images[0]) || `https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80`;
 
   return (
-    <Link href={`/events/${event._id}`} className="group block">
-      <div className="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 bg-white">
+    <Link href={`/events/${event._id}`} className="group block cursor-pointer">
+      <div className="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 bg-white cursor-pointer">
         {/* Event Image */}
         <div className="relative aspect-[4/5] overflow-hidden">
           <img
@@ -74,12 +76,16 @@ export function EventCard({ event }: EventCardProps) {
           </div>
 
           {/* Location */}
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin className="w-4 h-4" />
-            <span>
-              {event.location.city}, {event.location.state}
-            </span>
-          </div>
+          {event.location && (event.location.city || event.location.state) && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <MapPin className="w-4 h-4" />
+              <span>
+                {event.location.city && event.location.state
+                  ? `${event.location.city}, ${event.location.state}`
+                  : event.location.city || event.location.state}
+              </span>
+            </div>
+          )}
 
           {/* Categories */}
           {event.categories.length > 0 && (

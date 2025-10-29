@@ -9,6 +9,8 @@ export default defineSchema({
     emailVerified: v.optional(v.boolean()),
     image: v.optional(v.string()),
     role: v.optional(v.union(v.literal("admin"), v.literal("organizer"), v.literal("user"))),
+    // Authentication
+    passwordHash: v.optional(v.string()), // bcrypt hash for classic login
     // Stripe fields
     stripeCustomerId: v.optional(v.string()),
     stripeConnectedAccountId: v.optional(v.string()),
@@ -38,7 +40,13 @@ export default defineSchema({
       v.literal("TICKETED_EVENT")
     )),
 
-    // Date/time
+    // Date/time - Literal Storage (NO TIMEZONE CONVERSIONS)
+    // These fields store EXACTLY what the user enters
+    eventDateLiteral: v.optional(v.string()), // Literal date string "2025-03-15" or "March 15, 2025"
+    eventTimeLiteral: v.optional(v.string()), // Literal time string "8:00 PM" or "8:00 PM - 2:00 AM"
+    eventTimezone: v.optional(v.string()), // Timezone "America/New_York", "EST", etc.
+
+    // Legacy date/time fields (kept for backward compatibility and sorting)
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
     startTime: v.optional(v.string()),
@@ -141,20 +149,33 @@ export default defineSchema({
     eventId: v.id("events"),
     organizerId: v.id("users"),
 
-    // Payment model
-    paymentModel: v.union(v.literal("PRE_PURCHASE"), v.literal("PAY_AS_SELL")),
+    // Payment model - Updated with clearer names
+    paymentModel: v.union(
+      v.literal("PREPAY"),         // Formerly PRE_PURCHASE - Pay upfront for tickets
+      v.literal("CONSIGNMENT"),    // NEW - Float tickets, settle day-of/morning-of
+      v.literal("CREDIT_CARD")     // Formerly PAY_AS_SELL - Standard online payments
+    ),
 
     // Status
     isActive: v.boolean(),
     activatedAt: v.optional(v.number()),
 
-    // Stripe Connect (for pay-as-sell)
+    // Stripe Connect (for CREDIT_CARD model)
     stripeConnectAccountId: v.optional(v.string()),
 
-    // Pre-purchase specific
+    // PREPAY specific (formerly Pre-purchase)
     ticketsAllocated: v.optional(v.number()),
 
-    // Pay-as-sell fee structure
+    // CONSIGNMENT specific fields (NEW)
+    consignmentSettlementDue: v.optional(v.number()),      // When settlement is due (event date or morning of)
+    consignmentSettled: v.optional(v.boolean()),           // Whether consignment has been settled
+    consignmentSettledAt: v.optional(v.number()),          // When settlement was completed
+    consignmentSettlementAmount: v.optional(v.number()),   // Amount owed in cents
+    consignmentFloatedTickets: v.optional(v.number()),     // Number of tickets floated
+    consignmentSoldTickets: v.optional(v.number()),        // Number of consignment tickets sold
+    consignmentNotes: v.optional(v.string()),              // Settlement notes
+
+    // CREDIT_CARD fee structure (formerly Pay-as-sell)
     platformFeePercent: v.number(), // 3.7% or discounted
     platformFeeFixed: v.number(), // $1.79 in cents
     processingFeePercent: v.number(), // 2.9%
@@ -200,8 +221,19 @@ export default defineSchema({
 
   // Ticket Bundles - Package multiple tickets together
   ticketBundles: defineTable({
-    eventId: v.id("events"),
-    name: v.string(), // "3-Day Weekend Pass", "VIP Package"
+    // Bundle type: single event or multi-event
+    bundleType: v.optional(v.union(
+      v.literal("SINGLE_EVENT"),
+      v.literal("MULTI_EVENT")
+    )), // Default: SINGLE_EVENT for backward compatibility
+
+    // For single-event bundles (legacy & new)
+    eventId: v.optional(v.id("events")), // Primary event (required for single-event, optional for multi-event)
+
+    // For multi-event bundles
+    eventIds: v.optional(v.array(v.id("events"))), // All events included in this bundle
+
+    name: v.string(), // "3-Day Weekend Pass", "VIP Package", "Summer Series Bundle"
     description: v.optional(v.string()),
     price: v.number(), // Bundle price in cents
 
@@ -210,6 +242,9 @@ export default defineSchema({
       tierId: v.id("ticketTiers"),
       tierName: v.string(), // Cache tier name for display
       quantity: v.number(), // Usually 1, but could be multiple
+      // For multi-event bundles: track which event this tier belongs to
+      eventId: v.optional(v.id("events")),
+      eventName: v.optional(v.string()), // Cache event name for display
     })),
 
     totalQuantity: v.number(), // Total bundles available
@@ -225,7 +260,11 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index("by_event", ["eventId"]),
+    .index("by_event", ["eventId"])
+    .searchIndex("search_bundles", {
+      searchField: "name",
+      filterFields: ["bundleType", "isActive"],
+    }),
 
   // Order items (links orders to ticket tiers)
   orderItems: defineTable({
@@ -251,12 +290,17 @@ export default defineSchema({
       v.literal("VALID"),
       v.literal("SCANNED"),
       v.literal("CANCELLED"),
-      v.literal("REFUNDED")
+      v.literal("REFUNDED"),
+      v.literal("PENDING_ACTIVATION") // For cash sales awaiting customer activation
     )),
     scannedAt: v.optional(v.number()),
     scannedBy: v.optional(v.id("users")),
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
+
+    // Activation system for cash sales
+    activationCode: v.optional(v.string()), // 4-digit PIN code for customer activation
+    activatedAt: v.optional(v.number()), // When customer activated their ticket
 
     // Staff tracking
     soldByStaffId: v.optional(v.id("eventStaff")), // Which staff member sold this ticket
@@ -268,6 +312,10 @@ export default defineSchema({
       v.literal("SQUARE"),
       v.literal("STRIPE")
     )),
+
+    // Bundle support for grouping tickets
+    bundleId: v.optional(v.string()), // ID for grouping tickets together
+    bundleName: v.optional(v.string()), // Name of the bundle
 
     // Legacy fields from old schema (for migration)
     ticketType: v.optional(v.string()),
@@ -286,6 +334,7 @@ export default defineSchema({
     .index("by_event", ["eventId"])
     .index("by_attendee", ["attendeeId"])
     .index("by_ticket_code", ["ticketCode"])
+    .index("by_activation_code", ["activationCode"])
     .index("by_status", ["status"])
     .index("by_staff", ["soldByStaffId"]),
 
@@ -326,6 +375,11 @@ export default defineSchema({
     ticketsSold: v.number(),
     referralCode: v.string(), // unique code for tracking sales
 
+    // Settlement tracking
+    settlementStatus: v.optional(v.union(v.literal("PENDING"), v.literal("PAID"))),
+    settlementPaidAt: v.optional(v.number()), // When organizer marked as paid
+    settlementNotes: v.optional(v.string()), // Payment notes or receipt info
+
     // Timestamps
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -361,6 +415,52 @@ export default defineSchema({
     .index("by_staff_user", ["staffUserId"])
     .index("by_order", ["orderId"])
     .index("by_payment_method", ["staffId", "paymentMethod"]),
+
+  // Staff to staff ticket transfers
+  staffTicketTransfers: defineTable({
+    // Transfer parties
+    fromStaffId: v.id("eventStaff"),
+    fromUserId: v.id("users"),
+    fromName: v.string(),
+    toStaffId: v.id("eventStaff"),
+    toUserId: v.id("users"),
+    toName: v.string(),
+
+    // Event and tickets
+    eventId: v.id("events"),
+    organizerId: v.id("users"),
+    ticketQuantity: v.number(), // Number of ticket credits being transferred
+
+    // Transfer status
+    status: v.union(
+      v.literal("PENDING"),    // Waiting for recipient to accept
+      v.literal("ACCEPTED"),   // Transfer completed
+      v.literal("REJECTED"),   // Recipient declined
+      v.literal("CANCELLED"),  // Sender cancelled
+      v.literal("AUTO_EXPIRED") // System expired after timeout
+    ),
+
+    // Transfer details
+    reason: v.optional(v.string()), // Why the transfer is being made
+    notes: v.optional(v.string()),  // Additional notes from sender
+    rejectionReason: v.optional(v.string()), // Why recipient rejected
+
+    // Audit trail
+    requestedAt: v.number(),
+    respondedAt: v.optional(v.number()),
+    expiresAt: v.number(), // Auto-expire after 48 hours
+
+    // Balance tracking (for audit purposes)
+    fromStaffBalanceBefore: v.number(),
+    fromStaffBalanceAfter: v.optional(v.number()),
+    toStaffBalanceBefore: v.optional(v.number()),
+    toStaffBalanceAfter: v.optional(v.number()),
+  })
+    .index("by_from_staff", ["fromStaffId"])
+    .index("by_to_staff", ["toStaffId"])
+    .index("by_event", ["eventId"])
+    .index("by_status", ["status"])
+    .index("by_expiry", ["expiresAt", "status"]),
 
   // Orders
   orders: defineTable({
@@ -809,16 +909,8 @@ export default defineSchema({
     aiProcessed: v.boolean(), // Has AI extracted data?
     aiProcessedAt: v.optional(v.number()),
 
-    // Extracted event data (from AI)
-    extractedData: v.optional(v.object({
-      eventName: v.optional(v.string()),
-      date: v.optional(v.string()),
-      time: v.optional(v.string()),
-      location: v.optional(v.string()),
-      description: v.optional(v.string()),
-      hostOrganizer: v.optional(v.string()),
-      contactInfo: v.optional(v.string()),
-    })),
+    // Extracted event data (from AI) - accepts any structure
+    extractedData: v.optional(v.any()),
 
     // Event creation status
     eventCreated: v.boolean(), // Has event been created from this flyer?
@@ -840,4 +932,194 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_event", ["eventId"])
     .index("by_upload_date", ["uploadedAt"]),
+
+  // Event Contacts - CRM System for managing event contacts
+  eventContacts: defineTable({
+    // Basic contact info
+    name: v.string(),
+    phoneNumber: v.optional(v.string()),
+    email: v.optional(v.string()),
+
+    // Social media
+    socialMedia: v.optional(v.object({
+      instagram: v.optional(v.string()),
+      facebook: v.optional(v.string()),
+      twitter: v.optional(v.string()),
+    })),
+
+    // Professional info
+    role: v.optional(v.string()), // "Event Coordinator", "Promoter", "DJ", etc.
+    organization: v.optional(v.string()), // Company or organization name
+
+    // Links to events/flyers
+    eventId: v.optional(v.id("events")),
+    flyerId: v.optional(v.id("uploadedFlyers")),
+
+    // Metadata
+    extractedFrom: v.union(v.literal("FLYER"), v.literal("MANUAL")),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_event", ["eventId"])
+    .index("by_flyer", ["flyerId"])
+    .index("by_name", ["name"])
+    .index("by_phone", ["phoneNumber"])
+    .index("by_email", ["email"])
+    .index("by_created", ["createdAt"]),
+
+  // Products - Merchandise and items for sale
+  products: defineTable({
+    // Basic info
+    name: v.string(),
+    description: v.string(),
+
+    // Pricing
+    price: v.number(), // Price in cents
+    compareAtPrice: v.optional(v.number()), // Original price (for showing discounts)
+
+    // Inventory
+    sku: v.optional(v.string()), // Stock Keeping Unit
+    inventoryQuantity: v.number(), // Available quantity
+    trackInventory: v.boolean(), // Whether to track inventory
+    allowBackorder: v.optional(v.boolean()), // Allow orders when out of stock
+
+    // Product details
+    category: v.optional(v.string()), // "Apparel", "Accessories", "Digital", etc.
+    tags: v.optional(v.array(v.string())),
+
+    // Images
+    images: v.optional(v.array(v.string())), // Array of image URLs
+    primaryImage: v.optional(v.string()), // Main product image
+
+    // Variants (e.g., sizes, colors)
+    hasVariants: v.boolean(),
+    variants: v.optional(v.array(v.object({
+      id: v.string(), // Unique variant ID
+      name: v.string(), // "Size: M, Color: Blue"
+      options: v.object({ // e.g., { size: "M", color: "Blue" }
+        size: v.optional(v.string()),
+        color: v.optional(v.string()),
+      }),
+      price: v.optional(v.number()), // Override base price
+      sku: v.optional(v.string()),
+      inventoryQuantity: v.number(),
+    }))),
+
+    // Shipping
+    requiresShipping: v.boolean(),
+    weight: v.optional(v.number()), // Weight in grams
+
+    // Status
+    status: v.union(
+      v.literal("ACTIVE"),
+      v.literal("DRAFT"),
+      v.literal("ARCHIVED")
+    ),
+
+    // SEO
+    seoTitle: v.optional(v.string()),
+    seoDescription: v.optional(v.string()),
+
+    // Created by
+    createdBy: v.id("users"), // Admin who created
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_status", ["status"])
+    .index("by_category", ["category"])
+    .index("by_sku", ["sku"])
+    .index("by_created_by", ["createdBy"]),
+
+  // Product Orders - Customer orders for products
+  productOrders: defineTable({
+    // Order number
+    orderNumber: v.string(), // e.g., "ORD-2025-0001"
+
+    // Customer info
+    customerId: v.optional(v.id("users")), // Registered user (optional)
+    customerEmail: v.string(),
+    customerName: v.string(),
+    customerPhone: v.optional(v.string()),
+
+    // Shipping address
+    shippingAddress: v.object({
+      name: v.string(),
+      address1: v.string(),
+      address2: v.optional(v.string()),
+      city: v.string(),
+      state: v.string(),
+      zipCode: v.string(),
+      country: v.string(),
+      phone: v.optional(v.string()),
+    }),
+
+    // Billing address (if different)
+    billingAddress: v.optional(v.object({
+      name: v.string(),
+      address1: v.string(),
+      address2: v.optional(v.string()),
+      city: v.string(),
+      state: v.string(),
+      zipCode: v.string(),
+      country: v.string(),
+    })),
+
+    // Order items
+    items: v.array(v.object({
+      productId: v.id("products"),
+      productName: v.string(),
+      variantId: v.optional(v.string()),
+      variantName: v.optional(v.string()),
+      quantity: v.number(),
+      price: v.number(), // Price per item in cents
+      totalPrice: v.number(), // quantity * price
+    })),
+
+    // Pricing
+    subtotal: v.number(), // Sum of all items in cents
+    shippingCost: v.number(), // Shipping cost in cents
+    taxAmount: v.number(), // Tax amount in cents
+    totalAmount: v.number(), // subtotal + shipping + tax
+
+    // Payment
+    paymentMethod: v.optional(v.string()), // "credit_card", "paypal", etc.
+    paymentStatus: v.union(
+      v.literal("PENDING"),
+      v.literal("PAID"),
+      v.literal("FAILED"),
+      v.literal("REFUNDED")
+    ),
+    stripePaymentIntentId: v.optional(v.string()),
+    paidAt: v.optional(v.number()),
+
+    // Fulfillment
+    fulfillmentStatus: v.union(
+      v.literal("PENDING"),
+      v.literal("PROCESSING"),
+      v.literal("SHIPPED"),
+      v.literal("DELIVERED"),
+      v.literal("CANCELLED")
+    ),
+    trackingNumber: v.optional(v.string()),
+    trackingUrl: v.optional(v.string()),
+    shippedAt: v.optional(v.number()),
+    deliveredAt: v.optional(v.number()),
+
+    // Notes
+    customerNote: v.optional(v.string()),
+    internalNote: v.optional(v.string()), // Admin notes
+
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_customer", ["customerId"])
+    .index("by_email", ["customerEmail"])
+    .index("by_order_number", ["orderNumber"])
+    .index("by_payment_status", ["paymentStatus"])
+    .index("by_fulfillment_status", ["fulfillmentStatus"])
+    .index("by_created_at", ["createdAt"]),
 });

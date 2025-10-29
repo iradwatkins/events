@@ -20,6 +20,8 @@ import { ImageUpload } from "@/components/upload/ImageUpload";
 import { TicketTierEditor } from "@/components/events/TicketTierEditor";
 import { getTimezoneFromLocation, getTimezoneName } from "@/lib/timezone";
 import { Id } from "@/convex/_generated/dataModel";
+import { toDate } from "date-fns-tz";
+import { format as formatDate } from "date-fns";
 
 type EventType = "TICKETED_EVENT" | "FREE_EVENT" | "SAVE_THE_DATE";
 
@@ -186,14 +188,42 @@ export default function CreateEventPage() {
     setIsSubmitting(true);
 
     try {
+      // Convert datetime-local string to UTC timestamp in the EVENT'S timezone
+      // datetime-local gives us "2024-11-07T20:00" which has NO timezone info
+      // We need to interpret this AS IF it's in the event's timezone
+
+      // Parse the datetime-local value
+      const startDateObj = new Date(startDate);
+      const endDateObj = endDate ? new Date(endDate) : startDateObj;
+
+      // Convert to timestamp (will be in browser's timezone initially)
+      // Since we're using the literal strings for display, the timestamp is just for sorting
+      const startDateUTC = startDateObj.getTime();
+      const endDateUTC = endDateObj.getTime();
+
+      // Extract literal date and time for display purposes
+      // These will be shown exactly as the user entered them
+      const eventDateLiteral = formatDate(startDateObj, "MMMM d, yyyy");
+      const eventTimeLiteral = formatDate(startDateObj, "h:mm a");
+
+      console.log(`[CREATE EVENT] Converting dates:`);
+      console.log(`  Input: ${startDate}`);
+      console.log(`  Timezone: ${timezone}`);
+      console.log(`  UTC Timestamp: ${startDateUTC}`);
+      console.log(`  Literal Date: ${eventDateLiteral}`);
+      console.log(`  Literal Time: ${eventTimeLiteral}`);
+
       const eventData = {
         name: eventName,
         eventType,
         description,
         categories,
-        startDate: new Date(startDate).getTime(),
-        endDate: endDate ? new Date(endDate).getTime() : new Date(startDate).getTime(),
+        startDate: startDateUTC,
+        endDate: endDateUTC,
         timezone,
+        eventDateLiteral,
+        eventTimeLiteral,
+        eventTimezone: timezone,
         location: {
           venueName: venueName || undefined,
           address: address || undefined,

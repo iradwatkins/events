@@ -3,16 +3,21 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Calendar, Plus, Settings, Users, TicketCheck } from "lucide-react";
+import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { formatEventDate } from "@/lib/date-format";
+import { useRouter } from "next/navigation";
 
 export default function OrganizerEventsPage() {
+  const router = useRouter();
+
   // TESTING MODE: Commented out authentication check
   // const currentUser = useQuery(api.users.queries.getCurrentUser);
   const events = useQuery(api.events.queries.getOrganizerEvents);
+  const credits = useQuery(api.credits.queries.getMyCredits);
 
-  const isLoading = events === undefined;
+  const isLoading = events === undefined || credits === undefined;
 
   if (isLoading) {
     return (
@@ -76,6 +81,72 @@ export default function OrganizerEventsPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {/* Credit Balance Widget */}
+        {credits && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6 shadow-md">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Ticket className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                      Free Ticket Credits
+                    </h3>
+                    <p className="text-sm text-gray-700 mb-2">
+                      You have <span className="font-bold text-green-700">{credits.creditsRemaining}</span> free tickets remaining
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-gray-600">
+                      <span className="flex items-center gap-1">
+                        <Gift className="w-3 h-3" />
+                        {credits.creditsUsed} used
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Ticket className="w-3 h-3" />
+                        {credits.creditsTotal} total
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 sm:items-end">
+                  <div className="bg-white rounded-lg px-4 py-2 border border-green-200">
+                    <p className="text-xs text-gray-600 mb-1">After free tickets:</p>
+                    <p className="text-sm font-bold text-gray-900">
+                      <span className="text-blue-700">$0.30</span> per ticket
+                    </p>
+                  </div>
+                  {credits.creditsRemaining <= 20 && credits.creditsRemaining > 0 && (
+                    <div className="bg-yellow-50 border border-yellow-300 rounded px-3 py-1">
+                      <p className="text-xs font-semibold text-yellow-800">
+                        Running low!
+                      </p>
+                    </div>
+                  )}
+                  {credits.creditsRemaining === 0 && (
+                    <div className="bg-red-50 border border-red-300 rounded px-3 py-1">
+                      <p className="text-xs font-semibold text-red-800">
+                        No free tickets left
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+
+        {/* My Events Section */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-900">My Events</h2>
+        </div>
+
         {events.length === 0 ? (
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -140,7 +211,7 @@ export default function OrganizerEventsPage() {
                             {event.startDate && (
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4" />
-                                {format(new Date(event.startDate), "MMM d, yyyy")}
+                                {formatEventDate(event.startDate, event.timezone)}
                               </span>
                             )}
                             {event.eventType && (

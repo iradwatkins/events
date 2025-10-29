@@ -1,0 +1,261 @@
+"use client";
+
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Ticket, Check, AlertCircle, Loader2 } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
+
+export default function ActivatePage() {
+  const [activationCode, setActivationCode] = useState("");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [activated, setActivated] = useState(false);
+  const [ticketData, setTicketData] = useState<any>(null);
+
+  const activateTicket = useMutation(api.tickets.mutations.activateTicket);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      // Validate input
+      if (!activationCode || activationCode.length !== 4) {
+        throw new Error("Please enter a valid 4-digit activation code");
+      }
+
+      if (!email) {
+        throw new Error("Please enter your email address");
+      }
+
+      // Activate the ticket
+      const result = await activateTicket({
+        activationCode,
+        customerEmail: email,
+        customerName: name || undefined,
+      });
+
+      setTicketData(result);
+      setActivated(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to activate ticket. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (timestamp?: number) => {
+    if (!timestamp) return "";
+    return new Date(timestamp).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  if (activated && ticketData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
+          {/* Success Header */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+              <Check className="w-10 h-10 text-green-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Ticket Activated!
+            </h1>
+            <p className="text-gray-600">
+              Your ticket has been successfully activated
+            </p>
+          </div>
+
+          {/* QR Code */}
+          <div className="bg-gray-50 rounded-xl p-6 mb-6 text-center">
+            <QRCodeCanvas
+              value={`https://events.stepperslife.com/ticket/${ticketData.ticketCode}`}
+              size={200}
+              className="mx-auto mb-4"
+            />
+            <p className="text-sm text-gray-600 mb-1">Ticket Code:</p>
+            <p className="text-xs font-mono bg-white px-3 py-2 rounded border border-gray-200 inline-block">
+              {ticketData.ticketCode}
+            </p>
+          </div>
+
+          {/* Event Details */}
+          <div className="space-y-3 mb-6">
+            <div>
+              <p className="text-sm text-gray-500">Event</p>
+              <p className="font-semibold text-gray-900">{ticketData.eventName}</p>
+            </div>
+            {ticketData.eventDate && (
+              <div>
+                <p className="text-sm text-gray-500">Date</p>
+                <p className="font-medium text-gray-900">
+                  {formatDate(ticketData.eventDate)}
+                </p>
+              </div>
+            )}
+            <div>
+              <p className="text-sm text-gray-500">Ticket Type</p>
+              <p className="font-medium text-gray-900">{ticketData.tierName}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Attendee</p>
+              <p className="font-medium text-gray-900">{ticketData.attendeeName}</p>
+            </div>
+          </div>
+
+          {/* Instructions */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-900">
+              <strong>Important:</strong> Save this QR code! You'll need it to enter the event.
+              A confirmation email has been sent to <strong>{ticketData.attendeeEmail}</strong>.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-2">
+            <button
+              onClick={() => window.print()}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Print Ticket
+            </button>
+            <a
+              href={`/ticket/${ticketData.ticketCode}`}
+              className="block w-full bg-gray-100 text-gray-900 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors text-center"
+            >
+              View Full Ticket
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+            <Ticket className="w-10 h-10 text-blue-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Activate Your Ticket
+          </h1>
+          <p className="text-gray-600">
+            Enter the 4-digit code provided by your ticket seller
+          </p>
+        </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-900">{error}</p>
+          </div>
+        )}
+
+        {/* Activation Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Activation Code Input */}
+          <div>
+            <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
+              Activation Code <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="code"
+              value={activationCode}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "").slice(0, 4);
+                setActivationCode(value);
+              }}
+              placeholder="0000"
+              maxLength={4}
+              className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              required
+              autoFocus
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Enter the 4-digit code from your receipt
+            </p>
+          </div>
+
+          {/* Email Input */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              required
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Your ticket will be sent to this email
+            </p>
+          </div>
+
+          {/* Name Input (Optional) */}
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              Full Name <span className="text-gray-400">(Optional)</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="John Doe"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading || activationCode.length !== 4 || !email}
+            className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Activating...
+              </>
+            ) : (
+              <>
+                <Ticket className="w-5 h-5" />
+                Activate Ticket
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Help Text */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-gray-500">
+            Lost your activation code?{" "}
+            <a href="/help" className="text-blue-600 hover:text-blue-700 font-medium">
+              Contact Support
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

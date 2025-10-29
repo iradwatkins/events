@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
   Calendar,
@@ -35,7 +35,7 @@ export default function EventsModerationPage() {
   );
 
   const updateEventStatus = useMutation(api.adminPanel.mutations.updateEventStatus);
-  const deleteEvent = useMutation(api.adminPanel.mutations.deleteEvent);
+  const deleteEvent = useAction(api.adminPanel.mutations.deleteEvent);
   const markClaimable = useMutation(api.adminPanel.mutations.markEventAsClaimable);
   const unmarkClaimable = useMutation(api.adminPanel.mutations.unmarkEventAsClaimable);
 
@@ -53,8 +53,15 @@ export default function EventsModerationPage() {
   };
 
   const handleDeleteEvent = async (eventId: Id<"events">, eventName: string) => {
+    if (!confirm(`Are you sure you want to delete "${eventName}"?\n\nThis will permanently delete:\n- The event\n- All ticket tiers and bundles\n- All contact information\n- The associated flyer image from the server\n\nThis action cannot be undone!`)) {
+      return;
+    }
+
     try {
-      await deleteEvent({ eventId });
+      const result = await deleteEvent({ eventId });
+      if (result.success) {
+        alert(`Event "${eventName}" deleted successfully!\n\nDeleted:\n- Event record\n- ${result.deleted.tiers} ticket tier(s)\n- ${result.deleted.bundles} bundle(s)\n- ${result.deleted.contacts} contact(s)\n- ${result.deleted.flyer ? 'Flyer image' : 'No flyer'}`);
+      }
       // Page will auto-refresh via Convex reactivity
     } catch (error: unknown) {
       alert(`Failed to delete event: ${error instanceof Error ? error.message : String(error)}`);
@@ -93,7 +100,7 @@ export default function EventsModerationPage() {
   if (!allEvents) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -184,7 +191,7 @@ export default function EventsModerationPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
           >
             <option value="all">All Events</option>
             <option value="PUBLISHED">Published Only</option>
@@ -210,19 +217,19 @@ export default function EventsModerationPage() {
           {allEvents.map((event) => (
             <div key={event._id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="flex flex-col md:flex-row">
-                {/* Event Flyer - Left Side (Enlarged for better readability) */}
-                <div className="md:w-[420px] flex-shrink-0 bg-gray-100">
+                {/* Event Flyer - Thumbnail */}
+                <div className="md:w-48 md:h-48 flex-shrink-0 bg-gray-100">
                   {event.imageUrl ? (
                     <img
                       src={event.imageUrl}
                       alt={event.name}
-                      className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity rounded-l-lg"
                       onClick={() => window.open(event.imageUrl, '_blank')}
                       title="Click to view full-size flyer"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                      <Calendar className="w-16 h-16 text-gray-400" />
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 rounded-l-lg">
+                      <Calendar className="w-12 h-12 text-gray-400" />
                     </div>
                   )}
                 </div>

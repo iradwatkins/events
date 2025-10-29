@@ -32,9 +32,13 @@ import SeatTypePalette, {
 } from "@/components/seating/SeatTypePalette";
 import VisualSeatingCanvas from "@/components/seating/VisualSeatingCanvas";
 import SeatingTemplates, { type SeatingTemplate } from "@/components/seating/SeatingTemplates";
+import TableShapePalette, { type TableShape } from "@/components/seating/TableShapePalette";
+import TableEditor from "@/components/seating/TableEditor";
 
 type SeatStatus = "AVAILABLE" | "RESERVED" | "UNAVAILABLE";
 type EditorMode = "visual" | "list" | "preview";
+type SeatingStyle = "ROW_BASED" | "TABLE_BASED" | "MIXED";
+type ContainerType = "ROWS" | "TABLES";
 
 interface Seat {
   id: string;
@@ -49,11 +53,31 @@ interface Row {
   seats: Seat[];
 }
 
+interface Table {
+  id: string;
+  number: string | number;
+  shape: TableShape;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation?: number;
+  capacity: number;
+  seats: Seat[];
+}
+
 interface Section {
   id: string;
   name: string;
   color?: string;
-  rows: Row[];
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  rotation?: number;
+  containerType?: ContainerType;
+  rows?: Row[];
+  tables?: Table[];
   ticketTierId?: Id<"ticketTiers">;
 }
 
@@ -84,6 +108,12 @@ export default function SeatingChartBuilderPage() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedSectionId, setSelectedSectionId] = useState<string | undefined>();
 
+  // Table-based seating state
+  const [seatingStyle, setSeatingStyle] = useState<SeatingStyle>("ROW_BASED");
+  const [selectedTableId, setSelectedTableId] = useState<string | undefined>();
+  const [selectedTableShape, setSelectedTableShape] = useState<TableShape>("ROUND");
+  const [showTableEditor, setShowTableEditor] = useState(false);
+
   // Initialize with existing chart data
   useState(() => {
     if (existingChart && sections.length === 0) {
@@ -91,6 +121,9 @@ export default function SeatingChartBuilderPage() {
       setSections(existingChart.sections as Section[]);
       setVenueImageId(existingChart.venueImageId);
       setVenueImageUrl(existingChart.venueImageUrl);
+      if (existingChart.seatingStyle) {
+        setSeatingStyle(existingChart.seatingStyle as SeatingStyle);
+      }
     }
   });
 
@@ -101,7 +134,13 @@ export default function SeatingChartBuilderPage() {
       id: generateId(),
       name: `Section ${sections.length + 1}`,
       color: "#3B82F6",
-      rows: [],
+      x: 100 + (sections.length * 50),
+      y: 100 + (sections.length * 50),
+      width: 200,
+      height: 150,
+      containerType: seatingStyle === "TABLE_BASED" ? "TABLES" : "ROWS",
+      rows: seatingStyle === "TABLE_BASED" ? undefined : [],
+      tables: seatingStyle === "TABLE_BASED" ? [] : undefined,
     };
     setSections([...sections, newSection]);
   };
@@ -119,13 +158,14 @@ export default function SeatingChartBuilderPage() {
     setSections(
       sections.map((s) => {
         if (s.id === sectionId) {
-          const rowLabel = String.fromCharCode(65 + s.rows.length); // A, B, C, ...
+          const currentRows = s.rows || [];
+          const rowLabel = String.fromCharCode(65 + currentRows.length); // A, B, C, ...
           const newRow: Row = {
             id: generateId(),
             label: rowLabel,
             seats: [],
           };
-          return { ...s, rows: [...s.rows, newRow] };
+          return { ...s, rows: [...currentRows, newRow] };
         }
         return s;
       })
@@ -136,7 +176,7 @@ export default function SeatingChartBuilderPage() {
     setSections(
       sections.map((s) => {
         if (s.id === sectionId) {
-          return { ...s, rows: s.rows.filter((r) => r.id !== rowId) };
+          return { ...s, rows: (s.rows || []).filter((r) => r.id !== rowId) };
         }
         return s;
       })
@@ -149,7 +189,7 @@ export default function SeatingChartBuilderPage() {
         if (s.id === sectionId) {
           return {
             ...s,
-            rows: s.rows.map((r) => {
+            rows: (s.rows || []).map((r) => {
               if (r.id === rowId) {
                 const startNum = r.seats.length + 1;
                 const newSeats: Seat[] = Array.from({ length: count }, (_, i) => ({
@@ -175,7 +215,7 @@ export default function SeatingChartBuilderPage() {
         if (s.id === sectionId) {
           return {
             ...s,
-            rows: s.rows.map((r) => {
+            rows: (s.rows || []).map((r) => {
               if (r.id === rowId) {
                 return {
                   ...r,
@@ -199,7 +239,7 @@ export default function SeatingChartBuilderPage() {
         if (s.id === sectionId) {
           return {
             ...s,
-            rows: s.rows.map((r) => {
+            rows: s.rows?.map((r) => {
               if (r.id === rowId) {
                 return { ...r, seats: r.seats.filter((seat) => seat.id !== seatId) };
               }
@@ -210,6 +250,87 @@ export default function SeatingChartBuilderPage() {
         return s;
       })
     );
+  };
+
+  // Table Management Functions
+  const addTableToCanvas = (sectionId: string, x: number, y: number) => {
+    const section = sections.find((s) => s.id === sectionId);
+    if (!section || !section.tables) return;
+
+    const tableNumber = (section.tables?.length || 0) + 1;
+    const newTable: Table = {
+      id: generateId(),
+      number: tableNumber,
+      shape: selectedTableShape,
+      x,
+      y,
+      width: 100,
+      height: 100,
+      rotation: 0,
+      capacity: 6,
+      seats: Array.from({ length: 6 }, (_, i) => ({
+        id: generateId(),
+        number: String(i + 1),
+        type: "STANDARD" as SeatType,
+        status: "AVAILABLE" as SeatStatus,
+      })),
+    };
+
+    setSections(
+      sections.map((s) => {
+        if (s.id === sectionId) {
+          return { ...s, tables: [...(s.tables || []), newTable] };
+        }
+        return s;
+      })
+    );
+  };
+
+  const updateTable = (sectionId: string, tableId: string, updates: Partial<Table>) => {
+    setSections(
+      sections.map((s) => {
+        if (s.id === sectionId) {
+          return {
+            ...s,
+            tables: (s.tables || []).map((t) =>
+              t.id === tableId ? { ...t, ...updates } : t
+            ),
+          };
+        }
+        return s;
+      })
+    );
+  };
+
+  const deleteTable = (sectionId: string, tableId: string) => {
+    if (!confirm("Delete this table and all its seats?")) return;
+    setSections(
+      sections.map((s) => {
+        if (s.id === sectionId) {
+          return {
+            ...s,
+            tables: (s.tables || []).filter((t) => t.id !== tableId),
+          };
+        }
+        return s;
+      })
+    );
+    if (selectedTableId === tableId) {
+      setSelectedTableId(undefined);
+      setShowTableEditor(false);
+    }
+  };
+
+  const handleTableSelect = (sectionId: string, tableId: string) => {
+    setSelectedTableId(tableId);
+    setSelectedSectionId(sectionId);
+    setShowTableEditor(true);
+  };
+
+  const getSelectedTable = (): Table | undefined => {
+    if (!selectedTableId || !selectedSectionId) return undefined;
+    const section = sections.find((s) => s.id === selectedSectionId);
+    return section?.tables?.find((t) => t.id === selectedTableId);
   };
 
   const handleSave = async () => {
@@ -231,6 +352,7 @@ export default function SeatingChartBuilderPage() {
           name: chartName,
           venueImageId,
           venueImageUrl,
+          seatingStyle,
           sections: sections,
         });
         alert("Seating chart updated successfully!");
@@ -240,6 +362,7 @@ export default function SeatingChartBuilderPage() {
           name: chartName,
           venueImageId,
           venueImageUrl,
+          seatingStyle,
           sections: sections,
         });
         alert("Seating chart created successfully!");
@@ -267,7 +390,14 @@ export default function SeatingChartBuilderPage() {
 
   const getTotalSeats = () => {
     return sections.reduce((total, section) => {
-      return total + section.rows.reduce((rowTotal, row) => rowTotal + row.seats.length, 0);
+      let sectionTotal = 0;
+      if (section.rows) {
+        sectionTotal += section.rows.reduce((rowTotal, row) => rowTotal + row.seats.length, 0);
+      }
+      if (section.tables) {
+        sectionTotal += section.tables.reduce((tableTotal, table) => tableTotal + table.seats.length, 0);
+      }
+      return total + sectionTotal;
     }, 0);
   };
 
@@ -289,14 +419,15 @@ export default function SeatingChartBuilderPage() {
     setSections(
       sections.map((s) => {
         if (s.id === sectionId) {
-          const rowIndex = s.rows.findIndex((r) => r.id === rowId);
+          const currentRows = s.rows || [];
+          const rowIndex = currentRows.findIndex((r) => r.id === rowId);
           if (rowIndex === -1) return s;
 
-          const rowToDuplicate = s.rows[rowIndex];
+          const rowToDuplicate = currentRows[rowIndex];
           const newRow: Row = {
             ...rowToDuplicate,
             id: generateId(),
-            label: String.fromCharCode(65 + s.rows.length), // Next letter
+            label: String.fromCharCode(65 + currentRows.length), // Next letter
             seats: rowToDuplicate.seats.map((seat) => ({
               ...seat,
               id: generateId(),
@@ -305,7 +436,7 @@ export default function SeatingChartBuilderPage() {
 
           return {
             ...s,
-            rows: [...s.rows, newRow],
+            rows: [...currentRows, newRow],
           };
         }
         return s;
@@ -432,6 +563,58 @@ export default function SeatingChartBuilderPage() {
               />
             </div>
 
+            {/* Seating Style Selection */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Seating Style
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => setSeatingStyle("ROW_BASED")}
+                  className={`p-4 border-2 rounded-lg transition-all text-left ${
+                    seatingStyle === "ROW_BASED"
+                      ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+                      : "border-gray-200 hover:border-blue-300"
+                  }`}
+                >
+                  <h4 className="font-semibold text-gray-900 mb-1">Row-Based</h4>
+                  <p className="text-xs text-gray-600">Theater, stadium, concert seating</p>
+                </button>
+                <button
+                  onClick={() => setSeatingStyle("TABLE_BASED")}
+                  className={`p-4 border-2 rounded-lg transition-all text-left ${
+                    seatingStyle === "TABLE_BASED"
+                      ? "border-purple-500 bg-purple-50 ring-2 ring-purple-200"
+                      : "border-gray-200 hover:border-purple-300"
+                  }`}
+                >
+                  <h4 className="font-semibold text-gray-900 mb-1">Table-Based</h4>
+                  <p className="text-xs text-gray-600">Wedding, gala, banquet seating</p>
+                </button>
+                <button
+                  onClick={() => setSeatingStyle("MIXED")}
+                  className={`p-4 border-2 rounded-lg transition-all text-left ${
+                    seatingStyle === "MIXED"
+                      ? "border-green-500 bg-green-50 ring-2 ring-green-200"
+                      : "border-gray-200 hover:border-green-300"
+                  }`}
+                >
+                  <h4 className="font-semibold text-gray-900 mb-1">Mixed</h4>
+                  <p className="text-xs text-gray-600">Combination of rows and tables</p>
+                </button>
+              </div>
+            </div>
+
+            {/* Table Shape Palette (only for table-based or mixed) */}
+            {(seatingStyle === "TABLE_BASED" || seatingStyle === "MIXED") && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <TableShapePalette
+                  currentShape={selectedTableShape}
+                  onShapeSelect={setSelectedTableShape}
+                />
+              </div>
+            )}
+
             {/* Venue Image Uploader */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <VenueImageUploader
@@ -455,8 +638,24 @@ export default function SeatingChartBuilderPage() {
                 onSectionUpdate={updateSectionVisually}
                 selectedSectionId={selectedSectionId}
                 onSectionSelect={setSelectedSectionId}
+                selectedTableId={selectedTableId}
+                onTableSelect={handleTableSelect}
+                onTableUpdate={updateTable}
               />
             </div>
+
+            {/* Table Editor Sidebar */}
+            {showTableEditor && selectedTableId && selectedSectionId && (
+              <TableEditor
+                table={getSelectedTable()!}
+                onUpdate={(updates) => updateTable(selectedSectionId, selectedTableId, updates as Partial<Table>)}
+                onDelete={() => deleteTable(selectedSectionId, selectedTableId)}
+                onClose={() => {
+                  setShowTableEditor(false);
+                  setSelectedTableId(undefined);
+                }}
+              />
+            )}
 
             {/* Quick Add Section Button */}
             <button
@@ -493,16 +692,24 @@ export default function SeatingChartBuilderPage() {
                   <div>
                     <p className="text-sm text-gray-600">Wheelchair Seats</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {sections.reduce(
-                        (total, section) =>
-                          total +
-                          section.rows.reduce(
+                      {sections.reduce((total, section) => {
+                        let wheelchairCount = 0;
+                        if (section.rows) {
+                          wheelchairCount += section.rows.reduce(
                             (rowTotal, row) =>
                               rowTotal + row.seats.filter((s) => s.type === "WHEELCHAIR").length,
                             0
-                          ),
-                        0
-                      )}
+                          );
+                        }
+                        if (section.tables) {
+                          wheelchairCount += section.tables.reduce(
+                            (tableTotal, table) =>
+                              tableTotal + table.seats.filter((s) => s.type === "WHEELCHAIR").length,
+                            0
+                          );
+                        }
+                        return total + wheelchairCount;
+                      }, 0)}
                     </p>
                   </div>
                 </div>
@@ -566,16 +773,24 @@ export default function SeatingChartBuilderPage() {
                   <div>
                     <p className="text-sm text-gray-600">Wheelchair Seats</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {sections.reduce(
-                        (total, section) =>
-                          total +
-                          section.rows.reduce(
+                      {sections.reduce((total, section) => {
+                        let wheelchairCount = 0;
+                        if (section.rows) {
+                          wheelchairCount += section.rows.reduce(
                             (rowTotal, row) =>
                               rowTotal + row.seats.filter((s) => s.type === "WHEELCHAIR").length,
                             0
-                          ),
-                        0
-                      )}
+                          );
+                        }
+                        if (section.tables) {
+                          wheelchairCount += section.tables.reduce(
+                            (tableTotal, table) =>
+                              tableTotal + table.seats.filter((s) => s.type === "WHEELCHAIR").length,
+                            0
+                          );
+                        }
+                        return total + wheelchairCount;
+                      }, 0)}
                     </p>
                   </div>
                 </div>
@@ -656,6 +871,7 @@ export default function SeatingChartBuilderPage() {
                 </div>
 
                 {/* Rows */}
+                {section.rows && section.rows.length > 0 && (
                 <div className="space-y-3">
                   {section.rows.map((row) => (
                     <div key={row.id} className="border border-gray-200 rounded-lg p-4">
@@ -742,6 +958,7 @@ export default function SeatingChartBuilderPage() {
                     </div>
                   ))}
                 </div>
+                )}
 
                 <button
                   onClick={() => addRow(section.id)}
@@ -849,6 +1066,7 @@ export default function SeatingChartBuilderPage() {
                     )}
                   </div>
 
+                  {section.rows && section.rows.length > 0 && (
                   <div className="space-y-2">
                     {section.rows.map((row) => (
                       <div key={row.id} className="flex items-center gap-2">
@@ -883,6 +1101,7 @@ export default function SeatingChartBuilderPage() {
                       </div>
                     ))}
                   </div>
+                  )}
                 </div>
               ))}
             </div>

@@ -35,13 +35,13 @@ export default function PlatformAnalyticsPage() {
 
   // Calculate organizer statistics
   const organizerStats = allUsers
-    .filter((u) => u.role === "organizer")
-    .map((organizer) => {
+    .filter((u: any) => u.role === "organizer")
+    .map((organizer: any) => {
       const organizerEvents = allEvents.filter(
-        (e) => e.organizerId?.toString() === organizer._id.toString()
+        (e: any) => e.organizerId?.toString() === organizer._id.toString()
       );
-      const totalRevenue = organizerEvents.reduce((sum, e) => sum + (e.revenue || 0), 0);
-      const totalTickets = organizerEvents.reduce((sum, e) => sum + (e.ticketCount || 0), 0);
+      const totalRevenue = organizerEvents.reduce((sum: number, e: any) => sum + (e.revenue || 0), 0);
+      const totalTickets = organizerEvents.reduce((sum: number, e: any) => sum + (e.ticketCount || 0), 0);
 
       return {
         organizer,
@@ -50,7 +50,7 @@ export default function PlatformAnalyticsPage() {
         totalTickets,
       };
     })
-    .sort((a, b) => b.totalRevenue - a.totalRevenue)
+    .sort((a: any, b: any) => b.totalRevenue - a.totalRevenue)
     .slice(0, 5);
 
   // Calculate conversion rates
@@ -342,7 +342,7 @@ export default function PlatformAnalyticsPage() {
         </div>
         <div className="p-6">
           <div className="space-y-4">
-            {organizerStats.map((stat, index) => (
+            {organizerStats.map((stat: any, index: number) => (
               <div key={stat.organizer._id} className="flex items-center gap-4">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${

@@ -9,7 +9,7 @@ import { SquareCardPayment } from "@/components/checkout/SquareCardPayment";
 import { CashAppQRPayment } from "@/components/checkout/CashAppPayment";
 import SeatSelection, { SelectedSeat } from "@/components/checkout/SeatSelection";
 import { TierCountdown, TierAvailabilityBadge } from "@/components/events/TierCountdown";
-import { ArrowLeft, CheckCircle2, Ticket, UserCheck, Tag, X } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Ticket, UserCheck, Tag, X, Package, Zap, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +21,8 @@ export default function CheckoutPage() {
   const eventId = params.eventId as Id<"events">;
 
   const [selectedTierId, setSelectedTierId] = useState<Id<"ticketTiers"> | null>(null);
+  const [selectedBundleId, setSelectedBundleId] = useState<Id<"ticketBundles"> | null>(null);
+  const [purchaseType, setPurchaseType] = useState<'tier' | 'bundle'>('tier');
   const [quantity, setQuantity] = useState(1);
   const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerName, setBuyerName] = useState("");
@@ -49,7 +51,9 @@ export default function CheckoutPage() {
   );
 
   const createOrder = useMutation(api.tickets.mutations.createOrder);
+  const createBundleOrder = useMutation(api.tickets.mutations.createBundleOrder);
   const completeOrder = useMutation(api.tickets.mutations.completeOrder);
+  const completeBundleOrder = useMutation(api.tickets.mutations.completeBundleOrder);
   const getOrderDetails = useQuery(
     api.tickets.queries.getOrderDetails,
     orderId ? { orderId: orderId as Id<"orders"> } : "skip"
@@ -74,9 +78,14 @@ export default function CheckoutPage() {
     );
   }
 
-  const selectedTier = eventDetails.ticketTiers?.find((tier) => tier._id === selectedTierId);
+  const selectedTier = eventDetails.ticketTiers?.find((tier: any) => tier._id === selectedTierId);
+  const selectedBundle = eventDetails.bundles?.find((bundle: any) => bundle._id === selectedBundleId);
 
-  const subtotal = selectedTier ? selectedTier.price * quantity : 0;
+  const subtotal = purchaseType === 'bundle' && selectedBundle
+    ? selectedBundle.price * quantity
+    : purchaseType === 'tier' && selectedTier
+    ? (selectedTier as any).currentPrice * quantity
+    : 0;
   const discountAmount = appliedDiscount?.discountAmountCents || 0;
   const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
   const platformFee = Math.round((subtotalAfterDiscount * 3.7) / 100) + 179; // 3.7% + $1.79
@@ -154,41 +163,63 @@ export default function CheckoutPage() {
   }, [selectedTierId, quantity]);
 
   const handleContinueToPayment = async () => {
-    if (!selectedTierId || !buyerEmail || !buyerName) {
+    if ((!selectedTierId && !selectedBundleId) || !buyerEmail || !buyerName) {
       alert("Please fill in all fields");
       return;
     }
 
-    // Check if seating chart exists and seats are required
-    const requiresSeats = seatingChart && seatingChart.sections.length > 0;
+    // Check if seating chart exists and seats are required (only for individual tickets)
+    const requiresSeats = purchaseType === 'tier' && seatingChart && seatingChart.sections.length > 0;
     if (requiresSeats && selectedSeats.length !== quantity) {
       alert(`Please select ${quantity} seat${quantity > 1 ? 's' : ''} before proceeding`);
       return;
     }
 
     try {
-      // Create order in Convex
-      const newOrderId = await createOrder({
-        eventId,
-        ticketTierId: selectedTierId,
-        quantity,
-        buyerEmail,
-        buyerName,
-        subtotalCents: subtotal,
-        platformFeeCents: platformFee,
-        processingFeeCents: processingFee,
-        totalCents: total,
-        referralCode: referralCode || undefined,
-        discountCodeId: appliedDiscount?._id,
-        discountAmountCents: appliedDiscount?.discountAmountCents,
-        selectedSeats: requiresSeats ? selectedSeats : undefined,
-      });
+      let newOrderId;
+
+      if (purchaseType === 'bundle' && selectedBundleId) {
+        // Create bundle order
+        newOrderId = await createBundleOrder({
+          eventId,
+          bundleId: selectedBundleId,
+          quantity,
+          buyerEmail,
+          buyerName,
+          subtotalCents: subtotal,
+          platformFeeCents: platformFee,
+          processingFeeCents: processingFee,
+          totalCents: total,
+          referralCode: referralCode || undefined,
+          discountCodeId: appliedDiscount?._id,
+          discountAmountCents: appliedDiscount?.discountAmountCents,
+        });
+      } else if (purchaseType === 'tier' && selectedTierId) {
+        // Create regular tier order
+        newOrderId = await createOrder({
+          eventId,
+          ticketTierId: selectedTierId,
+          quantity,
+          buyerEmail,
+          buyerName,
+          subtotalCents: subtotal,
+          platformFeeCents: platformFee,
+          processingFeeCents: processingFee,
+          totalCents: total,
+          referralCode: referralCode || undefined,
+          discountCodeId: appliedDiscount?._id,
+          discountAmountCents: appliedDiscount?.discountAmountCents,
+          selectedSeats: requiresSeats ? selectedSeats : undefined,
+        });
+      } else {
+        throw new Error("Invalid purchase type");
+      }
 
       setOrderId(newOrderId);
       setShowPayment(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Order creation error:", error);
-      alert("Failed to create order. Please try again.");
+      alert(error.message || "Failed to create order. Please try again.");
     }
   };
 
@@ -197,11 +228,19 @@ export default function CheckoutPage() {
 
     try {
       // Complete the order in Convex
-      await completeOrder({
-        orderId: orderId as Id<"orders">,
-        paymentId: result.paymentId as string,
-        paymentMethod: "SQUARE",
-      });
+      if (purchaseType === 'bundle') {
+        await completeBundleOrder({
+          orderId: orderId as Id<"orders">,
+          paymentId: result.paymentId as string,
+          paymentMethod: "SQUARE",
+        });
+      } else {
+        await completeOrder({
+          orderId: orderId as Id<"orders">,
+          paymentId: result.paymentId as string,
+          paymentMethod: "SQUARE",
+        });
+      }
 
       setIsSuccess(true);
 
@@ -370,87 +409,205 @@ export default function CheckoutPage() {
 
             {!showPayment ? (
               <>
-                {/* Ticket Selection */}
+                {/* Ticket/Bundle Selection */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-4">Select Ticket Type</h3>
-                  <div className="space-y-3">
-                    {eventDetails.ticketTiers
-                      ?.filter((tier) => {
-                        const now = Date.now();
-                        const isAvailable = (!tier.saleStart || now >= tier.saleStart) &&
-                                           (!tier.saleEnd || now <= tier.saleEnd) &&
-                                           (tier.sold < tier.quantity);
-                        return isAvailable;
-                      })
-                      .map((tier) => {
-                        const now = Date.now();
-                        const isSoldOut = tier.sold >= tier.quantity;
-                        const remaining = tier.quantity - tier.sold;
-                        const isLowStock = remaining <= 10 && remaining > 0;
+                  <h3 className="font-semibold text-gray-900 mb-4">Select Tickets or Bundle</h3>
 
-                        return (
-                          <button
-                            key={tier._id}
-                            onClick={() => !isSoldOut && setSelectedTierId(tier._id)}
-                            disabled={isSoldOut}
-                            className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
-                              selectedTierId === tier._id
-                                ? "border-blue-600 bg-blue-50"
-                                : isSoldOut
-                                ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
-                                : "border-gray-200 hover:border-gray-300"
-                            }`}
-                          >
-                            <div className="space-y-2">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <p className="font-semibold text-gray-900">{tier.name}</p>
-                                    <TierAvailabilityBadge
-                                      saleStart={tier.saleStart}
-                                      saleEnd={tier.saleEnd}
-                                      sold={tier.sold}
-                                      quantity={tier.quantity}
-                                    />
+                  {/* Purchase Type Tabs */}
+                  {eventDetails.bundles && eventDetails.bundles.length > 0 && (
+                    <div className="flex gap-2 mb-4 p-1 bg-gray-100 rounded-lg">
+                      <button
+                        onClick={() => {
+                          setPurchaseType('tier');
+                          setSelectedBundleId(null);
+                        }}
+                        className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
+                          purchaseType === 'tier'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        <Ticket className="w-4 h-4 inline mr-2" />
+                        Individual Tickets
+                      </button>
+                      <button
+                        onClick={() => {
+                          setPurchaseType('bundle');
+                          setSelectedTierId(null);
+                        }}
+                        className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
+                          purchaseType === 'bundle'
+                            ? 'bg-white text-purple-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        <Package className="w-4 h-4 inline mr-2" />
+                        Bundles
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Individual Tickets */}
+                  {purchaseType === 'tier' && (
+                    <div className="space-y-3">
+                      {eventDetails.ticketTiers
+                        ?.filter((tier: any) => {
+                          const now = Date.now();
+                          const isAvailable = (!tier.saleStart || now >= tier.saleStart) &&
+                                             (!tier.saleEnd || now <= tier.saleEnd) &&
+                                             (tier.sold < tier.quantity);
+                          return isAvailable;
+                        })
+                        .map((tier: any) => {
+                          const now = Date.now();
+                          const isSoldOut = tier.sold >= tier.quantity;
+                          const remaining = tier.quantity - tier.sold;
+                          const isLowStock = remaining <= 10 && remaining > 0;
+                          const showEarlyBird = tier.isEarlyBird && tier.currentTierName;
+                          const nextPriceIncrease = tier.nextPriceChange && tier.nextPriceChange.price > tier.currentPrice;
+
+                          return (
+                            <button
+                              key={tier._id}
+                              onClick={() => !isSoldOut && setSelectedTierId(tier._id)}
+                              disabled={isSoldOut}
+                              className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
+                                selectedTierId === tier._id
+                                  ? showEarlyBird
+                                    ? "border-amber-500 bg-amber-50"
+                                    : "border-blue-600 bg-blue-50"
+                                  : isSoldOut
+                                  ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
+                                  : "border-gray-200 hover:border-gray-300"
+                              }`}
+                            >
+                              <div className="space-y-2">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <p className="font-semibold text-gray-900">{tier.name}</p>
+                                      {showEarlyBird && (
+                                        <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-amber-500 text-white rounded-full font-medium">
+                                          <Zap className="w-3 h-3" />
+                                          {tier.currentTierName}
+                                        </span>
+                                      )}
+                                      <TierAvailabilityBadge
+                                        saleStart={tier.saleStart}
+                                        saleEnd={tier.saleEnd}
+                                        sold={tier.sold}
+                                        quantity={tier.quantity}
+                                      />
+                                    </div>
+                                    {tier.description && (
+                                      <p className="text-sm text-gray-600 mt-1">{tier.description}</p>
+                                    )}
                                   </div>
-                                  {tier.description && (
-                                    <p className="text-sm text-gray-600 mt-1">{tier.description}</p>
+                                  <div className="text-right ml-4">
+                                    <p className={`text-lg font-bold ${showEarlyBird ? 'text-amber-600' : 'text-gray-900'}`}>
+                                      ${(tier.currentPrice / 100).toFixed(2)}
+                                    </p>
+                                    {showEarlyBird && tier.price !== tier.currentPrice && (
+                                      <p className="text-xs text-gray-500 line-through">
+                                        ${(tier.price / 100).toFixed(2)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {nextPriceIncrease && (
+                                  <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs">
+                                    <p className="text-orange-700 font-medium">
+                                      Price increases to ${(tier.nextPriceChange.price / 100).toFixed(2)} on {format(tier.nextPriceChange.date, "MMM d")}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Additional Info Row */}
+                                <div className="flex items-center gap-4 text-sm">
+                                  {/* Countdown */}
+                                  {tier.saleEnd && tier.saleEnd > now && (
+                                    <TierCountdown endDate={tier.saleEnd} />
+                                  )}
+
+                                  {/* Stock Warning */}
+                                  {isLowStock && (
+                                    <span className="text-orange-600 font-medium">
+                                      Only {remaining} left!
+                                    </span>
+                                  )}
+
+                                  {/* Quantity Info */}
+                                  {!isLowStock && !isSoldOut && (
+                                    <span className="text-gray-500">
+                                      {remaining} available
+                                    </span>
                                   )}
                                 </div>
-                                <p className="text-lg font-bold text-gray-900 ml-4">
-                                  ${(tier.price / 100).toFixed(2)}
-                                </p>
                               </div>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
 
-                              {/* Additional Info Row */}
-                              <div className="flex items-center gap-4 text-sm">
-                                {/* Countdown */}
-                                {tier.saleEnd && tier.saleEnd > now && (
-                                  <TierCountdown endDate={tier.saleEnd} />
-                                )}
-
-                                {/* Stock Warning */}
-                                {isLowStock && (
-                                  <span className="text-orange-600 font-medium">
-                                    Only {remaining} left!
+                  {/* Bundles */}
+                  {purchaseType === 'bundle' && eventDetails.bundles && (
+                    <div className="space-y-3">
+                      {eventDetails.bundles.map((bundle: any) => (
+                        <button
+                          key={bundle._id}
+                          onClick={() => setSelectedBundleId(bundle._id)}
+                          className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
+                            selectedBundleId === bundle._id
+                              ? "border-purple-600 bg-purple-50"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="font-semibold text-gray-900">{bundle.name}</p>
+                                  <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-green-500 text-white rounded-full font-bold">
+                                    <TrendingDown className="w-3 h-3" />
+                                    Save {bundle.percentageSavings}%
                                   </span>
+                                </div>
+                                {bundle.description && (
+                                  <p className="text-sm text-gray-600 mt-1">{bundle.description}</p>
                                 )}
-
-                                {/* Quantity Info */}
-                                {!isLowStock && !isSoldOut && (
-                                  <span className="text-gray-500">
-                                    {remaining} available
-                                  </span>
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {bundle.includedTiers.map((includedTier: any) => (
+                                    <span key={includedTier.tierId} className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                      {includedTier.quantity}x {includedTier.tierName}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="text-right ml-4">
+                                <p className="text-lg font-bold text-purple-600">
+                                  ${(bundle.price / 100).toFixed(2)}
+                                </p>
+                                {bundle.regularPrice && (
+                                  <p className="text-xs text-gray-500 line-through">
+                                    ${(bundle.regularPrice / 100).toFixed(2)}
+                                  </p>
                                 )}
                               </div>
                             </div>
-                          </button>
-                        );
-                      })}
-                  </div>
 
-                  {/* No Available Tiers Message */}
-                  {eventDetails.ticketTiers?.every((tier) => {
+                            <div className="text-sm text-green-600 font-medium">
+                              {bundle.available} bundle{bundle.available !== 1 ? 's' : ''} available
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* No Available Options Message */}
+                  {purchaseType === 'tier' && eventDetails.ticketTiers?.every((tier: any) => {
                     const now = Date.now();
                     return (tier.saleStart && now < tier.saleStart) ||
                            (tier.saleEnd && now > tier.saleEnd) ||
@@ -467,7 +624,7 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Quantity */}
-                {selectedTierId && (
+                {(selectedTierId || selectedBundleId) && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h3 className="font-semibold text-gray-900 mb-4">Quantity</h3>
                     <input
@@ -481,8 +638,8 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {/* Seat Selection */}
-                {selectedTierId && seatingChart && seatingChart.sections.length > 0 && (
+                {/* Seat Selection - Only for individual tickets */}
+                {selectedTierId && purchaseType === 'tier' && seatingChart && seatingChart.sections.length > 0 && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h3 className="font-semibold text-gray-900 mb-4">Select Your Seats</h3>
                     <SeatSelection
@@ -495,7 +652,7 @@ export default function CheckoutPage() {
                 )}
 
                 {/* Buyer Info */}
-                {selectedTierId && (
+                {(selectedTierId || selectedBundleId) && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h3 className="font-semibold text-gray-900 mb-4">Your Information</h3>
                     <div className="space-y-4">
@@ -528,7 +685,7 @@ export default function CheckoutPage() {
                 )}
 
                 {/* Discount Code */}
-                {selectedTierId && (
+                {(selectedTierId || selectedBundleId) && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <Tag className="w-5 h-5" />
@@ -674,13 +831,32 @@ export default function CheckoutPage() {
                 Order Summary
               </h3>
 
-              {selectedTier ? (
+              {(selectedTier || selectedBundle) ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
-                      {selectedTier.name} x {quantity}
-                    </span>
-                    <span className="font-medium">${(subtotal / 100).toFixed(2)}</span>
+                    {purchaseType === 'bundle' && selectedBundle ? (
+                      <>
+                        <div className="flex-1">
+                          <span className="text-gray-900 font-medium">{selectedBundle.name}</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedBundle.includedTiers.map((includedTier: any) => (
+                              <span key={includedTier.tierId} className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                {includedTier.quantity}x {includedTier.tierName}
+                              </span>
+                            ))}
+                          </div>
+                          <span className="text-xs text-gray-500">Quantity: {quantity}</span>
+                        </div>
+                        <span className="font-medium ml-2">${(subtotal / 100).toFixed(2)}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-gray-600">
+                          {selectedTier?.name} x {quantity}
+                        </span>
+                        <span className="font-medium">${(subtotal / 100).toFixed(2)}</span>
+                      </>
+                    )}
                   </div>
 
                   {appliedDiscount && (

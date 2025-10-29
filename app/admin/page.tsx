@@ -23,7 +23,7 @@ export default function AdminDashboard() {
   if (!analytics || !recentActivity) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -142,92 +142,25 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Users */}
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Recent Users
-            </h2>
-          </div>
-          <div className="p-6">
-            <div className="space-y-3">
-              {recentActivity.users.slice(0, 5).map((user) => (
-                <Link
-                  key={user._id}
-                  href={`/admin/users`}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{user.name || "Unnamed User"}</p>
-                    <p className="text-sm text-gray-600">{user.email}</p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.role === "admin"
-                        ? "bg-red-100 text-red-800"
-                        : user.role === "organizer"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {user.role || "user"}
-                  </span>
-                </Link>
-              ))}
-            </div>
-            <Link
-              href="/admin/users"
-              className="block text-center mt-4 text-sm text-red-600 hover:underline"
-            >
-              View All Users →
-            </Link>
-          </div>
+      {/* Event Moderation Quick Access */}
+      <div className="bg-white rounded-lg shadow-md">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
+            Event Moderation
+          </h2>
         </div>
-
-        {/* Recent Events */}
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Recent Events
-            </h2>
-          </div>
-          <div className="p-6">
-            <div className="space-y-3">
-              {recentActivity.events.slice(0, 5).map((event) => (
-                <Link
-                  key={event._id}
-                  href={`/admin/events`}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{event.name}</p>
-                    <p className="text-sm text-gray-600">{event.organizerName || "Unknown"}</p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
-                      event.status === "PUBLISHED"
-                        ? "bg-green-100 text-green-800"
-                        : event.status === "DRAFT"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {event.status || "DRAFT"}
-                  </span>
-                </Link>
-              ))}
-            </div>
-            <Link
-              href="/admin/events"
-              className="block text-center mt-4 text-sm text-red-600 hover:underline"
-            >
-              View All Events →
-            </Link>
-          </div>
+        <div className="p-6">
+          <p className="text-gray-600 mb-4">
+            Manage and moderate all platform events, update statuses, and review event content.
+          </p>
+          <Link
+            href="/admin/events"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Calendar className="w-5 h-5" />
+            Go to Event Moderation
+          </Link>
         </div>
       </div>
 

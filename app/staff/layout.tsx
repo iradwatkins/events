@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, DollarSign, ArrowLeft } from 'lucide-react'
+import { LayoutDashboard, DollarSign, ArrowLeft, ArrowRightLeft } from 'lucide-react'
 
 export default function StaffLayout({
   children,
@@ -21,6 +21,11 @@ export default function StaffLayout({
       title: 'Register Sale',
       href: '/staff/register-sale',
       icon: DollarSign,
+    },
+    {
+      title: 'Ticket Transfers',
+      href: '/staff/transfers',
+      icon: ArrowRightLeft,
     },
   ]
 

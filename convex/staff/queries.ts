@@ -156,6 +156,53 @@ export const getStaffDashboard = query({
 });
 
 /**
+ * Get all events where the current user is a staff member
+ */
+export const getStaffEvents = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user) return [];
+
+    // Get all staff positions for this user
+    const staffPositions = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_staff_user", (q) => q.eq("staffUserId", user._id))
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    // Get event details for each position
+    const eventsWithStaffInfo = await Promise.all(
+      staffPositions.map(async (staff) => {
+        const event = staff.eventId ? await ctx.db.get(staff.eventId) : null;
+        if (!event) return null;
+
+        return {
+          eventId: event._id,
+          eventName: event.name,
+          eventDate: event.startDate,
+          staffId: staff._id,
+          role: staff.role,
+          allocatedTickets: staff.allocatedTickets || 0,
+          ticketsSold: staff.ticketsSold || 0,
+          commissionEarned: staff.commissionEarned || 0,
+          cashCollected: staff.cashCollected || 0,
+        };
+      })
+    );
+
+    return eventsWithStaffInfo.filter(e => e !== null);
+  },
+});
+
+/**
  * Get staff member by referral code (for tracking sales)
  */
 export const getStaffByReferralCode = query({

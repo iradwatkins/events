@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Plus, Trash2, ArrowLeft, Check, Ticket } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Check, Ticket, Gift, DollarSign } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -39,10 +39,61 @@ export default function TicketSetupPage() {
   const event = useQuery(api.events.queries.getEventById, { eventId });
   const currentUser = useQuery(api.users.queries.getCurrentUser);
   const existingTiers = useQuery(api.events.queries.getEventTicketTiers, { eventId });
+  const credits = useQuery(api.credits.queries.getMyCredits);
 
   const createTicketTier = useMutation(api.tickets.mutations.createTicketTier);
 
-  const isLoading = !event || !currentUser;
+  const isLoading = !event || !currentUser || credits === undefined;
+
+  // Calculate total tickets needed and cost breakdown
+  const costBreakdown = useMemo(() => {
+    if (!credits) return null;
+
+    let totalTicketsNeeded = 0;
+    const tierBreakdowns: Array<{
+      tierIndex: number;
+      quantity: number;
+      freeTickets: number;
+      paidTickets: number;
+      cost: number;
+    }> = [];
+
+    let creditsRemaining = credits.creditsRemaining;
+
+    tiers.forEach((tier, index) => {
+      const quantity = parseInt(tier.quantity) || 0;
+      if (quantity <= 0) return;
+
+      totalTicketsNeeded += quantity;
+
+      const freeTickets = Math.min(quantity, creditsRemaining);
+      const paidTickets = Math.max(0, quantity - creditsRemaining);
+      const cost = paidTickets * 0.30;
+
+      tierBreakdowns.push({
+        tierIndex: index,
+        quantity,
+        freeTickets,
+        paidTickets,
+        cost,
+      });
+
+      creditsRemaining -= freeTickets;
+    });
+
+    const totalFreeTickets = tierBreakdowns.reduce((sum, t) => sum + t.freeTickets, 0);
+    const totalPaidTickets = tierBreakdowns.reduce((sum, t) => sum + t.paidTickets, 0);
+    const totalCost = tierBreakdowns.reduce((sum, t) => sum + t.cost, 0);
+
+    return {
+      totalTicketsNeeded,
+      totalFreeTickets,
+      totalPaidTickets,
+      totalCost,
+      tierBreakdowns,
+      creditsAfter: credits.creditsRemaining - totalFreeTickets,
+    };
+  }, [tiers, credits]);
 
   // Check if user is the organizer
   if (!isLoading && event.organizerId !== currentUser?._id) {
@@ -270,6 +321,46 @@ export default function TicketSetupPage() {
           </p>
         </motion.div>
 
+        {/* Credit Balance Banner */}
+        {credits && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Gift className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  Free Ticket Credits Available
+                </h3>
+                <p className="text-gray-700 mb-3">
+                  You have <span className="font-bold text-green-700">{credits.creditsRemaining} free tickets</span> remaining out of your {credits.creditsTotal} total credits.
+                </p>
+                <div className="bg-white rounded-lg p-4 border border-green-200">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                    <DollarSign className="w-4 h-4" />
+                    <span className="font-semibold">Pricing:</span>
+                  </div>
+                  <ul className="text-sm text-gray-700 space-y-1 ml-6">
+                    <li className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      First {credits.creditsTotal} tickets: <strong className="text-green-700">FREE</strong>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      Additional tickets: <strong className="text-blue-700">$0.30 each</strong>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <div className="space-y-6">
           <AnimatePresence mode="popLayout">
             {tiers.map((tier, index) => (
@@ -377,6 +468,59 @@ export default function TicketSetupPage() {
                     </div>
                   </div>
 
+                  {/* Cost Breakdown for this Tier */}
+                  {costBreakdown && tier.quantity && parseInt(tier.quantity) > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4"
+                    >
+                      <div className="flex items-start gap-2">
+                        <DollarSign className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 mb-2">
+                            Cost for this tier
+                          </h4>
+                          {(() => {
+                            const breakdown = costBreakdown.tierBreakdowns.find(
+                              (b) => b.tierIndex === index
+                            );
+                            if (!breakdown) return null;
+
+                            return (
+                              <div className="space-y-1 text-sm">
+                                {breakdown.freeTickets > 0 && (
+                                  <div className="flex items-center justify-between text-green-700">
+                                    <span className="flex items-center gap-1">
+                                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                      {breakdown.freeTickets} free tickets
+                                    </span>
+                                    <strong>$0.00</strong>
+                                  </div>
+                                )}
+                                {breakdown.paidTickets > 0 && (
+                                  <div className="flex items-center justify-between text-blue-700">
+                                    <span className="flex items-center gap-1">
+                                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                      {breakdown.paidTickets} paid tickets × $0.30
+                                    </span>
+                                    <strong>${breakdown.cost.toFixed(2)}</strong>
+                                  </div>
+                                )}
+                                <div className="border-t border-blue-300 pt-2 mt-2 flex items-center justify-between font-bold text-gray-900">
+                                  <span>Total for this tier:</span>
+                                  <span className={breakdown.cost > 0 ? "text-blue-700" : "text-green-700"}>
+                                    {breakdown.cost > 0 ? `$${breakdown.cost.toFixed(2)}` : "FREE"}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
                   {/* Early Bird Pricing Section */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div className="flex items-start gap-2 mb-3">
@@ -443,6 +587,65 @@ export default function TicketSetupPage() {
             Add Another Tier
           </motion.button>
         </div>
+
+        {/* Total Summary */}
+        {costBreakdown && costBreakdown.totalTicketsNeeded > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-lg p-6 mt-6"
+          >
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Ticket className="w-5 h-5 text-purple-600" />
+              Total Summary
+            </h3>
+            <div className="bg-white rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-700">Total tickets needed:</span>
+                <strong className="text-gray-900">{costBreakdown.totalTicketsNeeded}</strong>
+              </div>
+              <div className="h-px bg-gray-200"></div>
+              {costBreakdown.totalFreeTickets > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-green-700 flex items-center gap-2">
+                    <Gift className="w-4 h-4" />
+                    Free tickets used:
+                  </span>
+                  <strong className="text-green-700">{costBreakdown.totalFreeTickets}</strong>
+                </div>
+              )}
+              {costBreakdown.totalPaidTickets > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-blue-700 flex items-center gap-2">
+                    <DollarSign className="w-4 h-4" />
+                    Paid tickets:
+                  </span>
+                  <strong className="text-blue-700">
+                    {costBreakdown.totalPaidTickets} × $0.30 = ${costBreakdown.totalCost.toFixed(2)}
+                  </strong>
+                </div>
+              )}
+              <div className="h-px bg-gray-200"></div>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-gray-900">Total Cost:</span>
+                <span className={`text-2xl font-bold ${
+                  costBreakdown.totalCost > 0 ? "text-purple-700" : "text-green-700"
+                }`}>
+                  {costBreakdown.totalCost > 0 ? `$${costBreakdown.totalCost.toFixed(2)}` : "FREE"}
+                </span>
+              </div>
+              {costBreakdown.creditsAfter >= 0 && (
+                <>
+                  <div className="h-px bg-gray-200"></div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">Credits remaining after:</span>
+                    <strong className="text-gray-900">{costBreakdown.creditsAfter} free tickets</strong>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between mt-8">

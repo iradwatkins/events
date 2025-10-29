@@ -89,6 +89,58 @@ export default function RegisterSalePage() {
           <p className="text-gray-600 mb-6">
             {quantity} ticket{quantity > 1 ? "s" : ""} sold successfully
           </p>
+
+          {/* ACTIVATION CODES - Most Important Section */}
+          {successData.activationCodes && successData.activationCodes.length > 0 && (
+            <div className="bg-blue-50 border-2 border-blue-600 rounded-lg p-6 mb-6">
+              <div className="bg-yellow-100 border border-yellow-400 rounded-lg p-3 mb-4">
+                <div className="flex items-start">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-yellow-800">
+                    <p className="font-semibold mb-1">IMPORTANT: Customer Must Receive These Codes!</p>
+                    <p>These are temporary activation codes. Customers need them to claim their tickets online.</p>
+                  </div>
+                </div>
+              </div>
+
+              <h3 className="text-lg font-bold text-blue-900 mb-3">
+                Customer Activation Codes
+              </h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Write these codes on the receipt or text them to the customer:
+              </p>
+
+              <div className="space-y-3">
+                {successData.activationCodes.map((code: string, index: number) => (
+                  <div key={index} className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                    <div className="text-xs text-gray-600 mb-1">
+                      Ticket {index + 1} of {successData.activationCodes.length}
+                    </div>
+                    <div className="text-5xl font-bold tracking-widest text-blue-600 font-mono">
+                      {code}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 bg-white rounded-lg p-4 text-left">
+                <p className="text-sm font-semibold text-gray-900 mb-2">
+                  Instructions for Customer:
+                </p>
+                <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+                  <li>Visit <span className="font-mono font-semibold text-blue-600">events.stepperslife.com/activate</span></li>
+                  <li>Enter your 4-digit activation code</li>
+                  <li>Provide your email address</li>
+                  <li>Receive your official QR code ticket via email</li>
+                </ol>
+                <div className="mt-3 p-2 bg-gray-50 rounded text-xs text-gray-600">
+                  <strong>Note:</strong> Each code can only be used once. The customer will receive their permanent QR ticket after activation.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sale Details */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
@@ -107,6 +159,8 @@ export default function RegisterSalePage() {
               </div>
             </div>
           </div>
+
+          {/* Action Buttons */}
           <div className="space-y-3">
             <button
               onClick={handleReset}
@@ -301,6 +355,23 @@ export default function RegisterSalePage() {
                   </div>
                 </div>
               </div>
+
+              {/* Info Box - What Happens Next */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div className="flex items-start">
+                  <AlertCircle className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">What happens after you register this sale:</p>
+                    <ol className="list-decimal list-inside space-y-0.5 text-xs">
+                      <li>System generates activation codes for each ticket</li>
+                      <li>You give these codes to the customer</li>
+                      <li>Customer activates tickets online using the codes</li>
+                      <li>Customer receives QR ticket via email</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
               <button
                 onClick={handleSubmit}
                 disabled={!buyerName}

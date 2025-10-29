@@ -7,9 +7,9 @@ const DEFAULT_PLATFORM_FEE_FIXED_CENTS = 179; // $1.79
 const DEFAULT_PROCESSING_FEE_PERCENT = 2.9;
 
 /**
- * Select Pre-Purchase payment model for event
+ * Select Prepay payment model for event (pay upfront for tickets)
  */
-export const selectPrePurchaseModel = mutation({
+export const selectPrepayModel = mutation({
   args: {
     eventId: v.id("events"),
     ticketsAllocated: v.number(),
@@ -57,11 +57,11 @@ export const selectPrePurchaseModel = mutation({
     const configId = await ctx.db.insert("eventPaymentConfig", {
       eventId: args.eventId,
       organizerId: user._id,
-      paymentModel: "PRE_PURCHASE",
+      paymentModel: "PREPAY",
       isActive: true,
       activatedAt: Date.now(),
       ticketsAllocated: args.ticketsAllocated,
-      platformFeePercent: 0, // No additional fees for pre-purchase
+      platformFeePercent: 0, // No additional fees for prepay model
       platformFeeFixed: 0,
       processingFeePercent: DEFAULT_PROCESSING_FEE_PERCENT, // Only Stripe processing
       charityDiscount: false,
@@ -85,9 +85,9 @@ export const selectPrePurchaseModel = mutation({
 });
 
 /**
- * Select Pay-As-Sell payment model for event
+ * Select Credit Card payment model for event (standard online payments)
  */
-export const selectPayAsSellModel = mutation({
+export const selectCreditCardModel = mutation({
   args: {
     eventId: v.id("events"),
     charityDiscount: v.optional(v.boolean()),
@@ -121,7 +121,7 @@ export const selectPayAsSellModel = mutation({
 
     // Check if Stripe Connect is set up
     if (!user.stripeConnectedAccountId || !user.stripeAccountSetupComplete) {
-      throw new Error("Stripe Connect account required for Pay-As-Sell model");
+      throw new Error("Stripe Connect account required for Credit Card payment model");
     }
 
     // Calculate fees (apply 50% discount if charity)
@@ -133,7 +133,7 @@ export const selectPayAsSellModel = mutation({
     const configId = await ctx.db.insert("eventPaymentConfig", {
       eventId: args.eventId,
       organizerId: user._id,
-      paymentModel: "PAY_AS_SELL",
+      paymentModel: "CREDIT_CARD",
       isActive: true,
       activatedAt: Date.now(),
       stripeConnectAccountId: user.stripeConnectedAccountId,
@@ -178,7 +178,7 @@ export const calculateOrderFees = mutation({
     let platformFee = 0;
     let processingFee = 0;
 
-    if (config.paymentModel === "PAY_AS_SELL") {
+    if (config.paymentModel === "CREDIT_CARD") {
       // Calculate platform fee: percentage + fixed
       platformFee = Math.round((args.subtotal * config.platformFeePercent) / 100) + config.platformFeeFixed;
 
@@ -186,7 +186,7 @@ export const calculateOrderFees = mutation({
       const totalBeforeProcessing = args.subtotal + platformFee;
       processingFee = Math.round((totalBeforeProcessing * config.processingFeePercent) / 100);
     } else {
-      // Pre-purchase: only Stripe processing fee
+      // Prepay model: only Stripe processing fee
       processingFee = Math.round((args.subtotal * config.processingFeePercent) / 100);
     }
 
@@ -219,8 +219,8 @@ export const applyLowPriceDiscount = mutation({
       throw new Error("Payment configuration not found");
     }
 
-    if (config.paymentModel !== "PAY_AS_SELL") {
-      throw new Error("Low-price discount only applies to Pay-As-Sell model");
+    if (config.paymentModel !== "CREDIT_CARD") {
+      throw new Error("Low-price discount only applies to Credit Card payment model");
     }
 
     // Apply 50% discount

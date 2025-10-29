@@ -14,13 +14,26 @@ export const createTicketTier = mutation({
     quantity: v.number(),
     saleStart: v.optional(v.number()),
     saleEnd: v.optional(v.number()),
+    // Early Bird Pricing - time-based pricing tiers
+    pricingTiers: v.optional(v.array(v.object({
+      name: v.string(), // "Early Bird", "Regular", "Last Chance"
+      price: v.number(), // Price in cents for this tier
+      availableFrom: v.number(), // Start timestamp
+      availableUntil: v.optional(v.number()), // End timestamp (optional for last tier)
+    }))),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
+    let organizerId: any;
+
     // TESTING MODE: Skip authentication check
     if (!identity) {
       console.warn("[createTicketTier] TESTING MODE - No authentication required");
+      // Get event to find organizer
+      const event = await ctx.db.get(args.eventId);
+      if (!event) throw new Error("Event not found");
+      organizerId = event.organizerId;
     } else {
       // Production mode: Verify event ownership
       const event = await ctx.db.get(args.eventId);
@@ -34,11 +47,50 @@ export const createTicketTier = mutation({
       if (!user || event.organizerId !== user._id) {
         throw new Error("Not authorized");
       }
+      organizerId = user._id;
     }
 
     // Verify event exists (even in TESTING MODE)
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
+
+    // CHECK CREDIT BALANCE - 100 FREE TICKETS SYSTEM
+    if (organizerId) {
+      // Get organizer's credit balance
+      const credits = await ctx.db
+        .query("organizerCredits")
+        .withIndex("by_organizer", (q) => q.eq("organizerId", organizerId))
+        .first();
+
+      if (!credits) {
+        throw new Error("Credit balance not found. Please contact support.");
+      }
+
+      const creditsNeeded = args.quantity;
+      const creditsAvailable = credits.creditsRemaining;
+
+      // Check if enough credits
+      if (creditsAvailable < creditsNeeded) {
+        const shortfall = creditsNeeded - creditsAvailable;
+        const costPerTicket = 0.30; // $0.30 per ticket
+        const totalCost = (shortfall * costPerTicket).toFixed(2);
+
+        throw new Error(
+          `Insufficient ticket credits! You need ${creditsNeeded} tickets but only have ${creditsAvailable} remaining. ` +
+          `You need ${shortfall} more tickets ($${totalCost} at $0.30 each). ` +
+          `Please purchase additional credits before creating this tier.`
+        );
+      }
+
+      // Deduct credits
+      await ctx.db.patch(credits._id, {
+        creditsUsed: credits.creditsUsed + creditsNeeded,
+        creditsRemaining: credits.creditsRemaining - creditsNeeded,
+        updatedAt: Date.now(),
+      });
+
+      console.log(`[createTicketTier] Deducted ${creditsNeeded} credits. Remaining: ${credits.creditsRemaining - creditsNeeded}`);
+    }
 
     // Create ticket tier
     const tierId = await ctx.db.insert("ticketTiers", {
@@ -46,6 +98,7 @@ export const createTicketTier = mutation({
       name: args.name,
       description: args.description,
       price: args.price,
+      pricingTiers: args.pricingTiers, // Early bird pricing support
       quantity: args.quantity,
       sold: 0,
       saleStart: args.saleStart,
@@ -197,8 +250,10 @@ export const createOrder = mutation({
     selectedSeats: v.optional(v.array(v.object({
       sectionId: v.string(),
       sectionName: v.string(),
-      rowId: v.string(),
-      rowLabel: v.string(),
+      rowId: v.optional(v.string()),
+      rowLabel: v.optional(v.string()),
+      tableId: v.optional(v.string()),
+      tableNumber: v.optional(v.union(v.string(), v.number())),
       seatId: v.string(),
       seatNumber: v.string(),
     }))),
@@ -288,20 +343,49 @@ export const createOrder = mutation({
 
       // Verify all seats are available (check for existing reservations)
       for (const seat of args.selectedSeats) {
-        const existingReservation = await ctx.db
-          .query("seatReservations")
-          .withIndex("by_seat", (q) =>
-            q
-              .eq("seatingChartId", seatingChart._id)
-              .eq("sectionId", seat.sectionId)
-              .eq("rowId", seat.rowId)
-              .eq("seatId", seat.seatId)
-          )
-          .filter((q) => q.eq(q.field("status"), "RESERVED"))
-          .first();
+        let existingReservation;
+
+        if (seat.rowId) {
+          // Row-based seat
+          existingReservation = await ctx.db
+            .query("seatReservations")
+            .withIndex("by_seat", (q) =>
+              q
+                .eq("seatingChartId", seatingChart._id)
+                .eq("sectionId", seat.sectionId)
+                .eq("seatId", seat.seatId)
+            )
+            .filter((q) =>
+              q.and(
+                q.eq(q.field("status"), "RESERVED"),
+                q.eq(q.field("rowId"), seat.rowId)
+              )
+            )
+            .first();
+        } else if (seat.tableId) {
+          // Table-based seat
+          existingReservation = await ctx.db
+            .query("seatReservations")
+            .withIndex("by_table", (q) =>
+              q
+                .eq("seatingChartId", seatingChart._id)
+                .eq("sectionId", seat.sectionId)
+                .eq("tableId", seat.tableId)
+            )
+            .filter((q) =>
+              q.and(
+                q.eq(q.field("status"), "RESERVED"),
+                q.eq(q.field("seatId"), seat.seatId)
+              )
+            )
+            .first();
+        }
 
         if (existingReservation) {
-          throw new Error(`Seat ${seat.seatNumber} in ${seat.sectionName} is already reserved`);
+          const location = seat.rowId
+            ? `Row ${seat.rowLabel}`
+            : `Table ${seat.tableNumber}`;
+          throw new Error(`Seat ${seat.seatNumber} at ${location} in ${seat.sectionName} is already reserved`);
         }
       }
     }
@@ -445,6 +529,9 @@ export const completeOrder = mutation({
           orderId: args.orderId,
           sectionId: seat.sectionId,
           rowId: seat.rowId,
+          rowLabel: seat.rowLabel,
+          tableId: seat.tableId,
+          tableNumber: seat.tableNumber,
           seatId: seat.seatId,
           seatNumber: seat.seatNumber,
           status: "RESERVED",
@@ -745,5 +832,603 @@ export const cancelTicket = mutation({
     }
 
     return { success: true };
+  },
+});
+
+/**
+ * Create an order for a ticket bundle purchase
+ */
+export const createBundleOrder = mutation({
+  args: {
+    eventId: v.id("events"),
+    bundleId: v.id("ticketBundles"),
+    quantity: v.number(),
+    buyerEmail: v.string(),
+    buyerName: v.string(),
+    subtotalCents: v.number(),
+    platformFeeCents: v.number(),
+    processingFeeCents: v.number(),
+    totalCents: v.number(),
+    referralCode: v.optional(v.string()),
+    discountCodeId: v.optional(v.id("discountCodes")),
+    discountAmountCents: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: Get or create test user
+    let user;
+    if (!identity) {
+      console.warn("[createBundleOrder] TESTING MODE - Using test user");
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+
+      if (!user) {
+        const userId = await ctx.db.insert("users", {
+          email: "test@stepperslife.com",
+          name: "Test Organizer",
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+        user = await ctx.db.get(userId);
+      }
+    } else {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!user) throw new Error("User not found");
+
+    // Verify event exists
+    const event = await ctx.db.get(args.eventId);
+    if (!event) throw new Error("Event not found");
+
+    // Verify bundle exists
+    const bundle = await ctx.db.get(args.bundleId);
+    if (!bundle) throw new Error("Bundle not found");
+    if (bundle.eventId !== args.eventId) {
+      throw new Error("Bundle does not belong to this event");
+    }
+
+    // Check bundle availability
+    const available = bundle.totalQuantity - bundle.sold;
+    if (available < args.quantity) {
+      throw new Error(`Only ${available} bundle${available === 1 ? '' : 's'} available`);
+    }
+
+    // Look up staff member if referral code provided
+    let staffMember = null;
+    if (args.referralCode && args.referralCode.length > 0) {
+      staffMember = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_referral_code", (q) => q.eq("referralCode", args.referralCode!))
+        .first();
+
+      if (staffMember && !staffMember.isActive) {
+        staffMember = null;
+      }
+    }
+
+    // Create the order
+    const orderId = await ctx.db.insert("orders", {
+      eventId: args.eventId,
+      buyerId: user._id,
+      buyerName: args.buyerName,
+      buyerEmail: args.buyerEmail,
+      status: "PENDING",
+      subtotalCents: args.subtotalCents,
+      platformFeeCents: args.platformFeeCents,
+      processingFeeCents: args.processingFeeCents,
+      totalCents: args.totalCents,
+      soldByStaffId: staffMember?._id,
+      referralCode: args.referralCode,
+      bundleId: args.bundleId,
+      isBundlePurchase: true,
+      discountCodeId: args.discountCodeId,
+      discountAmountCents: args.discountAmountCents,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Create order items for each tier in the bundle
+    for (const includedTier of bundle.includedTiers) {
+      const tier = await ctx.db.get(includedTier.tierId);
+      if (!tier) {
+        throw new Error(`Ticket tier ${includedTier.tierName} not found`);
+      }
+
+      // Check tier availability
+      const tierQuantityNeeded = includedTier.quantity * args.quantity;
+      const tierAvailable = tier.quantity - tier.sold;
+      if (tierAvailable < tierQuantityNeeded) {
+        throw new Error(`Not enough ${tier.name} tickets available`);
+      }
+
+      // Create order item
+      await ctx.db.insert("orderItems", {
+        orderId,
+        ticketTierId: tier._id,
+        priceCents: tier.price * includedTier.quantity,
+        createdAt: Date.now(),
+      });
+    }
+
+    return orderId;
+  },
+});
+
+/**
+ * Complete a bundle order after payment succeeds
+ */
+export const completeBundleOrder = mutation({
+  args: {
+    orderId: v.id("orders"),
+    paymentId: v.string(),
+    paymentMethod: v.union(v.literal("SQUARE"), v.literal("STRIPE"), v.literal("TEST")),
+  },
+  handler: async (ctx, args) => {
+    const order = await ctx.db.get(args.orderId);
+    if (!order) throw new Error("Order not found");
+    if (!order.bundleId) throw new Error("Not a bundle order");
+
+    const bundle = await ctx.db.get(order.bundleId);
+    if (!bundle) throw new Error("Bundle not found");
+
+    // Update order status
+    await ctx.db.patch(args.orderId, {
+      status: "COMPLETED",
+      paymentId: args.paymentId,
+      paymentMethod: args.paymentMethod,
+      paidAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Generate tickets for each tier in the bundle
+    const generatedTickets = [];
+
+    for (const includedTier of bundle.includedTiers) {
+      const tier = await ctx.db.get(includedTier.tierId);
+      if (!tier) continue;
+
+      // Generate tickets for this tier
+      for (let i = 0; i < includedTier.quantity; i++) {
+        // Generate unique ticket code for QR scanning
+        const ticketCode = `TKT-${Date.now()}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+
+        const ticketId = await ctx.db.insert("tickets", {
+          eventId: tier.eventId, // FIXED: Use tier's eventId for multi-event bundles
+          ticketTierId: tier._id,
+          orderId: args.orderId,
+          attendeeId: order.buyerId,
+          attendeeEmail: order.buyerEmail,
+          attendeeName: order.buyerName,
+          ticketCode, // FIXED: Add unique ticket code for QR scanning
+          status: "VALID",
+          soldByStaffId: order.soldByStaffId,
+          paymentMethod: args.paymentMethod === "TEST" ? "ONLINE" : args.paymentMethod,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+
+        generatedTickets.push(ticketId);
+      }
+
+      // Increment sold count for this tier
+      await ctx.db.patch(tier._id, {
+        sold: tier.sold + includedTier.quantity,
+        updatedAt: Date.now(),
+      });
+    }
+
+    // Increment bundle sold count
+    await ctx.db.patch(bundle._id, {
+      sold: bundle.sold + 1,
+      updatedAt: Date.now(),
+    });
+
+    return {
+      success: true,
+      ticketsGenerated: generatedTickets.length,
+      ticketIds: generatedTickets,
+    };
+  },
+});
+
+/**
+ * Activate a ticket using 4-digit activation code
+ * Used by customers who purchased tickets via cash from staff
+ */
+export const activateTicket = mutation({
+  args: {
+    activationCode: v.string(),
+    customerEmail: v.string(),
+    customerName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    console.log(`[activateTicket] Attempting to activate with code: ${args.activationCode}`);
+
+    // Find ticket by activation code
+    const ticket = await ctx.db
+      .query("tickets")
+      .withIndex("by_activation_code", (q) => q.eq("activationCode", args.activationCode))
+      .first();
+
+    if (!ticket) {
+      throw new Error("Invalid activation code. Please check the code and try again.");
+    }
+
+    // Check if already activated
+    if (ticket.status !== "PENDING_ACTIVATION") {
+      if (ticket.status === "VALID") {
+        throw new Error("This ticket has already been activated.");
+      } else {
+        throw new Error(`This ticket cannot be activated (status: ${ticket.status}).`);
+      }
+    }
+
+    // Generate unique ticket code (QR code)
+    const ticketCode = `TKT-${Date.now()}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+
+    // Update ticket with activation details
+    await ctx.db.patch(ticket._id, {
+      ticketCode,
+      status: "VALID",
+      attendeeEmail: args.customerEmail,
+      attendeeName: args.customerName || ticket.attendeeName,
+      activatedAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // Get event and ticket tier details for response
+    const event = await ctx.db.get(ticket.eventId);
+    const ticketTier = ticket.ticketTierId ? await ctx.db.get(ticket.ticketTierId) : null;
+
+    console.log(`[activateTicket] Successfully activated ticket ${ticket._id} with code ${ticketCode}`);
+
+    return {
+      success: true,
+      ticketId: ticket._id,
+      ticketCode,
+      eventName: event?.name || "Unknown Event",
+      eventDate: event?.startDate,
+      tierName: ticketTier?.name || "General Admission",
+      attendeeName: args.customerName || ticket.attendeeName,
+      attendeeEmail: args.customerEmail,
+    };
+  },
+});
+
+/**
+ * Update ticket details (for ticket owners)
+ * Can only update before ticket is scanned
+ */
+export const updateTicket = mutation({
+  args: {
+    ticketId: v.id("tickets"),
+    attendeeName: v.optional(v.string()),
+    attendeeEmail: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: Skip authentication check
+    if (!identity) {
+      console.warn("[updateTicket] TESTING MODE - No authentication required");
+    }
+
+    const ticket = await ctx.db.get(args.ticketId);
+    if (!ticket) throw new Error("Ticket not found");
+
+    // Check ticket status
+    if (ticket.status === "SCANNED") {
+      throw new Error("Cannot edit a ticket that has been scanned");
+    }
+    if (ticket.status === "CANCELLED") {
+      throw new Error("Cannot edit a cancelled ticket");
+    }
+
+    // Check ownership (skip in testing mode)
+    if (identity) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+
+      if (user && ticket.attendeeId !== user._id) {
+        throw new Error("You can only edit your own tickets");
+      }
+    }
+
+    // Check if event has started (prevent editing after event begins)
+    const event = await ctx.db.get(ticket.eventId);
+    if (event && event.startDate && Date.now() >= event.startDate) {
+      throw new Error("Cannot edit ticket after event has started");
+    }
+
+    // Update ticket details
+    const updates: any = {
+      updatedAt: Date.now(),
+    };
+
+    if (args.attendeeName !== undefined) {
+      updates.attendeeName = args.attendeeName;
+    }
+    if (args.attendeeEmail !== undefined) {
+      updates.attendeeEmail = args.attendeeEmail;
+    }
+
+    await ctx.db.patch(args.ticketId, updates);
+
+    console.log(`[updateTicket] Ticket ${args.ticketId} updated successfully`);
+    return { success: true, ticketId: args.ticketId };
+  },
+});
+
+/**
+ * Delete/Cancel a ticket (for ticket owners)
+ * Releases seat if assigned and updates tier sold count
+ */
+export const deleteTicket = mutation({
+  args: {
+    ticketId: v.id("tickets"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: Skip authentication check
+    if (!identity) {
+      console.warn("[deleteTicket] TESTING MODE - No authentication required");
+    }
+
+    const ticket = await ctx.db.get(args.ticketId);
+    if (!ticket) throw new Error("Ticket not found");
+
+    // Check ticket status
+    if (ticket.status === "SCANNED") {
+      throw new Error("Cannot delete a ticket that has been scanned");
+    }
+    if (ticket.status === "CANCELLED") {
+      throw new Error("Ticket is already cancelled");
+    }
+
+    // Check ownership (skip in testing mode)
+    if (identity) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+
+      if (user && ticket.attendeeId !== user._id) {
+        throw new Error("You can only delete your own tickets");
+      }
+    }
+
+    // Release seat if assigned
+    if (ticket.seatId) {
+      const seat = await ctx.db.get(ticket.seatId);
+      if (seat) {
+        await ctx.db.patch(ticket.seatId, {
+          status: "available" as const,
+          ticketId: undefined,
+          updatedAt: Date.now(),
+        });
+        console.log(`[deleteTicket] Released seat ${seat.seatNumber}`);
+      }
+    }
+
+    // Update tier sold count
+    if (ticket.ticketTierId) {
+      const tier = await ctx.db.get(ticket.ticketTierId);
+      if (tier && tier.sold > 0) {
+        await ctx.db.patch(ticket.ticketTierId, {
+          sold: tier.sold - 1,
+          updatedAt: Date.now(),
+        });
+        console.log(`[deleteTicket] Decremented sold count for tier ${tier.name}`);
+      }
+    }
+
+    // Cancel the ticket (don't actually delete, just mark as cancelled)
+    await ctx.db.patch(args.ticketId, {
+      status: "CANCELLED" as const,
+      updatedAt: Date.now(),
+    });
+
+    console.log(`[deleteTicket] Ticket ${args.ticketId} cancelled successfully`);
+    return { success: true, ticketId: args.ticketId };
+  },
+});
+
+/**
+ * Bundle multiple tickets together for organization
+ * Creates a virtual grouping for easier management
+ */
+export const bundleTickets = mutation({
+  args: {
+    ticketIds: v.array(v.id("tickets")),
+    bundleName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: Skip authentication check
+    if (!identity) {
+      console.warn("[bundleTickets] TESTING MODE - No authentication required");
+    }
+
+    if (args.ticketIds.length < 2) {
+      throw new Error("Must select at least 2 tickets to bundle");
+    }
+
+    // Verify all tickets exist and belong to the user
+    const tickets = await Promise.all(
+      args.ticketIds.map(id => ctx.db.get(id))
+    );
+
+    // Check ownership (skip in testing mode)
+    if (identity) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+
+      if (user) {
+        for (const ticket of tickets) {
+          if (!ticket) throw new Error("One or more tickets not found");
+          if (ticket.attendeeId !== user._id) {
+            throw new Error("You can only bundle your own tickets");
+          }
+          if (ticket.status === "CANCELLED") {
+            throw new Error("Cannot bundle cancelled tickets");
+          }
+        }
+      }
+    }
+
+    // Create a bundle ID (could be stored in a separate bundles table for more features)
+    const bundleId = `bundle_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Update all tickets with the bundle information
+    for (const ticketId of args.ticketIds) {
+      await ctx.db.patch(ticketId, {
+        bundleId,
+        bundleName: args.bundleName,
+        updatedAt: Date.now(),
+      });
+    }
+
+    console.log(`[bundleTickets] Created bundle ${bundleId} with ${args.ticketIds.length} tickets`);
+    return {
+      success: true,
+      bundleId,
+      bundleName: args.bundleName,
+      ticketCount: args.ticketIds.length
+    };
+  },
+});
+
+/**
+ * Unbundle tickets to remove them from a bundle
+ */
+export const unbundleTickets = mutation({
+  args: {
+    ticketIds: v.array(v.id("tickets")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: Skip authentication check
+    if (!identity) {
+      console.warn("[unbundleTickets] TESTING MODE - No authentication required");
+    }
+
+    // Verify all tickets exist and belong to the user
+    const tickets = await Promise.all(
+      args.ticketIds.map(id => ctx.db.get(id))
+    );
+
+    // Check ownership (skip in testing mode)
+    if (identity) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+
+      if (user) {
+        for (const ticket of tickets) {
+          if (!ticket) throw new Error("One or more tickets not found");
+          if (ticket.attendeeId !== user._id) {
+            throw new Error("You can only unbundle your own tickets");
+          }
+        }
+      }
+    }
+
+    // Remove bundle information from tickets
+    for (const ticketId of args.ticketIds) {
+      await ctx.db.patch(ticketId, {
+        bundleId: undefined,
+        bundleName: undefined,
+        updatedAt: Date.now(),
+      });
+    }
+
+    console.log(`[unbundleTickets] Unbundled ${args.ticketIds.length} tickets`);
+    return {
+      success: true,
+      ticketCount: args.ticketIds.length
+    };
+  },
+});
+
+/**
+ * Duplicate a ticket tier with reset sold counts
+ */
+export const duplicateTicketTier = mutation({
+  args: {
+    tierId: v.id("ticketTiers"),
+    newName: v.optional(v.string()),
+    newPrice: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: Skip authentication check
+    if (!identity) {
+      console.warn("[duplicateTicketTier] TESTING MODE - No authentication required");
+    }
+
+    // Get original tier
+    const originalTier = await ctx.db.get(args.tierId);
+    if (!originalTier) {
+      throw new Error("Ticket tier not found");
+    }
+
+    // Get event to check ownership
+    const event = await ctx.db.get(originalTier.eventId);
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Check ownership (skip in testing mode)
+    if (identity) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+
+      if (user && event.organizerId !== user._id) {
+        throw new Error("You can only duplicate ticket tiers for your own events");
+      }
+    }
+
+    // Create new tier with duplicated data
+    const newTierData = {
+      ...originalTier,
+      _id: undefined, // Remove ID to create new record
+      _creationTime: undefined, // Remove system fields
+      name: args.newName || `${originalTier.name} (Copy)`,
+      price: args.newPrice !== undefined ? args.newPrice : originalTier.price,
+      sold: 0, // Reset sold count
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    // Create the new tier
+    const newTierId = await ctx.db.insert("ticketTiers", newTierData);
+
+    console.log(`[duplicateTicketTier] Duplicated tier ${args.tierId} -> ${newTierId}`);
+
+    return {
+      success: true,
+      originalTierId: args.tierId,
+      newTierId,
+      newName: newTierData.name,
+      newPrice: newTierData.price,
+    };
   },
 });

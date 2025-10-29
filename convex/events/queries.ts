@@ -235,3 +235,129 @@ export const getEventAttendees = query({
     return enrichedTickets;
   },
 });
+
+/**
+ * Get events available for claiming
+ * Returns events that are marked as claimable and don't have an organizer yet
+ */
+export const getClaimableEvents = query({
+  args: {},
+  handler: async (ctx) => {
+    // Find all events that are claimable and have no organizer
+    const claimableEvents = await ctx.db
+      .query("events")
+      .withIndex("by_claimable", (q) => q.eq("isClaimable", true))
+      .filter((q) => q.eq(q.field("organizerId"), undefined))
+      .order("desc")
+      .collect();
+
+    // Convert storage IDs to URLs for images
+    const eventsWithImageUrls = await Promise.all(
+      claimableEvents.map(async (event) => {
+        let imageUrl = event.imageUrl;
+
+        // If images array exists and has items, get URL for first image
+        if (event.images && event.images.length > 0) {
+          try {
+            const url = await ctx.storage.getUrl(event.images[0]);
+            if (url) {
+              imageUrl = url;
+            }
+          } catch (error) {
+            console.error("[getClaimableEvents] Error getting image URL:", error);
+          }
+        }
+
+        return {
+          ...event,
+          imageUrl,
+        };
+      })
+    );
+
+    return eventsWithImageUrls;
+  },
+});
+
+/**
+ * Search events available for claiming
+ * Returns empty array if no search term provided (keeps UI clean)
+ */
+export const searchClaimableEvents = query({
+  args: {
+    searchTerm: v.optional(v.string()),
+    category: v.optional(v.string()),
+    dateFrom: v.optional(v.number()),
+    dateTo: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // If no search term and no filters, return empty array
+    if (!args.searchTerm && !args.category && !args.dateFrom && !args.dateTo) {
+      return [];
+    }
+
+    // Find all events that are claimable and have no organizer
+    let claimableEvents = await ctx.db
+      .query("events")
+      .withIndex("by_claimable", (q) => q.eq("isClaimable", true))
+      .filter((q) => q.eq(q.field("organizerId"), undefined))
+      .order("desc")
+      .collect();
+
+    // Apply search term filter
+    if (args.searchTerm) {
+      const searchLower = args.searchTerm.toLowerCase();
+      claimableEvents = claimableEvents.filter(
+        (event) =>
+          event.name.toLowerCase().includes(searchLower) ||
+          (event.description?.toLowerCase().includes(searchLower) ?? false) ||
+          (event.location?.toLowerCase().includes(searchLower) ?? false) ||
+          (event.venueName?.toLowerCase().includes(searchLower) ?? false) ||
+          (event.city?.toLowerCase().includes(searchLower) ?? false)
+      );
+    }
+
+    // Apply category filter
+    if (args.category) {
+      claimableEvents = claimableEvents.filter(
+        (event) => event.category === args.category
+      );
+    }
+
+    // Apply date range filter
+    if (args.dateFrom || args.dateTo) {
+      claimableEvents = claimableEvents.filter((event) => {
+        if (!event.startDate) return false;
+        if (args.dateFrom && event.startDate < args.dateFrom) return false;
+        if (args.dateTo && event.startDate > args.dateTo) return false;
+        return true;
+      });
+    }
+
+    // Convert storage IDs to URLs for images
+    const eventsWithImageUrls = await Promise.all(
+      claimableEvents.map(async (event) => {
+        let imageUrl = event.imageUrl;
+
+        // If images array exists and has items, get URL for first image
+        if (event.images && event.images.length > 0) {
+          try {
+            const url = await ctx.storage.getUrl(event.images[0]);
+            if (url) {
+              imageUrl = url;
+            }
+          } catch (error) {
+            console.error("[searchClaimableEvents] Error getting image URL:", error);
+          }
+        }
+
+        return {
+          ...event,
+          imageUrl,
+        };
+      })
+    );
+
+    return eventsWithImageUrls;
+  },
+});

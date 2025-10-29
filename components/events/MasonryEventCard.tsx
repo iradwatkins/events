@@ -9,12 +9,14 @@ interface MasonryEventCardProps {
   event: {
     _id: string;
     name: string;
-    startDate: number;
-    timezone: string;
+    startDate?: number;
+    timezone?: string;
     imageUrl?: string;
     images: string[];
     eventType: string;
     ticketsVisible?: boolean;
+    organizerName?: string;
+    isClaimable?: boolean;
   };
 }
 
@@ -23,13 +25,13 @@ export function MasonryEventCard({ event }: MasonryEventCardProps) {
   const imageUrl = event.imageUrl || (event.images && event.images[0]) || `https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80`;
 
   return (
-    <Link href={`/events/${event._id}`} className="group block">
+    <Link href={`/events/${event._id}`} className="group block cursor-pointer">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -8 }}
         transition={{ duration: 0.3 }}
-        className="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+        className="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"
       >
         {/* Full-height Event Image with natural aspect ratio */}
         <motion.img

@@ -3,20 +3,33 @@ import { query } from "../_generated/server";
 
 /**
  * Get all published events (public API for stepperslife.com)
+ * By default, excludes past events
  */
 export const getPublishedEvents = query({
   args: {
     limit: v.optional(v.number()),
     category: v.optional(v.string()),
     searchTerm: v.optional(v.string()),
+    includePast: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    const now = Date.now();
+
     let eventsQuery = ctx.db
       .query("events")
       .withIndex("by_status", (q) => q.eq("status", "PUBLISHED"))
       .order("desc");
 
     let events = await eventsQuery.collect();
+
+    // Filter out past events by default (unless includePast is true)
+    if (!args.includePast) {
+      events = events.filter((e) => {
+        // Use endDate if available, otherwise use startDate
+        const eventDate = e.endDate || e.startDate;
+        return eventDate && eventDate >= now;
+      });
+    }
 
     // Filter by category if specified
     if (args.category) {
@@ -33,6 +46,13 @@ export const getPublishedEvents = query({
           (e.location && typeof e.location === "object" && e.location.city && e.location.city.toLowerCase().includes(searchLower))
       );
     }
+
+    // Sort by date in chronological order (oldest to newest)
+    events.sort((a, b) => {
+      const aDate = a.startDate || 0;
+      const bDate = b.startDate || 0;
+      return aDate - bDate; // Ascending order (oldest first)
+    });
 
     // Limit results
     if (args.limit) {
@@ -83,6 +103,81 @@ export const getUpcomingEvents = query({
 });
 
 /**
+ * Get past published events (events that have already occurred)
+ */
+export const getPastEvents = query({
+  args: {
+    limit: v.optional(v.number()),
+    category: v.optional(v.string()),
+    searchTerm: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    let eventsQuery = ctx.db
+      .query("events")
+      .withIndex("by_status", (q) => q.eq("status", "PUBLISHED"))
+      .order("desc");
+
+    let events = await eventsQuery.collect();
+
+    // Only show past events (where endDate or startDate < now)
+    events = events.filter((e) => {
+      const eventDate = e.endDate || e.startDate;
+      return eventDate && eventDate < now;
+    });
+
+    // Filter by category if specified
+    if (args.category) {
+      events = events.filter((e) => e.categories?.includes(args.category!));
+    }
+
+    // Filter by search term if specified
+    if (args.searchTerm) {
+      const searchLower = args.searchTerm.toLowerCase();
+      events = events.filter(
+        (e) =>
+          e.name.toLowerCase().includes(searchLower) ||
+          e.description.toLowerCase().includes(searchLower) ||
+          (e.location && typeof e.location === "object" && e.location.city && e.location.city.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Sort by date in chronological order (oldest to newest)
+    events.sort((a, b) => {
+      const aDate = a.startDate || 0;
+      const bDate = b.startDate || 0;
+      return aDate - bDate; // Ascending order (oldest first)
+    });
+
+    // Limit results
+    if (args.limit) {
+      events = events.slice(0, args.limit);
+    }
+
+    // Convert storage IDs to URLs for images
+    const eventsWithImageUrls = await Promise.all(
+      events.map(async (event) => {
+        let imageUrl = event.imageUrl;
+
+        // If no imageUrl but has images array with storage IDs
+        if (!imageUrl && event.images && event.images.length > 0) {
+          const url = await ctx.storage.getUrl(event.images[0]);
+          imageUrl = url ?? undefined;
+        }
+
+        return {
+          ...event,
+          imageUrl,
+        };
+      })
+    );
+
+    return eventsWithImageUrls;
+  },
+});
+
+/**
  * Get public event details by ID
  */
 export const getPublicEventDetails = query({
@@ -115,11 +210,106 @@ export const getPublicEventDetails = query({
     // Get ticket tiers if visible
     let ticketTiers = null;
     if (event.ticketsVisible && paymentConfig?.isActive) {
-      ticketTiers = await ctx.db
+      const tiers = await ctx.db
         .query("ticketTiers")
         .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
         .filter((q) => q.eq(q.field("isActive"), true))
         .collect();
+
+      // Enrich tiers with current pricing information
+      const now = Date.now();
+      ticketTiers = tiers.map((tier) => {
+        let currentPrice = tier.price;
+        let currentTierName: string | undefined = undefined;
+        let nextPriceChange: { date: number; price: number; tierName: string } | undefined = undefined;
+        let isEarlyBird = false;
+
+        // Calculate current price based on pricing tiers
+        if (tier.pricingTiers && tier.pricingTiers.length > 0) {
+          // Sort pricing tiers by date
+          const sortedTiers = [...tier.pricingTiers].sort((a, b) => a.availableFrom - b.availableFrom);
+
+          // Find current active tier
+          for (let i = 0; i < sortedTiers.length; i++) {
+            const pricingTier = sortedTiers[i];
+            const isActive = now >= pricingTier.availableFrom &&
+                           (!pricingTier.availableUntil || now <= pricingTier.availableUntil);
+
+            if (isActive) {
+              currentPrice = pricingTier.price;
+              currentTierName = pricingTier.name;
+              isEarlyBird = true;
+
+              // Check for next price change
+              if (pricingTier.availableUntil && i + 1 < sortedTiers.length) {
+                const nextTier = sortedTiers[i + 1];
+                nextPriceChange = {
+                  date: nextTier.availableFrom,
+                  price: nextTier.price,
+                  tierName: nextTier.name,
+                };
+              }
+              break;
+            }
+          }
+
+          // If no active tier found, check if we're before first tier or after last tier
+          if (currentTierName === undefined) {
+            if (now < sortedTiers[0].availableFrom) {
+              // Before first tier - use base price
+              currentPrice = tier.price;
+              nextPriceChange = {
+                date: sortedTiers[0].availableFrom,
+                price: sortedTiers[0].price,
+                tierName: sortedTiers[0].name,
+              };
+            } else {
+              // After all tiers - use last tier price or base price
+              const lastTier = sortedTiers[sortedTiers.length - 1];
+              if (!lastTier.availableUntil || now <= lastTier.availableUntil) {
+                currentPrice = lastTier.price;
+                currentTierName = lastTier.name;
+                isEarlyBird = true;
+              }
+            }
+          }
+        }
+
+        return {
+          ...tier,
+          currentPrice,
+          currentTierName,
+          nextPriceChange,
+          isEarlyBird,
+        };
+      });
+    }
+
+    // Get bundles if tickets are visible
+    let bundles = null;
+    if (event.ticketsVisible && paymentConfig?.isActive) {
+      const activeBundles = await ctx.db
+        .query("ticketBundles")
+        .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+        .filter((q) => q.eq(q.field("isActive"), true))
+        .collect();
+
+      // Check sale period for each bundle
+      const now = Date.now();
+      bundles = activeBundles
+        .filter((bundle) => {
+          const saleActive = (!bundle.saleStart || now >= bundle.saleStart) &&
+                           (!bundle.saleEnd || now <= bundle.saleEnd);
+          const hasStock = bundle.totalQuantity - bundle.sold > 0;
+          return saleActive && hasStock;
+        })
+        .map((bundle) => ({
+          ...bundle,
+          available: bundle.totalQuantity - bundle.sold,
+          percentageSavings: bundle.regularPrice && bundle.regularPrice > 0
+            ? Math.round((bundle.savings! / bundle.regularPrice) * 100)
+            : 0,
+        }));
     }
 
     // Get organizer info
@@ -137,6 +327,7 @@ export const getPublicEventDetails = query({
       imageUrl,
       tickets,
       ticketTiers,
+      bundles,
       organizer: {
         name: organizer?.name,
         email: organizer?.email,

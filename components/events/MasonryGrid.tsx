@@ -18,38 +18,67 @@ export function MasonryGrid({ events }: MasonryGridProps) {
     );
   }
 
-  // Split events into 4 columns for desktop
-  const desktopColumns = [[], [], [], []] as any[][];
-  events.forEach((event, index) => {
-    desktopColumns[index % 4].push(event);
-  });
-
-  // Split events into 2 columns for mobile
-  const mobileColumns = [[], []] as any[][];
-  events.forEach((event, index) => {
-    mobileColumns[index % 2].push(event);
-  });
-
   return (
     <>
-      {/* Desktop: 4-column masonry grid */}
-      <div className="hidden md:grid md:grid-cols-4 gap-4">
-        {desktopColumns.map((column, columnIndex) => (
-          <div key={columnIndex} className="grid gap-4">
-            {column.map((event: any) => (
-              <MasonryEventCard key={event._id} event={event} />
-            ))}
+      {/* Desktop: 4 columns */}
+      <div
+        className="hidden md:block"
+        style={{
+          columnCount: 4,
+          columnGap: '16px',
+        }}
+      >
+        {events.map((event: any) => (
+          <div
+            key={event._id}
+            style={{
+              breakInside: 'avoid',
+              marginBottom: '16px',
+            }}
+          >
+            <MasonryEventCard event={event} />
           </div>
         ))}
       </div>
 
-      {/* Mobile: 2-column masonry grid */}
-      <div className="md:hidden grid grid-cols-2 gap-4">
-        {mobileColumns.map((column, columnIndex) => (
-          <div key={columnIndex} className="grid gap-4">
-            {column.map((event: any) => (
-              <MasonryEventCard key={event._id} event={event} />
-            ))}
+      {/* Tablet: 3 columns */}
+      <div
+        className="hidden sm:block md:hidden"
+        style={{
+          columnCount: 3,
+          columnGap: '16px',
+        }}
+      >
+        {events.map((event: any) => (
+          <div
+            key={event._id}
+            style={{
+              breakInside: 'avoid',
+              marginBottom: '16px',
+            }}
+          >
+            <MasonryEventCard event={event} />
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile: 2 columns */}
+      <div
+        className="block sm:hidden"
+        style={{
+          columnCount: 2,
+          columnGap: '12px',
+        }}
+      >
+        {events.map((event: any) => (
+          <div
+            key={event._id}
+            style={{
+              breakInside: 'avoid',
+              marginBottom: '12px',
+            }}
+          >
+            <MasonryEventCard event={event} />
           </div>
         ))}
       </div>

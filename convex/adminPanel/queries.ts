@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query } from "../_generated/server";
+import { query, internalQuery } from "../_generated/server";
 
 /**
  * Admin queries - requires admin role
@@ -289,5 +289,17 @@ export const searchUsers = query({
     );
 
     return filtered.slice(0, 50);
+  },
+});
+
+/**
+ * Get order details for refund processing (internal query)
+ */
+export const getOrderForRefund = internalQuery({
+  args: {
+    orderId: v.id("orders"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.orderId);
   },
 });

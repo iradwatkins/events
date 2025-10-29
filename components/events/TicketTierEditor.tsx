@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, Ticket, DollarSign, Users } from "lucide-react";
+import { PricingTierForm, PricingTier } from "./PricingTierForm";
 
 interface TicketTier {
   id: string;
@@ -9,6 +10,7 @@ interface TicketTier {
   description: string;
   price: string;
   quantity: string;
+  pricingTiers?: PricingTier[]; // Optional early bird pricing
 }
 
 interface TicketTierEditorProps {
@@ -36,6 +38,14 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
     onChange(
       tiers.map((tier) =>
         tier.id === id ? { ...tier, [field]: value } : tier
+      )
+    );
+  };
+
+  const updateTierPricing = (id: string, pricingTiers: PricingTier[]) => {
+    onChange(
+      tiers.map((tier) =>
+        tier.id === id ? { ...tier, pricingTiers } : tier
       )
     );
   };
@@ -160,6 +170,15 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                   />
                 </div>
+              </div>
+
+              {/* Early Bird Pricing Section */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <PricingTierForm
+                  tiers={tier.pricingTiers || []}
+                  onChange={(pricingTiers) => updateTierPricing(tier.id, pricingTiers)}
+                  basePrice={tier.price}
+                />
               </div>
             </div>
           ))}

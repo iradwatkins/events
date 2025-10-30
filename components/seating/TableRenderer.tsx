@@ -87,14 +87,22 @@ export default function TableRenderer({
         );
 
       case "CUSTOM":
-        // For custom shapes, default to rounded rectangle
+        // Pentagon/polygon shape
+        const customCenterX = table.width / 2;
+        const customCenterY = table.height / 2;
+        const customRadius = Math.min(table.width, table.height) / 2;
+
+        // Generate pentagon points (5-sided polygon)
+        const pentagonPoints = Array.from({ length: 5 }, (_, i) => {
+          const angle = (i * 2 * Math.PI / 5) - Math.PI / 2; // Start from top
+          const x = customCenterX + customRadius * Math.cos(angle);
+          const y = customCenterY + customRadius * Math.sin(angle);
+          return `${x},${y}`;
+        }).join(' ');
+
         return (
-          <rect
-            x={0}
-            y={0}
-            width={table.width}
-            height={table.height}
-            rx={16}
+          <polygon
+            points={pentagonPoints}
             {...commonProps}
           />
         );

@@ -3,23 +3,26 @@
 import { useState, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Upload, Image as ImageIcon, X, Loader2 } from "lucide-react";
+import { Upload, Image as ImageIcon, X, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface VenueImageUploaderProps {
   currentImageUrl?: string;
   onImageUploaded: (storageId: string, url: string) => void;
   onImageRemoved: () => void;
+  compact?: boolean; // New prop for compact mode
 }
 
 export default function VenueImageUploader({
   currentImageUrl,
   onImageUploaded,
   onImageRemoved,
+  compact = false,
 }: VenueImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImageUrl || null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const generateUploadUrl = useMutation(api.upload.generateUploadUrl);
@@ -100,25 +103,99 @@ export default function VenueImageUploader({
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Venue Floor Plan (Optional)</h3>
-          <p className="text-sm text-gray-600 mt-1">
-            {preview ? "Upload a venue image or floor plan to place sections visually" : "Skip this step to design on a blank canvas, or upload a floor plan image"}
-          </p>
+  const scrollToCanvas = () => {
+    const canvas = document.getElementById('seating-canvas');
+    if (canvas) {
+      canvas.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Compact mode: Minimal UI when not expanded
+  if (compact && !isExpanded && !preview) {
+    return (
+      <button
+        onClick={() => setIsExpanded(true)}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg transition-all text-sm font-medium text-gray-600"
+      >
+        <ImageIcon className="w-4 h-4" />
+        <span>Add Background Image (Optional)</span>
+        <ChevronDown className="w-4 h-4" />
+      </button>
+    );
+  }
+
+  // Compact mode with image loaded: Show minimal indicator
+  if (compact && preview) {
+    return (
+      <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="flex items-center gap-2">
+          <ImageIcon className="w-4 h-4 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">Background Image Loaded</span>
         </div>
-        {preview && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-1 hover:bg-gray-200 rounded transition-colors"
+            title={isExpanded ? "Collapse" : "Expand preview"}
+          >
+            {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
+          </button>
           <button
             onClick={handleRemove}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-1 hover:bg-red-50 rounded transition-colors"
+            title="Remove image"
           >
-            <X className="w-4 h-4" />
-            Remove Image
+            <X className="w-4 h-4 text-red-600" />
           </button>
-        )}
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {compact && isExpanded && (
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-gray-900">Venue Background Image</h3>
+          <button
+            onClick={() => setIsExpanded(false)}
+            className="text-xs text-gray-600 hover:text-gray-900 flex items-center gap-1"
+          >
+            <ChevronUp className="w-3 h-3" />
+            Collapse
+          </button>
+        </div>
+      )}
+
+      {!compact && (
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900">Step 1: Venue Floor Plan (Optional)</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {preview ? "Upload a venue image or floor plan to place sections visually" : "You can design on a blank canvas below, or upload a floor plan image"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {!preview && (
+              <button
+                onClick={scrollToCanvas}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+              >
+                Skip to Canvas →
+              </button>
+            )}
+            {preview && (
+              <button
+                onClick={handleRemove}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Remove Image
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         {preview ? (
@@ -180,7 +257,15 @@ export default function VenueImageUploader({
               <p className="text-sm text-gray-600 text-center mb-4">
                 Drag and drop an image, or click to browse
               </p>
-              <p className="text-xs text-gray-500">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-1 h-px bg-gray-300"></div>
+                <span className="text-xs font-medium text-gray-500">OR</span>
+                <div className="flex-1 h-px bg-gray-300"></div>
+              </div>
+              <p className="text-sm font-medium text-purple-600">
+                Scroll down to start designing on a blank canvas →
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
                 Supports PNG, JPG, and SVG files
               </p>
             </div>

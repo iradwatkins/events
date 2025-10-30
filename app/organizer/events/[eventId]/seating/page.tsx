@@ -32,8 +32,9 @@ import SeatTypePalette, {
 } from "@/components/seating/SeatTypePalette";
 import VisualSeatingCanvas from "@/components/seating/VisualSeatingCanvas";
 import SeatingTemplates, { type SeatingTemplate } from "@/components/seating/SeatingTemplates";
-import TableShapePalette, { type TableShape } from "@/components/seating/TableShapePalette";
-import TableEditor from "@/components/seating/TableEditor";
+import { type TableShape } from "@/components/seating/TableShapePalette";
+import ToolPalette, { type ToolType } from "@/components/seating/ToolPalette";
+import PropertiesPanel from "@/components/seating/PropertiesPanel";
 
 type SeatStatus = "AVAILABLE" | "RESERVED" | "UNAVAILABLE";
 type EditorMode = "visual" | "list" | "preview";
@@ -114,6 +115,10 @@ export default function SeatingChartBuilderPage() {
   const [selectedTableShape, setSelectedTableShape] = useState<TableShape>("ROUND");
   const [showTableEditor, setShowTableEditor] = useState(false);
 
+  // NEW: Tool palette state
+  const [activeTool, setActiveTool] = useState<ToolType>("select");
+  const [showPropertiesPanel, setShowPropertiesPanel] = useState(false);
+
   // Track if we've initialized from existing chart
   const hasInitialized = useRef(false);
 
@@ -130,6 +135,138 @@ export default function SeatingChartBuilderPage() {
       hasInitialized.current = true;
     }
   }, [existingChart]);
+
+  // NEW: Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
+        case "v":
+          setActiveTool("select");
+          break;
+        case "h":
+          setActiveTool("pan");
+          break;
+        case "t":
+          setActiveTool("table-round");
+          break;
+        case "r":
+          setActiveTool("table-rectangular");
+          break;
+        case "q":
+          setActiveTool("table-square");
+          break;
+        case "p":
+          setActiveTool("table-custom");
+          break;
+        case "s":
+          if (!e.ctrlKey && !e.metaKey) {
+            // Only if not Ctrl+S/Cmd+S (save)
+            setActiveTool("row-section");
+          }
+          break;
+        case "escape":
+          setActiveTool("select");
+          setShowPropertiesPanel(false);
+          setSelectedTableId(undefined);
+          setSelectedSectionId(undefined);
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, []);
+
+  // NEW: Handle tool selection
+  const handleToolSelect = (tool: ToolType) => {
+    setActiveTool(tool);
+
+    // Update cursor based on tool
+    const cursorMap: Record<ToolType, string> = {
+      select: "default",
+      pan: "grab",
+      "table-round": "crosshair",
+      "table-rectangular": "crosshair",
+      "table-square": "crosshair",
+      "table-custom": "crosshair",
+      "row-section": "crosshair",
+    };
+
+    document.body.style.cursor = cursorMap[tool];
+  };
+
+  // NEW: Handle canvas click for placement
+  const handleCanvasClick = (x: number, y: number) => {
+    if (activeTool === "select" || activeTool === "pan") return;
+
+    // Place table at click position
+    if (activeTool.startsWith("table-")) {
+      const shapeMap: Record<string, TableShape> = {
+        "table-round": "ROUND",
+        "table-rectangular": "RECTANGULAR",
+        "table-square": "SQUARE",
+        "table-custom": "CUSTOM",
+      };
+
+      // Find or create a table section
+      let tableSection = sections.find((s) => s.containerType === "TABLES");
+
+      if (!tableSection) {
+        // Create a default table section
+        tableSection = {
+          id: generateId(),
+          name: "Tables",
+          color: "#3B82F6",
+          containerType: "TABLES",
+          tables: [],
+        };
+        setSections([...sections, tableSection]);
+      }
+
+      // Add table to section
+      const shape = shapeMap[activeTool];
+      const tableNumber = (tableSection.tables?.length || 0) + 1;
+      const newTable: Table = {
+        id: generateId(),
+        number: tableNumber,
+        shape,
+        x,
+        y,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        capacity: 6,
+        seats: Array.from({ length: 6 }, (_, i) => ({
+          id: generateId(),
+          number: String(i + 1),
+          type: "STANDARD" as SeatType,
+          status: "AVAILABLE" as SeatStatus,
+        })),
+      };
+
+      setSections(
+        sections.map((s) =>
+          s.id === tableSection!.id
+            ? { ...s, tables: [...(s.tables || []), newTable] }
+            : s
+        )
+      );
+
+      // Select the new table
+      setSelectedTableId(newTable.id);
+      setSelectedSectionId(tableSection.id);
+      setShowPropertiesPanel(true);
+    } else if (activeTool === "row-section") {
+      // Add a new row section
+      addSection();
+      setActiveTool("select"); // Return to select tool after placing
+    }
+  };
 
   const generateId = () => Math.random().toString(36).substring(2, 11);
 
@@ -321,14 +458,14 @@ export default function SeatingChartBuilderPage() {
     );
     if (selectedTableId === tableId) {
       setSelectedTableId(undefined);
-      setShowTableEditor(false);
+      setShowPropertiesPanel(false);
     }
   };
 
   const handleTableSelect = (sectionId: string, tableId: string) => {
     setSelectedTableId(tableId);
     setSelectedSectionId(sectionId);
-    setShowTableEditor(true);
+    setShowPropertiesPanel(true);
   };
 
   const getSelectedTable = (): Table | undefined => {
@@ -549,13 +686,18 @@ export default function SeatingChartBuilderPage() {
         />
       )}
 
+      {/* Tool Palette - Fixed Left Sidebar */}
+      {editorMode === "visual" && (
+        <ToolPalette activeTool={activeTool} onToolSelect={handleToolSelect} />
+      )}
+
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className={`${editorMode === "visual" ? "ml-16" : ""} container mx-auto px-4 py-8`}>
         {editorMode === "visual" ? (
-          <div className="space-y-6">
-            {/* Chart Name */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-4">
+            {/* Chart Name - Simplified */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
                 Chart Name
               </label>
               <input
@@ -563,64 +705,12 @@ export default function SeatingChartBuilderPage() {
                 value={chartName}
                 onChange={(e) => setChartName(e.target.value)}
                 placeholder="e.g., Main Hall Seating"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
-            {/* Seating Style Selection */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Seating Style
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  onClick={() => setSeatingStyle("ROW_BASED")}
-                  className={`p-4 border-2 rounded-lg transition-all text-left ${
-                    seatingStyle === "ROW_BASED"
-                      ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
-                      : "border-gray-200 hover:border-blue-300"
-                  }`}
-                >
-                  <h4 className="font-semibold text-gray-900 mb-1">Row-Based</h4>
-                  <p className="text-xs text-gray-600">Theater, stadium, concert seating</p>
-                </button>
-                <button
-                  onClick={() => setSeatingStyle("TABLE_BASED")}
-                  className={`p-4 border-2 rounded-lg transition-all text-left ${
-                    seatingStyle === "TABLE_BASED"
-                      ? "border-purple-500 bg-purple-50 ring-2 ring-purple-200"
-                      : "border-gray-200 hover:border-purple-300"
-                  }`}
-                >
-                  <h4 className="font-semibold text-gray-900 mb-1">Table-Based</h4>
-                  <p className="text-xs text-gray-600">Wedding, gala, banquet seating</p>
-                </button>
-                <button
-                  onClick={() => setSeatingStyle("MIXED")}
-                  className={`p-4 border-2 rounded-lg transition-all text-left ${
-                    seatingStyle === "MIXED"
-                      ? "border-green-500 bg-green-50 ring-2 ring-green-200"
-                      : "border-gray-200 hover:border-green-300"
-                  }`}
-                >
-                  <h4 className="font-semibold text-gray-900 mb-1">Mixed</h4>
-                  <p className="text-xs text-gray-600">Combination of rows and tables</p>
-                </button>
-              </div>
-            </div>
-
-            {/* Table Shape Palette (only for table-based or mixed) */}
-            {(seatingStyle === "TABLE_BASED" || seatingStyle === "MIXED") && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <TableShapePalette
-                  currentShape={selectedTableShape}
-                  onShapeSelect={setSelectedTableShape}
-                />
-              </div>
-            )}
-
-            {/* Venue Image Uploader */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            {/* Venue Image Uploader - Compact Mode */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
               <VenueImageUploader
                 currentImageUrl={venueImageUrl}
                 onImageUploaded={(storageId, url) => {
@@ -631,6 +721,7 @@ export default function SeatingChartBuilderPage() {
                   setVenueImageId(undefined);
                   setVenueImageUrl(undefined);
                 }}
+                compact={true}
               />
             </div>
 
@@ -641,22 +732,45 @@ export default function SeatingChartBuilderPage() {
                 sections={sections}
                 onSectionUpdate={updateSectionVisually}
                 selectedSectionId={selectedSectionId}
-                onSectionSelect={setSelectedSectionId}
+                onSectionSelect={(sectionId) => {
+                  setSelectedSectionId(sectionId);
+                  setSelectedTableId(undefined);
+                  setShowPropertiesPanel(true);
+                }}
                 selectedTableId={selectedTableId}
                 onTableSelect={handleTableSelect}
                 onTableUpdate={updateTable}
               />
             </div>
 
-            {/* Table Editor Sidebar */}
-            {showTableEditor && selectedTableId && selectedSectionId && (
-              <TableEditor
-                table={getSelectedTable()!}
-                onUpdate={(updates) => updateTable(selectedSectionId, selectedTableId, updates as Partial<Table>)}
-                onDelete={() => deleteTable(selectedSectionId, selectedTableId)}
+            {/* Properties Panel - Shows for selected table or section */}
+            {showPropertiesPanel && (
+              <PropertiesPanel
+                target={
+                  selectedTableId && selectedSectionId && getSelectedTable()
+                    ? { type: "table", data: getSelectedTable()! }
+                    : selectedSectionId
+                    ? { type: "section", data: sections.find((s) => s.id === selectedSectionId)! }
+                    : null
+                }
+                onUpdate={(updates) => {
+                  if (selectedTableId && selectedSectionId) {
+                    updateTable(selectedSectionId, selectedTableId, updates as Partial<Table>);
+                  } else if (selectedSectionId) {
+                    updateSection(selectedSectionId, updates);
+                  }
+                }}
+                onDelete={() => {
+                  if (selectedTableId && selectedSectionId) {
+                    deleteTable(selectedSectionId, selectedTableId);
+                  } else if (selectedSectionId) {
+                    deleteSection(selectedSectionId);
+                  }
+                }}
                 onClose={() => {
-                  setShowTableEditor(false);
+                  setShowPropertiesPanel(false);
                   setSelectedTableId(undefined);
+                  setSelectedSectionId(undefined);
                 }}
               />
             )}

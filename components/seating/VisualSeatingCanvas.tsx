@@ -282,23 +282,8 @@ export default function VisualSeatingCanvas({
     setIsDraggingTable(false);
   };
 
-  if (!venueImageUrl) {
-    return (
-      <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-        <GridIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">
-          Upload a Venue Image First
-        </h3>
-        <p className="text-sm text-gray-600">
-          Upload a floor plan or venue photo above to start positioning your sections
-          visually
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="relative bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div id="seating-canvas" className="relative bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* Controls Bar */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
         <div className="bg-white rounded-lg shadow border border-gray-300 p-2 flex flex-col gap-2">
@@ -409,7 +394,8 @@ export default function VisualSeatingCanvas({
                 ref={canvasRef}
                 className="relative w-full h-full"
                 style={{
-                  backgroundImage: `url(${venueImageUrl})`,
+                  backgroundImage: venueImageUrl ? `url(${venueImageUrl})` : 'none',
+                  backgroundColor: venueImageUrl ? 'transparent' : '#f9fafb',
                   backgroundSize: "contain",
                   backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
@@ -427,6 +413,32 @@ export default function VisualSeatingCanvas({
                       backgroundSize: "50px 50px",
                     }}
                   />
+                )}
+
+                {/* Empty State - Show when no sections */}
+                {sections.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-white/95 rounded-lg shadow-lg border-2 border-purple-300 p-8 max-w-md text-center">
+                      <GridIcon className="w-16 h-16 text-purple-500 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        {venueImageUrl ? "Ready to Design!" : "Blank Canvas Ready"}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        {venueImageUrl
+                          ? "Your venue image is loaded. Now add sections to start designing your seating layout."
+                          : "No venue image needed! You can design your seating layout on this blank canvas."
+                        }
+                      </p>
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-left">
+                        <p className="text-xs font-semibold text-purple-900 mb-2">📍 Next Steps:</p>
+                        <ol className="text-xs text-purple-800 space-y-1 list-decimal list-inside">
+                          <li>Scroll down to click "Add Section to Canvas"</li>
+                          <li>Sections will appear here - drag to position</li>
+                          <li>Add tables or rows to your sections</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 {/* Section Boxes */}

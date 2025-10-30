@@ -52,3 +52,22 @@ export const createUserWithPassword = mutation({
     return userId;
   },
 });
+
+/**
+ * Update user password (for password reset)
+ */
+export const updateUserPassword = mutation({
+  args: {
+    userId: v.id("users"),
+    passwordHash: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Update user password
+    await ctx.db.patch(args.userId, {
+      passwordHash: args.passwordHash,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});

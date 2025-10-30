@@ -43,7 +43,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-purple-600 dark:from-gray-900 dark:to-gray-800 px-4">
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">

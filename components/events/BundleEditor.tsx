@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, Package, DollarSign, Tag, Calendar, TrendingDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Package, DollarSign, Tag, Calendar, TrendingDown, X } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -19,6 +19,8 @@ interface IncludedTier {
   tierId: Id<"ticketTiers">;
   tierName: string;
   quantity: number;
+  eventId?: Id<"events">; // For multi-event bundles
+  eventName?: string; // For multi-event bundles
 }
 
 interface BundleFormData {
@@ -29,6 +31,8 @@ interface BundleFormData {
   totalQuantity: string;
   saleStart: string;
   saleEnd: string;
+  bundleType: "SINGLE_EVENT" | "MULTI_EVENT";
+  selectedEventIds: Id<"events">[]; // For multi-event bundles
 }
 
 interface BundleEditorProps {
@@ -46,9 +50,11 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
     totalQuantity: "",
     saleStart: "",
     saleEnd: "",
+    bundleType: "SINGLE_EVENT",
+    selectedEventIds: [eventId], // Start with current event
   });
 
-  // Fetch ticket tiers for this event
+  // Fetch ticket tiers for this event (for single-event mode)
   const tiers = useQuery(api.events.queries.getEventTicketTiers, {
     eventId
   }) as TicketTier[] | undefined;
@@ -63,6 +69,20 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
   const updateBundle = useMutation(api.bundles.mutations.updateTicketBundle);
   const deleteBundle = useMutation(api.bundles.mutations.deleteTicketBundle);
 
+  // Fetch all events from this organizer (for multi-event bundle creation)
+  const organizerEvents = useQuery(api.events.queries.getMyEvents);
+
+  // Fetch tiers from multiple events when in multi-event mode
+  const multiEventTiers = useQuery(
+    api.tickets.queries.getTiersFromMultipleEvents,
+    formData.bundleType === "MULTI_EVENT" && formData.selectedEventIds.length > 0
+      ? { eventIds: formData.selectedEventIds }
+      : "skip"
+  );
+
+  // Use multi-event tiers in multi-event mode, regular tiers in single-event mode
+  const availableTiers = formData.bundleType === "MULTI_EVENT" ? multiEventTiers : tiers;
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -72,13 +92,15 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
       totalQuantity: "",
       saleStart: "",
       saleEnd: "",
+      bundleType: "SINGLE_EVENT",
+      selectedEventIds: [eventId],
     });
     setIsCreating(false);
     setEditingBundleId(null);
   };
 
-  const addTierToBundle = (tierId: Id<"ticketTiers">) => {
-    const tier = tiers?.find(t => t._id === tierId);
+  const addTierToBundle = (tierId: Id<"ticketTiers">, eventIdParam?: Id<"events">, eventNameParam?: string) => {
+    const tier = availableTiers?.find(t => t._id === tierId);
     if (!tier) return;
 
     // Check if tier already added
@@ -87,11 +109,23 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
       return;
     }
 
+    const newTier: IncludedTier = {
+      tierId,
+      tierName: tier.name,
+      quantity: 1,
+    };
+
+    // Add event info for multi-event bundles
+    if (formData.bundleType === "MULTI_EVENT") {
+      newTier.eventId = eventIdParam || (tier as any).eventId;
+      newTier.eventName = eventNameParam || (tier as any).eventName;
+    }
+
     setFormData({
       ...formData,
       includedTiers: [
         ...formData.includedTiers,
-        { tierId, tierName: tier.name, quantity: 1 }
+        newTier
       ]
     });
   };
@@ -113,10 +147,10 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
   };
 
   const calculateRegularPrice = () => {
-    if (!tiers) return 0;
+    if (!availableTiers) return 0;
     let total = 0;
     for (const includedTier of formData.includedTiers) {
-      const tier = tiers.find(t => t._id === includedTier.tierId);
+      const tier = availableTiers.find(t => t._id === includedTier.tierId);
       if (tier) {
         total += tier.price * includedTier.quantity;
       }
@@ -161,7 +195,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
     }
 
     try {
-      const bundleData = {
+      const bundleData: any = {
         eventId,
         name: formData.name,
         description: formData.description || undefined,
@@ -170,7 +204,13 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
         totalQuantity: parseInt(formData.totalQuantity),
         saleStart: formData.saleStart ? new Date(formData.saleStart).getTime() : undefined,
         saleEnd: formData.saleEnd ? new Date(formData.saleEnd).getTime() : undefined,
+        bundleType: formData.bundleType,
       };
+
+      // For multi-event bundles, include all event IDs
+      if (formData.bundleType === "MULTI_EVENT") {
+        bundleData.eventIds = formData.selectedEventIds;
+      }
 
       if (editingBundleId) {
         await updateBundle({
@@ -305,6 +345,90 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
               />
             </div>
 
+            {/* Bundle Type Selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Bundle Type *
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, bundleType: "SINGLE_EVENT", selectedEventIds: [eventId], includedTiers: [] })}
+                  className={`px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                    formData.bundleType === "SINGLE_EVENT"
+                      ? "border-purple-600 bg-purple-50 text-purple-700"
+                      : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                  }`}
+                >
+                  <Calendar className="w-5 h-5 mx-auto mb-1" />
+                  Single Event
+                  <p className="text-xs mt-1 opacity-80">Tickets from this event only</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, bundleType: "MULTI_EVENT", selectedEventIds: [eventId], includedTiers: [] })}
+                  className={`px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                    formData.bundleType === "MULTI_EVENT"
+                      ? "border-purple-600 bg-purple-50 text-purple-700"
+                      : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                  }`}
+                >
+                  <Package className="w-5 h-5 mx-auto mb-1" />
+                  Multi-Event Bundle
+                  <p className="text-xs mt-1 opacity-80">Tickets across multiple events</p>
+                </button>
+              </div>
+            </div>
+
+            {/* Event Multi-Select (only show for multi-event bundles) */}
+            {formData.bundleType === "MULTI_EVENT" && organizerEvents && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Events for Bundle *
+                </label>
+                <div className="border border-gray-300 rounded-lg p-3 bg-white max-h-48 overflow-y-auto space-y-2">
+                  {organizerEvents.map((event) => (
+                    <label key={event._id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.selectedEventIds.includes(event._id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({
+                              ...formData,
+                              selectedEventIds: [...formData.selectedEventIds, event._id],
+                              includedTiers: [], // Clear tiers when events change
+                            });
+                          } else {
+                            // Don't allow deselecting if it's the last event
+                            if (formData.selectedEventIds.length > 1) {
+                              setFormData({
+                                ...formData,
+                                selectedEventIds: formData.selectedEventIds.filter(id => id !== event._id),
+                                includedTiers: formData.includedTiers.filter(tier => tier.eventId !== event._id),
+                              });
+                            }
+                          }
+                        }}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{event.name}</div>
+                        {event.startDate && (
+                          <div className="text-xs text-gray-500">
+                            {new Date(event.startDate).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select at least 2 events for a multi-event bundle
+                </p>
+              </div>
+            )}
+
             {/* Included Tiers */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -315,13 +439,18 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
               {formData.includedTiers.length > 0 ? (
                 <div className="space-y-2 mb-3">
                   {formData.includedTiers.map((includedTier) => {
-                    const tier = tiers.find(t => t._id === includedTier.tierId);
+                    const tier = availableTiers?.find(t => t._id === includedTier.tierId);
                     return (
                       <div key={includedTier.tierId} className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg p-3">
                         <div className="flex-1">
                           <div className="font-medium text-gray-900">{includedTier.tierName}</div>
                           <div className="text-sm text-gray-600">
                             ${((tier?.price || 0) / 100).toFixed(2)} each
+                            {includedTier.eventName && (
+                              <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
+                                {includedTier.eventName}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -355,7 +484,12 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
               <select
                 onChange={(e) => {
                   if (e.target.value) {
-                    addTierToBundle(e.target.value as Id<"ticketTiers">);
+                    const selectedTier = availableTiers?.find(t => t._id === e.target.value as Id<"ticketTiers">);
+                    if (selectedTier) {
+                      const evtId = (selectedTier as any).eventId;
+                      const evtName = (selectedTier as any).eventName;
+                      addTierToBundle(selectedTier._id, evtId, evtName);
+                    }
                     e.target.value = "";
                   }
                 }}
@@ -363,14 +497,34 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                 defaultValue=""
               >
                 <option value="">+ Add Ticket Tier</option>
-                {tiers
-                  .filter(tier => !formData.includedTiers.some(it => it.tierId === tier._id))
-                  .map(tier => (
-                    <option key={tier._id} value={tier._id}>
-                      {tier.name} - ${(tier.price / 100).toFixed(2)} ({tier.available} available)
-                    </option>
-                  ))
-                }
+                {formData.bundleType === "MULTI_EVENT" ? (
+                  // Group by event for multi-event bundles
+                  formData.selectedEventIds.map(evtId => {
+                    const event = organizerEvents?.find(e => e._id === evtId);
+                    const eventTiers = multiEventTiers?.filter(t => t.eventId === evtId && !formData.includedTiers.some(it => it.tierId === t._id)) || [];
+
+                    if (eventTiers.length === 0) return null;
+
+                    return (
+                      <optgroup key={evtId} label={event?.name || "Event"}>
+                        {eventTiers.map(tier => (
+                          <option key={tier._id} value={tier._id}>
+                            {tier.name} - ${(tier.price / 100).toFixed(2)} ({tier.available} available)
+                          </option>
+                        ))}
+                      </optgroup>
+                    );
+                  })
+                ) : (
+                  // Standard list for single-event bundles
+                  availableTiers
+                    ?.filter(tier => !formData.includedTiers.some(it => it.tierId === tier._id))
+                    .map(tier => (
+                      <option key={tier._id} value={tier._id}>
+                        {tier.name} - ${(tier.price / 100).toFixed(2)} ({tier.available} available)
+                      </option>
+                    ))
+                )}
               </select>
             </div>
 

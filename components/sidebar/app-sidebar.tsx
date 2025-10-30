@@ -12,6 +12,8 @@ import {
   BarChart3,
   ChevronDown,
   Gift,
+  Armchair,
+  Package,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -53,6 +55,7 @@ const navItems = [
       { title: 'My Events', url: '/organizer/events' },
       { title: 'Claim Events', url: '/organizer/claim-events' },
       { title: 'Create Event', url: '/organizer/events/create' },
+      { title: 'Multi-Event Bundles', url: '/organizer/bundles' },
     ],
   },
   {

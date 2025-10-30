@@ -77,7 +77,7 @@ export default function PlatformAnalyticsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
         >
           <div className="flex items-center justify-between mb-4">
             <DollarSign className="w-8 h-8" />
@@ -94,7 +94,7 @@ export default function PlatformAnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
         >
           <div className="flex items-center justify-between mb-4">
             <Users className="w-8 h-8" />
@@ -109,7 +109,7 @@ export default function PlatformAnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
         >
           <div className="flex items-center justify-between mb-4">
             <Calendar className="w-8 h-8" />
@@ -124,7 +124,7 @@ export default function PlatformAnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
         >
           <div className="flex items-center justify-between mb-4">
             <Ticket className="w-8 h-8" />

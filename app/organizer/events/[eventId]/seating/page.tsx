@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -115,7 +115,7 @@ export default function SeatingChartBuilderPage() {
   const [showTableEditor, setShowTableEditor] = useState(false);
 
   // Initialize with existing chart data
-  useState(() => {
+  useEffect(() => {
     if (existingChart && sections.length === 0) {
       setChartName(existingChart.name);
       setSections(existingChart.sections as Section[]);
@@ -125,7 +125,7 @@ export default function SeatingChartBuilderPage() {
         setSeatingStyle(existingChart.seatingStyle as SeatingStyle);
       }
     }
-  });
+  }, [existingChart, sections.length]);
 
   const generateId = () => Math.random().toString(36).substring(2, 11);
 

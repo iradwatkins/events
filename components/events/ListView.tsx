@@ -35,7 +35,7 @@ export function ListView({ events }: ListViewProps) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+                <div className="w-full h-full flex items-center justify-center bg-blue-600">
                   <Calendar className="w-12 h-12 text-white opacity-50" />
                 </div>
               )}

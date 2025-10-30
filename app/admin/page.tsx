@@ -126,7 +126,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Revenue Stats */}
-      <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white">
+      <div className="bg-purple-600 rounded-lg shadow-md p-6 text-white">
         <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
           <DollarSign className="w-6 h-6" />
           Revenue Overview

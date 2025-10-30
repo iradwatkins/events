@@ -302,7 +302,7 @@ export function SquareCardPayment({
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl p-6 shadow-lg">
+            <div className="bg-purple-600 border-2 border-red-200 rounded-xl p-6 shadow-lg">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
@@ -335,7 +335,7 @@ export function SquareCardPayment({
 
                   <div className="flex justify-center pt-2">
                     <button
-                      className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                      className="px-8 py-3 bg-purple-600 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                       onClick={() => setError(null)}
                     >
                       Try Again

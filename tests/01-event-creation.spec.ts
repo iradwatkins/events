@@ -15,7 +15,7 @@ test.describe("Event Creation - End to End", () => {
   let createdEventId: string | null = null;
 
   test("should complete full event creation process", async ({ page }) => {
-    console.log("🚀 Starting End-to-End Event Creation Test");
+    console.log(" Starting End-to-End Event Creation Test");
 
     // Set up console logging
     page.on("console", (msg) => {
@@ -34,7 +34,7 @@ test.describe("Event Creation - End to End", () => {
     const currentUrl = page.url();
     if (currentUrl.includes("/login")) {
       console.log("🔐 Auth required, currently on login page");
-      console.log("⚠️  Note: This test requires manual authentication or auth state setup");
+      console.log("  Note: This test requires manual authentication or auth state setup");
 
       // Take screenshot of login page
       await page.screenshot({
@@ -47,7 +47,7 @@ test.describe("Event Creation - End to End", () => {
       return;
     }
 
-    console.log("✅ On create event page");
+    console.log(" On create event page");
 
     // ============================================
     // STEP 1: Basic Information
@@ -83,7 +83,7 @@ test.describe("Event Creation - End to End", () => {
     // Click Next to go to step 2
     await page.click('button:has-text("Next")');
     await waitForStableState(page);
-    console.log("✅ Step 1 Complete\n");
+    console.log(" Step 1 Complete\n");
 
     // ============================================
     // STEP 2: Date & Time
@@ -123,7 +123,7 @@ test.describe("Event Creation - End to End", () => {
     // Click Next
     await page.click('button:has-text("Next")');
     await waitForStableState(page);
-    console.log("✅ Step 2 Complete\n");
+    console.log(" Step 2 Complete\n");
 
     // ============================================
     // STEP 3: Location
@@ -169,7 +169,7 @@ test.describe("Event Creation - End to End", () => {
     // Click Next
     await page.click('button:has-text("Next")');
     await waitForStableState(page);
-    console.log("✅ Step 3 Complete\n");
+    console.log(" Step 3 Complete\n");
 
     // ============================================
     // STEP 4: Additional Details & Image
@@ -183,7 +183,7 @@ test.describe("Event Creation - End to End", () => {
     // Check if image upload is present
     const imageUploadVisible = await page.locator("text=Upload Event Image").count();
     if (imageUploadVisible > 0) {
-      console.log("  ℹ️  Image upload field present (skipping upload for test)");
+      console.log("    Image upload field present (skipping upload for test)");
     }
 
     // Take screenshot of step 4
@@ -195,7 +195,7 @@ test.describe("Event Creation - End to End", () => {
     // ============================================
     // SUBMIT EVENT
     // ============================================
-    console.log("\n🚀 Submitting Event...");
+    console.log("\n Submitting Event...");
 
     // Listen for the success alert
     page.once("dialog", async (dialog) => {
@@ -218,10 +218,10 @@ test.describe("Event Creation - End to End", () => {
       const match = finalUrl.match(/\/organizer\/events\/([^\/]+)\/payment-setup/);
       if (match) {
         createdEventId = match[1];
-        console.log(`  ✅ Event created successfully! ID: ${createdEventId}`);
+        console.log(`   Event created successfully! ID: ${createdEventId}`);
       }
     } else {
-      console.log("  ⚠️  URL did not redirect to payment setup page");
+      console.log("    URL did not redirect to payment setup page");
     }
 
     // Take final screenshot
@@ -230,7 +230,7 @@ test.describe("Event Creation - End to End", () => {
       fullPage: true,
     });
 
-    console.log("\n✅ Event Creation Test Complete!");
+    console.log("\n Event Creation Test Complete!");
 
     // Verify we're on a valid page (either payment setup or event detail)
     const isValidPage = finalUrl.includes("/organizer/events/");

@@ -13,18 +13,25 @@ export interface SeatPosition {
 
 /**
  * Calculate seat positions around a round table
+ * @param arcDegrees - Arc to place seats on (360 = full circle, 180 = half circle, 270 = 3/4 circle)
+ * @param startAngle - Starting angle in degrees (0 = right, 90 = bottom, 180 = left, 270 = top)
  */
 export function calculateRoundTableSeats(
   tableX: number,
   tableY: number,
   tableDiameter: number,
   seatCount: number,
-  startAngle: number = 0
+  startAngle: number = 0,
+  arcDegrees: number = 360
 ): SeatPosition[] {
   const positions: SeatPosition[] = [];
   const radius = tableDiameter / 2;
   const seatRadius = 15; // Visual seat size
-  const angleStep = 360 / seatCount;
+
+  // For crescent/cabaret seating, distribute seats across the arc
+  // Leave small gaps at start and end for better spacing
+  const arcSpan = arcDegrees;
+  const angleStep = seatCount > 1 ? arcSpan / (seatCount - 1) : 0;
 
   for (let i = 0; i < seatCount; i++) {
     const angle = startAngle + (i * angleStep);
@@ -167,6 +174,7 @@ export function calculateSquareTableSeats(
 
 /**
  * Auto-arrange seats around a table based on its shape
+ * @param seatArc - Optional arc configuration for round tables { startAngle, arcDegrees }
  */
 export function autoArrangeSeats(
   shape: "ROUND" | "RECTANGULAR" | "SQUARE" | "CUSTOM",
@@ -174,18 +182,33 @@ export function autoArrangeSeats(
   tableY: number,
   tableWidth: number,
   tableHeight: number,
-  seatCount: number
+  seatCount: number,
+  seatArc?: { startAngle?: number; arcDegrees?: number }
 ): SeatPosition[] {
   switch (shape) {
     case "ROUND":
-      return calculateRoundTableSeats(tableX, tableY, tableWidth, seatCount);
+      return calculateRoundTableSeats(
+        tableX,
+        tableY,
+        tableWidth,
+        seatCount,
+        seatArc?.startAngle ?? 0,
+        seatArc?.arcDegrees ?? 360
+      );
     case "RECTANGULAR":
       return calculateRectangularTableSeats(tableX, tableY, tableWidth, tableHeight, seatCount);
     case "SQUARE":
       return calculateSquareTableSeats(tableX, tableY, tableWidth, seatCount);
     case "CUSTOM":
       // For custom shapes, default to round positioning
-      return calculateRoundTableSeats(tableX, tableY, tableWidth, seatCount);
+      return calculateRoundTableSeats(
+        tableX,
+        tableY,
+        tableWidth,
+        seatCount,
+        seatArc?.startAngle ?? 0,
+        seatArc?.arcDegrees ?? 360
+      );
     default:
       return calculateRoundTableSeats(tableX, tableY, tableWidth, seatCount);
   }

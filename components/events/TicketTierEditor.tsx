@@ -11,6 +11,8 @@ interface TicketTier {
   price: string;
   quantity: string;
   pricingTiers?: PricingTier[]; // Optional early bird pricing
+  isTablePackage?: boolean; // True if selling entire tables
+  tableCapacity?: number; // Number of seats per table (4, 6, 8, 10, etc.)
 }
 
 interface TicketTierEditorProps {
@@ -123,7 +125,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                 {/* Price */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price (USD) *
+                    {tier.isTablePackage ? "Price per Table (USD) *" : "Price (USD) *"}
                   </label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -131,12 +133,17 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                       type="number"
                       value={tier.price}
                       onChange={(e) => updateTier(tier.id, "price", e.target.value)}
-                      placeholder="25.00"
+                      placeholder={tier.isTablePackage ? "500.00" : "25.00"}
                       step="0.01"
                       min="0"
                       className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                     />
                   </div>
+                  {tier.isTablePackage && tier.tableCapacity && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      ${(parseFloat(tier.price) / tier.tableCapacity || 0).toFixed(2)} per seat
+                    </p>
+                  )}
                 </div>
 
                 {/* Quantity */}
@@ -169,6 +176,68 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                     rows={2}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
                   />
+                </div>
+
+                {/* Table Package Option */}
+                <div className="md:col-span-2 pt-3 border-t border-gray-200">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={tier.isTablePackage || false}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        onChange(
+                          tiers.map((t) =>
+                            t.id === tier.id
+                              ? {
+                                  ...t,
+                                  isTablePackage: isChecked,
+                                  tableCapacity: isChecked ? 4 : undefined,
+                                }
+                              : t
+                          )
+                        );
+                      }}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Sell as Table Package
+                    </span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1 ml-6">
+                    Customers purchase entire tables instead of individual seats
+                  </p>
+
+                  {tier.isTablePackage && (
+                    <div className="mt-3 ml-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Table Capacity (Number of Seats) *
+                      </label>
+                      <select
+                        value={tier.tableCapacity || 4}
+                        onChange={(e) =>
+                          onChange(
+                            tiers.map((t) =>
+                              t.id === tier.id
+                                ? { ...t, tableCapacity: parseInt(e.target.value) }
+                                : t
+                            )
+                          )
+                        }
+                        className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+                      >
+                        <option value="2">2 Seats (Couple)</option>
+                        <option value="4">4 Seats (Small Table)</option>
+                        <option value="6">6 Seats (Standard Table)</option>
+                        <option value="8">8 Seats (Large Table)</option>
+                        <option value="10">10 Seats (XL Table)</option>
+                        <option value="12">12 Seats (XXL Table)</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Quantity field above represents number of tables available
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

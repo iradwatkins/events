@@ -173,7 +173,7 @@ export default function EditEventPage() {
         </Link>
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
+          <div className="bg-purple-600 p-6">
             <h1 className="text-3xl font-bold text-white">Edit Event</h1>
             <p className="text-blue-100 mt-2">Update your event details</p>
           </div>

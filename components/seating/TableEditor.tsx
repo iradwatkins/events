@@ -16,6 +16,10 @@ export interface Table {
   height: number;
   rotation?: number;
   capacity: number;
+  seatArc?: {
+    startAngle?: number;
+    arcDegrees?: number;
+  };
   seats: Array<{
     id: string;
     number: string;
@@ -68,7 +72,8 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
       0,
       table.width,
       table.height,
-      table.capacity
+      table.capacity,
+      table.seatArc
     );
 
     const newSeats = table.seats.map((seat, i) => ({
@@ -103,7 +108,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
         className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl border-l border-gray-200 overflow-y-auto z-50"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-4 text-white sticky top-0 z-10">
+        <div className="bg-purple-600 px-6 py-4 text-white sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Edit Table</h2>
             <button
@@ -156,21 +161,62 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
               <input
                 type="number"
                 min="1"
-                max="20"
+                max="100"
                 value={localCapacity}
                 onChange={(e) => handleCapacityChange(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Number of seats around this table (1-20)
+              Number of seats around this table (1-100)
             </p>
+            {parseInt(localCapacity) > 50 && (
+              <div className="flex items-start gap-2 mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                <span className="text-amber-600">⚠️</span>
+                <span>Large tables (50+ seats) work best with King's Table or long rectangular configurations</span>
+              </div>
+            )}
           </div>
+
+          {/* Seat Arrangement - Only for ROUND tables */}
+          {table.shape === "ROUND" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Seat Arrangement
+              </label>
+              <select
+                value={
+                  table.seatArc?.arcDegrees === 360 || !table.seatArc ? "full" :
+                  table.seatArc?.arcDegrees === 270 ? "three-quarter" :
+                  table.seatArc?.arcDegrees === 180 ? "half" :
+                  table.seatArc?.arcDegrees === 135 ? "crescent" : "full"
+                }
+                onChange={(e) => {
+                  const arcMap = {
+                    full: { startAngle: 0, arcDegrees: 360 },
+                    "three-quarter": { startAngle: 45, arcDegrees: 270 },
+                    half: { startAngle: 0, arcDegrees: 180 },
+                    crescent: { startAngle: 0, arcDegrees: 135 },
+                  };
+                  onUpdate({ seatArc: arcMap[e.target.value as keyof typeof arcMap] });
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="full">Full Circle (360°)</option>
+                <option value="three-quarter">3/4 Circle (270°)</option>
+                <option value="half">Half Circle (180°)</option>
+                <option value="crescent">Crescent/Cabaret (135°)</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Cabaret/Crescent style seats guests on one side only, perfect for viewing a stage or presentation
+              </p>
+            </div>
+          )}
 
           {/* Auto-Arrange Button */}
           <button
             onClick={handleAutoArrange}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
           >
             <Wand2 className="w-4 h-4" />
             Auto-Arrange Seats

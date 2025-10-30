@@ -131,7 +131,7 @@ export default function StaffDashboardPage() {
                   className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
                 >
                   {/* Event Header */}
-                  <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-white">
+                  <div className="p-6 border-b bg-purple-600">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-2">

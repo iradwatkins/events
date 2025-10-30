@@ -142,7 +142,7 @@ export default function TransferAcceptancePage() {
             className="bg-white rounded-lg shadow-md overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
+            <div className="bg-purple-600 p-6 text-white">
               <div className="flex items-center gap-3 mb-2">
                 <Ticket className="w-8 h-8" />
                 <h1 className="text-2xl font-bold">Ticket Transfer</h1>

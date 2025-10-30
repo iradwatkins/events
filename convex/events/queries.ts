@@ -321,7 +321,7 @@ export const searchClaimableEvents = query({
     // Apply category filter
     if (args.category) {
       claimableEvents = claimableEvents.filter(
-        (event) => event.category === args.category
+        (event) => event.categories?.includes(args.category as string)
       );
     }
 

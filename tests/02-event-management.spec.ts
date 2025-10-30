@@ -29,7 +29,7 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
     const eventLink = await firstEvent.getAttribute("href");
 
     if (!eventLink) {
-      console.log("⚠️  No events found. Please create an event first.");
+      console.log("  No events found. Please create an event first.");
       test.skip();
       return;
     }
@@ -61,7 +61,7 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
         await page.click('a[href*="/payment-setup"]');
         await waitForStableState(page);
       } else {
-        console.log("  ℹ️  Payment setup link not found, event may already be configured");
+        console.log("    Payment setup link not found, event may already be configured");
       }
     }
 
@@ -88,7 +88,7 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
         }
       }
     } else {
-      console.log("  ℹ️  Payment already configured or different UI");
+      console.log("    Payment already configured or different UI");
     }
 
     // Take final screenshot
@@ -97,12 +97,12 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
       fullPage: true,
     });
 
-    console.log("✅ Payment Configuration Test Complete");
+    console.log(" Payment Configuration Test Complete");
   });
 
   test("should setup ticket tiers", async ({ page }) => {
     if (!eventId) {
-      console.log("⚠️  No event ID from previous test, finding first event...");
+      console.log("  No event ID from previous test, finding first event...");
       await page.goto("/organizer/events");
       await waitForStableState(page);
 
@@ -110,7 +110,7 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
       const eventLink = await firstEvent.getAttribute("href");
 
       if (!eventLink) {
-        console.log("⚠️  No events found.");
+        console.log("  No events found.");
         test.skip();
         return;
       }
@@ -118,7 +118,7 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
       eventId = eventLink.split("/")[3];
     }
 
-    console.log(`\n🎟️  Testing Ticket Tier Setup for event: ${eventId}`);
+    console.log(`\n  Testing Ticket Tier Setup for event: ${eventId}`);
 
     // Navigate to ticket setup
     await page.goto(`/organizer/events/${eventId}/tickets/setup`);
@@ -195,7 +195,7 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
         }
       }
     } else {
-      console.log("  ℹ️  Ticket tier UI not found or already configured");
+      console.log("    Ticket tier UI not found or already configured");
     }
 
     // Take final screenshot
@@ -204,12 +204,12 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
       fullPage: true,
     });
 
-    console.log("✅ Ticket Setup Test Complete");
+    console.log(" Ticket Setup Test Complete");
   });
 
   test("should manage event staff", async ({ page }) => {
     if (!eventId) {
-      console.log("⚠️  No event ID available");
+      console.log("  No event ID available");
       test.skip();
       return;
     }
@@ -262,7 +262,7 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
         });
       }
     } else {
-      console.log("  ℹ️  Staff management UI not found");
+      console.log("    Staff management UI not found");
     }
 
     // Take final screenshot
@@ -271,17 +271,17 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
       fullPage: true,
     });
 
-    console.log("✅ Staff Management Test Complete");
+    console.log(" Staff Management Test Complete");
   });
 
   test("should verify event can be published", async ({ page }) => {
     if (!eventId) {
-      console.log("⚠️  No event ID available");
+      console.log("  No event ID available");
       test.skip();
       return;
     }
 
-    console.log(`\n🚀 Testing Event Publishing for event: ${eventId}`);
+    console.log(`\n Testing Event Publishing for event: ${eventId}`);
 
     // Navigate to event detail
     await page.goto(`/organizer/events/${eventId}`);
@@ -311,7 +311,7 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
         fullPage: true,
       });
     } else {
-      console.log("  ℹ️  Event may already be published or publish button not found");
+      console.log("    Event may already be published or publish button not found");
     }
 
     // Navigate to public events page to verify
@@ -326,6 +326,6 @@ test.describe("Event Management - Payment Setup & Publishing", () => {
 
     console.log("  ✓ Checked public homepage");
 
-    console.log("✅ Publishing Test Complete");
+    console.log(" Publishing Test Complete");
   });
 });

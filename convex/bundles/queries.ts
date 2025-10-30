@@ -291,6 +291,237 @@ export const getMultiEventBundles = query({
 });
 
 /**
+ * Get all bundles (single and multi-event) for an organizer
+ */
+export const getAllOrganizerBundles = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: Use test user if not authenticated
+    let user;
+    if (!identity) {
+      console.warn("[getAllOrganizerBundles] TESTING MODE - Using test user");
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!user) return [];
+
+    // Get all events by this organizer
+    const organizerEvents = await ctx.db
+      .query("events")
+      .filter((q) => q.eq(q.field("organizerId"), user._id))
+      .collect();
+
+    const eventIds = organizerEvents.map((e) => e._id);
+
+    // Get all bundles
+    const allBundles = await ctx.db
+      .query("ticketBundles")
+      .collect();
+
+    // Filter bundles owned by this organizer
+    const organizerBundles = allBundles.filter((bundle) => {
+      // Single-event bundles: check if eventId belongs to organizer
+      if (bundle.bundleType === "SINGLE_EVENT" || !bundle.bundleType) {
+        return bundle.eventId && eventIds.includes(bundle.eventId);
+      }
+
+      // Multi-event bundles: check if any eventIds belong to organizer
+      if (bundle.bundleType === "MULTI_EVENT") {
+        return bundle.eventIds && bundle.eventIds.some((eid) => eventIds.includes(eid));
+      }
+
+      return false;
+    });
+
+    // Enrich with event and tier information
+    const enrichedBundles = await Promise.all(
+      organizerBundles.map(async (bundle) => {
+        // Get event details
+        const bundleEventIds =
+          bundle.bundleType === "MULTI_EVENT" && bundle.eventIds
+            ? bundle.eventIds
+            : bundle.eventId
+            ? [bundle.eventId]
+            : [];
+
+        const eventDetails = await Promise.all(
+          bundleEventIds.map(async (eventId) => {
+            const event = await ctx.db.get(eventId);
+            return event
+              ? {
+                  _id: event._id,
+                  name: event.name,
+                  startDate: event.startDate,
+                  imageUrl: event.imageUrl,
+                }
+              : null;
+          })
+        );
+
+        // Get tier details
+        const tierDetails = await Promise.all(
+          bundle.includedTiers.map(async (includedTier) => {
+            const tier = await ctx.db.get(includedTier.tierId);
+            return {
+              ...includedTier,
+              tierDetails: tier
+                ? {
+                    name: tier.name,
+                    description: tier.description,
+                    price: tier.price,
+                    available: tier.quantity - tier.sold,
+                  }
+                : null,
+            };
+          })
+        );
+
+        // Calculate availability
+        const maxAvailable = Math.min(
+          bundle.totalQuantity - bundle.sold,
+          ...tierDetails.map((td) =>
+            td.tierDetails ? Math.floor(td.tierDetails.available / td.quantity) : 0
+          )
+        );
+
+        return {
+          ...bundle,
+          events: eventDetails.filter((e) => e !== null),
+          includedTiersDetails: tierDetails,
+          available: maxAvailable,
+          percentageSavings:
+            bundle.regularPrice && bundle.regularPrice > 0
+              ? Math.round((bundle.savings! / bundle.regularPrice) * 100)
+              : 0,
+        };
+      })
+    );
+
+    // Sort by creation date (newest first)
+    return enrichedBundles.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  },
+});
+
+/**
+ * Get bundles available for a specific event (for event detail page)
+ * Returns both single-event bundles for this event AND multi-event bundles that include this event
+ */
+export const getBundlesForPublicEvent = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Get all active bundles
+    const allBundles = await ctx.db
+      .query("ticketBundles")
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    // Filter bundles that include this event
+    const relevantBundles = allBundles.filter((bundle) => {
+      // Check sale period
+      const onSale =
+        (!bundle.saleStart || now >= bundle.saleStart) &&
+        (!bundle.saleEnd || now <= bundle.saleEnd);
+
+      if (!onSale) return false;
+
+      // Single-event bundles: must match this eventId
+      if (bundle.bundleType === "SINGLE_EVENT" || !bundle.bundleType) {
+        return bundle.eventId === args.eventId;
+      }
+
+      // Multi-event bundles: must include this eventId
+      if (bundle.bundleType === "MULTI_EVENT") {
+        return bundle.eventIds && bundle.eventIds.includes(args.eventId);
+      }
+
+      return false;
+    });
+
+    // Enrich with event and tier information
+    const enrichedBundles = await Promise.all(
+      relevantBundles.map(async (bundle) => {
+        // Get event details
+        const bundleEventIds =
+          bundle.bundleType === "MULTI_EVENT" && bundle.eventIds
+            ? bundle.eventIds
+            : bundle.eventId
+            ? [bundle.eventId]
+            : [];
+
+        const eventDetails = await Promise.all(
+          bundleEventIds.map(async (eventId) => {
+            const event = await ctx.db.get(eventId);
+            return event
+              ? {
+                  _id: event._id,
+                  name: event.name,
+                  startDate: event.startDate,
+                  imageUrl: event.imageUrl,
+                  location: event.location,
+                }
+              : null;
+          })
+        );
+
+        // Get tier details
+        const tierDetails = await Promise.all(
+          bundle.includedTiers.map(async (includedTier) => {
+            const tier = await ctx.db.get(includedTier.tierId);
+            return {
+              ...includedTier,
+              tierDetails: tier
+                ? {
+                    name: tier.name,
+                    description: tier.description,
+                    price: tier.price,
+                    available: tier.quantity - tier.sold,
+                  }
+                : null,
+            };
+          })
+        );
+
+        // Calculate availability
+        const maxAvailable = Math.min(
+          bundle.totalQuantity - bundle.sold,
+          ...tierDetails.map((td) =>
+            td.tierDetails ? Math.floor(td.tierDetails.available / td.quantity) : 0
+          )
+        );
+
+        return {
+          ...bundle,
+          events: eventDetails.filter((e) => e !== null),
+          includedTiersDetails: tierDetails,
+          available: maxAvailable,
+          percentageSavings:
+            bundle.regularPrice && bundle.regularPrice > 0
+              ? Math.round((bundle.savings! / bundle.regularPrice) * 100)
+              : 0,
+        };
+      })
+    );
+
+    // Only return bundles with availability
+    return enrichedBundles.filter((b) => b.available > 0);
+  },
+});
+
+/**
  * Get all bundles (single and multi-event) for public display
  */
 export const getAllActiveBundles = query({

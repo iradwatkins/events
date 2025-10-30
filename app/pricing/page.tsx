@@ -7,7 +7,6 @@ import {
   Users,
   Calculator,
   Check,
-  AlertCircle,
   Zap,
   TrendingUp,
   Clock,
@@ -119,9 +118,9 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-purple-600">
       {/* Hero Section with Background Image */}
-      <div className="relative bg-gradient-to-r from-emerald-600 to-green-600 text-white py-20 overflow-hidden">
+      <div className="relative bg-purple-600 text-white py-20 overflow-hidden">
         {/* Background Image Overlay */}
         <div className="absolute inset-0">
           <Image
@@ -194,7 +193,7 @@ export default function PricingPage() {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-600/90 to-emerald-600/60 flex items-end">
+              <div className="absolute inset-0 bg-purple-600 flex items-end">
                 <div className="p-6 text-white">
                   <Package className="w-12 h-12 mb-3" />
                   <h3 className="text-2xl font-bold mb-2">PREPAY</h3>
@@ -279,7 +278,7 @@ export default function PricingPage() {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-600/90 to-blue-600/60 flex items-end">
+              <div className="absolute inset-0 bg-purple-600 flex items-end">
                 <div className="p-6 text-white">
                   <CreditCard className="w-12 h-12 mb-3" />
                   <h3 className="text-2xl font-bold mb-2">CREDIT CARD</h3>
@@ -354,7 +353,7 @@ export default function PricingPage() {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-purple-600/90 to-purple-600/60 flex items-end">
+              <div className="absolute inset-0 bg-purple-600 flex items-end">
                 <div className="p-6 text-white">
                   <Users className="w-12 h-12 mb-3" />
                   <h3 className="text-2xl font-bold mb-2">CONSIGNMENT</h3>
@@ -678,7 +677,7 @@ export default function PricingPage() {
       </div>
 
       {/* CTA Section with Background */}
-      <div className="relative bg-gradient-to-r from-emerald-600 to-green-600 text-white py-16 overflow-hidden">
+      <div className="relative bg-purple-600 text-white py-16 overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2940&auto=format&fit=crop"

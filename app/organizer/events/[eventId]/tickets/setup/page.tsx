@@ -16,6 +16,8 @@ type TicketTierForm = {
   quantity: string;
   saleStart: string;
   saleEnd: string;
+  isTablePackage: boolean;
+  tableCapacity: string;
 };
 
 export default function TicketSetupPage() {
@@ -31,6 +33,8 @@ export default function TicketSetupPage() {
       quantity: "",
       saleStart: "",
       saleEnd: "",
+      isTablePackage: false,
+      tableCapacity: "4",
     },
   ]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -192,6 +196,8 @@ export default function TicketSetupPage() {
         quantity: "",
         saleStart: "",
         saleEnd: "",
+        isTablePackage: false,
+        tableCapacity: "4",
       },
     ]);
   };
@@ -267,6 +273,8 @@ export default function TicketSetupPage() {
           quantity: parseInt(tier.quantity),
           saleStart: tier.saleStart ? new Date(tier.saleStart).getTime() : undefined,
           saleEnd: tier.saleEnd ? new Date(tier.saleEnd).getTime() : undefined,
+          isTablePackage: tier.isTablePackage,
+          tableCapacity: tier.isTablePackage ? parseInt(tier.tableCapacity) : undefined,
         });
       }
 
@@ -327,7 +335,7 @@ export default function TicketSetupPage() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6"
+            className="mb-6 bg-purple-600 border-2 border-green-200 rounded-lg p-6"
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -450,14 +458,14 @@ export default function TicketSetupPage() {
                     {/* Quantity */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Quantity Available *
+                        {tier.isTablePackage ? "Number of Tables Available *" : "Quantity Available *"}
                       </label>
                       <input
                         type="number"
                         min="1"
                         value={tier.quantity}
                         onChange={(e) => handleTierChange(index, "quantity", e.target.value)}
-                        placeholder="100"
+                        placeholder={tier.isTablePackage ? "4" : "100"}
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
                           errors[index]?.quantity ? "border-red-500" : "border-gray-300"
                         }`}
@@ -465,6 +473,63 @@ export default function TicketSetupPage() {
                       {errors[index]?.quantity && (
                         <p className="text-red-600 text-sm mt-1">{errors[index].quantity}</p>
                       )}
+                      {tier.isTablePackage && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Number of tables available for purchase
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Table Package Option */}
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id={`tablePackage-${index}`}
+                        checked={tier.isTablePackage}
+                        onChange={(e) => {
+                          const newTiers = [...tiers];
+                          newTiers[index].isTablePackage = e.target.checked;
+                          setTiers(newTiers);
+                        }}
+                        className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-600"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor={`tablePackage-${index}`} className="font-semibold text-indigo-900 cursor-pointer">
+                          Sell as Table Package
+                        </label>
+                        <p className="text-sm text-indigo-800 mt-1">
+                          Enable this to sell entire tables instead of individual seats. Customers must purchase all seats at a table together.
+                        </p>
+
+                        {tier.isTablePackage && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="mt-3"
+                          >
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Seats per Table *
+                            </label>
+                            <select
+                              value={tier.tableCapacity}
+                              onChange={(e) => handleTierChange(index, "tableCapacity", e.target.value)}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white"
+                            >
+                              <option value="2">2 seats</option>
+                              <option value="4">4 seats</option>
+                              <option value="6">6 seats</option>
+                              <option value="8">8 seats</option>
+                              <option value="10">10 seats</option>
+                              <option value="12">12 seats</option>
+                            </select>
+                            <p className="text-xs text-indigo-700 mt-2">
+                              <strong>Price breakdown:</strong> ${tier.price ? (parseFloat(tier.price) / parseInt(tier.tableCapacity || "4")).toFixed(2) : "0.00"} per seat
+                            </p>
+                          </motion.div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -473,7 +538,7 @@ export default function TicketSetupPage() {
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
-                      className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4"
+                      className="bg-purple-600 border border-blue-200 rounded-lg p-4"
                     >
                       <div className="flex items-start gap-2">
                         <DollarSign className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -593,7 +658,7 @@ export default function TicketSetupPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-lg p-6 mt-6"
+            className="bg-purple-600 border-2 border-purple-200 rounded-lg p-6 mt-6"
           >
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
               <Ticket className="w-5 h-5 text-purple-600" />

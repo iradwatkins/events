@@ -195,7 +195,7 @@ export default function AnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.4 }}
-          className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
         >
           <h3 className="text-lg font-semibold mb-2">Average Ticket Price</h3>
           <p className="text-3xl font-bold">
@@ -208,7 +208,7 @@ export default function AnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.5 }}
-          className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
         >
           <h3 className="text-lg font-semibold mb-2">Conversion Rate</h3>
           <p className="text-3xl font-bold">
@@ -221,7 +221,7 @@ export default function AnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.6 }}
-          className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
         >
           <h3 className="text-lg font-semibold mb-2">Average Event Size</h3>
           <p className="text-3xl font-bold">

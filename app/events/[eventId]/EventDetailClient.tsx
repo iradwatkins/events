@@ -38,6 +38,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
     eventId,
   });
   const seatingChart = useQuery(api.seating.queries.getPublicSeatingChart, { eventId });
+  const eventBundles = useQuery(api.bundles.queries.getBundlesForPublicEvent, { eventId });
 
   // Waitlist state
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
@@ -213,7 +214,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                     />
                   </div>
                 ) : (
-                  <div className="w-full aspect-[3/4] flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+                  <div className="w-full aspect-[3/4] flex items-center justify-center bg-blue-600">
                     <Calendar className="w-24 h-24 text-white opacity-50" />
                   </div>
                 )}
@@ -344,8 +345,8 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                             transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
                             className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
                               showEarlyBird
-                                ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200'
-                                : 'bg-gradient-to-r from-blue-50 to-white border-blue-100'
+                                ? 'bg-amber-50 border-amber-200'
+                                : 'bg-blue-50 border-blue-100'
                             }`}
                           >
                             <div className="flex justify-between items-start mb-2">
@@ -412,7 +413,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
               )}
 
               {/* Ticket Bundles Display */}
-              {eventDetails.eventType === "TICKETED_EVENT" && eventDetails.bundles && eventDetails.bundles.length > 0 && (
+              {eventDetails.eventType === "TICKETED_EVENT" && eventBundles && eventBundles.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -420,40 +421,77 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                   className="mb-6"
                 >
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Package className="w-5 h-5 text-purple-600" />
-                      <h3 className="text-lg font-semibold text-gray-900">Ticket Bundles</h3>
-                      <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
-                        Save More
-                      </span>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Package className="w-5 h-5 text-purple-600" />
+                        <h3 className="text-lg font-semibold text-gray-900">Ticket Bundles</h3>
+                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                          Save More
+                        </span>
+                      </div>
+                      <Link
+                        href="/bundles"
+                        className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
+                      >
+                        View All Bundles
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
                     </div>
                     <div className="space-y-3">
-                      {eventDetails.bundles.map((bundle: any, index: number) => (
+                      {eventBundles.map((bundle: any, index: number) => (
                         <motion.div
                           key={bundle._id}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.3, delay: 0.8 + index * 0.1 }}
-                          className="bg-gradient-to-r from-purple-50 to-white border border-purple-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                          className="bg-purple-50 border border-purple-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
+                          onClick={() => router.push(`/bundles/${bundle._id}`)}
                         >
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <p className="font-semibold text-gray-900">{bundle.name}</p>
                                 <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-green-500 text-white rounded-full font-bold">
                                   <TrendingDown className="w-3 h-3" />
                                   Save {bundle.percentageSavings}%
                                 </span>
+                                {bundle.bundleType === "MULTI_EVENT" && (
+                                  <span className="text-xs px-2 py-0.5 bg-purple-600 text-white rounded-full font-medium">
+                                    Multi-Event
+                                  </span>
+                                )}
                               </div>
                               {bundle.description && (
                                 <p className="text-sm text-gray-600 mb-2">{bundle.description}</p>
                               )}
+
+                              {/* Show events for multi-event bundles */}
+                              {bundle.bundleType === "MULTI_EVENT" && bundle.events && bundle.events.length > 0 && (
+                                <div className="mb-2">
+                                  <p className="text-xs text-gray-500 mb-1">Includes {bundle.events.length} events:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {bundle.events.map((event: any) => (
+                                      <span key={event._id} className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-200">
+                                        <Calendar className="w-3 h-3 inline mr-1" />
+                                        {event.name}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Show included tickets */}
                               <div className="flex flex-wrap gap-1">
-                                {bundle.includedTiers.map((includedTier: any) => (
-                                  <span key={includedTier.tierId} className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
-                                    {includedTier.quantity}x {includedTier.tierName}
+                                {bundle.includedTiersDetails?.slice(0, 3).map((tier: any) => (
+                                  <span key={tier.tierId} className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                    {tier.quantity}x {tier.tierName}
                                   </span>
                                 ))}
+                                {bundle.includedTiersDetails && bundle.includedTiersDetails.length > 3 && (
+                                  <span className="text-xs px-2 py-0.5 text-purple-600 font-medium">
+                                    +{bundle.includedTiersDetails.length - 3} more
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <div className="text-right ml-2">
@@ -467,10 +505,13 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                               )}
                             </div>
                           </div>
-                          <div className="mt-2">
+                          <div className="mt-2 flex items-center justify-between">
                             <p className="text-sm font-medium text-green-600">
                               {bundle.available} bundle{bundle.available !== 1 ? 's' : ''} available
                             </p>
+                            <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                              View Details →
+                            </button>
                           </div>
                         </motion.div>
                       ))}
@@ -488,7 +529,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                   className="mb-6"
                 >
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 shadow-sm">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm">
                       <div className="flex items-center gap-2 mb-2">
                         <Ticket className="w-5 h-5 text-green-600" />
                         <p className="font-semibold text-green-900">Door Price</p>

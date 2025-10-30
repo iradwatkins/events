@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Check, Info, CreditCard, Zap, ArrowLeft } from "lucide-react";
+import { Check, Info, CreditCard, Zap, ArrowLeft, DollarSign, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { OrganizerPrepayment } from "@/components/organizer/OrganizerPrepayment";
 
 type PaymentModel = "PRE_PURCHASE" | "PAY_AS_SELL";
 
@@ -17,6 +18,7 @@ export default function PaymentSetupPage() {
 
   const [selectedModel, setSelectedModel] = useState<PaymentModel | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPrepayment, setShowPrepayment] = useState(false);
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
   const currentUser = useQuery(api.users.queries.getCurrentUser);
@@ -27,6 +29,9 @@ export default function PaymentSetupPage() {
   const createStripeConnectAccount = useMutation(api.payments.mutations.createStripeConnectAccount);
 
   const isLoading = !event || !currentUser;
+
+  // Check if user has Stripe account connected
+  const hasStripeConnected = currentUser?.stripeAccountSetupComplete === true;
 
   // Check if user is the organizer
   if (!isLoading && event.organizerId !== currentUser?._id) {
@@ -52,21 +57,11 @@ export default function PaymentSetupPage() {
     setIsProcessing(true);
     try {
       if (selectedModel === "PRE_PURCHASE") {
-        // Configure pre-purchase model
-        await configurePayment({
-          eventId,
-          model: "PRE_PURCHASE",
-          ticketPrice: 0.30,
-        });
-
-        // TESTING MODE: Skip credit purchase, go straight to dashboard
-        console.log("[PAYMENT SETUP] TESTING MODE - Skipping credit purchase, redirecting to dashboard");
-        alert("Payment configured successfully! Redirecting to dashboard...");
-        router.push("/organizer/events");
+        // Show prepayment flow
+        setShowPrepayment(true);
+        setIsProcessing(false);
       } else {
-        // Configure pay-as-sell model and create Stripe Connect account
-        const { accountLinkUrl } = await createStripeConnectAccount({ eventId });
-
+        // Configure pay-as-sell model
         await configurePayment({
           eventId,
           model: "PAY_AS_SELL",
@@ -76,14 +71,36 @@ export default function PaymentSetupPage() {
           stripeFeeFixed: 0.30,
         });
 
-        // Redirect to Stripe Connect onboarding
-        window.location.href = accountLinkUrl;
+        // Redirect to Stripe Connect onboarding flow
+        router.push(`/organizer/stripe-connect?action=create&email=${currentUser.email}`);
       }
     } catch (error) {
       console.error("Payment setup error:", error);
       alert("Failed to configure payment. Please try again.");
       setIsProcessing(false);
     }
+  };
+
+  const handlePrepaymentSuccess = async () => {
+    try {
+      // Configure pre-purchase model after payment
+      await configurePayment({
+        eventId,
+        model: "PRE_PURCHASE",
+        ticketPrice: 0.30,
+      });
+
+      alert("Payment configured successfully! Redirecting to dashboard...");
+      router.push("/organizer/events");
+    } catch (error) {
+      console.error("Payment configuration error:", error);
+      alert("Failed to configure payment. Please contact support.");
+    }
+  };
+
+  const handlePrepaymentCancel = () => {
+    setShowPrepayment(false);
+    setSelectedModel(null);
   };
 
   if (isLoading) {
@@ -149,6 +166,36 @@ export default function PaymentSetupPage() {
   const payAsSellTotalFee = payAsSellPlatformFee + payAsSellStripeFee;
   const payAsSellNetAmount = exampleTicketPrice - payAsSellTotalFee;
 
+  // Show prepayment flow if selected
+  if (showPrepayment) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-8">
+          <Link
+            href={`/organizer/events/${eventId}/payment-setup`}
+            onClick={(e) => {
+              e.preventDefault();
+              handlePrepaymentCancel();
+            }}
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Payment Selection
+          </Link>
+
+          <OrganizerPrepayment
+            eventId={eventId}
+            eventName={event.name}
+            estimatedTickets={100} // Default estimate, could be made configurable
+            pricePerTicket={0.30}
+            onPaymentSuccess={handlePrepaymentSuccess}
+            onCancel={handlePrepaymentCancel}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -203,7 +250,7 @@ export default function PaymentSetupPage() {
               <p className="text-sm text-gray-600">per ticket sold</p>
             </div>
 
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-4">
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-700">
@@ -213,7 +260,7 @@ export default function PaymentSetupPage() {
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-700">
-                  Purchase credits upfront
+                  Pay upfront with <span className="font-semibold">CashApp</span> or <span className="font-semibold">Square</span>
                 </p>
               </div>
               <div className="flex items-start gap-2">
@@ -226,6 +273,15 @@ export default function PaymentSetupPage() {
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-700">
                   Best for high-volume events
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div className="flex items-start gap-2">
+                <DollarSign className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-800">
+                  <span className="font-semibold">How it works:</span> Pay platform fee upfront, then collect 100% of ticket sales
                 </p>
               </div>
             </div>
@@ -244,10 +300,13 @@ export default function PaymentSetupPage() {
           {/* Pay-As-Sell Model */}
           <button
             onClick={() => handleModelSelection("PAY_AS_SELL")}
-            className={`relative bg-white rounded-lg border-2 p-6 text-left transition-all hover:shadow-lg ${
-              selectedModel === "PAY_AS_SELL"
-                ? "border-purple-600 shadow-lg"
-                : "border-gray-200"
+            disabled={!hasStripeConnected}
+            className={`relative bg-white rounded-lg border-2 p-6 text-left transition-all ${
+              !hasStripeConnected
+                ? "opacity-60 cursor-not-allowed border-gray-200"
+                : selectedModel === "PAY_AS_SELL"
+                ? "border-purple-600 shadow-lg hover:shadow-lg"
+                : "border-gray-200 hover:shadow-lg"
             }`}
           >
             {selectedModel === "PAY_AS_SELL" && (
@@ -273,7 +332,18 @@ export default function PaymentSetupPage() {
               <p className="text-sm text-gray-600">+ Stripe fees (2.9% + $0.30)</p>
             </div>
 
-            <div className="space-y-3 mb-6">
+            {!hasStripeConnected && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-orange-800">
+                    <span className="font-semibold">Stripe Connect Required:</span> Connect your Stripe account to use this payment model
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3 mb-4">
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-700">
@@ -283,19 +353,28 @@ export default function PaymentSetupPage() {
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-700">
-                  Fees deducted per sale
+                  Fees auto-deducted from each sale
                 </p>
               </div>
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-700">
-                  Powered by Stripe Connect
+                  Customers pay with <span className="font-semibold">credit/debit cards</span>
                 </p>
               </div>
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-700">
                   Best for trying out the platform
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+              <div className="flex items-start gap-2">
+                <Info className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-purple-800">
+                  <span className="font-semibold">Requires Stripe Connect:</span> {hasStripeConnected ? 'Your Stripe account is connected and ready!' : 'You\'ll be guided to connect your Stripe account'}
                 </p>
               </div>
             </div>

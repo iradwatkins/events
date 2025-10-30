@@ -21,6 +21,9 @@ export const createTicketTier = mutation({
       availableFrom: v.number(), // Start timestamp
       availableUntil: v.optional(v.number()), // End timestamp (optional for last tier)
     }))),
+    // Table Package Options
+    isTablePackage: v.optional(v.boolean()),
+    tableCapacity: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -103,6 +106,8 @@ export const createTicketTier = mutation({
       sold: 0,
       saleStart: args.saleStart,
       saleEnd: args.saleEnd,
+      isTablePackage: args.isTablePackage, // Table package mode
+      tableCapacity: args.tableCapacity, // Seats per table
       isActive: true,
       createdAt: Date.now(),
       updatedAt: Date.now(),

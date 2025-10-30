@@ -43,7 +43,7 @@ export function MasonryEventCard({ event }: MasonryEventCardProps) {
         />
 
         {/* Gradient overlay for better badge visibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none rounded-lg" />
+        <div className="absolute inset-0 bg-black/20 pointer-events-none rounded-lg" />
 
         {/* Event Type Badge - Top Left */}
         <motion.div

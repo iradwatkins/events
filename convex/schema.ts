@@ -216,6 +216,12 @@ export default defineSchema({
     saleStart: v.optional(v.number()),
     saleEnd: v.optional(v.number()),
     isActive: v.boolean(),
+
+    // Table Package - Sell entire tables as single units
+    isTablePackage: v.optional(v.boolean()), // True if this tier sells whole tables
+    tableCapacity: v.optional(v.number()), // Number of seats per table (4, 6, 8, 10, etc.)
+    // When isTablePackage=true, price is for entire table, not per seat
+
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -731,6 +737,11 @@ export default defineSchema({
         rotation: v.optional(v.number()), // Rotation in degrees
         // Custom polygon points (for CUSTOM shape)
         customPath: v.optional(v.string()), // SVG path data
+        // Seat arc configuration (for crescent/cabaret seating on round tables)
+        seatArc: v.optional(v.object({
+          startAngle: v.optional(v.number()), // Starting angle in degrees (0-360)
+          arcDegrees: v.optional(v.number()), // Arc span in degrees (e.g., 180 for half circle, 135 for crescent)
+        })),
         // Capacity and seats
         capacity: v.number(), // Max seats at this table
         seats: v.array(v.object({

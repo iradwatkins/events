@@ -22,7 +22,7 @@ test.describe("Event Creation", () => {
     page.on("pageerror", (error) => {
       const errorText = error.toString();
       errorMessages.push(errorText);
-      console.log(`❌ PAGE ERROR: ${errorText}`);
+      console.log(` PAGE ERROR: ${errorText}`);
     });
 
     // Intercept network requests to Convex
@@ -43,7 +43,7 @@ test.describe("Event Creation", () => {
       }
     });
 
-    console.log("🚀 Starting test: navigating to events page...");
+    console.log(" Starting test: navigating to events page...");
 
     // Navigate to the site
     await page.goto("https://events.stepperslife.com/organizer/events/create");
@@ -77,7 +77,7 @@ test.describe("Event Creation", () => {
 
       await page.waitForTimeout(2000);
     } else {
-      console.log("⚠️ Test Auth button not found");
+      console.log(" Test Auth button not found");
     }
 
     // Print all captured console messages
@@ -86,7 +86,7 @@ test.describe("Event Creation", () => {
 
     // Print errors
     if (errorMessages.length > 0) {
-      console.log("\n❌ Errors Found:");
+      console.log("\n Errors Found:");
       errorMessages.forEach((msg) => console.log(msg));
     }
   });

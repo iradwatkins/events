@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket } from "lucide-react";
+import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { formatEventDate } from "@/lib/date-format";
@@ -89,7 +89,7 @@ export default function OrganizerEventsPage() {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6 shadow-md">
+            <div className="bg-purple-600 border-2 border-green-200 rounded-lg p-6 shadow-md">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -194,7 +194,7 @@ export default function OrganizerEventsPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+                        <div className="w-full h-full flex items-center justify-center bg-purple-600">
                           <Calendar className="w-12 h-12 text-white opacity-50" />
                         </div>
                       )}
@@ -268,6 +268,20 @@ export default function OrganizerEventsPage() {
                             >
                               <Users className="w-4 h-4" />
                               Manage Staff
+                            </Link>
+                            <Link
+                              href={`/organizer/events/${event._id}/seating`}
+                              className="flex items-center gap-2 px-4 py-2 text-sm border border-purple-300 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                            >
+                              <Armchair className="w-4 h-4" />
+                              Manage Seating
+                            </Link>
+                            <Link
+                              href={`/organizer/events/${event._id}#bundles`}
+                              className="flex items-center gap-2 px-4 py-2 text-sm border border-emerald-300 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
+                            >
+                              <Package className="w-4 h-4" />
+                              Manage Bundles
                             </Link>
                             <Link
                               href={`/organizer/events/${event._id}/sales`}

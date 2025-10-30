@@ -47,6 +47,7 @@ export const getOrganizerSettlement = query({
     // Calculate settlement for each staff member
     const settlements = await Promise.all(
       staffMembers.map(async (staff) => {
+        if (!staff.eventId) return null;
         const event = await ctx.db.get(staff.eventId);
 
         // Get all sales by this staff member
@@ -105,28 +106,31 @@ export const getOrganizerSettlement = query({
       })
     );
 
+    // Filter out null values (staff without eventId)
+    const validSettlements = settlements.filter((s): s is NonNullable<typeof s> => s !== null);
+
     // Sort by net settlement (highest amounts first)
-    settlements.sort((a, b) => Math.abs(b.netSettlement) - Math.abs(a.netSettlement));
+    validSettlements.sort((a, b) => Math.abs(b.netSettlement) - Math.abs(a.netSettlement));
 
     // Calculate summary totals
     const summary = {
-      totalStaff: settlements.length,
-      activeStaff: settlements.filter((s) => s.isActive).length,
-      totalTicketsSold: settlements.reduce((sum, s) => s.totalTickets, 0),
-      totalCommissionEarned: settlements.reduce((sum, s) => sum + s.commissionEarned, 0),
-      totalCashCollected: settlements.reduce((sum, s) => sum + s.cashCollected, 0),
-      totalOwedToStaff: settlements
+      totalStaff: validSettlements.length,
+      activeStaff: validSettlements.filter((s) => s.isActive).length,
+      totalTicketsSold: validSettlements.reduce((sum, s) => s.totalTickets, 0),
+      totalCommissionEarned: validSettlements.reduce((sum, s) => sum + s.commissionEarned, 0),
+      totalCashCollected: validSettlements.reduce((sum, s) => sum + s.cashCollected, 0),
+      totalOwedToStaff: validSettlements
         .filter((s) => s.netSettlement > 0)
         .reduce((sum, s) => sum + s.netSettlement, 0),
-      totalOwedByStaff: settlements
+      totalOwedByStaff: validSettlements
         .filter((s) => s.netSettlement < 0)
         .reduce((sum, s) => sum + Math.abs(s.netSettlement), 0),
-      pendingSettlements: settlements.filter((s) => s.settlementStatus === "PENDING").length,
-      paidSettlements: settlements.filter((s) => s.settlementStatus === "PAID").length,
+      pendingSettlements: validSettlements.filter((s) => s.settlementStatus === "PENDING").length,
+      paidSettlements: validSettlements.filter((s) => s.settlementStatus === "PAID").length,
     };
 
     return {
-      settlements,
+      settlements: validSettlements,
       summary,
     };
   },
@@ -169,6 +173,10 @@ export const getStaffSettlementDetails = query({
     // Verify user is the organizer or admin
     if (staffMember.organizerId !== currentUser._id && currentUser.role !== "admin") {
       throw new Error("Unauthorized to view this staff member's settlement");
+    }
+
+    if (!staffMember.eventId) {
+      throw new Error("Staff member has no associated event");
     }
 
     const event = await ctx.db.get(staffMember.eventId);

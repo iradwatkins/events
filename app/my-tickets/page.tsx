@@ -28,6 +28,7 @@ import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
+import { formatEventLocation } from "@/lib/location-format";
 import toast from "react-hot-toast";
 
 export default function MyTicketsPage() {
@@ -327,7 +328,7 @@ export default function MyTicketsPage() {
                           {event.location && (
                             <span className="flex items-center gap-1">
                               <MapPin className="w-4 h-4" />
-                              {event.location}
+                              {formatEventLocation(event.location)}
                             </span>
                           )}
                         </div>
@@ -538,7 +539,7 @@ export default function MyTicketsPage() {
                           {event.location && (
                             <span className="flex items-center gap-1">
                               <MapPin className="w-4 h-4" />
-                              {event.location}
+                              {formatEventLocation(event.location)}
                             </span>
                           )}
                         </div>

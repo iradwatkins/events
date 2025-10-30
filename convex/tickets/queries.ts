@@ -517,3 +517,63 @@ export const getEventPricingInfo = query({
     return tiersWithPricing;
   },
 });
+
+/**
+ * Get a single ticket tier by ID
+ */
+export const getTicketTier = query({
+  args: { tierId: v.id("ticketTiers") },
+  handler: async (ctx, args) => {
+    const tier = await ctx.db.get(args.tierId);
+    return tier;
+  },
+});
+
+/**
+ * Get ticket tiers from multiple events (for multi-event bundle creation)
+ */
+export const getTiersFromMultipleEvents = query({
+  args: {
+    eventIds: v.array(v.id("events")),
+  },
+  handler: async (ctx, args) => {
+    const tiersWithEventInfo: Array<{
+      _id: string;
+      name: string;
+      price: number;
+      quantity: number;
+      sold: number;
+      available: number;
+      eventId: string;
+      eventName: string;
+    }> = [];
+
+    // Fetch tiers for each event
+    for (const eventId of args.eventIds) {
+      const event = await ctx.db.get(eventId);
+      if (!event) continue;
+
+      const tiers = await ctx.db
+        .query("ticketTiers")
+        .withIndex("by_event", (q) => q.eq("eventId", eventId))
+        .filter((q) => q.eq(q.field("isActive"), true))
+        .collect();
+
+      // Add event info to each tier
+      tiers.forEach((tier) => {
+        tiersWithEventInfo.push({
+          _id: tier._id,
+          name: tier.name,
+          price: tier.price,
+          quantity: tier.quantity,
+          sold: tier.sold,
+          available: tier.quantity - tier.sold,
+          eventId: eventId,
+          eventName: event.name,
+        });
+      });
+    }
+
+    return tiersWithEventInfo;
+  },
+});

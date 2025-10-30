@@ -10,7 +10,7 @@ import { ListView } from "@/components/events/ListView";
 import { SearchFilters } from "@/components/events/SearchFilters";
 import { ViewToggle } from "@/components/events/ViewToggle";
 import Link from "next/link";
-import { Plus, LogOut, User, Ticket, Calendar, LogIn } from "lucide-react";
+import { Plus, LogOut, User, Ticket, Calendar, LogIn, Package, TrendingDown, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
@@ -46,6 +46,13 @@ export default function Home() {
   );
 
   const events = showPastEvents ? pastEvents : upcomingEvents;
+
+  // Fetch featured bundles (top 3 by savings)
+  const allBundles = useQuery(api.bundles.queries.getAllActiveBundles);
+  const featuredBundles = useMemo(() => {
+    if (!allBundles) return [];
+    return allBundles.slice(0, 3); // Already sorted by savings in the query
+  }, [allBundles]);
 
   // Filter events based on search and category
   const filteredEvents = useMemo(() => {
@@ -261,6 +268,73 @@ export default function Home() {
             onTogglePastEvents={setShowPastEvents}
           />
         </motion.div>
+
+        {/* Featured Bundles Section */}
+        {!showPastEvents && featuredBundles && featuredBundles.length > 0 && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.35 }}
+            className="mb-12"
+          >
+            <div className="bg-purple-600 rounded-xl p-8 text-white shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Package className="w-6 h-6" />
+                    <h2 className="text-2xl font-bold">Featured Bundles</h2>
+                  </div>
+                  <p className="text-purple-100">Save big on multi-event passes and VIP packages</p>
+                </div>
+                <Link
+                  href="/bundles"
+                  className="px-6 py-3 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center gap-2"
+                >
+                  View All Bundles
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {featuredBundles.map((bundle: any) => (
+                  <Link
+                    key={bundle._id}
+                    href={`/bundles/${bundle._id}`}
+                    className="group bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all border border-white/20 hover:border-white/40"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="bg-green-400 text-green-900 px-3 py-1 rounded-full text-sm font-bold">
+                        Save {bundle.percentageSavings}%
+                      </div>
+                      {bundle.bundleType === "MULTI_EVENT" && (
+                        <div className="text-xs px-2 py-1 bg-purple-400 text-purple-900 rounded-full font-semibold">
+                          Multi-Event
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-bold mb-2 group-hover:text-purple-100 transition-colors">
+                      {bundle.name}
+                    </h3>
+                    <p className="text-sm text-purple-100 mb-4 line-clamp-2 opacity-90">
+                      {bundle.description || `Bundle includes ${bundle.events?.length || 0} events`}
+                    </p>
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <div className="text-2xl font-bold">
+                          ${(bundle.price / 100).toFixed(2)}
+                        </div>
+                        <div className="text-sm text-purple-200 line-through opacity-75">
+                          ${(bundle.regularPrice / 100).toFixed(2)}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Results Count and View Toggle */}
         <motion.div

@@ -34,8 +34,8 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
     console.log(`  📊 Found ${eventCards} public event(s)`);
 
     if (eventCards === 0) {
-      console.log("  ⚠️  No public events found. Events may need to be published first.");
-      console.log("  ℹ️  Skipping remaining tests in this suite.");
+      console.log("    No public events found. Events may need to be published first.");
+      console.log("    Skipping remaining tests in this suite.");
       test.skip();
       return;
     }
@@ -82,12 +82,12 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
 
     expect(hasEventName).toBeGreaterThan(0);
 
-    console.log("✅ Event Browsing Test Complete");
+    console.log(" Event Browsing Test Complete");
   });
 
   test("should view ticket options and navigate to checkout", async ({ page }) => {
     if (!selectedEventId) {
-      console.log("  ⚠️  No event selected from previous test");
+      console.log("    No event selected from previous test");
       test.skip();
       return;
     }
@@ -144,18 +144,18 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
           checkoutUrl.includes("/checkout") || checkoutUrl.includes("/tickets");
         expect(isCheckoutPage).toBeTruthy();
       } else {
-        console.log("  ℹ️  Purchase button not found - tickets may not be available yet");
+        console.log("    Purchase button not found - tickets may not be available yet");
       }
     } else {
-      console.log("  ℹ️  No ticket section found on event page");
+      console.log("    No ticket section found on event page");
     }
 
-    console.log("✅ Ticket Selection Test Complete");
+    console.log(" Ticket Selection Test Complete");
   });
 
   test("should complete checkout form", async ({ page }) => {
     if (!selectedEventId) {
-      console.log("  ⚠️  No event selected");
+      console.log("    No event selected");
       test.skip();
       return;
     }
@@ -226,7 +226,7 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
         fullPage: true,
       });
     } else {
-      console.log("  ℹ️  Attendee form not found or different structure");
+      console.log("    Attendee form not found or different structure");
     }
 
     // Check for order summary
@@ -246,7 +246,7 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
 
     if (paymentSection > 0) {
       console.log("  ✓ Payment section found");
-      console.log("  ℹ️  Note: Not filling actual payment details in test");
+      console.log("    Note: Not filling actual payment details in test");
 
       // Take screenshot of payment section
       await page.screenshot({
@@ -254,7 +254,7 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
         fullPage: true,
       });
     } else {
-      console.log("  ℹ️  Payment section not visible yet");
+      console.log("    Payment section not visible yet");
     }
 
     // Look for submit button (but don't click it)
@@ -268,8 +268,8 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
       console.log("  ✓ Submit button found (not clicking in test)");
     }
 
-    console.log("✅ Checkout Form Test Complete");
-    console.log("  ℹ️  Note: Actual payment submission skipped to avoid charges");
+    console.log(" Checkout Form Test Complete");
+    console.log("    Note: Actual payment submission skipped to avoid charges");
   });
 
   test("should verify my tickets page structure", async ({ page }) => {
@@ -304,13 +304,13 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
       if (hasTickets > 0) {
         console.log("  📊 Tickets displayed on page");
       } else if (emptyState > 0) {
-        console.log("  ℹ️  No tickets found (expected for new account)");
+        console.log("    No tickets found (expected for new account)");
       } else {
-        console.log("  ℹ️  Tickets page structure detected");
+        console.log("    Tickets page structure detected");
       }
     }
 
-    console.log("✅ My Tickets Page Test Complete");
+    console.log(" My Tickets Page Test Complete");
   });
 
   test("should test event search and filtering", async ({ page }) => {
@@ -344,7 +344,7 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
       const results = await page.locator('a[href^="/events/"]').count();
       console.log(`  📊 Search results: ${results} event(s)`);
     } else {
-      console.log("  ℹ️  Search functionality not found on this page");
+      console.log("    Search functionality not found on this page");
     }
 
     // Look for view toggle (list/grid)
@@ -380,9 +380,9 @@ test.describe("Ticket Purchase - Complete User Flow", () => {
         });
       }
     } else {
-      console.log("  ℹ️  View toggle not found");
+      console.log("    View toggle not found");
     }
 
-    console.log("✅ Search and Filter Test Complete");
+    console.log(" Search and Filter Test Complete");
   });
 });

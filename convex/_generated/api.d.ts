@@ -20,6 +20,7 @@ import type * as auth_queries from "../auth/queries.js";
 import type * as bundles_mutations from "../bundles/mutations.js";
 import type * as bundles_queries from "../bundles/queries.js";
 import type * as clearOldData from "../clearOldData.js";
+import type * as createBundleEvents from "../createBundleEvents.js";
 import type * as createMultiEventBundle from "../createMultiEventBundle.js";
 import type * as createRealTestEvents from "../createRealTestEvents.js";
 import type * as createTestBundles from "../createTestBundles.js";
@@ -101,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   "bundles/mutations": typeof bundles_mutations;
   "bundles/queries": typeof bundles_queries;
   clearOldData: typeof clearOldData;
+  createBundleEvents: typeof createBundleEvents;
   createMultiEventBundle: typeof createMultiEventBundle;
   createRealTestEvents: typeof createRealTestEvents;
   createTestBundles: typeof createTestBundles;

@@ -280,7 +280,7 @@ export default function ClaimEventsPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-400 to-emerald-500">
+                        <div className="w-full h-full flex items-center justify-center bg-purple-600">
                           <Gift className="w-16 h-16 text-white opacity-50" />
                         </div>
                       )}

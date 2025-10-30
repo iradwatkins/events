@@ -81,7 +81,7 @@ export default function AdminLayout({
         initial={false}
         animate={{ width: sidebarCollapsed ? 80 : 280 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="bg-gradient-to-b from-blue-900 to-blue-950 shadow-xl flex flex-col fixed h-screen z-50"
+        className="bg-purple-600 shadow-xl flex flex-col fixed h-screen z-50"
       >
         {/* Sidebar Header */}
         <div className="p-4 border-b border-blue-800">

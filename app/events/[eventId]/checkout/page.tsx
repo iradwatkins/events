@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { SquareCardPayment } from "@/components/checkout/SquareCardPayment";
 import { CashAppQRPayment } from "@/components/checkout/CashAppPayment";
+import { StripeCheckout } from "@/components/checkout/StripeCheckout";
 import SeatSelection, { SelectedSeat } from "@/components/checkout/SeatSelection";
 import { TierCountdown, TierAvailabilityBadge } from "@/components/events/TierCountdown";
 import { ArrowLeft, CheckCircle2, Ticket, UserCheck, Tag, X, Package, Zap, TrendingDown } from "lucide-react";
@@ -45,6 +46,7 @@ export default function CheckoutPage() {
   const eventDetails = useQuery(api.public.queries.getPublicEventDetails, { eventId });
   const currentUser = useQuery(api.users.queries.getCurrentUser);
   const seatingChart = useQuery(api.seating.queries.getPublicSeatingChart, { eventId });
+  const paymentConfig = useQuery(api.events.queries.getPaymentConfig, { eventId });
   const staffMemberInfo = useQuery(
     api.staff.queries.getStaffByReferralCode,
     referralCode ? { referralCode } : "skip"
@@ -81,6 +83,10 @@ export default function CheckoutPage() {
   const selectedTier = eventDetails.ticketTiers?.find((tier: any) => tier._id === selectedTierId);
   const selectedBundle = eventDetails.bundles?.find((bundle: any) => bundle._id === selectedBundleId);
 
+  // Determine payment processor based on event payment model
+  const paymentModel = paymentConfig?.paymentModel || 'PRE_PURCHASE';
+  const useStripePayment = paymentModel === 'PAY_AS_SELL' || paymentModel === 'CREDIT_CARD';
+
   const subtotal = purchaseType === 'bundle' && selectedBundle
     ? selectedBundle.price * quantity
     : purchaseType === 'tier' && selectedTier
@@ -88,8 +94,21 @@ export default function CheckoutPage() {
     : 0;
   const discountAmount = appliedDiscount?.discountAmountCents || 0;
   const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
-  const platformFee = Math.round((subtotalAfterDiscount * 3.7) / 100) + 179; // 3.7% + $1.79
-  const processingFee = Math.round(((subtotalAfterDiscount + platformFee) * 2.9) / 100) + 30; // 2.9% + $0.30
+
+  // Fee calculation depends on payment model
+  let platformFee = 0;
+  let processingFee = 0;
+
+  if (paymentModel === 'PRE_PURCHASE' || paymentModel === 'PREPAY') {
+    // Organizer already paid platform fee upfront - no additional fees for customer
+    platformFee = 0;
+    processingFee = 0;
+  } else {
+    // PAY_AS_SELL / CREDIT_CARD - fees added to customer's purchase
+    platformFee = Math.round((subtotalAfterDiscount * 3.7) / 100) + 179; // 3.7% + $1.79
+    processingFee = Math.round(((subtotalAfterDiscount + platformFee) * 2.9) / 100) + 30; // 2.9% + $0.30
+  }
+
   const total = subtotalAfterDiscount + platformFee + processingFee;
 
   const handleApplyDiscount = async () => {
@@ -227,18 +246,22 @@ export default function CheckoutPage() {
     if (!orderId) return;
 
     try {
+      // Determine payment method based on which system was used
+      const usedPaymentMethod = result.paymentIntentId ? "STRIPE" : "SQUARE";
+      const paymentId = (result.paymentIntentId || result.paymentId) as string;
+
       // Complete the order in Convex
       if (purchaseType === 'bundle') {
         await completeBundleOrder({
           orderId: orderId as Id<"orders">,
-          paymentId: result.paymentId as string,
-          paymentMethod: "SQUARE",
+          paymentId: paymentId,
+          paymentMethod: usedPaymentMethod,
         });
       } else {
         await completeOrder({
           orderId: orderId as Id<"orders">,
-          paymentId: result.paymentId as string,
-          paymentMethod: "SQUARE",
+          paymentId: paymentId,
+          paymentMethod: usedPaymentMethod,
         });
       }
 
@@ -762,32 +785,67 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Payment Method</h3>
 
-                {/* Payment Method Selector */}
-                <div className="flex gap-3 mb-6">
-                  <button
-                    onClick={() => setPaymentMethod('card')}
-                    className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
-                      paymentMethod === 'card'
-                        ? 'border-blue-600 bg-blue-50 text-blue-900 font-semibold'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    Credit/Debit Card
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod('cashapp')}
-                    className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
-                      paymentMethod === 'cashapp'
-                        ? 'border-green-600 bg-green-50 text-green-900 font-semibold'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    Cash App Pay
-                  </button>
-                </div>
+                {/* Payment Model Info */}
+                {paymentModel === 'PRE_PURCHASE' || paymentModel === 'PREPAY' ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-green-900">No Additional Fees</p>
+                        <p className="text-xs text-green-700 mt-1">
+                          The organizer has prepaid platform fees. You only pay the ticket price!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Payment Method Selector - Only show for Square/CashApp (prepaid events) */}
+                {!useStripePayment && (
+                  <div className="flex gap-3 mb-6">
+                    <button
+                      onClick={() => setPaymentMethod('card')}
+                      className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                        paymentMethod === 'card'
+                          ? 'border-blue-600 bg-blue-50 text-blue-900 font-semibold'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      Credit/Debit Card
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod('cashapp')}
+                      className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                        paymentMethod === 'cashapp'
+                          ? 'border-green-600 bg-green-50 text-green-900 font-semibold'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      Cash App Pay
+                    </button>
+                  </div>
+                )}
 
                 {/* Payment Form */}
-                {paymentMethod === 'card' ? (
+                {useStripePayment ? (
+                  // Stripe payment for PAY_AS_SELL events
+                  <StripeCheckout
+                    total={total / 100}
+                    connectedAccountId={paymentConfig?.stripeConnectAccountId || ''}
+                    platformFee={platformFee + processingFee} // Total platform fee
+                    orderId={orderId || undefined}
+                    orderNumber={`ORD-${Date.now()}`}
+                    billingContact={{
+                      givenName: buyerName.split(' ')[0],
+                      familyName: buyerName.split(' ').slice(1).join(' '),
+                      email: buyerEmail,
+                    }}
+                    onPaymentSuccess={(result) => handlePaymentSuccess({ paymentIntentId: result.paymentIntentId })}
+                    onPaymentError={handlePaymentError}
+                    onBack={() => setShowPayment(false)}
+                  />
+                ) : paymentMethod === 'card' ? (
+                  // Square payment for PREPAID events
                   <SquareCardPayment
                     applicationId={process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID!}
                     locationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!}
@@ -803,6 +861,7 @@ export default function CheckoutPage() {
                     onBack={() => setShowPayment(false)}
                   />
                 ) : (
+                  // CashApp payment
                   <CashAppQRPayment
                     total={total / 100}
                     onPaymentSuccess={handlePaymentSuccess}

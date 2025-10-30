@@ -228,7 +228,7 @@ export default function EventsModerationPage() {
                       title="Click to view full-size flyer"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 rounded-l-lg">
+                    <div className="w-full h-full flex items-center justify-center bg-purple-600 rounded-l-lg">
                       <Calendar className="w-12 h-12 text-gray-400" />
                     </div>
                   )}

@@ -109,7 +109,7 @@ export default function FreeEventRegisterPage() {
     const ticketUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/ticket/${registrationData.ticketCode}`;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-12">
+      <div className="min-h-screen bg-purple-600 py-12">
         <div className="container mx-auto px-4 max-w-2xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -118,7 +118,7 @@ export default function FreeEventRegisterPage() {
             className="bg-white rounded-lg shadow-xl overflow-hidden"
           >
             {/* Success Header */}
-            <div className="bg-gradient-to-r from-green-500 to-green-600 p-8 text-center">
+            <div className="bg-purple-600 p-8 text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -240,14 +240,14 @@ export default function FreeEventRegisterPage() {
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-center">
+          <div className="bg-purple-600 p-8 text-center">
             <Ticket className="w-16 h-16 text-white mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-white mb-2">Register for Free</h1>
             <p className="text-blue-100">No payment required</p>
           </div>
 
           {/* Event Info */}
-          <div className="p-8 border-b bg-gradient-to-br from-blue-50 to-white">
+          <div className="p-8 border-b bg-purple-600">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">{eventDetails.name}</h2>
             <div className="space-y-3 text-gray-700">
               {eventDetails.startDate && (

@@ -11,7 +11,7 @@ export default function ScanEventSelectionPage() {
 
   if (events === undefined) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+      <div className="min-h-screen bg-purple-600 flex items-center justify-center">
         <div className="text-center text-white">
           <div className="inline-block w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-lg">Loading events...</p>
@@ -21,7 +21,7 @@ export default function ScanEventSelectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600">
+    <div className="min-h-screen bg-purple-600">
       {/* Header */}
       <div className="bg-white/10 backdrop-blur-sm border-b border-white/20">
         <div className="container mx-auto px-4 py-6">
@@ -63,7 +63,7 @@ export default function ScanEventSelectionPage() {
               >
                 <div className="md:flex">
                   {/* Event Image */}
-                  <div className="md:w-48 h-48 md:h-auto bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0 relative">
+                  <div className="md:w-48 h-48 md:h-auto bg-purple-600 flex-shrink-0 relative">
                     {event.imageUrl ? (
                       <img
                         src={event.imageUrl}

@@ -37,7 +37,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@sentry/nextjs": "^10.22.0",
     "@square/web-payments-sdk-types": "^1.79.0",
-    "@stripe/stripe-js": "^8.1.0",
+    "@stripe/react-stripe-js": "^5.3.0",
+    "@stripe/stripe-js": "^8.2.0",
     "@types/lodash": "^4.17.20",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
@@ -65,7 +66,7 @@
     "sharp": "^0.34.4",
     "sonner": "^2.0.7",
     "square": "^43.2.0",
-    "stripe": "^19.1.0",
+    "stripe": "^19.2.0",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

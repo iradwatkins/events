@@ -32,7 +32,15 @@ export default function SeatSelection({
   onSeatsSelected,
 }: SeatSelectionProps) {
   const seatingChart = useQuery(api.seating.queries.getPublicSeatingChart, { eventId });
+  const ticketTier = useQuery(
+    api.tickets.queries.getTicketTier,
+    ticketTierId ? { tierId: ticketTierId } : "skip"
+  );
   const [selectedSeats, setSelectedSeats] = useState<SelectedSeat[]>([]);
+
+  // Check if this is a table package tier
+  const isTablePackage = ticketTier?.isTablePackage || false;
+  const tableCapacity = ticketTier?.tableCapacity;
 
   // Auto-submit when required seats are selected
   useEffect(() => {
@@ -125,6 +133,56 @@ export default function SeatSelection({
         return `${s.sectionId}-table-${s.tableId}-${s.seatId}` === seatKey;
       }
     });
+  };
+
+  // Select all seats at a table (for table package purchases)
+  const selectEntireTable = (
+    sectionId: string,
+    sectionName: string,
+    tableId: string,
+    tableNumber: string | number,
+    seats: any[]
+  ) => {
+    const availableSeats = seats.filter((s) => s.status === "AVAILABLE");
+
+    if (availableSeats.length === 0) {
+      return; // No available seats
+    }
+
+    // Check if all seats at this table are already selected
+    const allSeatsSelected = availableSeats.every((seat) =>
+      isSeatSelected(sectionId, seat.id, undefined, tableId)
+    );
+
+    if (allSeatsSelected) {
+      // Deselect all seats at this table
+      setSelectedSeats(
+        selectedSeats.filter((s) => s.tableId !== tableId || s.sectionId !== sectionId)
+      );
+    } else {
+      // Select all available seats at this table
+      const tableSeats: SelectedSeat[] = availableSeats.map((seat) => ({
+        sectionId,
+        sectionName,
+        tableId,
+        tableNumber,
+        seatId: seat.id,
+        seatNumber: seat.number,
+      }));
+
+      // Replace any existing selections with this table's seats
+      setSelectedSeats(tableSeats);
+    }
+  };
+
+  // Check if entire table is selected
+  const isEntireTableSelected = (sectionId: string, tableId: string, seats: any[]) => {
+    const availableSeats = seats.filter((s) => s.status === "AVAILABLE");
+    if (availableSeats.length === 0) return false;
+
+    return availableSeats.every((seat) =>
+      isSeatSelected(sectionId, seat.id, undefined, tableId)
+    );
   };
 
   const getAvailableSeatCount = () => {
@@ -318,17 +376,96 @@ export default function SeatSelection({
               {/* Table-based seating */}
               {section.tables && section.tables.length > 0 && (
                 <div className="space-y-6">
-                  <p className="text-sm text-gray-600 mb-4">Click on a seat at any table to select it</p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {isTablePackage
+                      ? `Purchase entire tables (${tableCapacity} seats each)`
+                      : "Click on a seat at any table to select it"}
+                  </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {section.tables.map((table) => (
+                    {section.tables.map((table) => {
+                      const availableSeatsAtTable = table.seats.filter(s => s.status === "AVAILABLE").length;
+                      const tableSelected = isEntireTableSelected(section.id, table.id, table.seats);
+                      const tableFullyAvailable = availableSeatsAtTable === table.seats.length;
+
+                      return (
                       <div
                         key={table.id}
-                        className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50 hover:border-blue-300 transition-colors"
+                        className={`border-2 rounded-lg p-4 transition-all ${
+                          isTablePackage
+                            ? tableSelected
+                              ? "border-green-500 bg-green-50"
+                              : "border-gray-200 bg-gray-50 hover:border-purple-300"
+                            : "border-gray-200 bg-gray-50 hover:border-blue-300"
+                        }`}
                       >
                         <h4 className="font-semibold text-gray-900 mb-3 text-center">
                           Table {table.number}
                         </h4>
-                        <div className="flex flex-wrap gap-2 justify-center">
+
+                        {isTablePackage ? (
+                          /* Table Package Mode - Show "Buy This Table" Button */
+                          <div className="space-y-3">
+                            <div className="bg-white rounded-lg p-3 border border-gray-200">
+                              <p className="text-sm text-gray-600 text-center mb-1">
+                                {table.seats.length} seats
+                              </p>
+                              <p className="text-xs text-center">
+                                {availableSeatsAtTable === table.seats.length ? (
+                                  <span className="text-green-600 font-medium">All seats available</span>
+                                ) : availableSeatsAtTable === 0 ? (
+                                  <span className="text-red-600 font-medium">No seats available</span>
+                                ) : (
+                                  <span className="text-yellow-600 font-medium">
+                                    Only {availableSeatsAtTable} seats available
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                if (tableFullyAvailable) {
+                                  selectEntireTable(
+                                    section.id,
+                                    section.name,
+                                    table.id,
+                                    table.number,
+                                    table.seats
+                                  );
+                                }
+                              }}
+                              disabled={!tableFullyAvailable}
+                              className={`w-full py-3 rounded-lg font-semibold transition-all ${
+                                tableFullyAvailable
+                                  ? tableSelected
+                                    ? "bg-green-600 text-white hover:bg-green-700"
+                                    : "bg-purple-600 text-white hover:bg-purple-700"
+                                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                              }`}
+                            >
+                              {tableSelected ? (
+                                <>
+                                  <Check className="w-4 h-4 inline mr-2" />
+                                  Table Selected
+                                </>
+                              ) : tableFullyAvailable ? (
+                                `Buy This Table`
+                              ) : (
+                                "Table Unavailable"
+                              )}
+                            </button>
+
+                            {ticketTier?.price && tableFullyAvailable && (
+                              <p className="text-xs text-center text-gray-600">
+                                ${(ticketTier.price / 100).toFixed(2)} for {table.seats.length} seats
+                                <br />
+                                (${((ticketTier.price / 100) / table.seats.length).toFixed(2)} per seat)
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          /* Normal Mode - Show Individual Seats */
+                          <div className="flex flex-wrap gap-2 justify-center">
                           {table.seats.map((seat) => {
                             const isSelected = isSeatSelected(section.id, seat.id, undefined, table.id);
                             const isAvailable = seat.status === "AVAILABLE";
@@ -392,12 +529,17 @@ export default function SeatSelection({
                               </button>
                             );
                           })}
-                        </div>
-                        <p className="text-xs text-gray-600 text-center mt-3">
-                          {table.seats.filter(s => s.status === "AVAILABLE").length} of {table.seats.length} available
-                        </p>
+                          </div>
+                        )}
+
+                        {!isTablePackage && (
+                          <p className="text-xs text-gray-600 text-center mt-3">
+                            {table.seats.filter(s => s.status === "AVAILABLE").length} of {table.seats.length} available
+                          </p>
+                        )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

@@ -368,8 +368,8 @@ export const getMyTransfers = query({
         const event = await ctx.db.get(transfer.eventId);
         return {
           ...transfer,
-          eventName: event?.name || "Unknown Event",
-          eventDate: event?.startDate,
+          eventName: (event && 'name' in event) ? event.name : "Unknown Event",
+          eventDate: (event && 'startDate' in event) ? event.startDate : undefined,
         };
       })
     );

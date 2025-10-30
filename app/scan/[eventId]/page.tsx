@@ -209,7 +209,7 @@ export default function EventScanningPage() {
 
   if (stats === undefined) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+      <div className="min-h-screen bg-purple-600 flex items-center justify-center">
         <div className="text-center text-white">
           <div className="inline-block w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-lg">Loading scanner...</p>
@@ -258,7 +258,7 @@ export default function EventScanningPage() {
           <div className="mt-3">
             <div className="h-2 bg-black/50 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-green-500 to-blue-500 transition-all duration-500"
+                className="h-full bg-purple-600 transition-all duration-500"
                 style={{ width: `${stats.percentageScanned}%` }}
               ></div>
             </div>
@@ -270,7 +270,7 @@ export default function EventScanningPage() {
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-md mx-auto space-y-4">
           {/* Live QR Scanner */}
-          <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-6 shadow-2xl">
+          <div className="bg-purple-600 rounded-2xl p-6 shadow-2xl">
             <h2 className="text-2xl font-bold text-white mb-4 text-center flex items-center justify-center gap-2">
               <QrCode className="w-7 h-7" />
               Live QR Scanner
@@ -350,7 +350,7 @@ export default function EventScanningPage() {
           </div>
 
           {/* Manual Entry */}
-          <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 shadow-2xl">
+          <div className="bg-purple-600 rounded-2xl p-6 shadow-2xl">
             <h3 className="text-xl font-bold text-white mb-4 text-center">Or Enter Code Manually</h3>
             <div className="space-y-3">
               <input

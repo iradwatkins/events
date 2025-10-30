@@ -359,7 +359,7 @@ export default function BulkFlyerUploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen bg-purple-600 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -598,7 +598,7 @@ export default function BulkFlyerUploadPage() {
                   >
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-0">
                       {/* Flyer Image - Left Side */}
-                      <div className="xl:col-span-4 bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex items-start justify-center">
+                      <div className="xl:col-span-4 bg-purple-600 p-6 flex items-start justify-center">
                         <div className="sticky top-6 w-full">
                           <img
                             src={flyer.filepath}

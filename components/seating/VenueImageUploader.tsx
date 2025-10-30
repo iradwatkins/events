@@ -106,7 +106,7 @@ export default function VenueImageUploader({
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Venue Floor Plan (Optional)</h3>
           <p className="text-sm text-gray-600 mt-1">
-            Upload a venue image or floor plan to place sections visually
+            {preview ? "Upload a venue image or floor plan to place sections visually" : "Skip this step to design on a blank canvas, or upload a floor plan image"}
           </p>
         </div>
         {preview && (

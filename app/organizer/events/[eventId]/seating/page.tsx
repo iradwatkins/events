@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -114,9 +114,12 @@ export default function SeatingChartBuilderPage() {
   const [selectedTableShape, setSelectedTableShape] = useState<TableShape>("ROUND");
   const [showTableEditor, setShowTableEditor] = useState(false);
 
+  // Track if we've initialized from existing chart
+  const hasInitialized = useRef(false);
+
   // Initialize with existing chart data
   useEffect(() => {
-    if (existingChart && sections.length === 0) {
+    if (existingChart && !hasInitialized.current) {
       setChartName(existingChart.name);
       setSections(existingChart.sections as Section[]);
       setVenueImageId(existingChart.venueImageId);
@@ -124,8 +127,9 @@ export default function SeatingChartBuilderPage() {
       if (existingChart.seatingStyle) {
         setSeatingStyle(existingChart.seatingStyle as SeatingStyle);
       }
+      hasInitialized.current = true;
     }
-  }, [existingChart, sections.length]);
+  }, [existingChart]);
 
   const generateId = () => Math.random().toString(36).substring(2, 11);
 

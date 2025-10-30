@@ -41,12 +41,12 @@ interface TableEditorProps {
 }
 
 export default function TableEditor({ table, onUpdate, onDelete, onClose }: TableEditorProps) {
-  const [localCapacity, setLocalCapacity] = useState(table.capacity.toString());
+  const [localCapacity, setLocalCapacity] = useState(table?.capacity?.toString() || "4");
 
   const handleCapacityChange = (value: string) => {
     setLocalCapacity(value);
     const capacity = parseInt(value) || 0;
-    if (capacity > 0 && capacity !== table.capacity) {
+    if (capacity > 0 && capacity !== table?.capacity) {
       // Generate seats based on capacity
       const newSeats = Array.from({ length: capacity }, (_, i) => ({
         id: `seat-${Date.now()}-${i}`,
@@ -60,11 +60,13 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
 
   const handleShapeChange = (shape: TableShape) => {
     // Get recommended size for new shape
-    const { width, height } = getRecommendedTableSize(shape, table.capacity);
+    const { width, height } = getRecommendedTableSize(shape, table?.capacity || 4);
     onUpdate({ shape, width, height });
   };
 
   const handleAutoArrange = () => {
+    if (!table) return;
+
     // Auto-arrange seats around table
     const positions = autoArrangeSeats(
       table.shape,

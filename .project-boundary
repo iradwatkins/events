@@ -5,14 +5,7 @@
     "/root/websites/events-stepperslife"
   ],
   "prohibitedPaths": [
-    "/root/websites/agistaffers",
-    "/root/websites/gangrunprinting",
-    "/root/websites/taxgeniuspro",
-    "/root/websites/stepperslife",
-    "/root/websites/events-stepperslife",
-    "/root/websites/stores-stepperslife",
-    "/root/websites/magazine-stepperslife",
-    "/root/websites/uvcoatedclubflyer"
+    "/root/websites/agistaffers","/root/websites/gangrunprinting","/root/websites/taxgeniuspro","/root/websites/stepperslife","/root/websites/stores-stepperslife","/root/websites/uvcoatedclubflyers","/root/websites/cheapflyerprinting","/root/websites/signprintingusa","/root/websites/elarmario"
   ],
   "sharedInfrastructure": {
     "n8n": {
@@ -26,20 +19,20 @@
   },
   "database": {
     "host": "localhost",
-    "port": 5434,
+    "port": 5432,
     "name": "events_stepperslife_db",
     "warning": "ONLY access events_stepperslife_db - NEVER touch other databases"
   },
   "gitRepo": {
-    "remote": "https://github.com/iradwatkins/event.stepperslife.com.git",
+    "remote": "git@github.com-events:iradwatkins/events.git",
     "expectedBranch": "main"
   },
   "port": 3004,
   "isolationRules": [
-    "NEVER read files outside /root/websites/events-stepperslife",
-    "NEVER write files outside /root/websites/events-stepperslife",
-    "NEVER modify other projects' code",
-    "NEVER commit to other git repositories",
-    "ALWAYS verify you are in events-stepperslife before any operation"
+    "NEVER read files from other projects in /root/websites/*",
+    "NEVER write to files outside /root/websites/events-stepperslife",
+    "NEVER git commit to repositories other than events-stepperslife",
+    "NEVER access databases other than events_stepperslife_db",
+    "Study other projects for learning but implement in events-stepperslife only"
   ]
 }

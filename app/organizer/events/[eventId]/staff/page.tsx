@@ -23,6 +23,105 @@ import Link from "next/link";
 
 type StaffRole = "SELLER" | "SCANNER";
 
+// Recursive component for hierarchy tree visualization
+function HierarchyNode({ staff, handleRemoveStaff, level = 0 }: {
+  staff: any;
+  handleRemoveStaff: (id: Id<"eventStaff">) => void;
+  level?: number;
+}) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const hasSubSellers = staff.subSellers && staff.subSellers.length > 0;
+
+  return (
+    <div className={`${level > 0 ? 'ml-8 border-l-2 border-gray-300 pl-4' : ''}`}>
+      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-2 hover:shadow-md transition-shadow">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3 flex-1">
+            {hasSubSellers && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="mt-1 text-gray-400 hover:text-gray-600"
+              >
+                {isExpanded ? '▼' : '▶'}
+              </button>
+            )}
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="font-semibold text-gray-900">{staff.name}</h4>
+                <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
+                  {staff.role}
+                </span>
+                {staff.hierarchyLevel > 1 && (
+                  <span className="px-2 py-0.5 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full">
+                    Level {staff.hierarchyLevel}
+                  </span>
+                )}
+                {staff.canAssignSubSellers && (
+                  <span className="px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-700 rounded-full">
+                    Can Assign
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                <Mail className="w-3 h-3" />
+                {staff.email}
+              </div>
+              <div className="flex items-center gap-4 mt-2 text-sm">
+                <div className="flex items-center gap-1 text-gray-700">
+                  <Ticket className="w-4 h-4" />
+                  <span className="font-medium">{staff.ticketsSold}</span>
+                  <span className="text-gray-500">sold</span>
+                </div>
+                <div className="flex items-center gap-1 text-gray-700">
+                  <DollarSign className="w-4 h-4" />
+                  <span className="font-medium">${(staff.commissionEarned / 100).toFixed(2)}</span>
+                  <span className="text-gray-500">earned</span>
+                </div>
+                {hasSubSellers && (
+                  <div className="flex items-center gap-1 text-gray-700">
+                    <Users className="w-4 h-4" />
+                    <span className="font-medium">{staff.subSellers.length}</span>
+                    <span className="text-gray-500">sub-seller{staff.subSellers.length !== 1 ? 's' : ''}</span>
+                  </div>
+                )}
+              </div>
+              {staff.parentCommissionPercent !== undefined && staff.subSellerCommissionPercent !== undefined && (
+                <div className="mt-2 text-xs text-gray-600">
+                  Commission split: Parent {staff.parentCommissionPercent}% | Sub-seller {staff.subSellerCommissionPercent}%
+                </div>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => handleRemoveStaff(staff._id)}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Remove staff member"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Render sub-sellers recursively */}
+      {isExpanded && hasSubSellers && (
+        <div className="mt-2">
+          {staff.subSellers.map((subSeller: any) => (
+            <HierarchyNode
+              key={subSeller._id}
+              staff={subSeller}
+              handleRemoveStaff={handleRemoveStaff}
+              level={level + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StaffManagementPage() {
   const params = useParams();
   const router = useRouter();
@@ -31,6 +130,7 @@ export default function StaffManagementPage() {
   const [showAddStaff, setShowAddStaff] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<StaffRole>("SELLER");
+  const [viewMode, setViewMode] = useState<"list" | "hierarchy">("list");
 
   // Form state
   const [staffEmail, setStaffEmail] = useState("");
@@ -46,6 +146,8 @@ export default function StaffManagementPage() {
 
   const addStaffMember = useMutation(api.staff.mutations.addStaffMember);
   const removeStaffMember = useMutation(api.staff.mutations.removeStaffMember);
+  const updateStaffPermissions = useMutation(api.staff.mutations.updateStaffPermissions);
+  const hierarchyTree = useQuery(api.staff.queries.getHierarchyTree, { eventId });
 
   const isLoading = !event || !currentUser || !eventStaff;
 
@@ -121,6 +223,18 @@ export default function StaffManagementPage() {
     }
   };
 
+  const handleToggleSubSellerPermission = async (staffId: Id<"eventStaff">, currentValue: boolean) => {
+    try {
+      await updateStaffPermissions({
+        staffId,
+        canAssignSubSellers: !currentValue,
+      });
+    } catch (error: any) {
+      console.error("Update permissions error:", error);
+      alert(error.message || "Failed to update permissions");
+    }
+  };
+
   const filteredStaff = eventStaff.filter((staff) =>
     staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     staff.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -157,22 +271,68 @@ export default function StaffManagementPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Search Bar */}
+        {/* View Mode Switcher */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search staff by name or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-            />
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  viewMode === "list"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                List View
+              </button>
+              <button
+                onClick={() => setViewMode("hierarchy")}
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  viewMode === "hierarchy"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                Hierarchy Tree
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Staff List */}
-        {filteredStaff.length === 0 ? (
+        {/* Search Bar */}
+        {viewMode === "list" && (
+          <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search staff by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Staff List or Hierarchy Tree */}
+        {viewMode === "hierarchy" ? (
+          // Hierarchy Tree View
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Staff Hierarchy Tree</h3>
+            {hierarchyTree && hierarchyTree.length > 0 ? (
+              <div className="space-y-4">
+                {hierarchyTree.map((staff) => (
+                  <HierarchyNode key={staff._id} staff={staff} handleRemoveStaff={handleRemoveStaff} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No staff members yet. Add your first staff member to get started.
+              </div>
+            )}
+          </div>
+        ) : filteredStaff.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-blue-600" />
@@ -216,10 +376,15 @@ export default function StaffManagementPage() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-3 mt-3">
+                      <div className="flex items-center gap-3 mt-3 flex-wrap">
                         <span className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
                           {staff.role}
                         </span>
+                        {staff.hierarchyLevel && staff.hierarchyLevel > 1 && (
+                          <span className="px-3 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full">
+                            Level {staff.hierarchyLevel}
+                          </span>
+                        )}
                         <div className="flex items-center gap-1 text-sm text-gray-700">
                           {staff.commissionType === "PERCENTAGE" ? (
                             <>
@@ -234,6 +399,28 @@ export default function StaffManagementPage() {
                           )}
                         </div>
                       </div>
+
+                      {/* Hierarchy Permissions */}
+                      {staff.hierarchyLevel === 1 && (
+                        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={staff.canAssignSubSellers || false}
+                              onChange={() => handleToggleSubSellerPermission(staff._id, staff.canAssignSubSellers || false)}
+                              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm font-medium text-gray-900">
+                                Can assign sub-sellers
+                              </span>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                Allow this staff member to recruit and manage their own sales team
+                              </p>
+                            </div>
+                          </label>
+                        </div>
+                      )}
 
                       <div className="mt-3 text-sm text-gray-500">
                         Added {new Date(staff.createdAt).toLocaleDateString()}

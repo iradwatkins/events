@@ -293,3 +293,429 @@ export const getOrganizerStaffSummary = query({
     };
   },
 });
+
+/**
+ * Get all sub-sellers assigned by the current staff member
+ */
+export const getMySubSellers = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[getMySubSellers] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      return [];
+    }
+
+    // Find the current user's staff record for this event
+    const myStaffRecord = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("staffUserId"), currentUser._id),
+          q.eq(q.field("isActive"), true)
+        )
+      )
+      .first();
+
+    if (!myStaffRecord) {
+      return [];
+    }
+
+    // Get all sub-sellers assigned by this staff member
+    const subSellers = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_assigned_by", (q) => q.eq("assignedByStaffId", myStaffRecord._id))
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    // Get sales for each sub-seller
+    const subSellersWithStats = await Promise.all(
+      subSellers.map(async (subSeller) => {
+        const sales = await ctx.db
+          .query("staffSales")
+          .withIndex("by_staff", (q) => q.eq("staffId", subSeller._id))
+          .collect();
+
+        const availableTickets = (subSeller.allocatedTickets || 0) - (subSeller.ticketsSold || 0);
+
+        return {
+          ...subSeller,
+          availableTickets,
+          totalSales: sales.length,
+          recentSales: sales.slice(-5).reverse(), // Last 5 sales
+        };
+      })
+    );
+
+    return subSellersWithStats;
+  },
+});
+
+/**
+ * Get the full hierarchy tree for an event (organizer view)
+ * Shows all staff and their sub-sellers in a tree structure
+ */
+export const getHierarchyTree = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[getHierarchyTree] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    // Verify user is organizer or admin
+    const event = await ctx.db.get(args.eventId);
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    if (event.organizerId !== currentUser._id && currentUser.role !== "admin") {
+      throw new Error("Only the event organizer can view the hierarchy tree");
+    }
+
+    // Get all staff for this event
+    const allStaff = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    // Build hierarchy tree
+    const buildTree = (parentId: any = undefined, level: number = 1): any[] => {
+      const children = allStaff.filter((s) => {
+        if (parentId === undefined) {
+          return s.assignedByStaffId === undefined || s.assignedByStaffId === null;
+        }
+        return s.assignedByStaffId === parentId;
+      });
+
+      return children.map((staff) => {
+        const availableTickets = (staff.allocatedTickets || 0) - (staff.ticketsSold || 0);
+
+        return {
+          ...staff,
+          availableTickets,
+          level,
+          subSellers: buildTree(staff._id, level + 1),
+        };
+      });
+    };
+
+    return buildTree();
+  },
+});
+
+/**
+ * Get parent staff information for a sub-seller
+ * Shows who assigned this staff member and their relationship
+ */
+export const getMyParentStaff = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[getMyParentStaff] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      return null;
+    }
+
+    // Find the current user's staff record for this event
+    const myStaffRecord = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("staffUserId"), currentUser._id),
+          q.eq(q.field("isActive"), true)
+        )
+      )
+      .first();
+
+    if (!myStaffRecord || !myStaffRecord.assignedByStaffId) {
+      return null; // This is a top-level staff (assigned by organizer)
+    }
+
+    // Get parent staff record
+    const parentStaff = await ctx.db.get(myStaffRecord.assignedByStaffId);
+
+    if (!parentStaff) {
+      return null;
+    }
+
+    return {
+      parentName: parentStaff.name,
+      parentEmail: parentStaff.email,
+      parentPhone: parentStaff.phone,
+      hierarchyLevel: myStaffRecord.hierarchyLevel,
+      parentCommissionPercent: myStaffRecord.parentCommissionPercent,
+      subSellerCommissionPercent: myStaffRecord.subSellerCommissionPercent,
+    };
+  },
+});
+
+/**
+ * Get all sales made by a sub-seller and their descendants
+ * Useful for tracking performance of an entire branch
+ */
+export const getSubSellerBranchSales = query({
+  args: {
+    staffId: v.id("eventStaff"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[getSubSellerBranchSales] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    const staff = await ctx.db.get(args.staffId);
+    if (!staff) {
+      throw new Error("Staff not found");
+    }
+
+    // Verify permission: must be the staff themselves, the organizer, or an ancestor in the hierarchy
+    const isOrganizer = staff.organizerId === currentUser._id;
+    const isSelf = staff.staffUserId === currentUser._id;
+
+    // Check if current user is an ancestor
+    let isAncestor = false;
+    let currentStaff = staff;
+    while (currentStaff.assignedByStaffId) {
+      const parent = await ctx.db.get(currentStaff.assignedByStaffId);
+      if (parent && parent.staffUserId === currentUser._id) {
+        isAncestor = true;
+        break;
+      }
+      if (!parent) break;
+      currentStaff = parent;
+    }
+
+    if (!isOrganizer && !isSelf && !isAncestor && currentUser.role !== "admin") {
+      throw new Error("You do not have permission to view these sales");
+    }
+
+    // Get all descendants recursively
+    const getAllDescendants = async (staffId: any): Promise<any[]> => {
+      const directChildren = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_assigned_by", (q) => q.eq("assignedByStaffId", staffId))
+        .filter((q) => q.eq(q.field("isActive"), true))
+        .collect();
+
+      let allDescendants = [...directChildren];
+
+      for (const child of directChildren) {
+        const childDescendants = await getAllDescendants(child._id);
+        allDescendants = [...allDescendants, ...childDescendants];
+      }
+
+      return allDescendants;
+    };
+
+    const descendants = await getAllDescendants(args.staffId);
+
+    // Get sales for the staff member and all descendants
+    const allStaffIds = [args.staffId, ...descendants.map((d) => d._id)];
+
+    const allSales = await Promise.all(
+      allStaffIds.map(async (staffId) => {
+        const sales = await ctx.db
+          .query("staffSales")
+          .withIndex("by_staff", (q) => q.eq("staffId", staffId))
+          .collect();
+
+        const staffRecord = staffId ? await ctx.db.get(staffId) : null;
+
+        return sales.map((sale) => ({
+          ...sale,
+          staffName: staffRecord && 'name' in staffRecord ? staffRecord.name : undefined,
+          hierarchyLevel: staffRecord && 'hierarchyLevel' in staffRecord ? staffRecord.hierarchyLevel : undefined,
+        }));
+      })
+    );
+
+    const flatSales = allSales.flat().sort((a, b) => b.createdAt - a.createdAt);
+
+    const totalRevenue = flatSales.reduce((sum, sale) => sum + (sale.commissionAmount || 0), 0);
+    const totalTickets = flatSales.reduce((sum, sale) => sum + (sale.ticketCount || 0), 0);
+
+    return {
+      sales: flatSales,
+      totalSales: flatSales.length,
+      totalRevenue,
+      totalTickets,
+      branchSize: descendants.length + 1, // Including the staff member themselves
+    };
+  },
+});
+
+/**
+ * Get all global/default staff for the current organizer
+ * These are staff with eventId=null that auto-assign to new events
+ */
+export const getGlobalStaff = query({
+  args: {},
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[getGlobalStaff] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      return [];
+    }
+
+    // Get all global staff (eventId = undefined/null)
+    const globalStaff = await ctx.db
+      .query("eventStaff")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("organizerId"), currentUser._id),
+          q.eq(q.field("eventId"), undefined)
+        )
+      )
+      .collect();
+
+    return globalStaff;
+  },
+});
+
+/**
+ * Get all global sub-sellers assigned by the current staff member
+ * For support staff to manage their default sub-seller roster
+ */
+export const getMyGlobalSubSellers = query({
+  args: {},
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[getMyGlobalSubSellers] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      return [];
+    }
+
+    // Find the current user's global staff record (where they are support staff)
+    const myStaffRecord = await ctx.db
+      .query("eventStaff")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("staffUserId"), currentUser._id),
+          q.eq(q.field("eventId"), undefined), // Global staff only
+          q.eq(q.field("isActive"), true)
+        )
+      )
+      .first();
+
+    if (!myStaffRecord) {
+      // User is not a global staff member, return empty array
+      return [];
+    }
+
+    // Get all global sub-sellers assigned by this staff member
+    const subSellers = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_assigned_by", (q) => q.eq("assignedByStaffId", myStaffRecord._id))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("eventId"), undefined), // Global sub-sellers only
+          q.eq(q.field("isActive"), true)
+        )
+      )
+      .collect();
+
+    return subSellers;
+  },
+});

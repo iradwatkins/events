@@ -81,6 +81,13 @@ export const getOrganizerSettlement = query({
           commissionType: staff.commissionType,
           commissionValue: staff.commissionValue,
 
+          // Hierarchy information
+          hierarchyLevel: staff.hierarchyLevel || 1,
+          assignedByStaffId: staff.assignedByStaffId,
+          canAssignSubSellers: staff.canAssignSubSellers,
+          parentCommissionPercent: staff.parentCommissionPercent,
+          subSellerCommissionPercent: staff.subSellerCommissionPercent,
+
           // Statistics
           totalSales,
           totalTickets: staff.ticketsSold,

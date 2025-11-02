@@ -37,7 +37,8 @@ export default defineSchema({
     eventType: v.optional(v.union(
       v.literal("SAVE_THE_DATE"),
       v.literal("FREE_EVENT"),
-      v.literal("TICKETED_EVENT")
+      v.literal("TICKETED_EVENT"),
+      v.literal("SEATED_EVENT")
     )),
 
     // Date/time - Literal Storage (NO TIMEZONE CONVERSIONS)
@@ -359,6 +360,13 @@ export default defineSchema({
     staffEmail: v.optional(v.string()),
     staffName: v.optional(v.string()),
 
+    // Hierarchy fields for multi-level delegation
+    assignedByStaffId: v.optional(v.id("eventStaff")), // null = assigned by organizer, otherwise ID of parent staff
+    hierarchyLevel: v.optional(v.number()), // 1 = organizer-assigned, 2 = staff-assigned, 3 = sub-seller assigned, etc.
+    canAssignSubSellers: v.optional(v.boolean()), // Permission to assign their own sub-sellers
+    maxSubSellers: v.optional(v.number()), // Max number of sub-sellers this staff can assign (null = unlimited)
+    autoAssignToNewEvents: v.optional(v.boolean()), // Auto-assign this staff/sub-seller to new events created by organizer or when parent joins new event
+
     // Role and permissions
     role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
     canScan: v.optional(v.boolean()), // Sellers can also scan if approved by organizer
@@ -368,6 +376,10 @@ export default defineSchema({
     commissionValue: v.optional(v.number()),
     commissionPercent: v.optional(v.number()),
     commissionEarned: v.number(), // total in cents
+
+    // Commission split for hierarchical assignments (when this staff assigns sub-sellers)
+    parentCommissionPercent: v.optional(v.number()), // What % parent (this staff) keeps from sub-seller sales
+    subSellerCommissionPercent: v.optional(v.number()), // What % sub-seller gets from their own sales
 
     // Ticket allocation
     allocatedTickets: v.optional(v.number()), // Number of tickets allocated to this staff member
@@ -396,7 +408,9 @@ export default defineSchema({
     .index("by_organizer", ["organizerId"])
     .index("by_staff_user", ["staffUserId"])
     .index("by_event", ["eventId"])
-    .index("by_referral_code", ["referralCode"]),
+    .index("by_referral_code", ["referralCode"])
+    .index("by_assigned_by", ["assignedByStaffId"]) // Query all sub-sellers assigned by a staff member
+    .index("by_hierarchy_level", ["hierarchyLevel"]), // Query staff by level
 
   // Staff sales tracking
   staffSales: defineTable({
@@ -714,7 +728,7 @@ export default defineSchema({
             v.literal("PARKING"),
             v.literal("TENT")
           ),
-          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE")),
+          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE"), v.literal("BLOCKED")),
         })),
       }))),
 
@@ -757,7 +771,7 @@ export default defineSchema({
             v.literal("PARKING"),
             v.literal("TENT")
           ),
-          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE")),
+          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE"), v.literal("BLOCKED")),
           // Seat position relative to table (for visual rendering)
           position: v.optional(v.object({
             angle: v.optional(v.number()),     // Angle around table (0-360) for round/custom tables

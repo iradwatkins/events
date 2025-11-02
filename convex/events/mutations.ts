@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
+import { Id } from "../_generated/dataModel";
 
 /**
  * Create a new event
@@ -108,6 +109,80 @@ export const createEvent = mutation({
       });
 
       console.log("[createEvent] Event created successfully:", eventId);
+
+      // AUTO-ASSIGN GLOBAL STAFF: Find all global staff (eventId=null) with autoAssignToNewEvents=true
+      const globalStaff = await ctx.db
+        .query("eventStaff")
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("organizerId"), user._id),
+            q.eq(q.field("eventId"), undefined),
+            q.eq(q.field("isActive"), true),
+            q.eq(q.field("autoAssignToNewEvents"), true)
+          )
+        )
+        .collect();
+
+      console.log(`[createEvent] Found ${globalStaff.length} global staff to auto-assign`);
+
+      // Clone each global staff member to this new event
+      for (const staff of globalStaff) {
+        // Generate new unique referral code for this event instance
+        const namePart = staff.name
+          .replace(/[^a-zA-Z0-9]/g, "")
+          .substring(0, 6)
+          .toUpperCase();
+        const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+        let referralCode = `${namePart}${randomPart}`;
+
+        let attempts = 0;
+        while (attempts < 10) {
+          const existing = await ctx.db
+            .query("eventStaff")
+            .withIndex("by_referral_code", (q) => q.eq("referralCode", referralCode))
+            .first();
+          if (!existing) break;
+          referralCode = `${namePart}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+          attempts++;
+        }
+
+        // Clone staff to new event
+        const newStaffId = await ctx.db.insert("eventStaff", {
+          eventId, // Assign to new event
+          organizerId: staff.organizerId,
+          staffUserId: staff.staffUserId,
+          email: staff.email,
+          name: staff.name,
+          phone: staff.phone,
+          role: staff.role,
+          canScan: staff.canScan,
+          commissionType: staff.commissionType,
+          commissionValue: staff.commissionValue,
+          commissionPercent: staff.commissionPercent,
+          commissionEarned: 0, // Reset for new event
+          allocatedTickets: 0, // Start at 0, organizer will allocate
+          cashCollected: 0,
+          isActive: true,
+          ticketsSold: 0, // Reset for new event
+          referralCode,
+          // Hierarchy fields - preserve from global staff
+          assignedByStaffId: undefined,
+          hierarchyLevel: staff.hierarchyLevel || 1,
+          canAssignSubSellers: staff.canAssignSubSellers,
+          maxSubSellers: staff.maxSubSellers,
+          parentCommissionPercent: staff.parentCommissionPercent,
+          subSellerCommissionPercent: staff.subSellerCommissionPercent,
+          autoAssignToNewEvents: staff.autoAssignToNewEvents,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+
+        console.log(`[createEvent] Auto-assigned staff ${staff.name} (${newStaffId}) to event`);
+
+        // AUTO-ASSIGN SUB-SELLERS: If this staff has sub-sellers with autoAssignToNewEvents=true, clone them too
+        await autoAssignSubSellers(ctx, staff._id, newStaffId, eventId, user._id);
+      }
+
       return eventId;
     } catch (error) {
       console.error("[createEvent] Error:", error);
@@ -115,6 +190,87 @@ export const createEvent = mutation({
     }
   },
 });
+
+/**
+ * Recursively auto-assign sub-sellers when their parent staff is added to an event
+ * This maintains the full hierarchy tree
+ */
+async function autoAssignSubSellers(
+  ctx: any,
+  originalParentStaffId: Id<"eventStaff">,
+  newParentStaffId: Id<"eventStaff">,
+  eventId: Id<"events">,
+  organizerId: Id<"users">
+): Promise<void> {
+  // Find all sub-sellers of the original parent staff that have autoAssignToNewEvents=true
+  const subSellers = await ctx.db
+    .query("eventStaff")
+    .withIndex("by_assigned_by", (q: any) => q.eq("assignedByStaffId", originalParentStaffId))
+    .filter((q: any) =>
+      q.and(
+        q.eq(q.field("isActive"), true),
+        q.eq(q.field("autoAssignToNewEvents"), true)
+      )
+    )
+    .collect();
+
+  for (const subSeller of subSellers) {
+    // Generate unique referral code
+    const namePart = subSeller.name
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .substring(0, 6)
+      .toUpperCase();
+    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+    let referralCode = `${namePart}${randomPart}`;
+
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_referral_code", (q: any) => q.eq("referralCode", referralCode))
+        .first();
+      if (!existing) break;
+      referralCode = `${namePart}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      attempts++;
+    }
+
+    // Clone sub-seller to new event
+    const newSubSellerId = await ctx.db.insert("eventStaff", {
+      eventId,
+      organizerId,
+      staffUserId: subSeller.staffUserId,
+      email: subSeller.email,
+      name: subSeller.name,
+      phone: subSeller.phone,
+      role: subSeller.role,
+      canScan: subSeller.canScan,
+      commissionType: subSeller.commissionType,
+      commissionValue: subSeller.commissionValue,
+      commissionPercent: subSeller.commissionPercent,
+      commissionEarned: 0,
+      allocatedTickets: 0,
+      cashCollected: 0,
+      isActive: true,
+      ticketsSold: 0,
+      referralCode,
+      // Hierarchy - link to new parent
+      assignedByStaffId: newParentStaffId,
+      hierarchyLevel: subSeller.hierarchyLevel,
+      canAssignSubSellers: subSeller.canAssignSubSellers,
+      maxSubSellers: subSeller.maxSubSellers,
+      parentCommissionPercent: subSeller.parentCommissionPercent,
+      subSellerCommissionPercent: subSeller.subSellerCommissionPercent,
+      autoAssignToNewEvents: subSeller.autoAssignToNewEvents,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    console.log(`[autoAssignSubSellers] Auto-assigned sub-seller ${subSeller.name} (Level ${subSeller.hierarchyLevel}) to event`);
+
+    // Recursively assign this sub-seller's own sub-sellers
+    await autoAssignSubSellers(ctx, subSeller._id, newSubSellerId, eventId, organizerId);
+  }
+}
 
 /**
  * Configure payment for event (simplified wrapper)

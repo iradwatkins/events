@@ -111,6 +111,13 @@ export const addStaffMember = mutation({
       isActive: true,
       ticketsSold: 0,
       referralCode,
+      // Hierarchy fields - organizer-assigned staff is level 1
+      assignedByStaffId: undefined,
+      hierarchyLevel: 1,
+      canAssignSubSellers: false, // Default disabled, organizer can enable
+      maxSubSellers: undefined,
+      parentCommissionPercent: undefined,
+      subSellerCommissionPercent: undefined,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -163,9 +170,24 @@ export const updateStaffMember = mutation({
       throw new Error("Staff member not found");
     }
 
-    // Verify user is the organizer
-    if (staffMember.organizerId !== currentUser._id && currentUser.role !== "admin") {
-      throw new Error("Only the organizer can update staff members");
+    // Check permissions: organizer, admin, OR parent staff member (support staff managing their sub-sellers)
+    let hasPermission = false;
+
+    // Check if user is organizer or admin
+    if (staffMember.organizerId === currentUser._id || currentUser.role === "admin") {
+      hasPermission = true;
+    }
+
+    // Check if user is the parent staff member (can edit their own sub-sellers)
+    if (staffMember.assignedByStaffId) {
+      const parentStaff = await ctx.db.get(staffMember.assignedByStaffId);
+      if (parentStaff && parentStaff.staffUserId === currentUser._id) {
+        hasPermission = true;
+      }
+    }
+
+    if (!hasPermission) {
+      throw new Error("You don't have permission to update this staff member");
     }
 
     const updates: any = {
@@ -427,7 +449,7 @@ export const createCashSale = mutation({
       updatedAt: Date.now(),
     });
 
-    // Update staff member statistics
+    // Update staff member statistics (sub-seller gets their commission)
     const cashAmount = args.paymentMethod === "CASH" ? subtotalCents : 0;
     await ctx.db.patch(args.staffId, {
       ticketsSold: staffMember.ticketsSold + args.quantity,
@@ -447,6 +469,54 @@ export const createCashSale = mutation({
       paymentMethod: args.paymentMethod,
       createdAt: Date.now(),
     });
+
+    // HIERARCHICAL COMMISSION: If this staff has a parent, distribute parent commission
+    if (staffMember.assignedByStaffId) {
+      let currentStaff = staffMember;
+
+      // Walk up the hierarchy and give each parent their commission
+      while (currentStaff.assignedByStaffId) {
+        const parentStaff = await ctx.db.get(currentStaff.assignedByStaffId);
+
+        if (!parentStaff || !parentStaff.isActive) {
+          break; // Stop if parent not found or inactive
+        }
+
+        // Calculate parent's commission (their percentage of the child's commission)
+        const parentCommissionPercent = currentStaff.parentCommissionPercent || 0;
+        let parentCommission = 0;
+
+        if (currentStaff.commissionType === "PERCENTAGE") {
+          // Parent gets their % of the ticket price per ticket
+          parentCommission = Math.round((ticketTier.price * parentCommissionPercent / 100) * args.quantity);
+        } else if (currentStaff.commissionType === "FIXED") {
+          // Parent gets their % of the fixed commission
+          const childCommissionValue = currentStaff.commissionValue || 0;
+          parentCommission = Math.round((childCommissionValue * parentCommissionPercent / 100) * args.quantity);
+        }
+
+        // Add commission to parent
+        await ctx.db.patch(parentStaff._id, {
+          commissionEarned: parentStaff.commissionEarned + parentCommission,
+          updatedAt: Date.now(),
+        });
+
+        // Create a sales record for the parent (so they can track their sub-seller's performance)
+        await ctx.db.insert("staffSales", {
+          staffId: parentStaff._id,
+          staffUserId: parentStaff.staffUserId,
+          eventId: args.eventId,
+          orderId,
+          ticketCount: args.quantity,
+          commissionAmount: parentCommission,
+          paymentMethod: args.paymentMethod,
+          createdAt: Date.now(),
+        });
+
+        // Move up to the next level
+        currentStaff = parentStaff;
+      }
+    }
 
     return {
       success: true,
@@ -493,17 +563,597 @@ export const removeStaffMember = mutation({
       throw new Error("Staff member not found");
     }
 
-    // Verify user is the organizer
-    if (staffMember.organizerId !== currentUser._id && currentUser.role !== "admin") {
-      throw new Error("Only the organizer can remove staff members");
+    // Check permissions: organizer, admin, OR parent staff member (support staff managing their sub-sellers)
+    let hasPermission = false;
+
+    // Check if user is organizer or admin
+    if (staffMember.organizerId === currentUser._id || currentUser.role === "admin") {
+      hasPermission = true;
+    }
+
+    // Check if user is the parent staff member (can remove their own sub-sellers)
+    if (staffMember.assignedByStaffId) {
+      const parentStaff = await ctx.db.get(staffMember.assignedByStaffId);
+      if (parentStaff && parentStaff.staffUserId === currentUser._id) {
+        hasPermission = true;
+      }
+    }
+
+    if (!hasPermission) {
+      throw new Error("You don't have permission to remove this staff member");
     }
 
     // Deactivate instead of delete to preserve sales history
+    // NOTE: This only removes from THIS EVENT - global roster is separate
     await ctx.db.patch(args.staffId, {
       isActive: false,
       updatedAt: Date.now(),
     });
 
     return { success: true };
+  },
+});
+
+/**
+ * Update permissions for a staff member (organizer only)
+ * Allows organizers to enable/disable sub-seller assignment capability
+ */
+export const updateStaffPermissions = mutation({
+  args: {
+    staffId: v.id("eventStaff"),
+    canAssignSubSellers: v.optional(v.boolean()),
+    maxSubSellers: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[updateStaffPermissions] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    const staff = await ctx.db.get(args.staffId);
+    if (!staff) {
+      throw new Error("Staff member not found");
+    }
+
+    // Verify user is the organizer or admin
+    if (staff.organizerId !== currentUser._id && currentUser.role !== "admin") {
+      throw new Error("Only the event organizer can update staff permissions");
+    }
+
+    // Update permissions
+    const updates: any = {
+      updatedAt: Date.now(),
+    };
+
+    if (args.canAssignSubSellers !== undefined) {
+      updates.canAssignSubSellers = args.canAssignSubSellers;
+    }
+
+    if (args.maxSubSellers !== undefined) {
+      updates.maxSubSellers = args.maxSubSellers;
+    }
+
+    await ctx.db.patch(args.staffId, updates);
+
+    return { success: true };
+  },
+});
+
+/**
+ * Assign a sub-seller (staff member can assign their own sellers)
+ * This creates a hierarchical relationship where support staff can delegate ticket selling
+ */
+export const assignSubSeller = mutation({
+  args: {
+    eventId: v.id("events"),
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
+    canScan: v.optional(v.boolean()),
+    allocatedTickets: v.optional(v.number()), // Tickets allocated from parent's balance
+    parentCommissionPercent: v.number(), // What % parent keeps from sub-seller sales
+    subSellerCommissionPercent: v.number(), // What % sub-seller gets from their sales
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: Use test user if not authenticated
+    let currentUser;
+    if (!identity) {
+      console.warn("[assignSubSeller] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      throw new Error("User not found. Please log in.");
+    }
+
+    // Find the parent staff record (current user as staff for this event)
+    const parentStaff = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("staffUserId"), currentUser._id),
+          q.eq(q.field("isActive"), true)
+        )
+      )
+      .first();
+
+    if (!parentStaff) {
+      throw new Error("You are not assigned as staff for this event");
+    }
+
+    // Verify parent has permission to assign sub-sellers
+    if (!parentStaff.canAssignSubSellers) {
+      throw new Error("You do not have permission to assign sub-sellers. Contact the event organizer.");
+    }
+
+    // Check if parent has reached their max sub-sellers limit
+    if (parentStaff.maxSubSellers !== undefined && parentStaff.maxSubSellers !== null) {
+      const existingSubSellers = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_assigned_by", (q) => q.eq("assignedByStaffId", parentStaff._id))
+        .filter((q) => q.eq(q.field("isActive"), true))
+        .collect();
+
+      if (existingSubSellers.length >= parentStaff.maxSubSellers) {
+        throw new Error(`You have reached the maximum of ${parentStaff.maxSubSellers} sub-sellers`);
+      }
+    }
+
+    // Verify commission split is valid
+    if (args.parentCommissionPercent < 0 || args.subSellerCommissionPercent < 0) {
+      throw new Error("Commission percentages cannot be negative");
+    }
+
+    if (args.parentCommissionPercent + args.subSellerCommissionPercent > 100) {
+      throw new Error("Total commission split cannot exceed 100%");
+    }
+
+    // Verify parent has enough allocated tickets if allocating
+    if (args.allocatedTickets) {
+      const currentBalance = (parentStaff.allocatedTickets || 0) - (parentStaff.ticketsSold || 0);
+
+      if (currentBalance < args.allocatedTickets) {
+        throw new Error(
+          `Insufficient tickets. You have ${currentBalance} tickets available, but tried to allocate ${args.allocatedTickets}`
+        );
+      }
+
+      // Deduct from parent's allocation
+      await ctx.db.patch(parentStaff._id, {
+        allocatedTickets: (parentStaff.allocatedTickets || 0) - args.allocatedTickets,
+        updatedAt: Date.now(),
+      });
+    }
+
+    // Check if sub-seller user exists, create if not
+    let subSellerUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (!subSellerUser) {
+      // Create new user for this sub-seller
+      const newUserId = await ctx.db.insert("users", {
+        email: args.email,
+        name: args.name,
+        role: "user",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      subSellerUser = await ctx.db.get(newUserId);
+    }
+
+    // Generate unique referral code
+    let referralCode = generateReferralCode(args.name);
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_referral_code", (q) => q.eq("referralCode", referralCode))
+        .first();
+
+      if (!existing) break;
+      referralCode = generateReferralCode(args.name);
+      attempts++;
+    }
+
+    // Calculate hierarchy level (parent level + 1)
+    const hierarchyLevel = (parentStaff.hierarchyLevel || 1) + 1;
+
+    // Calculate commission values based on parent's commission
+    // Sub-seller gets their percentage of parent's commission
+    const parentCommissionValue = parentStaff.commissionValue || 0;
+    const parentCommissionType = parentStaff.commissionType || "PERCENTAGE";
+
+    // Sub-seller's commission is a portion of parent's
+    let subSellerCommissionValue: number;
+    if (parentCommissionType === "PERCENTAGE") {
+      // If parent gets 10% and sub-seller gets 60% of that, sub-seller commission = 6%
+      subSellerCommissionValue = (parentCommissionValue * args.subSellerCommissionPercent) / 100;
+    } else {
+      // Fixed commission: sub-seller gets their percentage of parent's fixed amount
+      subSellerCommissionValue = (parentCommissionValue * args.subSellerCommissionPercent) / 100;
+    }
+
+    // Create sub-seller record
+    const subSellerId = await ctx.db.insert("eventStaff", {
+      eventId: args.eventId,
+      organizerId: parentStaff.organizerId, // Inherit from parent
+      staffUserId: subSellerUser!._id,
+      email: args.email,
+      name: args.name,
+      phone: args.phone,
+      role: args.role,
+      canScan: args.canScan || (args.role === "SCANNER"),
+      commissionType: parentCommissionType,
+      commissionValue: subSellerCommissionValue,
+      commissionPercent: parentCommissionType === "PERCENTAGE" ? subSellerCommissionValue : undefined,
+      commissionEarned: 0,
+      allocatedTickets: args.allocatedTickets || 0,
+      cashCollected: 0,
+      isActive: true,
+      ticketsSold: 0,
+      referralCode,
+      // Hierarchy fields
+      assignedByStaffId: parentStaff._id, // Link to parent
+      hierarchyLevel,
+      canAssignSubSellers: false, // Default disabled, but can be enabled to allow unlimited depth
+      maxSubSellers: undefined,
+      parentCommissionPercent: args.parentCommissionPercent,
+      subSellerCommissionPercent: args.subSellerCommissionPercent,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return {
+      subSellerId,
+      referralCode,
+      hierarchyLevel,
+    };
+  },
+});
+
+/**
+ * Add a global staff member (eventId = null) that auto-assigns to new events
+ * Only organizers can create global staff
+ */
+export const addGlobalStaff = mutation({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
+    canScan: v.optional(v.boolean()),
+    commissionType: v.optional(v.union(v.literal("PERCENTAGE"), v.literal("FIXED"))),
+    commissionValue: v.optional(v.number()),
+    autoAssignToNewEvents: v.optional(v.boolean()), // Default true for global staff
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[addGlobalStaff] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    // Only organizers can create global staff
+    if (currentUser.role !== "organizer" && currentUser.role !== "admin") {
+      throw new Error("Only organizers can create global staff");
+    }
+
+    // Check if staff user exists, create if not
+    let staffUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (!staffUser) {
+      const newUserId = await ctx.db.insert("users", {
+        email: args.email,
+        name: args.name,
+        role: "user",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      staffUser = await ctx.db.get(newUserId);
+    }
+
+    // Generate unique referral code
+    let referralCode = generateReferralCode(args.name);
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_referral_code", (q) => q.eq("referralCode", referralCode))
+        .first();
+
+      if (!existing) break;
+      referralCode = generateReferralCode(args.name);
+      attempts++;
+    }
+
+    // Create global staff record (eventId = undefined/null)
+    const staffId = await ctx.db.insert("eventStaff", {
+      eventId: undefined, // Global staff - works across all events
+      organizerId: currentUser._id,
+      staffUserId: staffUser!._id,
+      email: args.email,
+      name: args.name,
+      phone: args.phone,
+      role: args.role,
+      canScan: args.canScan || (args.role === "SCANNER"),
+      commissionType: args.commissionType,
+      commissionValue: args.commissionValue,
+      commissionPercent: args.commissionType === "PERCENTAGE" ? args.commissionValue : undefined,
+      commissionEarned: 0,
+      allocatedTickets: 0, // Global staff start with 0, gets allocated per event
+      cashCollected: 0,
+      isActive: true,
+      ticketsSold: 0,
+      referralCode,
+      // Hierarchy fields
+      assignedByStaffId: undefined,
+      hierarchyLevel: 1,
+      canAssignSubSellers: false,
+      maxSubSellers: undefined,
+      parentCommissionPercent: undefined,
+      subSellerCommissionPercent: undefined,
+      autoAssignToNewEvents: args.autoAssignToNewEvents !== undefined ? args.autoAssignToNewEvents : true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return {
+      staffId,
+      referralCode,
+    };
+  },
+});
+
+/**
+ * Toggle auto-assign for staff or sub-sellers
+ * Can be used by organizers for their staff, or by staff for their sub-sellers
+ */
+export const toggleStaffAutoAssign = mutation({
+  args: {
+    staffId: v.id("eventStaff"),
+    autoAssignToNewEvents: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[toggleStaffAutoAssign] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    const staff = await ctx.db.get(args.staffId);
+    if (!staff) {
+      throw new Error("Staff member not found");
+    }
+
+    // Permission check: must be organizer (for their staff) or parent staff (for their sub-sellers)
+    const isOrganizer = staff.organizerId === currentUser._id;
+    const isParentStaff = staff.assignedByStaffId && (
+      await ctx.db.get(staff.assignedByStaffId)
+    )?.staffUserId === currentUser._id;
+
+    if (!isOrganizer && !isParentStaff && currentUser.role !== "admin") {
+      throw new Error("You don't have permission to modify this staff member");
+    }
+
+    await ctx.db.patch(args.staffId, {
+      autoAssignToNewEvents: args.autoAssignToNewEvents,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+/**
+ * Add a global sub-seller (eventId = null) for support staff
+ * Allows support staff to build their default sub-seller roster
+ */
+export const addGlobalSubSeller = mutation({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
+    canScan: v.optional(v.boolean()),
+    parentCommissionPercent: v.number(), // What % parent keeps
+    subSellerCommissionPercent: v.number(), // What % sub-seller gets
+    autoAssignToNewEvents: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[addGlobalSubSeller] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    // Find the current user's global staff record
+    const myStaffRecord = await ctx.db
+      .query("eventStaff")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("staffUserId"), currentUser._id),
+          q.eq(q.field("eventId"), undefined), // Global staff only
+          q.eq(q.field("isActive"), true)
+        )
+      )
+      .first();
+
+    if (!myStaffRecord) {
+      throw new Error("You must be a global staff member to add global sub-sellers");
+    }
+
+    if (!myStaffRecord.canAssignSubSellers) {
+      throw new Error("You don't have permission to assign sub-sellers");
+    }
+
+    // Check max sub-sellers limit
+    if (myStaffRecord.maxSubSellers !== undefined && myStaffRecord.maxSubSellers !== null) {
+      const existingSubSellers = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_assigned_by", (q) => q.eq("assignedByStaffId", myStaffRecord._id))
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("eventId"), undefined),
+            q.eq(q.field("isActive"), true)
+          )
+        )
+        .collect();
+
+      if (existingSubSellers.length >= myStaffRecord.maxSubSellers) {
+        throw new Error(`You can only assign up to ${myStaffRecord.maxSubSellers} sub-sellers`);
+      }
+    }
+
+    // Validate commission splits
+    if (args.parentCommissionPercent + args.subSellerCommissionPercent > 100) {
+      throw new Error("Commission percentages cannot exceed 100%");
+    }
+
+    // Create or get staff user
+    let staffUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (!staffUser) {
+      const newUserId = await ctx.db.insert("users", {
+        email: args.email,
+        name: args.name,
+        role: "user",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      staffUser = await ctx.db.get(newUserId);
+    }
+
+    // Generate unique referral code
+    let referralCode = generateReferralCode(args.name);
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_referral_code", (q) => q.eq("referralCode", referralCode))
+        .first();
+
+      if (!existing) break;
+      referralCode = generateReferralCode(args.name);
+      attempts++;
+    }
+
+    // Create global sub-seller record
+    const hierarchyLevel = (myStaffRecord.hierarchyLevel || 1) + 1;
+
+    const subSellerId = await ctx.db.insert("eventStaff", {
+      eventId: undefined, // Global sub-seller
+      organizerId: myStaffRecord.organizerId,
+      staffUserId: staffUser!._id,
+      email: args.email,
+      name: args.name,
+      phone: args.phone,
+      role: args.role,
+      canScan: args.canScan || (args.role === "SCANNER"),
+      referralCode,
+      isActive: true,
+      ticketsSold: 0,
+      commissionEarned: 0,
+      cashCollected: 0,
+      // Hierarchy fields
+      assignedByStaffId: myStaffRecord._id,
+      hierarchyLevel,
+      canAssignSubSellers: false, // Can be enabled by parent or organizer later
+      // Commission structure (inherits from parent)
+      commissionType: myStaffRecord.commissionType || "PERCENTAGE",
+      commissionValue: 0, // Will be calculated based on parent's commission
+      commissionPercent: args.subSellerCommissionPercent,
+      parentCommissionPercent: args.parentCommissionPercent,
+      subSellerCommissionPercent: args.subSellerCommissionPercent,
+      autoAssignToNewEvents: args.autoAssignToNewEvents ?? true,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return {
+      subSellerId,
+      referralCode,
+      hierarchyLevel,
+    };
   },
 });

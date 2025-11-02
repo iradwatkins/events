@@ -1,0 +1,485 @@
+"use client";
+
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import {
+  Users,
+  Plus,
+  DollarSign,
+  Ticket,
+  Mail,
+  Phone,
+  X,
+  Check,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
+import { Id } from "@/convex/_generated/dataModel";
+
+export default function MySubSellersPage() {
+  const [selectedEventId, setSelectedEventId] = useState<Id<"events"> | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    allocatedTickets: "",
+    parentCommissionPercent: "",
+    subSellerCommissionPercent: "",
+  });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const staffPositions = useQuery(api.staff.queries.getStaffDashboard);
+  const subSellers = useQuery(
+    api.staff.queries.getMySubSellers,
+    selectedEventId ? { eventId: selectedEventId } : "skip"
+  );
+
+  const assignSubSeller = useMutation(api.staff.mutations.assignSubSeller);
+
+  // Select first event by default
+  if (staffPositions && staffPositions.length > 0 && !selectedEventId) {
+    setSelectedEventId(staffPositions[0].eventId as Id<"events">);
+  }
+
+  const selectedPosition = staffPositions?.find((pos) => pos.eventId === selectedEventId);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!selectedEventId) {
+      setError("Please select an event");
+      return;
+    }
+
+    // Validate commission split
+    const parentPercent = parseFloat(formData.parentCommissionPercent);
+    const subSellerPercent = parseFloat(formData.subSellerCommissionPercent);
+
+    if (parentPercent + subSellerPercent > 100) {
+      setError("Total commission split cannot exceed 100%");
+      return;
+    }
+
+    if (parentPercent < 0 || subSellerPercent < 0) {
+      setError("Commission percentages cannot be negative");
+      return;
+    }
+
+    try {
+      await assignSubSeller({
+        eventId: selectedEventId,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        role: "SELLER",
+        allocatedTickets: formData.allocatedTickets ? parseInt(formData.allocatedTickets) : undefined,
+        parentCommissionPercent: parentPercent,
+        subSellerCommissionPercent: subSellerPercent,
+      });
+
+      setSuccess("Sub-seller added successfully!");
+      setShowAddModal(false);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        allocatedTickets: "",
+        parentCommissionPercent: "",
+        subSellerCommissionPercent: "",
+      });
+
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to add sub-seller");
+    }
+  };
+
+  if (!staffPositions) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (staffPositions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Staff Positions</h2>
+          <p className="text-gray-600">You are not assigned as staff for any events yet.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const canAssignSubSellers = selectedPosition?.canAssignSubSellers;
+  const availableTickets = selectedPosition ? selectedPosition.allocatedTickets - selectedPosition.ticketsSold : 0;
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <Users className="w-8 h-8" />
+          My Sub-Sellers
+        </h1>
+        <p className="text-gray-600 mt-1">Manage your team of ticket sellers</p>
+      </div>
+
+      {/* Success Message */}
+      {success && (
+        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2">
+          <Check className="w-5 h-5 text-green-600" />
+          <span className="text-green-800">{success}</span>
+        </div>
+      )}
+
+      {/* Event Selector */}
+      {staffPositions.length > 1 && (
+        <div className="mb-6 bg-white rounded-lg shadow-md p-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Select Event</label>
+          <select
+            value={selectedEventId || ""}
+            onChange={(e) => setSelectedEventId(e.target.value as Id<"events">)}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            {staffPositions.map((pos) => (
+              <option key={pos.eventId} value={pos.eventId}>
+                {pos.eventName}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Permission Check */}
+      {!canAssignSubSellers ? (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-yellow-900 mb-1">Permission Required</h3>
+              <p className="text-yellow-800">
+                You don't have permission to assign sub-sellers for this event.
+                Please contact the event organizer to enable this feature.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mb-1">Total Sub-Sellers</p>
+              <p className="text-3xl font-bold text-gray-900">{subSellers?.length || 0}</p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Ticket className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mb-1">Available to Allocate</p>
+              <p className="text-3xl font-bold text-gray-900">{availableTickets}</p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mb-1">Sub-Seller Sales</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {subSellers?.reduce((sum, s) => sum + s.ticketsSold, 0) || 0}
+              </p>
+            </div>
+          </div>
+
+          {/* Add Sub-Seller Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-semibold"
+            >
+              <Plus className="w-5 h-5" />
+              Add Sub-Seller
+            </button>
+          </div>
+
+          {/* Sub-Sellers List */}
+          {subSellers && subSellers.length > 0 ? (
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Contact
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Allocated
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sold
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Available
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Commission Split
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Earned
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {subSellers.map((subSeller) => (
+                      <tr key={subSeller._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-900">{subSeller.name}</div>
+                          <div className="text-xs text-gray-500">
+                            Level {subSeller.hierarchyLevel}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                              <Mail className="w-4 h-4" />
+                              {subSeller.email}
+                            </div>
+                            {subSeller.phone && (
+                              <div className="flex items-center gap-1 text-sm text-gray-600">
+                                <Phone className="w-4 h-4" />
+                                {subSeller.phone}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900">{subSeller.allocatedTickets || 0}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-semibold text-gray-900">{subSeller.ticketsSold}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900">{subSeller.availableTickets}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            Parent: {subSeller.parentCommissionPercent}%
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Sub-seller: {subSeller.subSellerCommissionPercent}%
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-semibold text-green-600">
+                            ${(subSeller.commissionEarned / 100).toFixed(2)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-md p-12 text-center">
+              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Sub-Sellers Yet</h3>
+              <p className="text-gray-600 mb-6">
+                Start building your sales team by adding your first sub-seller.
+              </p>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Add Sub-Seller Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+              <h2 className="text-2xl font-bold text-gray-900">Add Sub-Seller</h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setError("");
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6">
+              {error && (
+                <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                  <span className="text-red-800">{error}</span>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="John Doe"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="john@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Allocated Tickets
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max={availableTickets}
+                    value={formData.allocatedTickets}
+                    onChange={(e) => setFormData({ ...formData, allocatedTickets: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    You have {availableTickets} tickets available to allocate
+                  </p>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 mb-3">Commission Split</h3>
+                  <p className="text-sm text-blue-800 mb-4">
+                    Configure how commissions are split between you and the sub-seller.
+                    Your current commission: {selectedPosition?.commissionPercent || selectedPosition?.commissionValue}
+                    {selectedPosition?.commissionType === "PERCENTAGE" ? "%" : " cents"}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Your Commission % <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={formData.parentCommissionPercent}
+                        onChange={(e) =>
+                          setFormData({ ...formData, parentCommissionPercent: e.target.value })
+                        }
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="40"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sub-Seller Commission % <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={formData.subSellerCommissionPercent}
+                        onChange={(e) =>
+                          setFormData({ ...formData, subSellerCommissionPercent: e.target.value })
+                        }
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="60"
+                      />
+                    </div>
+                  </div>
+
+                  {formData.parentCommissionPercent && formData.subSellerCommissionPercent && (
+                    <div className="mt-3 text-sm">
+                      <p className="text-gray-700">
+                        Total: {parseFloat(formData.parentCommissionPercent) + parseFloat(formData.subSellerCommissionPercent)}%
+                        {parseFloat(formData.parentCommissionPercent) + parseFloat(formData.subSellerCommissionPercent) > 100 && (
+                          <span className="text-red-600 ml-2">(Exceeds 100%)</span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+                >
+                  Add Sub-Seller
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setError("");
+                  }}
+                  className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition font-semibold"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

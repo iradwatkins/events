@@ -189,11 +189,16 @@ export default function SettlementDashboard() {
                 {/* Staff Row */}
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <h3 className="text-lg font-semibold text-gray-900">{staff.staffName}</h3>
                       {!staff.isActive && (
                         <span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded-full">
                           Inactive
+                        </span>
+                      )}
+                      {staff.hierarchyLevel && staff.hierarchyLevel > 1 && (
+                        <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                          Level {staff.hierarchyLevel} Sub-Seller
                         </span>
                       )}
                       {staff.settlementStatus === "PAID" ? (

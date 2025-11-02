@@ -54,8 +54,19 @@ export default function StaffDashboardPage() {
     <div className="container mx-auto px-4 py-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Track your sales and commissions</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-600 mt-1">Track your sales and commissions</p>
+          </div>
+          <Link
+            href="/staff/my-team"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+          >
+            <Users className="w-5 h-5" />
+            My Default Team
+          </Link>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -143,10 +154,20 @@ export default function StaffDashboardPage() {
                             {format(new Date(position.event.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
                           </div>
                         )}
-                        <div className="mt-3">
+                        <div className="mt-3 flex items-center gap-2 flex-wrap">
                           <span className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
                             {position.role}
                           </span>
+                          {position.hierarchyLevel && position.hierarchyLevel > 1 && (
+                            <span className="px-3 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full">
+                              Level {position.hierarchyLevel} Sub-Seller
+                            </span>
+                          )}
+                          {position.canAssignSubSellers && (
+                            <span className="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">
+                              Can Assign Sellers
+                            </span>
+                          )}
                         </div>
                       </div>
                       {position.event.imageUrl && (
@@ -211,6 +232,19 @@ export default function StaffDashboardPage() {
                           View Sales History →
                         </Link>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Hierarchy & Quick Actions */}
+                  {position.canAssignSubSellers && (
+                    <div className="px-6 py-4 bg-green-50 border-b">
+                      <Link
+                        href="/staff/my-sub-sellers"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-green-700 hover:text-green-800 hover:underline"
+                      >
+                        <Users className="w-4 h-4" />
+                        Manage My Sub-Sellers →
+                      </Link>
                     </div>
                   )}
 

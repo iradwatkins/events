@@ -35,6 +35,10 @@ import SeatingTemplates, { type SeatingTemplate } from "@/components/seating/Sea
 import { type TableShape } from "@/components/seating/TableShapePalette";
 import ToolPalette, { type ToolType } from "@/components/seating/ToolPalette";
 import PropertiesPanel from "@/components/seating/PropertiesPanel";
+import ElementLibrary, { type TableConfig } from "@/components/seating/ElementLibrary";
+import CanvasControls from "@/components/seating/CanvasControls";
+import { FloatingControls } from "@/components/seating/FloatingControls";
+import { SimpleMobileDrawer } from "@/components/seating/MobileDrawer";
 
 type SeatStatus = "AVAILABLE" | "RESERVED" | "UNAVAILABLE";
 type EditorMode = "visual" | "list" | "preview";
@@ -94,6 +98,7 @@ export default function SeatingChartBuilderPage() {
   const createSeatingChart = useMutation(api.seating.mutations.createSeatingChart);
   const updateSeatingChart = useMutation(api.seating.mutations.updateSeatingChart);
   const deleteSeatingChart = useMutation(api.seating.mutations.deleteSeatingChart);
+  const saveAsTemplate = useMutation(api.seating.templates.saveSeatingChartAsTemplate);
 
   const [chartName, setChartName] = useState("");
   const [sections, setSections] = useState<Section[]>([]);
@@ -107,6 +112,7 @@ export default function SeatingChartBuilderPage() {
   // New visual editor state
   const [editorMode, setEditorMode] = useState<EditorMode>("visual");
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
   const [selectedSectionId, setSelectedSectionId] = useState<string | undefined>();
 
   // Table-based seating state
@@ -118,6 +124,20 @@ export default function SeatingChartBuilderPage() {
   // NEW: Tool palette state
   const [activeTool, setActiveTool] = useState<ToolType>("select");
   const [showPropertiesPanel, setShowPropertiesPanel] = useState(false);
+
+  // Mobile drawer state
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+  // Canvas zoom/pan state for floating controls
+  const [canvasZoom, setCanvasZoom] = useState(1);
+  const [isPanning, setIsPanning] = useState(false);
+
+  // Canvas display controls
+  const [snapToGrid, setSnapToGrid] = useState(true);
+  const [showLabels, setShowLabels] = useState(true);
+
+  // Multi-selection state
+  const [selectedElementIds, setSelectedElementIds] = useState<Set<string>>(new Set());
 
   // Track if we've initialized from existing chart
   const hasInitialized = useRef(false);
@@ -171,7 +191,6 @@ export default function SeatingChartBuilderPage() {
           break;
         case "escape":
           setActiveTool("select");
-          setShowPropertiesPanel(false);
           setSelectedTableId(undefined);
           setSelectedSectionId(undefined);
           break;
@@ -260,7 +279,6 @@ export default function SeatingChartBuilderPage() {
       // Select the new table
       setSelectedTableId(newTable.id);
       setSelectedSectionId(tableSection.id);
-      setShowPropertiesPanel(true);
     } else if (activeTool === "row-section") {
       // Add a new row section
       addSection();
@@ -443,6 +461,22 @@ export default function SeatingChartBuilderPage() {
     );
   };
 
+  const updateRow = (sectionId: string, rowId: string, updates: Partial<Row>) => {
+    setSections(
+      sections.map((s) => {
+        if (s.id === sectionId) {
+          return {
+            ...s,
+            rows: (s.rows || []).map((r) =>
+              r.id === rowId ? { ...r, ...updates } : r
+            ),
+          };
+        }
+        return s;
+      })
+    );
+  };
+
   const deleteTable = (sectionId: string, tableId: string) => {
     if (!confirm("Delete this table and all its seats?")) return;
     setSections(
@@ -458,14 +492,12 @@ export default function SeatingChartBuilderPage() {
     );
     if (selectedTableId === tableId) {
       setSelectedTableId(undefined);
-      setShowPropertiesPanel(false);
     }
   };
 
   const handleTableSelect = (sectionId: string, tableId: string) => {
     setSelectedTableId(tableId);
     setSelectedSectionId(sectionId);
-    setShowPropertiesPanel(true);
   };
 
   const getSelectedTable = (): Table | undefined => {
@@ -550,6 +582,28 @@ export default function SeatingChartBuilderPage() {
     }
   };
 
+  // Handle save as template
+  const handleSaveAsTemplate = async (templateData: { name: string; description: string; category: string; isPublic: boolean }) => {
+    if (!existingChart) {
+      alert("Please save the seating chart first before creating a template");
+      return;
+    }
+
+    try {
+      await saveAsTemplate({
+        eventId,
+        templateName: templateData.name,
+        description: templateData.description,
+        category: templateData.category as any,
+        isPublic: templateData.isPublic,
+      });
+      alert("Template saved successfully!");
+      setShowSaveTemplateDialog(false);
+    } catch (error: any) {
+      alert(error.message || "Failed to save template");
+    }
+  };
+
   // Update section (for visual canvas)
   const updateSectionVisually = (sectionId: string, updates: Partial<Section>) => {
     setSections(sections.map((s) => (s.id === sectionId ? { ...s, ...updates } : s)));
@@ -593,6 +647,32 @@ export default function SeatingChartBuilderPage() {
     );
   }
 
+  // Only allow seating management for BALLROOM_EVENT
+  if (event.eventType !== "BALLROOM_EVENT") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
+          <div className="text-6xl mb-4">💃</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Seating Management
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Seating charts are only available for Ballroom Events.
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            This event is a <strong>{event.eventType?.replace(/_/g, " ")}</strong> and doesn't support table seating management.
+          </p>
+          <Link
+            href={`/organizer/events/${eventId}`}
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+          >
+            Back to Event
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -607,9 +687,15 @@ export default function SeatingChartBuilderPage() {
                 <ArrowLeft className="w-5 h-5" />
                 Back to Event
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Seating Chart Builder</h1>
-                <p className="text-sm text-gray-600">{event.name}</p>
+              <div className="flex-1 max-w-md">
+                <h1 className="text-xl font-bold text-gray-900 mb-2">Seating Chart Builder</h1>
+                <input
+                  type="text"
+                  value={chartName}
+                  onChange={(e) => setChartName(e.target.value)}
+                  placeholder="Enter chart name (e.g., Main Hall Seating)"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
               </div>
             </div>
 
@@ -678,7 +764,7 @@ export default function SeatingChartBuilderPage() {
         </div>
       </div>
 
-      {/* Template Modal */}
+      {/* Template Selection Modal */}
       {showTemplates && (
         <SeatingTemplates
           onSelectTemplate={applyTemplate}
@@ -686,47 +772,291 @@ export default function SeatingChartBuilderPage() {
         />
       )}
 
-      {/* Tool Palette - Fixed Left Sidebar */}
-      {editorMode === "visual" && (
-        <ToolPalette activeTool={activeTool} onToolSelect={handleToolSelect} />
+      {/* Save Template Dialog */}
+      {showSaveTemplateDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h2 className="text-xl font-bold mb-4">Save as Template</h2>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              handleSaveAsTemplate({
+                name: formData.get('name') as string,
+                description: formData.get('description') as string,
+                category: formData.get('category') as string,
+                isPublic: formData.get('isPublic') === 'on',
+              });
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Template Name*
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="e.g., Wedding Ballroom 150 guests"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description*
+                  </label>
+                  <textarea
+                    name="description"
+                    required
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Describe this template..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    name="category"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="WEDDING">Wedding</option>
+                    <option value="CORPORATE">Corporate</option>
+                    <option value="CONCERT">Concert</option>
+                    <option value="GALA">Gala</option>
+                    <option value="CONFERENCE">Conference</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="isPublic"
+                    id="isPublic"
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <label htmlFor="isPublic" className="ml-2 text-sm text-gray-700">
+                    Make this template public (share with other organizers)
+                  </label>
+                </div>
+              </div>
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSaveTemplateDialog(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Save Template
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
-      {/* Main Content */}
-      <div className={`${editorMode === "visual" ? "ml-16" : ""} container mx-auto px-4 py-8`}>
-        {editorMode === "visual" ? (
-          <div className="space-y-4">
-            {/* Chart Name - Simplified */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <label className="block text-xs font-medium text-gray-700 mb-2">
-                Chart Name
-              </label>
-              <input
-                type="text"
-                value={chartName}
-                onChange={(e) => setChartName(e.target.value)}
-                placeholder="e.g., Main Hall Seating"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      {/* New Responsive Professional Layout - No Properties Panel */}
+      {editorMode === "visual" && (
+        <div className="h-[calc(100vh-80px)] grid grid-cols-1 md:grid-cols-[280px_1fr]">
+          {/* Element Library - Desktop/Tablet Sidebar */}
+          <div className="hidden md:block">
+            <ElementLibrary
+            totalGuests={getTotalSeats()}
+            totalTables={sections.reduce((count, section) => count + (section.tables?.length || 0), 0)}
+            totalElements={sections.reduce((count, section) => {
+              return count + (section.tables?.length || 0) + (section.rows?.length || 0);
+            }, 0)}
+            onTableSelect={(config: TableConfig) => {
+              // Check if this is a chair row (theatre-style seating)
+              if (config.isRow) {
+                // Handle chair rows separately
+                const rowCount = sections.reduce((count, s) => count + (s.rows?.length || 0), 0);
+                const offsetY = rowCount * 80; // Stack rows vertically
+
+                const x = 300; // Start from left side
+                const y = 300 + offsetY;
+
+                // Get or create row-based section
+                let rowSection = sections.find((s) => s.containerType === "ROWS");
+                if (!rowSection) {
+                  rowSection = {
+                    id: generateId(),
+                    name: "Theatre Seating",
+                    color: "#8B5CF6",
+                    containerType: "ROWS",
+                    rows: [],
+                  };
+                  setSections([...sections, rowSection]);
+                }
+
+                // Generate row label (A, B, C, ...)
+                const rowLabel = String.fromCharCode(65 + (rowSection.rows?.length || 0));
+
+                // Create theatre-style row with aisle support
+                const aisleAfter: number[] = [];
+                if (config.capacity >= 15) {
+                  // Add aisle in middle for rows with 15+ seats
+                  aisleAfter.push(Math.floor(config.capacity / 2) - 1);
+                }
+
+                const newRow: Row & { x: number; y: number; rowLabel: string; aisleAfter?: number[] } = {
+                  id: generateId(),
+                  label: rowLabel,
+                  x,
+                  y,
+                  rowLabel,
+                  aisleAfter,
+                  seats: Array.from({ length: config.capacity }, (_, i) => ({
+                    id: `${rowLabel}${i + 1}`,
+                    number: String(i + 1),
+                    type: "STANDARD" as SeatType,
+                    status: "AVAILABLE" as SeatStatus,
+                  })),
+                };
+
+                setSections((prev) =>
+                  prev.map((s) =>
+                    s.id === rowSection!.id
+                      ? { ...s, rows: [...(s.rows || []), newRow] }
+                      : s
+                  )
+                );
+                return;
+              }
+
+              // Regular table handling
+              const tableCount = sections.reduce((count, s) => count + (s.tables?.length || 0), 0);
+              const offsetX = (tableCount % 3) * 200 - 200; // -200, 0, 200
+              const offsetY = Math.floor(tableCount / 3) * 150; // 0, 150, 300, etc.
+
+              const x = 1500 + offsetX; // Center X with offset
+              const y = 1000 + offsetY; // Center Y with offset
+
+              // Create table section if needed
+              let tableSection = sections.find((s) => s.containerType === "TABLES");
+              if (!tableSection) {
+                tableSection = {
+                  id: generateId(),
+                  name: "Tables",
+                  color: "#3B82F6",
+                  containerType: "TABLES",
+                  tables: [],
+                };
+                setSections([...sections, tableSection]);
+              }
+
+              // Add table with proper dimensions based on shape - proportional sizing
+              const getTableDimensions = (shape: string, capacity: number, id: string) => {
+                if (capacity === 0) {
+                  // Special areas (dance floor, stage, buffet) - Much bigger than tables
+                  return { width: 400, height: 300 };
+                }
+
+                if (shape === "RECTANGULAR") {
+                  // Rectangles should be wider than tall
+                  return { width: 180, height: 100 };
+                } else if (shape === "SQUARE") {
+                  // Squares are equal dimensions
+                  return { width: 120, height: 120 };
+                } else {
+                  // Round tables use width for diameter
+                  return { width: 120, height: 120 };
+                }
+              };
+
+              const dimensions = getTableDimensions(config.shape, config.capacity, config.id);
+
+              const newTable: Table = {
+                id: generateId(),
+                number: (tableSection.tables?.length || 0) + 1,
+                shape: config.shape,
+                x,
+                y,
+                width: dimensions.width,
+                height: dimensions.height,
+                rotation: 0,
+                capacity: config.capacity,
+                seats: config.capacity > 0 ? Array.from({ length: config.capacity }, (_, i) => ({
+                  id: generateId(),
+                  number: String(i + 1),
+                  type: "STANDARD" as SeatType,
+                  status: "AVAILABLE" as SeatStatus,
+                })) : [],
+              };
+
+              setSections((prev) =>
+                prev.map((s) =>
+                  s.id === tableSection!.id
+                    ? { ...s, tables: [...(s.tables || []), newTable] }
+                    : s
+                )
+              );
+
+              // Select the new table
+              setSelectedTableId(newTable.id);
+              setSelectedSectionId(tableSection.id);
+            }}
+              className="h-full"
+            />
+          </div>
+
+          {/* Canvas Area - Center Column */}
+          <div className="relative overflow-auto bg-gray-50">
+            {/* Desktop Canvas Controls (hidden on mobile) */}
+            <div className="hidden md:block">
+              <CanvasControls
+              onClearAll={() => {
+                if (confirm("Clear all elements from canvas?")) {
+                  setSections([]);
+                }
+              }}
+              onExportLayout={() => {
+                const data = {
+                  name: chartName,
+                  sections,
+                  totalSeats: getTotalSeats(),
+                  timestamp: new Date().toISOString(),
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `seating-chart-${Date.now()}.json`;
+                a.click();
+              }}
+              onSaveTemplate={() => {
+                setShowSaveTemplateDialog(true);
+              }}
+              onGenerateReport={() => {
+                alert("Report feature coming soon!");
+              }}
+              snapToGrid={snapToGrid}
+              onSnapToGridChange={setSnapToGrid}
+              showLabels={showLabels}
+              onShowLabelsChange={setShowLabels}
               />
             </div>
 
-            {/* Venue Image Uploader - Compact Mode */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <VenueImageUploader
-                currentImageUrl={venueImageUrl}
-                onImageUploaded={(storageId, url) => {
-                  setVenueImageId(storageId as Id<"_storage">);
-                  setVenueImageUrl(url);
-                }}
-                onImageRemoved={() => {
-                  setVenueImageId(undefined);
-                  setVenueImageUrl(undefined);
-                }}
-                compact={true}
-              />
-            </div>
-
-            {/* Visual Canvas */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            {/* Visual Canvas with Grid Background - Responsive */}
+            <div
+              id="seating-canvas"
+              className="bg-white relative w-full"
+              style={{
+                background: `
+                  white
+                  repeating-linear-gradient(0deg, transparent, transparent 49px, #f0f0f0 49px, #f0f0f0 50px),
+                  repeating-linear-gradient(90deg, transparent, transparent 49px, #f0f0f0 49px, #f0f0f0 50px)
+                `,
+                backgroundSize: "50px 50px",
+                minHeight: "calc(100vh - 200px)",
+                height: "100%",
+              }}
+            >
               <VisualSeatingCanvas
                 venueImageUrl={venueImageUrl}
                 sections={sections}
@@ -735,106 +1065,115 @@ export default function SeatingChartBuilderPage() {
                 onSectionSelect={(sectionId) => {
                   setSelectedSectionId(sectionId);
                   setSelectedTableId(undefined);
-                  setShowPropertiesPanel(true);
                 }}
                 selectedTableId={selectedTableId}
                 onTableSelect={handleTableSelect}
                 onTableUpdate={updateTable}
+                onRowUpdate={updateRow}
+                showGrid={snapToGrid}
+                showLabels={showLabels}
+                selectedElementIds={selectedElementIds}
+                onMultiSelect={setSelectedElementIds}
               />
+
+              {/* Floating Canvas Controls */}
+              <FloatingControls
+                zoom={canvasZoom}
+                onZoomIn={() => setCanvasZoom(Math.min(canvasZoom * 1.2, 3))}
+                onZoomOut={() => setCanvasZoom(Math.max(canvasZoom / 1.2, 0.3))}
+                onFitToView={() => setCanvasZoom(1)}
+                isPanning={isPanning}
+              />
+
+              {/* Table Properties Panel - Removed: Properties now edited through double-click or context menu */}
             </div>
 
-            {/* Properties Panel - Shows for selected table or section */}
-            {showPropertiesPanel && (
-              <PropertiesPanel
-                target={
-                  selectedTableId && selectedSectionId && getSelectedTable()
-                    ? { type: "table", data: getSelectedTable()! }
-                    : selectedSectionId
-                    ? { type: "section", data: sections.find((s) => s.id === selectedSectionId)! }
-                    : null
-                }
-                onUpdate={(updates) => {
-                  if (selectedTableId && selectedSectionId) {
-                    updateTable(selectedSectionId, selectedTableId, updates as Partial<Table>);
-                  } else if (selectedSectionId) {
-                    updateSection(selectedSectionId, updates);
-                  }
-                }}
-                onDelete={() => {
-                  if (selectedTableId && selectedSectionId) {
-                    deleteTable(selectedSectionId, selectedTableId);
-                  } else if (selectedSectionId) {
-                    deleteSection(selectedSectionId);
-                  }
-                }}
-                onClose={() => {
-                  setShowPropertiesPanel(false);
-                  setSelectedTableId(undefined);
-                  setSelectedSectionId(undefined);
-                }}
-              />
-            )}
-
-            {/* Quick Add Section Button */}
+            {/* Mobile: Floating button to open library */}
             <button
-              onClick={addSection}
-              className="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600 font-medium"
+              onClick={() => setMobileDrawerOpen(true)}
+              className="md:hidden fixed bottom-4 left-4 z-30 bg-purple-600 text-white p-4 rounded-full shadow-lg hover:bg-purple-700 transition-colors"
             >
-              <Plus className="w-5 h-5" />
-              Add Section to Canvas
+              <Plus className="w-6 h-6" />
             </button>
-
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-lg shadow-md p-4">
-                <div className="flex items-center gap-3">
-                  <Grid className="w-8 h-8 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Sections</p>
-                    <p className="text-2xl font-bold text-gray-900">{sections.length}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-4">
-                <div className="flex items-center gap-3">
-                  <CircleDot className="w-8 h-8 text-purple-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Total Seats</p>
-                    <p className="text-2xl font-bold text-gray-900">{getTotalSeats()}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-md p-4">
-                <div className="flex items-center gap-3">
-                  <Accessibility className="w-8 h-8 text-green-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Wheelchair Seats</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {sections.reduce((total, section) => {
-                        let wheelchairCount = 0;
-                        if (section.rows) {
-                          wheelchairCount += section.rows.reduce(
-                            (rowTotal, row) =>
-                              rowTotal + row.seats.filter((s) => s.type === "WHEELCHAIR").length,
-                            0
-                          );
-                        }
-                        if (section.tables) {
-                          wheelchairCount += section.tables.reduce(
-                            (tableTotal, table) =>
-                              tableTotal + table.seats.filter((s) => s.type === "WHEELCHAIR").length,
-                            0
-                          );
-                        }
-                        return total + wheelchairCount;
-                      }, 0)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
-        ) : editorMode === "list" ? (
+
+          {/* Properties Panel - REMOVED: Pure drag and drop, no editing UI needed */}
+
+          {/* Mobile Library Drawer */}
+          <SimpleMobileDrawer
+            isOpen={mobileDrawerOpen}
+            onClose={() => setMobileDrawerOpen(false)}
+            title="Table Library"
+          >
+            <ElementLibrary
+              totalGuests={getTotalSeats()}
+              totalTables={sections.reduce((count, section) => count + (section.tables?.length || 0), 0)}
+              totalElements={sections.reduce((count, section) => {
+                return count + (section.tables?.length || 0) + (section.rows?.length || 0);
+              }, 0)}
+              onTableSelect={(config: TableConfig) => {
+                // Close drawer first
+                setMobileDrawerOpen(false);
+
+                // Add table at center of viewport
+                const canvasRect = document.querySelector('#seating-canvas')?.getBoundingClientRect();
+                const x = canvasRect ? canvasRect.width / 2 - 50 : 400;
+                const y = canvasRect ? canvasRect.height / 2 - 50 : 300;
+
+                // Create table section if needed
+                let tableSection = sections.find((s) => s.containerType === "TABLES");
+                if (!tableSection) {
+                  tableSection = {
+                    id: generateId(),
+                    name: "Tables",
+                    color: "#3B82F6",
+                    containerType: "TABLES",
+                    tables: [],
+                  };
+                  setSections([...sections, tableSection]);
+                }
+
+                // Add table
+                const newTable: Table = {
+                  id: generateId(),
+                  number: (tableSection.tables?.length || 0) + 1,
+                  shape: config.shape,
+                  x,
+                  y,
+                  width: config.capacity === 0 ? 150 : 100,
+                  height: config.capacity === 0 ? 150 : 100,
+                  rotation: 0,
+                  capacity: config.capacity,
+                  seats: config.capacity > 0 ? Array.from({ length: config.capacity }, (_, i) => ({
+                    id: generateId(),
+                    number: String(i + 1),
+                    type: "STANDARD" as SeatType,
+                    status: "AVAILABLE" as SeatStatus,
+                  })) : [],
+                };
+
+                setSections((prev) =>
+                  prev.map((s) =>
+                    s.id === tableSection!.id
+                      ? { ...s, tables: [...(s.tables || []), newTable] }
+                      : s
+                  )
+                );
+
+                // Select the new table
+                setSelectedTableId(newTable.id);
+                setSelectedSectionId(tableSection.id);
+              }}
+              className="h-full"
+            />
+          </SimpleMobileDrawer>
+        </div>
+      )}
+
+      {/* Original List/Preview modes remain */}
+      {editorMode !== "visual" && (
+        <div className="container mx-auto px-4 py-8">
+          {editorMode === "list" ? (
           <div className="space-y-6">
             {/* Chart Name */}
             <div className="bg-white rounded-lg shadow-md p-6">
@@ -1246,7 +1585,8 @@ export default function SeatingChartBuilderPage() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

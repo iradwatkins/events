@@ -70,7 +70,8 @@ export const createClaimableEventFromFlyer = mutation({
       eventType: v.union(
         v.literal("SAVE_THE_DATE"),
         v.literal("FREE_EVENT"),
-        v.literal("TICKETED_EVENT")
+        v.literal("TICKETED_EVENT"),
+        v.literal("BALLROOM_EVENT")
       ),
       startDate: v.optional(v.number()),
       endDate: v.optional(v.number()),

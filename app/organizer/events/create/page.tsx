@@ -23,7 +23,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { toDate } from "date-fns-tz";
 import { format as formatDate } from "date-fns";
 
-type EventType = "TICKETED_EVENT" | "FREE_EVENT" | "SAVE_THE_DATE";
+type EventType = "TICKETED_EVENT" | "FREE_EVENT" | "SAVE_THE_DATE" | "BALLROOM_EVENT";
 
 interface TicketTier {
   id: string;
@@ -155,8 +155,8 @@ export default function CreateEventPage() {
     if (!city) missingFields.push("City");
     if (!state) missingFields.push("State");
 
-    // Validate ticket tiers for TICKETED_EVENT
-    if (eventType === "TICKETED_EVENT") {
+    // Validate ticket tiers for TICKETED_EVENT and BALLROOM_EVENT
+    if (eventType === "TICKETED_EVENT" || eventType === "BALLROOM_EVENT") {
       if (ticketTiers.length === 0) {
         alert("Please add at least one ticket tier for your ticketed event.");
         return;
@@ -253,8 +253,8 @@ export default function CreateEventPage() {
         throw new Error("No event ID returned from server");
       }
 
-      // Create ticket tiers for TICKETED_EVENT
-      if (eventType === "TICKETED_EVENT" && ticketTiers.length > 0) {
+      // Create ticket tiers for TICKETED_EVENT and BALLROOM_EVENT
+      if ((eventType === "TICKETED_EVENT" || eventType === "BALLROOM_EVENT") && ticketTiers.length > 0) {
         console.log("[CREATE EVENT] Creating", ticketTiers.length, "ticket tiers...");
 
         for (const tier of ticketTiers) {
@@ -278,7 +278,11 @@ export default function CreateEventPage() {
       console.log("[CREATE EVENT] Event ID:", eventId);
 
       // Redirect based on event type
-      if (eventType === "TICKETED_EVENT") {
+      if (eventType === "BALLROOM_EVENT") {
+        console.log("[CREATE EVENT] Redirecting to seating designer for ballroom event...");
+        alert("Ballroom Event created! Redirecting to seating designer...");
+        router.push(`/organizer/events/${eventId}/seating`);
+      } else if (eventType === "TICKETED_EVENT") {
         console.log("[CREATE EVENT] Redirecting to payment setup for ticketed event...");
         alert("Ticketed Event created! Redirecting to payment setup...");
         router.push(`/organizer/events/${eventId}/payment-setup`);
@@ -370,12 +374,13 @@ export default function CreateEventPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Event Type *
                 </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
-                    { type: "TICKETED_EVENT" as EventType, label: "Ticketed Event", desc: "Sell tickets" },
-                    { type: "FREE_EVENT" as EventType, label: "Free Event", desc: "Free registration" },
-                    { type: "SAVE_THE_DATE" as EventType, label: "Save the Date", desc: "Coming soon" },
-                  ].map(({ type, label, desc }) => (
+                    { type: "TICKETED_EVENT" as EventType, label: "Ticketed Event", desc: "Sell tickets", icon: "🎫" },
+                    { type: "BALLROOM_EVENT" as EventType, label: "Ballroom Event", desc: "Table seating & tickets", icon: "💃" },
+                    { type: "FREE_EVENT" as EventType, label: "Free Event", desc: "Free registration", icon: "🎉" },
+                    { type: "SAVE_THE_DATE" as EventType, label: "Save the Date", desc: "Coming soon", icon: "📅" },
+                  ].map(({ type, label, desc, icon }) => (
                     <button
                       key={type}
                       onClick={() => setEventType(type)}
@@ -385,7 +390,10 @@ export default function CreateEventPage() {
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <p className="font-semibold text-gray-900">{label}</p>
+                      <p className="font-semibold text-gray-900">
+                        <span className="mr-2">{icon}</span>
+                        {label}
+                      </p>
                       <p className="text-xs text-gray-600 mt-1">{desc}</p>
                     </button>
                   ))}
@@ -626,13 +634,18 @@ export default function CreateEventPage() {
                 </div>
               )}
 
-              {/* Ticket Tiers - Only for TICKETED_EVENT */}
-              {eventType === "TICKETED_EVENT" && (
+              {/* Ticket Tiers - For TICKETED_EVENT and BALLROOM_EVENT */}
+              {(eventType === "TICKETED_EVENT" || eventType === "BALLROOM_EVENT") && (
                 <div>
                   <TicketTierEditor tiers={ticketTiers} onChange={setTicketTiers} />
                   <p className="text-xs text-gray-500 mt-2">
                     * At least one ticket tier is required for ticketed events
                   </p>
+                  {eventType === "BALLROOM_EVENT" && (
+                    <p className="text-xs text-blue-600 mt-2">
+                      💡 You'll set up table seating layout in the next step
+                    </p>
+                  )}
                 </div>
               )}
 

@@ -60,21 +60,45 @@ export default function EventDashboardPage() {
     applicableToTierIds: [] as Id<"ticketTiers">[],
   });
 
+  const currentUser = useQuery(api.users.queries.getCurrentUser);
   const event = useQuery(api.events.queries.getEventById, { eventId });
   const publishEvent = useMutation(api.events.mutations.publishEvent);
-  const statistics = useQuery(api.events.queries.getEventStatistics, { eventId });
+  const statistics = useQuery(
+    api.events.queries.getEventStatistics,
+    currentUser ? { eventId } : "skip"
+  );
   const ticketTiers = useQuery(api.events.queries.getEventTicketTiers, { eventId });
-  const orders = useQuery(api.events.queries.getEventOrders, { eventId });
-  const attendees = useQuery(api.events.queries.getEventAttendees, { eventId });
+  const orders = useQuery(
+    api.events.queries.getEventOrders,
+    currentUser ? { eventId } : "skip"
+  );
+  const attendees = useQuery(
+    api.events.queries.getEventAttendees,
+    currentUser ? { eventId } : "skip"
+  );
   const eventStaff = useQuery(api.staff.queries.getEventStaff, { eventId });
-  const staffSummary = useQuery(api.staff.queries.getOrganizerStaffSummary, { eventId });
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
-  const discountCodes = useQuery(api.discounts.queries.getEventDiscountCodes, { eventId });
+  const staffSummary = useQuery(
+    api.staff.queries.getOrganizerStaffSummary,
+    currentUser ? { eventId } : "skip"
+  );
+  const discountCodes = useQuery(
+    api.discounts.queries.getEventDiscountCodes,
+    currentUser ? { eventId } : "skip"
+  );
   const bundles = useQuery(api.bundles.queries.getBundlesForEvent, { eventId });
-  const waitlist = useQuery(api.waitlist.queries.getEventWaitlist, { eventId });
+  const waitlist = useQuery(
+    api.waitlist.queries.getEventWaitlist,
+    currentUser ? { eventId } : "skip"
+  );
   const waitlistCount = useQuery(api.waitlist.queries.getWaitlistCount, { eventId });
-  const seatReservations = useQuery(api.seating.queries.getEventSeatReservations, { eventId });
-  const tableAssignments = useQuery(api.seating.queries.getEventTableAssignments, { eventId });
+  const seatReservations = useQuery(
+    api.seating.queries.getEventSeatReservations,
+    currentUser ? { eventId } : "skip"
+  );
+  const tableAssignments = useQuery(
+    api.seating.queries.getEventTableAssignments,
+    currentUser ? { eventId } : "skip"
+  );
 
   const createDiscountCode = useMutation(api.discounts.mutations.createDiscountCode);
   const updateDiscountCode = useMutation(api.discounts.mutations.updateDiscountCode);

@@ -54,6 +54,8 @@ import type * as scanning_mutations from "../scanning/mutations.js";
 import type * as scanning_queries from "../scanning/queries.js";
 import type * as seating_mutations from "../seating/mutations.js";
 import type * as seating_queries from "../seating/queries.js";
+import type * as seating_social from "../seating/social.js";
+import type * as seating_templates from "../seating/templates.js";
 import type * as seed from "../seed.js";
 import type * as staff_mutations from "../staff/mutations.js";
 import type * as staff_queries from "../staff/queries.js";
@@ -136,6 +138,8 @@ declare const fullApi: ApiFromModules<{
   "scanning/queries": typeof scanning_queries;
   "seating/mutations": typeof seating_mutations;
   "seating/queries": typeof seating_queries;
+  "seating/social": typeof seating_social;
+  "seating/templates": typeof seating_templates;
   seed: typeof seed;
   "staff/mutations": typeof staff_mutations;
   "staff/queries": typeof staff_queries;

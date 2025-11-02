@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { readFile } from "fs/promises";
 import path from "path";
 
@@ -14,18 +13,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for Gemini API key
-    const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-
-    if (!geminiApiKey) {
-      return NextResponse.json(
-        {
-          error: "Gemini API key not configured",
-          details: "Please add GEMINI_API_KEY or GOOGLE_API_KEY to environment variables."
-        },
-        { status: 500 }
-      );
-    }
+    // Ollama runs locally - no API key needed
+    const ollamaUrl = process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434";
 
     // Extract filename from filepath (handles both old and new format)
     // Old format: /STEPFILES/event-flyers/filename.jpg
@@ -42,10 +31,7 @@ export async function POST(request: NextRequest) {
     const imageBuffer = await readFile(fullPath);
     const base64Image = imageBuffer.toString("base64");
 
-    // Initialize Gemini
-    const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
+    // Ollama Vision API
     const prompt = `EXPERT EVENT FLYER EXTRACTION PROMPT - TWO-PHASE EXTRACTION
 
 You are an expert at extracting event information from party flyers, club flyers, and promotional event materials.
@@ -634,23 +620,39 @@ If you used actual newlines in the JSON string values, GO BACK and replace them 
 
 BEGIN TWO-PHASE EXTRACTION NOW.`;
 
-    // Call Gemini Vision API
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: base64Image,
-        },
+    // Call Ollama Vision API
+    console.log("[Ollama] Sending request to llama3.2-vision:11b...");
+    const ollamaResponse = await fetch(`${ollamaUrl}/api/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    ]);
+      body: JSON.stringify({
+        model: "llama3.2-vision:11b",
+        prompt: prompt,
+        images: [base64Image],
+        stream: false,
+        options: {
+          temperature: 0.1, // Lower temperature for more consistent extraction
+          num_predict: 4096, // Allow longer responses for comprehensive extraction
+        }
+      }),
+    });
 
-    const response = await result.response;
-    const extractedText = response.text();
+    if (!ollamaResponse.ok) {
+      const errorText = await ollamaResponse.text();
+      console.error("[Ollama] API Error:", errorText);
+      throw new Error(`Ollama API error: ${ollamaResponse.status} ${errorText}`);
+    }
+
+    const ollamaData = await ollamaResponse.json();
+    const extractedText = ollamaData.response;
 
     if (!extractedText) {
-      throw new Error("No response from Gemini");
+      throw new Error("No response from Ollama");
     }
+
+    console.log("[Ollama] Received response, length:", extractedText.length);
 
     // Parse the JSON response
     let extractedData: any;
@@ -702,7 +704,7 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
             return NextResponse.json({
               success: true,
               extractedData: partialData,
-              provider: "gemini",
+              provider: "ollama-llama3.2-vision",
               warning: "Save the Date flyer - missing venue/time details (expected)"
             });
           } else if (!partialData.eventDate) {
@@ -824,7 +826,7 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
     return NextResponse.json({
       success: true,
       extractedData,
-      provider: "gemini",
+      provider: "ollama-llama3.2-vision",
     });
   } catch (error) {
     console.error("AI extraction error:", error);

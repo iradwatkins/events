@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "../styles/seating-design-system.css";
 import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 

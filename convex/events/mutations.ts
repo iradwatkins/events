@@ -11,7 +11,8 @@ export const createEvent = mutation({
     eventType: v.union(
       v.literal("TICKETED_EVENT"),
       v.literal("FREE_EVENT"),
-      v.literal("SAVE_THE_DATE")
+      v.literal("SAVE_THE_DATE"),
+      v.literal("BALLROOM_EVENT")
     ),
     description: v.string(),
     categories: v.array(v.string()),

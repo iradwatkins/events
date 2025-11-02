@@ -16,7 +16,7 @@ export default function OrganizerBundlesPage() {
   const [editingBundleId, setEditingBundleId] = useState<Id<"ticketBundles"> | null>(null);
 
   // Fetch organizer's events
-  const events = useQuery(api.events.queries.getMyEvents);
+  const events = useQuery(api.events.queries.getOrganizerEvents);
 
   // Fetch all bundles (we'll filter client-side)
   // For now, we'll need to fetch bundles per event and aggregate

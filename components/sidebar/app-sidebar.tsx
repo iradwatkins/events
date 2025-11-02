@@ -8,11 +8,8 @@ import {
   Settings,
   Ticket,
   Users,
-  DollarSign,
   BarChart3,
-  ChevronDown,
   Gift,
-  Armchair,
   Package,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
@@ -30,15 +27,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
 } from '@/components/ui/sidebar'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
 
 // Navigation items configuration for event organizers
 const navItems = [
@@ -48,15 +37,24 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Events',
+    title: 'My Events',
     url: '/organizer/events',
     icon: Calendar,
-    items: [
-      { title: 'My Events', url: '/organizer/events' },
-      { title: 'Claim Events', url: '/organizer/claim-events' },
-      { title: 'Create Event', url: '/organizer/events/create' },
-      { title: 'Multi-Event Bundles', url: '/organizer/bundles' },
-    ],
+  },
+  {
+    title: 'Claim Events',
+    url: '/organizer/claim-events',
+    icon: Gift,
+  },
+  {
+    title: 'Create Event',
+    url: '/organizer/events/create',
+    icon: Plus,
+  },
+  {
+    title: 'Multi-Event Bundles',
+    url: '/organizer/bundles',
+    icon: Package,
   },
   {
     title: 'Analytics',
@@ -92,63 +90,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
-                <Collapsible
-                  key={item.title}
-                  asChild
-                  defaultOpen={pathname.startsWith(item.url)}
-                >
-                  <SidebarMenuItem>
-                    {item.items ? (
-                      <>
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton tooltip={item.title}>
-                            {item.icon && <item.icon />}
-                            <span>{item.title}</span>
-                            <ChevronDown className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <SidebarMenuSub>
-                            {item.items.map((subItem) => (
-                              <SidebarMenuSubItem key={subItem.title}>
-                                <SidebarMenuSubButton asChild>
-                                  <Link href={subItem.url}>
-                                    <span>{subItem.title}</span>
-                                  </Link>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            ))}
-                          </SidebarMenuSub>
-                        </CollapsibleContent>
-                      </>
-                    ) : (
-                      <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
-                        <Link href={item.url}>
-                          {item.icon && <item.icon />}
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    )}
-                  </SidebarMenuItem>
-                </Collapsible>
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
+                    <Link href={item.url}>
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Quick Actions */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Create Event" className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Link href="/organizer/events/create">
-                    <Plus />
-                    <span>Create Event</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

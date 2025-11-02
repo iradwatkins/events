@@ -2,6 +2,7 @@
 
 import { Circle, Square, RectangleHorizontal, Pentagon } from "lucide-react";
 import { getSeatTypeIcon, getSeatTypeBgColor } from "./SeatTypePalette";
+import { TABLE_COLORS, SEAT_COLORS, STROKE_WIDTH } from "@/styles/seating-colors";
 
 export interface TableRenderProps {
   table: {
@@ -33,6 +34,7 @@ export interface TableRenderProps {
   showSeats?: boolean;
   showLabel?: boolean;
   scale?: number;
+  onResizeStart?: (corner: string, e: React.MouseEvent) => void;
 }
 
 export default function TableRenderer({
@@ -42,12 +44,16 @@ export default function TableRenderer({
   showSeats = true,
   showLabel = true,
   scale = 1,
+  onResizeStart,
 }: TableRenderProps) {
+  // Check if this is a special area (no seats)
+  const isSpecialArea = table.capacity === 0;
   const renderTableShape = () => {
     const commonProps = {
-      className: `transition-all ${isSelected ? "stroke-[3]" : "stroke-2"}`,
-      fill: "rgba(255, 255, 255, 0.95)",
-      stroke: "#000000",
+      className: `transition-all`,
+      fill: TABLE_COLORS.FILL_NONE,
+      stroke: isSelected ? TABLE_COLORS.SELECTED : TABLE_COLORS.STROKE,
+      strokeWidth: isSelected ? STROKE_WIDTH.SELECTED : STROKE_WIDTH.TABLE,
     };
 
     switch (table.shape) {
@@ -161,17 +167,68 @@ export default function TableRenderer({
           }
         }
       } else {
-        // Auto-calculate position based on index (fallback)
-        const angle = (360 / table.capacity) * index;
-        const radians = (angle * Math.PI) / 180;
-        const radius = table.width / 2;
-        seatX = table.width / 2 + (radius + 15) * Math.cos(radians);
-        seatY = table.height / 2 + (radius + 15) * Math.sin(radians);
+        // Auto-calculate position based on table shape (fallback)
+        if (table.shape === "RECTANGULAR") {
+          // Rectangular tables: chairs tight to edges, not in circle
+          const offset = 8; // Much closer to table edge
+
+          if (index === 0) {
+            // First chair on left end
+            seatX = -offset;
+            seatY = table.height / 2;
+          } else if (index === 1) {
+            // Second chair on right end
+            seatX = table.width + offset;
+            seatY = table.height / 2;
+          } else {
+            // Remaining chairs split between top and bottom
+            const remaining = table.capacity - 2;
+            const topChairs = Math.ceil(remaining / 2);
+            const bottomChairs = remaining - topChairs;
+            const chairIndex = index - 2;
+
+            if (chairIndex < topChairs) {
+              // Top side - evenly spaced
+              seatX = (table.width / (topChairs + 1)) * (chairIndex + 1);
+              seatY = -offset;
+            } else {
+              // Bottom side - evenly spaced
+              const bottomIndex = chairIndex - topChairs;
+              seatX = (table.width / (bottomChairs + 1)) * (bottomIndex + 1);
+              seatY = table.height + offset;
+            }
+          }
+        } else {
+          // Round and square tables: chairs in circle (current logic is correct)
+          const angle = (360 / table.capacity) * index - 90;
+          const radians = (angle * Math.PI) / 180;
+          const radius = Math.min(table.width, table.height) / 2;
+          const offset = 12; // Closer to table
+          seatX = table.width / 2 + (radius + offset) * Math.cos(radians);
+          seatY = table.height / 2 + (radius + offset) * Math.sin(radians);
+        }
       }
 
       const isAvailable = seat.status === "AVAILABLE";
       const isReserved = seat.status === "RESERVED";
+      const isSold = seat.status === "SOLD";
+      const isSelected = seat.status === "SELECTED";
       const isSpecialType = ["WHEELCHAIR", "VIP", "BLOCKED"].includes(seat.type);
+
+      // Determine seat color based on status
+      let seatFill = SEAT_COLORS.AVAILABLE;
+      let seatStroke = SEAT_COLORS.AVAILABLE;
+
+      if (isSold) {
+        seatFill = SEAT_COLORS.SOLD;
+        seatStroke = SEAT_COLORS.SOLD;
+      } else if (isSelected) {
+        seatFill = SEAT_COLORS.SELECTED;
+        seatStroke = SEAT_COLORS.SELECTED;
+      } else if (isReserved) {
+        seatFill = SEAT_COLORS.RESERVED;
+        seatStroke = SEAT_COLORS.RESERVED;
+      }
 
       return (
         <g key={seat.id}>
@@ -180,13 +237,10 @@ export default function TableRenderer({
             cx={seatX}
             cy={seatY}
             r={seatRadius}
-            className={`transition-all ${
-              isReserved
-                ? "fill-gray-300 stroke-gray-600"
-                : isSpecialType
-                ? "fill-white stroke-black"
-                : "fill-white stroke-black"
-            } stroke-[1.5] ${isAvailable ? "cursor-pointer hover:fill-green-50" : ""}`}
+            fill={seatFill}
+            stroke={seatStroke}
+            strokeWidth={STROKE_WIDTH.SEAT}
+            className={`transition-all ${isAvailable ? "cursor-pointer hover:opacity-80" : ""}`}
           />
 
           {/* Seat number or icon */}
@@ -195,7 +249,8 @@ export default function TableRenderer({
             y={seatY}
             textAnchor="middle"
             dominantBaseline="middle"
-            className="text-[10px] font-bold fill-gray-800 pointer-events-none select-none"
+            className="text-[10px] font-bold pointer-events-none select-none"
+            fill={isSold ? "#fff" : "#1f2937"}
           >
             {isSpecialType ? "" : seat.number}
           </text>
@@ -213,6 +268,18 @@ export default function TableRenderer({
         transformOrigin: `${table.width / 2}px ${table.height / 2}px`,
       }}
     >
+      {/* Invisible larger hit zone for easier dragging */}
+      <rect
+        x={-40}
+        y={-40}
+        width={table.width + 80}
+        height={table.height + 80}
+        fill="transparent"
+        stroke="none"
+        className="cursor-move"
+        style={{ pointerEvents: "all" }}
+      />
+
       {/* Table shape */}
       {renderTableShape()}
 
@@ -258,6 +325,73 @@ export default function TableRenderer({
           strokeWidth={2}
           strokeDasharray="6 3"
         />
+      )}
+
+      {/* Resize handles - only for special areas when selected */}
+      {isSpecialArea && isSelected && onResizeStart && (
+        <>
+          {/* Corner resize handles */}
+          {/* Top-left */}
+          <circle
+            cx={0}
+            cy={0}
+            r={8}
+            fill="white"
+            stroke="#000000"
+            strokeWidth={2}
+            className="cursor-nwse-resize"
+            style={{ pointerEvents: "auto" }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onResizeStart("nw", e);
+            }}
+          />
+          {/* Top-right */}
+          <circle
+            cx={table.width}
+            cy={0}
+            r={8}
+            fill="white"
+            stroke="#000000"
+            strokeWidth={2}
+            className="cursor-nesw-resize"
+            style={{ pointerEvents: "auto" }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onResizeStart("ne", e);
+            }}
+          />
+          {/* Bottom-left */}
+          <circle
+            cx={0}
+            cy={table.height}
+            r={8}
+            fill="white"
+            stroke="#000000"
+            strokeWidth={2}
+            className="cursor-nesw-resize"
+            style={{ pointerEvents: "auto" }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onResizeStart("sw", e);
+            }}
+          />
+          {/* Bottom-right */}
+          <circle
+            cx={table.width}
+            cy={table.height}
+            r={8}
+            fill="white"
+            stroke="#000000"
+            strokeWidth={2}
+            className="cursor-nwse-resize"
+            style={{ pointerEvents: "auto" }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onResizeStart("se", e);
+            }}
+          />
+        </>
       )}
     </g>
   );

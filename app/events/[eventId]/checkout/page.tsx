@@ -9,6 +9,7 @@ import { SquareCardPayment } from "@/components/checkout/SquareCardPayment";
 import { CashAppQRPayment } from "@/components/checkout/CashAppPayment";
 import { StripeCheckout } from "@/components/checkout/StripeCheckout";
 import SeatSelection, { SelectedSeat } from "@/components/checkout/SeatSelection";
+import InteractiveSeatingChart, { SelectedSeat as BallroomSeat } from "@/components/seating/InteractiveSeatingChart";
 import { TierCountdown, TierAvailabilityBadge } from "@/components/events/TierCountdown";
 import { ArrowLeft, CheckCircle2, Ticket, UserCheck, Tag, X, Package, Zap, TrendingDown } from "lucide-react";
 import Link from "next/link";
@@ -174,6 +175,15 @@ export default function CheckoutPage() {
 
   const handleSeatsSelected = (seats: SelectedSeat[]) => {
     setSelectedSeats(seats);
+  };
+
+  // Ballroom seat selection handlers
+  const handleBallroomSeatSelect = (seat: BallroomSeat) => {
+    setSelectedSeats([...selectedSeats, seat as any]);
+  };
+
+  const handleBallroomSeatDeselect = (seatId: string) => {
+    setSelectedSeats(selectedSeats.filter((s) => s.id !== seatId));
   };
 
   // Reset seats when tier or quantity changes
@@ -664,13 +674,35 @@ export default function CheckoutPage() {
                 {/* Seat Selection - Only for individual tickets */}
                 {selectedTierId && purchaseType === 'tier' && seatingChart && seatingChart.sections.length > 0 && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-4">Select Your Seats</h3>
-                    <SeatSelection
-                      eventId={eventId}
-                      ticketTierId={selectedTierId}
-                      requiredSeats={quantity}
-                      onSeatsSelected={handleSeatsSelected}
-                    />
+                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      {eventDetails.eventType === "BALLROOM_EVENT" ? "💃 Select Your Seats" : "Select Your Seats"}
+                    </h3>
+
+                    {/* Ballroom Event - Interactive Visual Seating Chart */}
+                    {eventDetails.eventType === "BALLROOM_EVENT" ? (
+                      <div>
+                        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-sm text-blue-800">
+                            🎫 Click on available seats to select them. Selected seats: <strong>{selectedSeats.length}</strong> / {quantity}
+                          </p>
+                        </div>
+                        <InteractiveSeatingChart
+                          eventId={eventId}
+                          onSeatSelect={handleBallroomSeatSelect}
+                          onSeatDeselect={handleBallroomSeatDeselect}
+                          selectedSeats={selectedSeats as any}
+                          className="min-h-[600px]"
+                        />
+                      </div>
+                    ) : (
+                      /* Regular Event - Traditional Row/Section Selection */
+                      <SeatSelection
+                        eventId={eventId}
+                        ticketTierId={selectedTierId}
+                        requiredSeats={quantity}
+                        onSeatsSelected={handleSeatsSelected}
+                      />
+                    )}
                   </div>
                 )}
 

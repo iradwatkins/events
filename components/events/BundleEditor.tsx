@@ -70,7 +70,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
   const deleteBundle = useMutation(api.bundles.mutations.deleteTicketBundle);
 
   // Fetch all events from this organizer (for multi-event bundle creation)
-  const organizerEvents = useQuery(api.events.queries.getMyEvents);
+  const organizerEvents = useQuery(api.events.queries.getOrganizerEvents);
 
   // Fetch tiers from multiple events when in multi-event mode
   const multiEventTiers = useQuery(

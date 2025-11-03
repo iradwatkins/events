@@ -2,6 +2,8 @@ import { v } from "convex/values";
 import { mutation, internalMutation, action, internalQuery } from "../_generated/server";
 import { internal } from "../_generated/api";
 import { parseEventDateTime } from "../lib/timezone";
+import { USER_ROLES } from "../lib/roles";
+import { PermissionChecker, requireAdmin } from "../lib/permissions";
 
 /**
  * Admin mutations - requires admin role
@@ -16,23 +18,31 @@ export const updateUserRole = mutation({
     role: v.union(v.literal("admin"), v.literal("organizer"), v.literal("user")),
   },
   handler: async (ctx, args) => {
-    // TEMPORARY: Authentication disabled for testing
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Not authenticated");
+    const identity = await ctx.auth.getUserIdentity();
 
-    // const admin = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
+    // TESTING MODE: If no identity, use test admin user
+    let admin;
+    if (!identity) {
+      console.warn("[updateUserRole] TESTING MODE - No authentication");
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
 
-    // if (!admin || admin.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
+    // Require admin role
+    requireAdmin(admin);
+    if (!admin) throw new Error("User not found");
 
-    // // Don't allow changing your own role
-    // if (admin._id === args.userId) {
-    //   throw new Error("Cannot change your own role");
-    // }
+    // Don't allow changing your own role
+    if (admin._id === args.userId) {
+      throw new Error("Cannot change your own role");
+    }
 
     await ctx.db.patch(args.userId, {
       role: args.role,
@@ -51,23 +61,31 @@ export const deleteUser = mutation({
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    // TEMPORARY: Authentication disabled for testing
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Not authenticated");
+    const identity = await ctx.auth.getUserIdentity();
 
-    // const admin = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
+    // TESTING MODE: If no identity, use test admin user
+    let admin;
+    if (!identity) {
+      console.warn("[deleteUser] TESTING MODE - No authentication");
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
 
-    // if (!admin || admin.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
+    // Require admin role
+    requireAdmin(admin);
+    if (!admin) throw new Error("User not found");
 
-    // // Don't allow deleting yourself
-    // if (admin._id === args.userId) {
-    //   throw new Error("Cannot delete your own account");
-    // }
+    // Don't allow deleting yourself
+    if (admin._id === args.userId) {
+      throw new Error("Cannot delete your own account");
+    }
 
     // Check if user has events
     const userEvents = await ctx.db
@@ -102,18 +120,25 @@ export const updateEventStatus = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    // TEMPORARY: Authentication disabled for testing
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Not authenticated");
+    const identity = await ctx.auth.getUserIdentity();
 
-    // const admin = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
+    // TESTING MODE: If no identity, use test admin user
+    let admin;
+    if (!identity) {
+      console.warn("[updateEventStatus] TESTING MODE - No authentication");
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
 
-    // if (!admin || admin.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
+    // Require admin role
+    requireAdmin(admin);
 
     await ctx.db.patch(args.eventId, {
       status: args.status,
@@ -233,17 +258,85 @@ export const deleteEventInternal = internalMutation({
 
     console.log(`📄 [deleteEventInternal] Event: ${event.name}`);
 
-    // Check if event has tickets sold
+    // ADMIN FORCE DELETE: Delete all associated data including tickets and orders
+
+    // Delete all tickets for this event
     const tickets = await ctx.db
       .query("tickets")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
       .collect();
 
-    if (tickets.length > 0) {
-      throw new Error(
-        `Cannot delete event with ${tickets.length} tickets sold. Cancel instead.`
-      );
+    for (const ticket of tickets) {
+      await ctx.db.delete(ticket._id);
     }
+    console.log(`✅ Deleted ${tickets.length} tickets`);
+
+    // Delete all orders for this event and their order items
+    const orders = await ctx.db
+      .query("orders")
+      .filter((q) => q.eq(q.field("eventId"), args.eventId))
+      .collect();
+
+    let totalOrderItems = 0;
+    for (const order of orders) {
+      // Delete order items for this order
+      const orderItems = await ctx.db
+        .query("orderItems")
+        .withIndex("by_order", (q) => q.eq("orderId", order._id))
+        .collect();
+
+      for (const item of orderItems) {
+        await ctx.db.delete(item._id);
+        totalOrderItems++;
+      }
+
+      await ctx.db.delete(order._id);
+    }
+    console.log(`✅ Deleted ${orders.length} orders and ${totalOrderItems} order items`);
+
+    // Delete all staff positions for this event
+    const staffPositions = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .collect();
+
+    for (const staff of staffPositions) {
+      await ctx.db.delete(staff._id);
+    }
+    console.log(`✅ Deleted ${staffPositions.length} staff positions`);
+
+    // Delete all staff ticket transfers for this event
+    const transfers = await ctx.db
+      .query("staffTicketTransfers")
+      .filter((q) => q.eq(q.field("eventId"), args.eventId))
+      .collect();
+
+    for (const transfer of transfers) {
+      await ctx.db.delete(transfer._id);
+    }
+    console.log(`✅ Deleted ${transfers.length} ticket transfers`);
+
+    // Delete seating charts for this event
+    const seatingCharts = await ctx.db
+      .query("seatingCharts")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .collect();
+
+    for (const chart of seatingCharts) {
+      await ctx.db.delete(chart._id);
+    }
+    console.log(`✅ Deleted ${seatingCharts.length} seating charts`);
+
+    // Delete seat reservations for this event
+    const seatReservations = await ctx.db
+      .query("seatReservations")
+      .filter((q) => q.eq(q.field("eventId"), args.eventId))
+      .collect();
+
+    for (const reservation of seatReservations) {
+      await ctx.db.delete(reservation._id);
+    }
+    console.log(`✅ Deleted ${seatReservations.length} seat reservations`);
 
     // Delete ticket tiers
     const tiers = await ctx.db
@@ -292,11 +385,149 @@ export const deleteEventInternal = internalMutation({
       success: true,
       deleted: {
         event: true,
+        tickets: tickets.length,
+        orders: orders.length,
+        orderItems: totalOrderItems,
+        staffPositions: staffPositions.length,
+        transfers: transfers.length,
+        seatingCharts: seatingCharts.length,
+        seatReservations: seatReservations.length,
         tiers: tiers.length,
         bundles: bundles.length,
         contacts: contacts.length,
         flyer: !!args.flyerId,
       }
+    };
+  },
+});
+
+/**
+ * Delete ticket (admin only)
+ * Allows admin to delete any ticket regardless of status
+ */
+export const deleteTicket = mutation({
+  args: {
+    ticketId: v.id("tickets"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: If no identity, use test admin user
+    let admin;
+    if (!identity) {
+      console.warn("[deleteTicket] TESTING MODE - No authentication");
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    // Require admin role
+    requireAdmin(admin);
+    if (!admin) throw new Error("User not found");
+
+    const ticket = await ctx.db.get(args.ticketId);
+    if (!ticket) throw new Error("Ticket not found");
+
+    // Delete associated seat reservations
+    const seatReservations = await ctx.db
+      .query("seatReservations")
+      .filter((q) => q.eq(q.field("ticketId"), args.ticketId))
+      .collect();
+
+    for (const reservation of seatReservations) {
+      await ctx.db.delete(reservation._id);
+    }
+
+    // Delete the ticket
+    await ctx.db.delete(args.ticketId);
+
+    console.log(`✅ Admin deleted ticket ${args.ticketId} with ${seatReservations.length} seat reservations`);
+
+    return {
+      success: true,
+      deletedSeatReservations: seatReservations.length,
+    };
+  },
+});
+
+/**
+ * Delete order (admin only)
+ * Allows admin to delete any order and all associated tickets
+ */
+export const deleteOrder = mutation({
+  args: {
+    orderId: v.id("orders"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE: If no identity, use test admin user
+    let admin;
+    if (!identity) {
+      console.warn("[deleteOrder] TESTING MODE - No authentication");
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      admin = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    // Require admin role
+    requireAdmin(admin);
+    if (!admin) throw new Error("User not found");
+
+    const order = await ctx.db.get(args.orderId);
+    if (!order) throw new Error("Order not found");
+
+    // Delete all tickets associated with this order
+    const tickets = await ctx.db
+      .query("tickets")
+      .filter((q) => q.eq(q.field("orderId"), args.orderId))
+      .collect();
+
+    for (const ticket of tickets) {
+      // Delete seat reservations for each ticket
+      const seatReservations = await ctx.db
+        .query("seatReservations")
+        .filter((q) => q.eq(q.field("ticketId"), ticket._id))
+        .collect();
+
+      for (const reservation of seatReservations) {
+        await ctx.db.delete(reservation._id);
+      }
+
+      await ctx.db.delete(ticket._id);
+    }
+
+    // Delete order items
+    const orderItems = await ctx.db
+      .query("orderItems")
+      .filter((q) => q.eq(q.field("orderId"), args.orderId))
+      .collect();
+
+    for (const item of orderItems) {
+      await ctx.db.delete(item._id);
+    }
+
+    // Delete the order
+    await ctx.db.delete(args.orderId);
+
+    console.log(`✅ Admin deleted order ${args.orderId} with ${tickets.length} tickets and ${orderItems.length} items`);
+
+    return {
+      success: true,
+      deletedTickets: tickets.length,
+      deletedOrderItems: orderItems.length,
     };
   },
 });

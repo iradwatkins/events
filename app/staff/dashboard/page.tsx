@@ -155,17 +155,31 @@ export default function StaffDashboardPage() {
                           </div>
                         )}
                         <div className="mt-3 flex items-center gap-2 flex-wrap">
-                          <span className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
-                            {position.role}
+                          {/* Role Badge */}
+                          <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                            position.role === "SELLER"
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-600 text-white"
+                          }`}>
+                            {position.role === "SELLER" ? "🎫 SELLER" : "📱 SCANNER"}
                           </span>
+
+                          {/* Hierarchy Level Badge */}
                           {position.hierarchyLevel && position.hierarchyLevel > 1 && (
-                            <span className="px-3 py-1 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full">
-                              Level {position.hierarchyLevel} Sub-Seller
+                            <span className="px-3 py-1 text-xs font-bold bg-purple-600 text-white rounded-full">
+                              🔗 Level {position.hierarchyLevel}
                             </span>
                           )}
+
+                          {/* Permission Badges */}
                           {position.canAssignSubSellers && (
-                            <span className="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">
-                              Can Assign Sellers
+                            <span className="px-3 py-1 text-xs font-bold bg-green-600 text-white rounded-full">
+                              👥 Can Assign
+                            </span>
+                          )}
+                          {position.canScan && position.role === "SELLER" && (
+                            <span className="px-3 py-1 text-xs font-bold bg-amber-600 text-white rounded-full">
+                              📱 Can Scan
                             </span>
                           )}
                         </div>

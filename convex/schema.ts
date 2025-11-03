@@ -276,6 +276,23 @@ export default defineSchema({
       filterFields: ["bundleType", "isActive"],
     }),
 
+  // Bundle Purchases - Track bundle sales
+  bundlePurchases: defineTable({
+    bundleId: v.id("ticketBundles"),
+    quantity: v.number(), // Number of bundles purchased
+    buyerName: v.string(),
+    buyerEmail: v.string(),
+    buyerPhone: v.optional(v.string()),
+    paymentId: v.string(), // Square/Stripe payment ID
+    paymentStatus: v.string(), // COMPLETED, PENDING, FAILED, REFUNDED
+    totalPaid: v.number(), // Amount paid in cents
+    ticketIds: v.array(v.string()), // IDs of tickets created from this purchase
+    purchaseDate: v.number(),
+    status: v.string(), // COMPLETED, CANCELLED, REFUNDED
+  })
+    .index("by_bundle", ["bundleId"])
+    .index("by_email", ["buyerEmail"]),
+
   // Order items (links orders to ticket tiers)
   orderItems: defineTable({
     orderId: v.id("orders"),
@@ -762,6 +779,10 @@ export default defineSchema({
         })),
         // Dynamic pricing zone (optional)
         pricingZone: v.optional(v.string()), // Zone ID (e.g., "front", "vip", "standard", "back")
+        // Table reservation (for organizer-reserved tables: VIP, sponsors, etc.)
+        reservationStatus: v.optional(v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE"))),
+        reservationType: v.optional(v.union(v.literal("VIP"), v.literal("SPONSOR"), v.literal("STAFF"), v.literal("CUSTOM"))),
+        reservationNotes: v.optional(v.string()),
         // Capacity and seats
         capacity: v.number(), // Max seats at this table
         seats: v.array(v.object({

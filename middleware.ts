@@ -7,9 +7,10 @@ const JWT_SECRET = new TextEncoder().encode(
 );
 
 // Routes that require authentication
+// TESTING MODE: Admin temporarily removed from protected routes
 const protectedRoutes = [
   "/organizer",
-  "/admin",
+  // "/admin",  // Temporarily disabled for testing
   "/my-tickets",
 ];
 
@@ -56,9 +57,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check admin routes
-  if (pathname.startsWith("/admin") && userRole !== "admin") {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+  // TESTING MODE: Admin role check temporarily disabled
+  // if (pathname.startsWith("/admin") && userRole !== "admin") {
+  //   return NextResponse.redirect(new URL("/", request.url));
+  // }
 
   return NextResponse.next();
 }

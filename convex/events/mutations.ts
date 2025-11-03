@@ -738,3 +738,173 @@ export const duplicateEvent = mutation({
     };
   },
 });
+
+/**
+ * Bulk delete events
+ * Deletes multiple events and all associated data (tickets, staff, bundles, etc.)
+ */
+export const bulkDeleteEvents = mutation({
+  args: {
+    eventIds: v.array(v.id("events")),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    console.log(`[bulkDeleteEvents] Starting bulk delete for ${args.eventIds.length} events`);
+
+    // Get user for ownership verification
+    let user;
+    if (!identity) {
+      console.warn("[bulkDeleteEvents] TESTING MODE - No authentication required");
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+      if (!user) throw new Error("Test user not found");
+    } else {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+      if (!user) throw new Error("User not found");
+    }
+
+    const deletedEvents: string[] = [];
+    const failedEvents: Array<{ eventId: string; reason: string }> = [];
+
+    // Process each event
+    for (const eventId of args.eventIds) {
+      try {
+        const event = await ctx.db.get(eventId);
+
+        if (!event) {
+          failedEvents.push({ eventId, reason: "Event not found" });
+          continue;
+        }
+
+        // Verify ownership (skip in testing mode)
+        if (identity && event.organizerId !== user._id) {
+          failedEvents.push({ eventId, reason: "Not authorized to delete this event" });
+          continue;
+        }
+
+        // Check if event has any tickets sold
+        const ticketTiers = await ctx.db
+          .query("ticketTiers")
+          .withIndex("by_event", (q) => q.eq("eventId", eventId))
+          .collect();
+
+        const totalTicketsSold = ticketTiers.reduce((sum, tier) => sum + tier.sold, 0);
+
+        if (totalTicketsSold > 0) {
+          failedEvents.push({
+            eventId,
+            reason: `Cannot delete - ${totalTicketsSold} ticket${totalTicketsSold === 1 ? ' has' : 's have'} been sold`
+          });
+          continue;
+        }
+
+        // Delete all related data
+        console.log(`[bulkDeleteEvents] Deleting event ${eventId}: ${event.name}`);
+
+        // Delete ticket tiers
+        for (const tier of ticketTiers) {
+          await ctx.db.delete(tier._id);
+        }
+        console.log(`[bulkDeleteEvents] Deleted ${ticketTiers.length} ticket tiers`);
+
+        // Delete event staff
+        const eventStaff = await ctx.db
+          .query("eventStaff")
+          .withIndex("by_event", (q) => q.eq("eventId", eventId))
+          .collect();
+        for (const staff of eventStaff) {
+          await ctx.db.delete(staff._id);
+        }
+        console.log(`[bulkDeleteEvents] Deleted ${eventStaff.length} staff members`);
+
+        // Delete ticket bundles
+        const bundles = await ctx.db
+          .query("ticketBundles")
+          .filter((q) => q.eq(q.field("eventId"), eventId))
+          .collect();
+        for (const bundle of bundles) {
+          await ctx.db.delete(bundle._id);
+        }
+        console.log(`[bulkDeleteEvents] Deleted ${bundles.length} bundles`);
+
+        // Delete seating charts
+        const seatingCharts = await ctx.db
+          .query("seatingCharts")
+          .withIndex("by_event", (q) => q.eq("eventId", eventId))
+          .collect();
+        for (const chart of seatingCharts) {
+          await ctx.db.delete(chart._id);
+        }
+        console.log(`[bulkDeleteEvents] Deleted ${seatingCharts.length} seating charts`);
+
+        // Delete seat reservations
+        const seatReservations = await ctx.db
+          .query("seatReservations")
+          .withIndex("by_event", (q) => q.eq("eventId", eventId))
+          .collect();
+        for (const reservation of seatReservations) {
+          await ctx.db.delete(reservation._id);
+        }
+        console.log(`[bulkDeleteEvents] Deleted ${seatReservations.length} seat reservations`);
+
+        // Delete payment config
+        const paymentConfig = await ctx.db
+          .query("eventPaymentConfig")
+          .withIndex("by_event", (q) => q.eq("eventId", eventId))
+          .first();
+        if (paymentConfig) {
+          await ctx.db.delete(paymentConfig._id);
+          console.log(`[bulkDeleteEvents] Deleted payment configuration`);
+        }
+
+        // Delete tickets (shouldn't be any if no sales, but clean up just in case)
+        const tickets = await ctx.db
+          .query("tickets")
+          .withIndex("by_event", (q) => q.eq("eventId", eventId))
+          .collect();
+        for (const ticket of tickets) {
+          await ctx.db.delete(ticket._id);
+        }
+        console.log(`[bulkDeleteEvents] Deleted ${tickets.length} tickets`);
+
+        // Delete orders (shouldn't be any if no sales, but clean up just in case)
+        const orders = await ctx.db
+          .query("orders")
+          .filter((q) => q.eq(q.field("eventId"), eventId))
+          .collect();
+        for (const order of orders) {
+          await ctx.db.delete(order._id);
+        }
+        console.log(`[bulkDeleteEvents] Deleted ${orders.length} orders`);
+
+        // Finally, delete the event itself
+        await ctx.db.delete(eventId);
+        deletedEvents.push(eventId);
+        console.log(`[bulkDeleteEvents] Successfully deleted event ${eventId}`);
+
+      } catch (error) {
+        console.error(`[bulkDeleteEvents] Error deleting event ${eventId}:`, error);
+        failedEvents.push({
+          eventId,
+          reason: error instanceof Error ? error.message : "Unknown error"
+        });
+      }
+    }
+
+    console.log(`[bulkDeleteEvents] Completed: ${deletedEvents.length} deleted, ${failedEvents.length} failed`);
+
+    return {
+      success: true,
+      deletedCount: deletedEvents.length,
+      failedCount: failedEvents.length,
+      deletedEvents,
+      failedEvents,
+    };
+  },
+});

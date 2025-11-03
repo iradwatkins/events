@@ -99,6 +99,7 @@ export default function SeatingChartBuilderPage() {
   const updateSeatingChart = useMutation(api.seating.mutations.updateSeatingChart);
   const deleteSeatingChart = useMutation(api.seating.mutations.deleteSeatingChart);
   const saveAsTemplate = useMutation(api.seating.templates.saveSeatingChartAsTemplate);
+  const setTableReservationStatus = useMutation(api.seating.mutations.setTableReservationStatus);
 
   const [chartName, setChartName] = useState("");
   const [sections, setSections] = useState<Section[]>([]);
@@ -138,6 +139,16 @@ export default function SeatingChartBuilderPage() {
 
   // Multi-selection state
   const [selectedElementIds, setSelectedElementIds] = useState<Set<string>>(new Set());
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    show: boolean;
+    x: number;
+    y: number;
+    sectionId: string;
+    tableId: string;
+    tableNumber: string | number;
+  } | null>(null);
 
   // Track if we've initialized from existing chart
   const hasInitialized = useRef(false);
@@ -247,15 +258,21 @@ export default function SeatingChartBuilderPage() {
         setSections([...sections, tableSection]);
       }
 
-      // Add table to section
+      // Add table to section with grid snapping
       const shape = shapeMap[activeTool];
       const tableNumber = (tableSection.tables?.length || 0) + 1;
+
+      // Snap to grid and constrain to bounds
+      const snappedX = snapValueToGrid(x);
+      const snappedY = snapValueToGrid(y);
+      const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, 100, 100);
+
       const newTable: Table = {
         id: generateId(),
         number: tableNumber,
         shape,
-        x,
-        y,
+        x: finalX,
+        y: finalY,
         width: 100,
         height: 100,
         rotation: 0,
@@ -287,6 +304,21 @@ export default function SeatingChartBuilderPage() {
   };
 
   const generateId = () => Math.random().toString(36).substring(2, 11);
+
+  // Grid snap and bounds helper functions
+  const GRID_SIZE = 50;
+  const CANVAS_WIDTH = 3000;
+  const CANVAS_HEIGHT = 2000;
+
+  const snapValueToGrid = (value: number): number => {
+    return Math.round(value / GRID_SIZE) * GRID_SIZE;
+  };
+
+  const constrainToBounds = (x: number, y: number, width: number, height: number) => {
+    const constrainedX = Math.max(0, Math.min(x, CANVAS_WIDTH - width));
+    const constrainedY = Math.max(0, Math.min(y, CANVAS_HEIGHT - height));
+    return { x: constrainedX, y: constrainedY };
+  };
 
   const addSection = () => {
     const newSection: Section = {
@@ -417,12 +449,18 @@ export default function SeatingChartBuilderPage() {
     if (!section || !section.tables) return;
 
     const tableNumber = (section.tables?.length || 0) + 1;
+
+    // Snap to grid and constrain to bounds
+    const snappedX = snapValueToGrid(x);
+    const snappedY = snapValueToGrid(y);
+    const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, 100, 100);
+
     const newTable: Table = {
       id: generateId(),
       number: tableNumber,
       shape: selectedTableShape,
-      x,
-      y,
+      x: finalX,
+      y: finalY,
       width: 100,
       height: 100,
       rotation: 0,
@@ -498,6 +536,188 @@ export default function SeatingChartBuilderPage() {
   const handleTableSelect = (sectionId: string, tableId: string) => {
     setSelectedTableId(tableId);
     setSelectedSectionId(sectionId);
+  };
+
+  const handleTableContextMenu = (e: React.MouseEvent, sectionId: string, tableId: string, tableNumber: string | number) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setContextMenu({
+      show: true,
+      x: e.clientX,
+      y: e.clientY,
+      sectionId,
+      tableId,
+      tableNumber,
+    });
+  };
+
+  const handleSetTableReservation = async (
+    status: "AVAILABLE" | "RESERVED" | "UNAVAILABLE",
+    reservationType?: "VIP" | "SPONSOR" | "STAFF" | "CUSTOM",
+    notes?: string
+  ) => {
+    if (!contextMenu || !existingChart) return;
+
+    try {
+      await setTableReservationStatus({
+        eventId,
+        sectionId: contextMenu.sectionId,
+        tableId: contextMenu.tableId,
+        status,
+        reservationType,
+        notes,
+      });
+
+      // Close context menu
+      setContextMenu(null);
+
+      // TODO: Refresh seating chart or update local state
+      // For now, the query will auto-refresh
+    } catch (error: any) {
+      alert(error.message || "Failed to update table reservation");
+    }
+  };
+
+  // Close context menu on outside click
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu?.show) {
+        setContextMenu(null);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [contextMenu]);
+
+  const handleTableDrop = (config: TableConfig, x: number, y: number) => {
+    // Check if this is a chair row (theatre-style seating)
+    if (config.isRow) {
+      // Get or create row-based section
+      let rowSection = sections.find((s) => s.containerType === "ROWS");
+      if (!rowSection) {
+        rowSection = {
+          id: generateId(),
+          name: "Theatre Seating",
+          color: "#8B5CF6",
+          containerType: "ROWS",
+          rows: [],
+        };
+        setSections([...sections, rowSection]);
+      }
+
+      // Generate row label (A, B, C, ...)
+      const rowLabel = String.fromCharCode(65 + (rowSection.rows?.length || 0));
+
+      // Create theatre-style row with aisle support
+      const aisleAfter: number[] = [];
+      if (config.capacity >= 15) {
+        // Add aisle in middle for rows with 15+ seats
+        aisleAfter.push(Math.floor(config.capacity / 2) - 1);
+      }
+
+      // Note: x and y already come snapped from VisualSeatingCanvas
+      // Just need to constrain to bounds
+      const { x: finalX, y: finalY } = constrainToBounds(x, y, 800, 60);
+
+      const newRow: Row & { x: number; y: number; rowLabel: string; aisleAfter?: number[] } = {
+        id: generateId(),
+        label: rowLabel,
+        x: finalX,
+        y: finalY,
+        rowLabel,
+        aisleAfter,
+        seats: Array.from({ length: config.capacity }, (_, i) => ({
+          id: `${rowLabel}${i + 1}`,
+          number: String(i + 1),
+          type: "STANDARD" as SeatType,
+          status: "AVAILABLE" as SeatStatus,
+        })),
+      };
+
+      setSections((prev) =>
+        prev.map((s) =>
+          s.id === rowSection!.id
+            ? { ...s, rows: [...(s.rows || []), newRow] }
+            : s
+        )
+      );
+      return;
+    }
+
+    // Regular table handling
+    // Create table section if needed
+    let tableSection = sections.find((s) => s.containerType === "TABLES");
+    if (!tableSection) {
+      tableSection = {
+        id: generateId(),
+        name: "Tables",
+        color: "#3B82F6",
+        containerType: "TABLES",
+        tables: [],
+      };
+      setSections([...sections, tableSection]);
+    }
+
+    // Add table with proper dimensions based on shape - proportional sizing
+    const getTableDimensions = (shape: string, capacity: number, id: string) => {
+      if (capacity === 0) {
+        // Special areas (dance floor, stage, buffet) - Much bigger than tables
+        return { width: 400, height: 300 };
+      }
+
+      if (shape === "RECTANGULAR") {
+        // Rectangles should be wider than tall
+        return { width: 180, height: 100 };
+      } else if (shape === "SQUARE") {
+        // Squares are equal dimensions
+        return { width: 120, height: 120 };
+      } else {
+        // Round tables use width for diameter
+        return { width: 120, height: 120 };
+      }
+    };
+
+    const dimensions = getTableDimensions(config.shape, config.capacity, config.id);
+
+    // Adjust position to center table at drop point, then snap and constrain
+    const adjustedX = x - dimensions.width / 2;
+    const adjustedY = y - dimensions.height / 2;
+
+    // Note: x and y already come snapped from VisualSeatingCanvas
+    // Just need to constrain to bounds with the actual dimensions
+    const { x: finalX, y: finalY } = constrainToBounds(adjustedX, adjustedY, dimensions.width, dimensions.height);
+
+    const newTable: Table = {
+      id: generateId(),
+      number: (tableSection.tables?.length || 0) + 1,
+      shape: config.shape,
+      x: finalX,
+      y: finalY,
+      width: dimensions.width,
+      height: dimensions.height,
+      rotation: 0,
+      capacity: config.capacity,
+      seats: config.capacity > 0 ? Array.from({ length: config.capacity }, (_, i) => ({
+        id: generateId(),
+        number: String(i + 1),
+        type: "STANDARD" as SeatType,
+        status: "AVAILABLE" as SeatStatus,
+      })) : [],
+    };
+
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === tableSection!.id
+          ? { ...s, tables: [...(s.tables || []), newTable] }
+          : s
+      )
+    );
+
+    // Select the new table
+    setSelectedTableId(newTable.id);
+    setSelectedSectionId(tableSection.id);
   };
 
   const getSelectedTable = (): Table | undefined => {
@@ -1069,11 +1289,13 @@ export default function SeatingChartBuilderPage() {
                 selectedTableId={selectedTableId}
                 onTableSelect={handleTableSelect}
                 onTableUpdate={updateTable}
+                onTableDrop={handleTableDrop}
                 onRowUpdate={updateRow}
                 showGrid={snapToGrid}
                 showLabels={showLabels}
                 selectedElementIds={selectedElementIds}
                 onMultiSelect={setSelectedElementIds}
+                onTableContextMenu={handleTableContextMenu}
               />
 
               {/* Floating Canvas Controls */}
@@ -1585,6 +1807,77 @@ export default function SeatingChartBuilderPage() {
             </div>
           </div>
         )}
+        </div>
+      )}
+
+      {/* Table Context Menu */}
+      {contextMenu?.show && (
+        <div
+          className="fixed bg-white border border-gray-300 rounded-lg shadow-lg py-1 z-50 min-w-[200px]"
+          style={{
+            left: contextMenu.x,
+            top: contextMenu.y,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-3 py-2 border-b border-gray-200 bg-gray-50">
+            <p className="text-xs font-semibold text-gray-700">Table {contextMenu.tableNumber}</p>
+          </div>
+
+          {/* Mark as Reserved options */}
+          <div className="py-1">
+            <p className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase">Mark as Reserved</p>
+            <button
+              className="w-full px-3 py-2 text-left hover:bg-purple-50 text-sm flex items-center gap-2"
+              onClick={() => handleSetTableReservation("RESERVED", "VIP")}
+            >
+              <Crown className="w-4 h-4 text-purple-600" />
+              <span>VIP Table</span>
+            </button>
+            <button
+              className="w-full px-3 py-2 text-left hover:bg-blue-50 text-sm flex items-center gap-2"
+              onClick={() => handleSetTableReservation("RESERVED", "SPONSOR")}
+            >
+              <Users className="w-4 h-4 text-blue-600" />
+              <span>Sponsor Table</span>
+            </button>
+            <button
+              className="w-full px-3 py-2 text-left hover:bg-green-50 text-sm flex items-center gap-2"
+              onClick={() => handleSetTableReservation("RESERVED", "STAFF")}
+            >
+              <User className="w-4 h-4 text-green-600" />
+              <span>Staff Table</span>
+            </button>
+            <button
+              className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm flex items-center gap-2"
+              onClick={() => {
+                const notes = prompt("Enter reservation notes:");
+                if (notes !== null) {
+                  handleSetTableReservation("RESERVED", "CUSTOM", notes);
+                }
+              }}
+            >
+              <AlertCircle className="w-4 h-4 text-gray-600" />
+              <span>Custom Reservation</span>
+            </button>
+          </div>
+
+          <div className="border-t border-gray-200 py-1">
+            <button
+              className="w-full px-3 py-2 text-left hover:bg-green-50 text-sm flex items-center gap-2"
+              onClick={() => handleSetTableReservation("AVAILABLE")}
+            >
+              <CircleDot className="w-4 h-4 text-green-600" />
+              <span>Mark as Available</span>
+            </button>
+            <button
+              className="w-full px-3 py-2 text-left hover:bg-red-50 text-sm flex items-center gap-2"
+              onClick={() => handleSetTableReservation("UNAVAILABLE")}
+            >
+              <Ban className="w-4 h-4 text-red-600" />
+              <span>Mark as Unavailable</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

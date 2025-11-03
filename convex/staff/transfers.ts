@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { TRANSFER_STATUS, TRANSFER_CONFIG } from "../lib/roles";
 
 /**
  * Request a ticket transfer from one staff member to another
@@ -55,7 +56,7 @@ export const requestTransfer = mutation({
     const pendingTransfersOut = await ctx.db
       .query("staffTicketTransfers")
       .withIndex("by_from_staff", (q) => q.eq("fromStaffId", fromStaff._id))
-      .filter((q) => q.eq(q.field("status"), "PENDING"))
+      .filter((q) => q.eq(q.field("status"), TRANSFER_STATUS.PENDING))
       .collect();
 
     const pendingOutAmount = pendingTransfersOut.reduce((sum, t) => sum + t.ticketQuantity, 0);
@@ -89,13 +90,13 @@ export const requestTransfer = mutation({
       ticketQuantity: args.ticketQuantity,
 
       // Status
-      status: "PENDING",
+      status: TRANSFER_STATUS.PENDING,
       reason: args.reason,
       notes: args.notes,
 
       // Timestamps
       requestedAt: Date.now(),
-      expiresAt: Date.now() + 48 * 60 * 60 * 1000, // 48 hours
+      expiresAt: Date.now() + TRANSFER_CONFIG.EXPIRATION_MS, // 48 hours
 
       // Balance tracking
       fromStaffBalanceBefore: currentBalance,
@@ -140,7 +141,7 @@ export const acceptTransfer = mutation({
     }
 
     // Check status
-    if (transfer.status !== "PENDING") {
+    if (transfer.status !== TRANSFER_STATUS.PENDING) {
       throw new Error(`Transfer is already ${transfer.status.toLowerCase()}`);
     }
 
@@ -148,7 +149,7 @@ export const acceptTransfer = mutation({
     if (Date.now() > transfer.expiresAt) {
       // Mark as expired
       await ctx.db.patch(args.transferId, {
-        status: "AUTO_EXPIRED",
+        status: TRANSFER_STATUS.AUTO_EXPIRED,
         respondedAt: Date.now(),
       });
       throw new Error("Transfer request has expired");
@@ -167,7 +168,7 @@ export const acceptTransfer = mutation({
     if (senderBalance < transfer.ticketQuantity) {
       // Cancel the transfer
       await ctx.db.patch(args.transferId, {
-        status: "CANCELLED",
+        status: TRANSFER_STATUS.CANCELLED,
         respondedAt: Date.now(),
         rejectionReason: "Sender no longer has sufficient tickets",
       });
@@ -192,7 +193,7 @@ export const acceptTransfer = mutation({
 
     // Update transfer record
     await ctx.db.patch(args.transferId, {
-      status: "ACCEPTED",
+      status: TRANSFER_STATUS.ACCEPTED,
       respondedAt: Date.now(),
       fromStaffBalanceAfter: newSenderBalance,
       toStaffBalanceAfter: newRecipientBalance,
@@ -237,13 +238,13 @@ export const rejectTransfer = mutation({
     }
 
     // Check status
-    if (transfer.status !== "PENDING") {
+    if (transfer.status !== TRANSFER_STATUS.PENDING) {
       throw new Error(`Transfer is already ${transfer.status.toLowerCase()}`);
     }
 
     // Update transfer record
     await ctx.db.patch(args.transferId, {
-      status: "REJECTED",
+      status: TRANSFER_STATUS.REJECTED,
       respondedAt: Date.now(),
       rejectionReason: args.reason,
     });
@@ -285,7 +286,7 @@ export const cancelTransfer = mutation({
     }
 
     // Check status
-    if (transfer.status !== "PENDING") {
+    if (transfer.status !== TRANSFER_STATUS.PENDING) {
       throw new Error(`Cannot cancel - transfer is already ${transfer.status.toLowerCase()}`);
     }
 
@@ -411,7 +412,7 @@ export const getPendingTransfers = query({
       const incoming = await ctx.db
         .query("staffTicketTransfers")
         .withIndex("by_to_staff", (q) => q.eq("toStaffId", staffId))
-        .filter((q) => q.eq(q.field("status"), "PENDING"))
+        .filter((q) => q.eq(q.field("status"), TRANSFER_STATUS.PENDING))
         .collect();
       incomingCount += incoming.length;
 
@@ -419,7 +420,7 @@ export const getPendingTransfers = query({
       const outgoing = await ctx.db
         .query("staffTicketTransfers")
         .withIndex("by_from_staff", (q) => q.eq("fromStaffId", staffId))
-        .filter((q) => q.eq(q.field("status"), "PENDING"))
+        .filter((q) => q.eq(q.field("status"), TRANSFER_STATUS.PENDING))
         .collect();
       outgoingCount += outgoing.length;
     }

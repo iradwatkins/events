@@ -32,19 +32,62 @@ export default function TemplatesPage() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [selectedTemplates, setSelectedTemplates] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteResult, setDeleteResult] = useState<{
+    deletedCount: number;
+    failedCount: number;
+    failedTemplates: Array<{ templateId: string; reason: string }>;
+  } | null>(null);
 
   // Get user's custom templates from database
   const userTemplates = useQuery(api.templates.queries.getUserTemplates);
   const templateStats = useQuery(api.templates.queries.getTemplateStats);
 
+  // Get seating/floor plan templates
+  const floorPlanTemplates = useQuery(api.seating.templates.getMyTemplates);
+
   // Mutations
   const deleteTemplate = useMutation(api.templates.mutations.deleteRoomTemplate);
+  const deleteFloorPlanTemplate = useMutation(api.seating.templates.deleteTemplate);
+  const bulkDeleteFloorPlanTemplates = useMutation(api.seating.templates.bulkDeleteTemplates);
+
+  // Helper functions for selection
+  const toggleTemplateSelection = (templateId: string) => {
+    const newSelection = new Set(selectedTemplates);
+    if (newSelection.has(templateId)) {
+      newSelection.delete(templateId);
+    } else {
+      newSelection.add(templateId);
+    }
+    setSelectedTemplates(newSelection);
+  };
+
+  const selectAllTemplates = () => {
+    const customTemplates = allTemplates.filter((t: any) => t.isCustom);
+    setSelectedTemplates(new Set(customTemplates.map((t: any) => t.id)));
+  };
+
+  const selectFloorPlanTemplates = () => {
+    const floorPlans = allTemplates.filter((t: any) => t.isFloorPlan && t.isCustom);
+    setSelectedTemplates(new Set(floorPlans.map((t: any) => t.id)));
+  };
+
+  const selectRoomTemplates = () => {
+    const roomTemplates = allTemplates.filter((t: any) => !t.isFloorPlan && t.isCustom);
+    setSelectedTemplates(new Set(roomTemplates.map((t: any) => t.id)));
+  };
 
   // Handle delete template
-  const handleDeleteTemplate = async (templateId: string, templateName: string) => {
+  const handleDeleteTemplate = async (templateId: string, templateName: string, isFloorPlan: boolean = false) => {
     if (confirm(`Are you sure you want to delete "${templateName}"? This action cannot be undone.`)) {
       try {
-        await deleteTemplate({ templateId: templateId as any });
+        if (isFloorPlan) {
+          await deleteFloorPlanTemplate({ templateId: templateId as any });
+        } else {
+          await deleteTemplate({ templateId: templateId as any });
+        }
         setOpenDropdownId(null);
       } catch (error: any) {
         alert(error.message || "Failed to delete template");
@@ -52,9 +95,76 @@ export default function TemplatesPage() {
     }
   };
 
-  // Combine pre-built templates with user templates
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedTemplates.size === 0) return;
+
+    setIsDeleting(true);
+    try {
+      // Separate floor plan templates from room templates
+      const selectedFloorPlans: string[] = [];
+      const selectedRoomTemplates: string[] = [];
+
+      selectedTemplates.forEach((templateId) => {
+        const template = allTemplates.find((t: any) => t.id === templateId);
+        if (template && (template as any).isFloorPlan) {
+          selectedFloorPlans.push(templateId);
+        } else if (template && (template as any).isCustom) {
+          selectedRoomTemplates.push(templateId);
+        }
+      });
+
+      let totalDeleted = 0;
+      let totalFailed = 0;
+      const allFailedTemplates: Array<{ templateId: string; reason: string }> = [];
+
+      // Delete floor plan templates
+      if (selectedFloorPlans.length > 0) {
+        const result = await bulkDeleteFloorPlanTemplates({
+          templateIds: selectedFloorPlans as any,
+        });
+        totalDeleted += result.deletedCount;
+        totalFailed += result.failedCount;
+        allFailedTemplates.push(...result.failedTemplates);
+      }
+
+      // Delete room templates one by one (no bulk endpoint)
+      for (const templateId of selectedRoomTemplates) {
+        try {
+          await deleteTemplate({ templateId: templateId as any });
+          totalDeleted++;
+        } catch (error: any) {
+          totalFailed++;
+          allFailedTemplates.push({
+            templateId,
+            reason: error.message || "Failed to delete"
+          });
+        }
+      }
+
+      setDeleteResult({
+        deletedCount: totalDeleted,
+        failedCount: totalFailed,
+        failedTemplates: allFailedTemplates,
+      });
+      setSelectedTemplates(new Set());
+      setShowDeleteConfirm(false);
+
+      // Show result message for a few seconds
+      setTimeout(() => {
+        setDeleteResult(null);
+      }, 5000);
+    } catch (error) {
+      console.error("Error deleting templates:", error);
+      alert(`Error deleting templates: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Combine pre-built templates with user templates and floor plan templates
   const allTemplates = [
-    ...seatingTemplates.map(t => ({ ...t, isCustom: false })),
+    ...seatingTemplates.map(t => ({ ...t, isCustom: false, isFloorPlan: false })),
     ...(userTemplates || []).map((t: any) => ({
       id: t._id,
       name: t.name,
@@ -64,6 +174,18 @@ export default function TemplatesPage() {
       sections: t.sections,
       estimatedCapacity: t.estimatedCapacity,
       isCustom: true,
+      isFloorPlan: false,
+    })),
+    ...(floorPlanTemplates || []).map((t: any) => ({
+      id: t._id,
+      name: t.name,
+      description: t.description,
+      icon: <GridIcon className="w-8 h-8" />,
+      category: t.category?.toLowerCase() || "custom",
+      sections: t.sections,
+      estimatedCapacity: t.totalCapacity || 0,
+      isCustom: true,
+      isFloorPlan: true,
     })),
   ];
 
@@ -103,9 +225,9 @@ export default function TemplatesPage() {
 
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Room Templates</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Seating & Floor Plan Templates</h1>
               <p className="text-gray-600 mt-2">
-                Browse and create reusable room layouts for your events
+                Browse and create reusable seating layouts and floor plans for your events
               </p>
             </div>
 
@@ -173,6 +295,105 @@ export default function TemplatesPage() {
               <p className="text-3xl font-bold text-gray-900">{Object.keys(templateStats.byCategory || {}).length}</p>
             </motion.div>
           </div>
+        )}
+
+        {/* Bulk Delete Controls */}
+        {allTemplates.some((t: any) => t.isCustom) && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Manage Templates</h2>
+              {selectedTemplates.size > 0 && (
+                <motion.button
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Selected ({selectedTemplates.size})
+                </motion.button>
+              )}
+            </div>
+
+            {/* Quick Select Buttons */}
+            <div className="flex flex-wrap items-center gap-3 p-4 bg-white rounded-lg border border-gray-200">
+              <span className="text-sm font-medium text-gray-700">Quick Select:</span>
+              <button
+                onClick={selectAllTemplates}
+                className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+              >
+                All Custom ({allTemplates.filter((t: any) => t.isCustom).length})
+              </button>
+              <button
+                onClick={selectFloorPlanTemplates}
+                className="px-3 py-1.5 text-sm bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition-colors"
+              >
+                Floor Plans ({allTemplates.filter((t: any) => t.isFloorPlan && t.isCustom).length})
+              </button>
+              <button
+                onClick={selectRoomTemplates}
+                className="px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+              >
+                Room Templates ({allTemplates.filter((t: any) => !t.isFloorPlan && t.isCustom).length})
+              </button>
+              <button
+                onClick={() => setSelectedTemplates(new Set())}
+                className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+              >
+                Clear Selection
+              </button>
+              {selectedTemplates.size > 0 && (
+                <span className="ml-auto text-sm font-medium text-gray-900">
+                  {selectedTemplates.size} selected
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Delete Result Notification */}
+        {deleteResult && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`mb-4 p-4 rounded-lg ${
+              deleteResult.failedCount > 0
+                ? "bg-yellow-50 border border-yellow-200"
+                : "bg-green-50 border border-green-200"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900">
+                  {deleteResult.deletedCount > 0 && (
+                    <span className="text-green-700">
+                      Successfully deleted {deleteResult.deletedCount} template{deleteResult.deletedCount !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                </p>
+                {deleteResult.failedCount > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-semibold text-yellow-700 mb-1">
+                      Failed to delete {deleteResult.failedCount} template{deleteResult.failedCount !== 1 ? "s" : ""}:
+                    </p>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {deleteResult.failedTemplates.map((failed, i) => (
+                        <li key={i}>• {failed.reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setDeleteResult(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+          </motion.div>
         )}
 
         {/* Search and Filters */}
@@ -292,6 +513,19 @@ export default function TemplatesPage() {
                       }
                     }}
                   >
+                    {/* Selection Checkbox for custom templates */}
+                    {(template as any).isCustom && (
+                      <div className="absolute top-4 left-4 z-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedTemplates.has(String(template.id))}
+                          onChange={() => toggleTemplateSelection(String(template.id))}
+                          className="w-5 h-5 text-blue-600 bg-white border-2 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between mb-4">
                       <div className="text-blue-600 group-hover:scale-110 transition-transform">
                         {template.icon}
@@ -300,6 +534,11 @@ export default function TemplatesPage() {
                         {(template as any).isCustom && (
                           <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                             Custom
+                          </span>
+                        )}
+                        {(template as any).isFloorPlan && (
+                          <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                            Floor Plan
                           </span>
                         )}
                         {/* Action menu for custom templates */}
@@ -324,7 +563,7 @@ export default function TemplatesPage() {
                                   Edit Template
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteTemplate(String(template.id), template.name)}
+                                  onClick={() => handleDeleteTemplate(String(template.id), template.name, (template as any).isFloorPlan)}
                                   className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -363,6 +602,11 @@ export default function TemplatesPage() {
                             Custom
                           </span>
                         )}
+                        {(template as any).isFloorPlan && (
+                          <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                            Floor Plan
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-600 mb-2">{template.description}</p>
                       <div className="flex items-center gap-4 text-sm">
@@ -379,6 +623,61 @@ export default function TemplatesPage() {
                 )}
               </motion.div>
             ))}
+          </div>
+        )}
+
+        {/* Confirmation Dialog */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+            >
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Delete {selectedTemplates.size} Template{selectedTemplates.size !== 1 ? "s" : ""}?
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    This will permanently delete the selected template{selectedTemplates.size !== 1 ? "s" : ""}.
+                  </p>
+                  <p className="text-red-600 text-sm font-semibold mt-2">
+                    This action cannot be undone!
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete {selectedTemplates.size} Template{selectedTemplates.size !== 1 ? "s" : ""}
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </div>

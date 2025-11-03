@@ -37,6 +37,8 @@ import type * as files_mutations from "../files/mutations.js";
 import type * as files_queries from "../files/queries.js";
 import type * as flyers_mutations from "../flyers/mutations.js";
 import type * as flyers_queries from "../flyers/queries.js";
+import type * as lib_permissions from "../lib/permissions.js";
+import type * as lib_roles from "../lib/roles.js";
 import type * as lib_timezone from "../lib/timezone.js";
 import type * as migrations_updatePaymentModels from "../migrations/updatePaymentModels.js";
 import type * as paymentConfig_mutations from "../paymentConfig/mutations.js";
@@ -121,6 +123,8 @@ declare const fullApi: ApiFromModules<{
   "files/queries": typeof files_queries;
   "flyers/mutations": typeof flyers_mutations;
   "flyers/queries": typeof flyers_queries;
+  "lib/permissions": typeof lib_permissions;
+  "lib/roles": typeof lib_roles;
   "lib/timezone": typeof lib_timezone;
   "migrations/updatePaymentModels": typeof migrations_updatePaymentModels;
   "paymentConfig/mutations": typeof paymentConfig_mutations;

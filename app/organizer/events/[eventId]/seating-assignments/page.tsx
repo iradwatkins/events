@@ -189,6 +189,84 @@ export default function SeatingAssignmentsPage() {
           </div>
         </div>
 
+        {/* Reserved Tables Section */}
+        {(() => {
+          const reservedTables = seatingChart.sections.flatMap((section) =>
+            (section.tables || [])
+              .filter((table) => table.reservationStatus === "RESERVED" || table.reservationStatus === "UNAVAILABLE")
+              .map((table) => ({
+                ...table,
+                sectionName: section.name,
+                sectionId: section.id,
+              }))
+          );
+
+          if (reservedTables.length === 0) return null;
+
+          return (
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg shadow-md p-6 mb-6 border-2 border-purple-200">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Reserved Tables</h2>
+                  <p className="text-sm text-gray-600">{reservedTables.length} table(s) reserved for special guests</p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {reservedTables.map((table) => {
+                  const typeColors = {
+                    VIP: "bg-purple-100 border-purple-300 text-purple-900",
+                    SPONSOR: "bg-blue-100 border-blue-300 text-blue-900",
+                    STAFF: "bg-green-100 border-green-300 text-green-900",
+                    CUSTOM: "bg-yellow-100 border-yellow-300 text-yellow-900",
+                  };
+                  const typeColor = typeColors[table.reservationType as keyof typeof typeColors] || "bg-gray-100 border-gray-300 text-gray-900";
+
+                  const statusColors = {
+                    RESERVED: "bg-purple-600",
+                    UNAVAILABLE: "bg-red-600",
+                  };
+                  const statusColor = statusColors[table.reservationStatus as keyof typeof statusColors] || "bg-gray-600";
+
+                  return (
+                    <div key={`${table.sectionId}-${table.id}`} className={`border-2 rounded-lg p-4 ${typeColor}`}>
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="font-bold text-lg">Table {table.number}</h3>
+                          <p className="text-xs opacity-75">{table.sectionName}</p>
+                        </div>
+                        <span className={`${statusColor} text-white text-xs px-2 py-1 rounded-full font-semibold`}>
+                          {table.reservationStatus}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold">Type:</span>
+                          <span className="text-xs font-bold">{table.reservationType || "RESERVED"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold">Capacity:</span>
+                          <span className="text-xs">{table.capacity} seats</span>
+                        </div>
+                        {table.reservationNotes && (
+                          <div className="mt-2 pt-2 border-t border-current border-opacity-20">
+                            <p className="text-xs font-semibold mb-1">Notes:</p>
+                            <p className="text-xs opacity-90">{table.reservationNotes}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Seating Chart Info */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">

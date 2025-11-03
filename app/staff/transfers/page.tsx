@@ -331,16 +331,48 @@ export default function StaffTransfersPage() {
                 <SelectContent>
                   {availableRecipients?.map((staff) => (
                     <SelectItem key={staff._id} value={staff._id}>
-                      <div>
-                        <div className="font-medium">{staff.name}</div>
-                        <div className="text-xs text-gray-500">
-                          {staff.role} • {staff.allocatedTickets} tickets
+                      <div className="flex items-center justify-between gap-2 w-full">
+                        <div>
+                          <div className="font-medium">{staff.name}</div>
+                          <div className="text-xs text-gray-500">{staff.email}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={staff.role === "SELLER" ? "default" : "secondary"} className="text-xs">
+                            {staff.role}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {staff.allocatedTickets || 0} tickets
+                          </Badge>
                         </div>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Show recipient's current balance after selection */}
+              {selectedRecipient && availableRecipients && (() => {
+                const recipient = availableRecipients.find(s => s._id === selectedRecipient);
+                const recipientBalance = recipient?.allocatedTickets || 0;
+                const transferQty = parseInt(transferQuantity) || 0;
+                const newRecipientBalance = recipientBalance + transferQty;
+
+                return (
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-sm font-medium text-blue-900 mb-2">Recipient Balance Preview</div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-blue-700">Current Balance:</span>
+                      <span className="font-semibold text-blue-900">{recipientBalance} tickets</span>
+                    </div>
+                    {transferQty > 0 && (
+                      <div className="flex items-center justify-between text-sm mt-1">
+                        <span className="text-blue-700">After Transfer:</span>
+                        <span className="font-bold text-green-600">{newRecipientBalance} tickets</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Quantity */}
@@ -356,6 +388,24 @@ export default function StaffTransfersPage() {
                 onChange={(e) => setTransferQuantity(e.target.value)}
                 placeholder="Number of tickets to transfer"
               />
+
+              {/* Your balance after transfer */}
+              {transferQuantity && parseInt(transferQuantity) > 0 && (
+                <div className="mt-2 p-2 bg-amber-50 rounded border border-amber-200">
+                  <div className="text-xs font-medium text-amber-900 mb-1">Your Balance After Transfer</div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-amber-700">Current:</span>
+                    <span className="font-semibold">{myBalance} tickets</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-amber-700">After:</span>
+                    <span className={`font-bold ${myBalance - parseInt(transferQuantity) < 10 ? 'text-red-600' : 'text-amber-900'}`}>
+                      {myBalance - parseInt(transferQuantity)} tickets
+                      {myBalance - parseInt(transferQuantity) < 10 && ' ⚠️'}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Reason */}

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, internalQuery } from "../_generated/server";
+import { requireAdmin } from "../lib/permissions";
 
 /**
  * Admin queries - requires admin role
@@ -11,18 +12,24 @@ import { query, internalQuery } from "../_generated/server";
 export const getPlatformAnalytics = query({
   args: {},
   handler: async (ctx) => {
-    // TEMPORARY: Authentication disabled for testing
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Not authenticated");
+    const identity = await ctx.auth.getUserIdentity();
 
-    // const user = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
+    // TESTING MODE: If no identity, use test admin user
+    let user;
+    if (!identity) {
+      console.warn("[getPlatformAnalytics] TESTING MODE - No authentication");
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
 
-    // if (!user || user.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
+    requireAdmin(user);
 
     // Get all users
     const allUsers = await ctx.db.query("users").collect();
@@ -99,18 +106,24 @@ export const getAllUsers = query({
     cursor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // TEMPORARY: Authentication disabled for testing
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Not authenticated");
+    const identity = await ctx.auth.getUserIdentity();
 
-    // const user = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
+    // TESTING MODE: If no identity, use test admin user
+    let user;
+    if (!identity) {
+      console.warn("[getAllUsers] TESTING MODE - No authentication");
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
 
-    // if (!user || user.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
+    requireAdmin(user);
 
     const users = await ctx.db
       .query("users")
@@ -155,18 +168,24 @@ export const getAllEvents = query({
     )),
   },
   handler: async (ctx, args) => {
-    // TEMPORARY: Authentication disabled for testing
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Not authenticated");
+    const identity = await ctx.auth.getUserIdentity();
 
-    // const user = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
+    // TESTING MODE: If no identity, use test admin user
+    let user;
+    if (!identity) {
+      console.warn("[getAllEvents] TESTING MODE - No authentication");
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
 
-    // if (!user || user.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
+    requireAdmin(user);
 
     const events = args.status
       ? await ctx.db
@@ -217,18 +236,24 @@ export const getAllEvents = query({
 export const getRecentActivity = query({
   args: {},
   handler: async (ctx) => {
-    // TEMPORARY: Authentication disabled for testing
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Not authenticated");
+    const identity = await ctx.auth.getUserIdentity();
 
-    // const user = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
+    // TESTING MODE: If no identity, use test admin user
+    let user;
+    if (!identity) {
+      console.warn("[getRecentActivity] TESTING MODE - No authentication");
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
 
-    // if (!user || user.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
+    requireAdmin(user);
 
     // Get recent users (last 20)
     const recentUsers = await ctx.db.query("users").order("desc").take(20);
@@ -266,18 +291,24 @@ export const searchUsers = query({
     query: v.string(),
   },
   handler: async (ctx, args) => {
-    // TEMPORARY: Authentication disabled for testing
-    // const identity = await ctx.auth.getUserIdentity();
-    // if (!identity) throw new Error("Not authenticated");
+    const identity = await ctx.auth.getUserIdentity();
 
-    // const user = await ctx.db
-    //   .query("users")
-    //   .withIndex("by_email", (q) => q.eq("email", identity.email!))
-    //   .first();
+    // TESTING MODE: If no identity, use test admin user
+    let user;
+    if (!identity) {
+      console.warn("[searchUsers] TESTING MODE - No authentication");
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .first();
+    } else {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
 
-    // if (!user || user.role !== "admin") {
-    //   throw new Error("Not authorized - Admin access required");
-    // }
+    requireAdmin(user);
 
     const allUsers = await ctx.db.query("users").collect();
 

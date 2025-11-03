@@ -54,6 +54,8 @@ interface VisualSeatingCanvasProps {
   selectedTableId?: string;
   onTableSelect?: (sectionId: string, tableId: string) => void;
   onTableUpdate?: (sectionId: string, tableId: string, updates: Partial<Table>) => void;
+  onTableDrop?: (config: any, x: number, y: number) => void;
+  onTableContextMenu?: (e: React.MouseEvent, sectionId: string, tableId: string, tableNumber: string | number) => void;
   // Row-specific props
   onRowUpdate?: (sectionId: string, rowId: string, updates: any) => void;
   // Display control props
@@ -73,6 +75,8 @@ export default function VisualSeatingCanvas({
   selectedTableId,
   onTableSelect,
   onTableUpdate,
+  onTableDrop,
+  onTableContextMenu,
   onRowUpdate,
   showGrid = true,
   showLabels = true,
@@ -87,6 +91,10 @@ export default function VisualSeatingCanvas({
   const [selectionBox, setSelectionBox] = useState<{ startX: number; startY: number; endX: number; endY: number } | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  // Drag-and-drop from library state
+  const [isDraggingFromLibrary, setIsDraggingFromLibrary] = useState(false);
+  const [dragPreviewPosition, setDragPreviewPosition] = useState<{ x: number; y: number } | null>(null);
+  const [draggedTableConfig, setDraggedTableConfig] = useState<any>(null);
   const dragStartPos = useRef({ x: 0, y: 0, sectionX: 0, sectionY: 0 });
   const resizeStartPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
   const tableDragStartPos = useRef({ x: 0, y: 0, tableX: 0, tableY: 0 });
@@ -94,6 +102,23 @@ export default function VisualSeatingCanvas({
   const currentDraggingTable = useRef<{ sectionId: string; tableId: string; isRow?: boolean } | null>(null);
   const currentResizingTable = useRef<{ sectionId: string; tableId: string; corner: string } | null>(null);
   const groupDragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+
+  // Grid configuration
+  const GRID_SIZE = 50; // Must match the grid size in CSS (line 781)
+  const CANVAS_WIDTH = 3000;
+  const CANVAS_HEIGHT = 2000;
+
+  // Snap to grid function
+  const snapToGrid = (value: number): number => {
+    return Math.round(value / GRID_SIZE) * GRID_SIZE;
+  };
+
+  // Constrain to canvas bounds
+  const constrainToBounds = (x: number, y: number, width: number, height: number) => {
+    const constrainedX = Math.max(0, Math.min(x, CANVAS_WIDTH - width));
+    const constrainedY = Math.max(0, Math.min(y, CANVAS_HEIGHT - height));
+    return { x: constrainedX, y: constrainedY };
+  };
 
   // Handle section dragging
   useEffect(() => {
@@ -328,9 +353,20 @@ export default function VisualSeatingCanvas({
           section.tables?.forEach((table) => {
             const startPos = groupDragStartPositions.current.get(table.id);
             if (startPos && onTableUpdate) {
+              // Calculate new position
+              const rawX = startPos.x + svgDeltaX;
+              const rawY = startPos.y + svgDeltaY;
+
+              // Apply snap-to-grid
+              const snappedX = snapToGrid(rawX);
+              const snappedY = snapToGrid(rawY);
+
+              // Constrain to canvas bounds
+              const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, table.width, table.height);
+
               onTableUpdate(section.id, table.id, {
-                x: startPos.x + svgDeltaX,
-                y: startPos.y + svgDeltaY,
+                x: finalX,
+                y: finalY,
               });
             }
           });
@@ -339,9 +375,20 @@ export default function VisualSeatingCanvas({
           section.rows?.forEach((row: any) => {
             const startPos = groupDragStartPositions.current.get(row.id);
             if (startPos && onRowUpdate) {
+              // Calculate new position
+              const rawX = startPos.x + svgDeltaX;
+              const rawY = startPos.y + svgDeltaY;
+
+              // Apply snap-to-grid
+              const snappedX = snapToGrid(rawX);
+              const snappedY = snapToGrid(rawY);
+
+              // Constrain to canvas bounds (use default width/height for rows)
+              const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, 800, 60);
+
               onRowUpdate(section.id, row.id, {
-                x: startPos.x + svgDeltaX,
-                y: startPos.y + svgDeltaY,
+                x: finalX,
+                y: finalY,
               });
             }
           });
@@ -353,13 +400,30 @@ export default function VisualSeatingCanvas({
 
         if (!updateFn) return;
 
+        // Calculate new position
+        const rawX = tableDragStartPos.current.tableX + svgDeltaX;
+        const rawY = tableDragStartPos.current.tableY + svgDeltaY;
+
+        // Apply snap-to-grid
+        const snappedX = snapToGrid(rawX);
+        const snappedY = snapToGrid(rawY);
+
+        // Get table dimensions for boundary checking
+        const table = sections.find(s => s.id === sectionId)?.tables?.find(t => t.id === tableId);
+        const row = sections.find(s => s.id === sectionId)?.rows?.find((r: any) => r.id === tableId);
+        const width = table?.width || 800; // default width for rows
+        const height = table?.height || 60; // default height for rows
+
+        // Constrain to canvas bounds
+        const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, width, height);
+
         updateFn(sectionId, tableId, {
-          x: tableDragStartPos.current.tableX + svgDeltaX,
-          y: tableDragStartPos.current.tableY + svgDeltaY,
+          x: finalX,
+          y: finalY,
         });
       }
     },
-    [isDraggingTable, onTableUpdate, onRowUpdate, sections]
+    [isDraggingTable, onTableUpdate, onRowUpdate, sections, snapToGrid, constrainToBounds]
   );
 
   const handleTableDragEnd = () => {
@@ -591,6 +655,97 @@ export default function VisualSeatingCanvas({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSelecting]);
 
+  // Handle drag-and-drop from library
+  const handleCanvasDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+
+    // Update drag preview position
+    if (svgRef.current && isDraggingFromLibrary) {
+      const svg = svgRef.current;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+      setDragPreviewPosition({ x: svgP.x, y: svgP.y });
+    }
+  };
+
+  const handleCanvasDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const data = e.dataTransfer.types.includes("application/json");
+    if (data) {
+      setIsDraggingFromLibrary(true);
+    }
+  };
+
+  const handleCanvasDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    // Only hide if leaving the canvas entirely
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (rect && (
+      e.clientX < rect.left ||
+      e.clientX > rect.right ||
+      e.clientY < rect.top ||
+      e.clientY > rect.bottom
+    )) {
+      setIsDraggingFromLibrary(false);
+      setDragPreviewPosition(null);
+      setDraggedTableConfig(null);
+    }
+  };
+
+  const handleCanvasDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingFromLibrary(false);
+    setDragPreviewPosition(null);
+
+    // Get table config from dataTransfer
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
+      if (data.type === "table-from-library" && onTableDrop && svgRef.current) {
+        // Convert screen coordinates to SVG coordinates
+        const svg = svgRef.current;
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+
+        // Apply snap-to-grid to drop position
+        const snappedX = snapToGrid(svgP.x);
+        const snappedY = snapToGrid(svgP.y);
+
+        // Constrain to canvas bounds (use default table size)
+        const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, 100, 100);
+
+        // Call the drop handler with config and snapped SVG coordinates
+        onTableDrop(data.config, finalX, finalY);
+      }
+    } catch (error) {
+      console.error("Error handling drop:", error);
+    }
+
+    setDraggedTableConfig(null);
+  };
+
+  // Update dragged table config when drag starts
+  useEffect(() => {
+    const handleDrag = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes("application/json")) {
+        try {
+          const data = JSON.parse(e.dataTransfer.getData("application/json"));
+          if (data.type === "table-from-library") {
+            setDraggedTableConfig(data.config);
+          }
+        } catch {
+          // Ignore errors during drag
+        }
+      }
+    };
+
+    window.addEventListener("drag", handleDrag);
+    return () => window.removeEventListener("drag", handleDrag);
+  }, []);
+
   return (
     <div id="seating-canvas" className="relative bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* Controls Bar - Grid/Label toggles removed per user request */}
@@ -623,9 +778,9 @@ export default function VisualSeatingCanvas({
         maxScale={5}
         centerOnInit
         wheel={{ step: 0.1 }}
-        panning={{ disabled: false }}
+        panning={{ disabled: true }}
         doubleClick={{ disabled: false, mode: "zoomIn" }}
-        limitToBounds={false}
+        limitToBounds={true}
       >
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
@@ -669,7 +824,13 @@ export default function VisualSeatingCanvas({
                   backgroundRepeat: "no-repeat",
                   minWidth: "3000px",
                   minHeight: "2000px",
+                  outline: isDraggingFromLibrary ? '3px dashed #3B82F6' : 'none',
+                  outlineOffset: isDraggingFromLibrary ? '-6px' : '0',
                 }}
+                onDragOver={handleCanvasDragOver}
+                onDragEnter={handleCanvasDragEnter}
+                onDragLeave={handleCanvasDragLeave}
+                onDrop={handleCanvasDrop}
               >
                 {/* Grid Overlay */}
                 {showGrid && (
@@ -724,6 +885,11 @@ export default function VisualSeatingCanvas({
                               section.id,
                               table
                             );
+                          }}
+                          onContextMenu={(e) => {
+                            if (onTableContextMenu) {
+                              onTableContextMenu(e as unknown as React.MouseEvent, section.id, table.id, table.number);
+                            }
                           }}
                         >
                           <TableRenderer
@@ -785,6 +951,55 @@ export default function VisualSeatingCanvas({
                       </g>
                     );
                   })}
+
+                  {/* Drag Preview Ghost */}
+                  {isDraggingFromLibrary && dragPreviewPosition && draggedTableConfig && (
+                    <g opacity={0.5} pointerEvents="none">
+                      {draggedTableConfig.shape === "ROUND" ? (
+                        <circle
+                          cx={dragPreviewPosition.x}
+                          cy={dragPreviewPosition.y}
+                          r={60}
+                          fill="#3B82F6"
+                          stroke="#1E40AF"
+                          strokeWidth={3}
+                        />
+                      ) : draggedTableConfig.shape === "SQUARE" ? (
+                        <rect
+                          x={dragPreviewPosition.x - 60}
+                          y={dragPreviewPosition.y - 60}
+                          width={120}
+                          height={120}
+                          fill="#3B82F6"
+                          stroke="#1E40AF"
+                          strokeWidth={3}
+                          rx={4}
+                        />
+                      ) : (
+                        <rect
+                          x={dragPreviewPosition.x - 90}
+                          y={dragPreviewPosition.y - 50}
+                          width={180}
+                          height={100}
+                          fill="#3B82F6"
+                          stroke="#1E40AF"
+                          strokeWidth={3}
+                          rx={4}
+                        />
+                      )}
+                      <text
+                        x={dragPreviewPosition.x}
+                        y={dragPreviewPosition.y}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="white"
+                        fontSize="14"
+                        fontWeight="bold"
+                      >
+                        {draggedTableConfig.label}
+                      </text>
+                    </g>
+                  )}
 
                   {/* Selection Rectangle */}
                   {selectionBox && (

@@ -759,3 +759,109 @@ export const assignPricingZoneToMultipleTables = mutation({
     return { success: true, updatedCount: args.tables.length };
   },
 });
+
+/**
+ * Set table reservation status
+ * Allows organizers to mark tables as RESERVED (VIP, sponsors, etc.)
+ * Updates all seats at the table to match the reservation status
+ */
+export const setTableReservationStatus = mutation({
+  args: {
+    eventId: v.id("events"),
+    sectionId: v.string(),
+    tableId: v.string(),
+    status: v.union(
+      v.literal("AVAILABLE"),
+      v.literal("RESERVED"),
+      v.literal("UNAVAILABLE")
+    ),
+    reservationType: v.optional(v.union(
+      v.literal("VIP"),
+      v.literal("SPONSOR"),
+      v.literal("STAFF"),
+      v.literal("CUSTOM")
+    )),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    // Get user
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user) throw new Error("User not found");
+
+    // Get event to verify ownership
+    const event = await ctx.db.get(args.eventId);
+    if (!event) throw new Error("Event not found");
+
+    // Check if user is organizer or admin
+    if (event.organizerId !== user._id && user.role !== "admin") {
+      throw new Error("Only the event organizer can manage table reservations");
+    }
+
+    // Get seating chart
+    const seatingChart = await ctx.db
+      .query("seatingCharts")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .first();
+
+    if (!seatingChart) {
+      throw new Error("Seating chart not found for this event");
+    }
+
+    // Find the section
+    const section = seatingChart.sections.find(s => s.id === args.sectionId);
+    if (!section) {
+      throw new Error(`Section ${args.sectionId} not found`);
+    }
+
+    // Find the table
+    const table = section.tables?.find(t => t.id === args.tableId);
+    if (!table) {
+      throw new Error(`Table ${args.tableId} not found in section ${args.sectionId}`);
+    }
+
+    // Update the table with reservation info and update all seats at this table
+    const updatedSections = seatingChart.sections.map(section => {
+      if (section.id !== args.sectionId) return section;
+
+      return {
+        ...section,
+        tables: section.tables?.map(table => {
+          if (table.id !== args.tableId) return table;
+
+          // Update table reservation status and all its seats
+          return {
+            ...table,
+            reservationStatus: args.status,
+            reservationType: args.reservationType,
+            reservationNotes: args.notes,
+            // Update all seats at this table to match reservation status
+            seats: table.seats.map(seat => ({
+              ...seat,
+              status: args.status,
+            })),
+          };
+        }),
+      };
+    });
+
+    // Update the seating chart
+    await ctx.db.patch(seatingChart._id, {
+      sections: updatedSections,
+      updatedAt: Date.now(),
+    });
+
+    return {
+      success: true,
+      tableId: args.tableId,
+      status: args.status,
+      seatsUpdated: table.seats.length,
+    };
+  },
+});

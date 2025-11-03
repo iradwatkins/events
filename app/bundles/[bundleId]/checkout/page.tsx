@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { use, useState } from "react";
 import {
@@ -11,18 +11,28 @@ import {
   CreditCard,
   Lock,
   ChevronLeft,
+  ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
+import { SquareCardPayment } from "@/components/checkout/SquareCardPayment";
 
 export default function BundleCheckoutPage({ params }: { params: Promise<{ bundleId: string }> }) {
   const { bundleId } = use(params);
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [attendeeInfo, setAttendeeInfo] = useState({
     name: "",
     email: "",
     phone: "",
   });
+  const [showPayment, setShowPayment] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+  // Mutations
+  const createBundlePurchase = useMutation(api.bundles.mutations.createBundlePurchase);
 
   // Fetch bundle details
   const bundle = useQuery(
@@ -51,10 +61,79 @@ export default function BundleCheckoutPage({ params }: { params: Promise<{ bundl
   const regularAmount = bundle.regularPrice * quantity;
   const savings = regularAmount - totalAmount;
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(attendeeInfo.email);
+
   const canProceed =
     attendeeInfo.name.trim() &&
     attendeeInfo.email.trim() &&
+    isEmailValid &&
     availability?.available;
+
+  const handleContinueToPayment = () => {
+    if (!canProceed) return;
+    setShowPayment(true);
+  };
+
+  const handlePaymentSuccess = async (paymentResult: any) => {
+    try {
+      setIsProcessing(true);
+
+      // Create bundle purchase in Convex
+      await createBundlePurchase({
+        bundleId: bundleId as Id<"ticketBundles">,
+        quantity,
+        buyerName: attendeeInfo.name,
+        buyerEmail: attendeeInfo.email,
+        buyerPhone: attendeeInfo.phone || undefined,
+        paymentId: paymentResult.payment?.id || "",
+        paymentStatus: "COMPLETED",
+        totalPaid: totalAmount,
+      });
+
+      setPaymentSuccess(true);
+
+      // Redirect to success page after brief delay
+      setTimeout(() => {
+        router.push(`/my-tickets`);
+      }, 2000);
+    } catch (error: any) {
+      console.error("Error creating purchase:", error);
+      alert(error.message || "Failed to complete purchase");
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error("Payment error:", error);
+    alert(error || "Payment failed. Please try again.");
+    setIsProcessing(false);
+  };
+
+  // Show success screen
+  if (paymentSuccess) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-10 h-10 text-green-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Purchase Successful!
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Your bundle tickets have been sent to {attendeeInfo.email}
+          </p>
+          <Link
+            href="/my-tickets"
+            className="inline-block bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+          >
+            View My Tickets
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -68,9 +147,9 @@ export default function BundleCheckoutPage({ params }: { params: Promise<{ bundl
           Back to Bundle Details
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left: Checkout Form */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 lg:space-y-6">
             {/* Header */}
             <div className="bg-white rounded-lg shadow p-6">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Checkout</h1>
@@ -129,11 +208,21 @@ export default function BundleCheckoutPage({ params }: { params: Promise<{ bundl
                     value={attendeeInfo.email}
                     onChange={(e) => setAttendeeInfo({ ...attendeeInfo, email: e.target.value })}
                     placeholder="john@example.com"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:border-transparent ${
+                      attendeeInfo.email && !isEmailValid
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-purple-600"
+                    }`}
                   />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Your tickets will be sent to this email
-                  </p>
+                  {attendeeInfo.email && !isEmailValid ? (
+                    <p className="text-sm text-red-600 mt-1">
+                      Please enter a valid email address
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Your tickets will be sent to this email
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -183,33 +272,48 @@ export default function BundleCheckoutPage({ params }: { params: Promise<{ bundl
                   </div>
                 </div>
 
-                {/* Square Payment Form would go here */}
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600">
-                    Square payment form will be integrated here
-                  </p>
-                </div>
-
-                {/* Complete Purchase Button */}
-                <button
-                  disabled={!canProceed}
-                  className={`w-full py-4 rounded-lg font-bold text-lg transition-all ${
-                    canProceed
-                      ? "bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  {canProceed ? (
-                    <>
-                      Complete Purchase - ${(totalAmount / 100).toFixed(2)}
-                    </>
-                  ) : (
-                    <>
-                      Please fill in all required fields
-                    </>
-                  )}
-                </button>
+                {/* Square Payment Form */}
+                {showPayment ? (
+                  <SquareCardPayment
+                    applicationId={process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID!}
+                    locationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!}
+                    total={totalAmount / 100}
+                    environment={process.env.NEXT_PUBLIC_SQUARE_ENVIRONMENT as 'sandbox' | 'production'}
+                    billingContact={{
+                      givenName: attendeeInfo.name.split(' ')[0],
+                      familyName: attendeeInfo.name.split(' ').slice(1).join(' '),
+                      email: attendeeInfo.email,
+                      phone: attendeeInfo.phone,
+                    }}
+                    savedPaymentMethod={null}
+                    user={null}
+                    onPaymentSuccess={handlePaymentSuccess}
+                    onPaymentError={handlePaymentError}
+                    onBack={() => setShowPayment(false)}
+                  />
+                ) : (
+                  <button
+                    onClick={handleContinueToPayment}
+                    disabled={!canProceed || isProcessing}
+                    className={`w-full py-4 px-6 rounded-lg font-bold text-base lg:text-lg transition-all min-h-[44px] ${
+                      canProceed && !isProcessing
+                        ? "bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg active:scale-95"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
+                  >
+                    {isProcessing ? (
+                      <>Processing...</>
+                    ) : canProceed ? (
+                      <>
+                        Continue to Payment - ${(totalAmount / 100).toFixed(2)}
+                      </>
+                    ) : (
+                      <>
+                        Please fill in all required fields
+                      </>
+                    )}
+                  </button>
+                )}
 
                 <p className="text-xs text-gray-500 text-center">
                   By completing this purchase, you agree to our terms and conditions
@@ -220,7 +324,7 @@ export default function BundleCheckoutPage({ params }: { params: Promise<{ bundl
 
           {/* Right: Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-6 sticky top-4">
+            <div className="bg-white rounded-lg shadow p-4 lg:p-6 lg:sticky lg:top-4">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
 
               {/* Bundle Info */}

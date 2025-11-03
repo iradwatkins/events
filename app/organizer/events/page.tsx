@@ -1,13 +1,15 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package } from "lucide-react";
+import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { formatEventDate } from "@/lib/date-format";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Id } from "@/convex/_generated/dataModel";
 
 export default function OrganizerEventsPage() {
   const router = useRouter();
@@ -16,8 +18,88 @@ export default function OrganizerEventsPage() {
   // const currentUser = useQuery(api.users.queries.getCurrentUser);
   const events = useQuery(api.events.queries.getOrganizerEvents);
   const credits = useQuery(api.credits.queries.getMyCredits);
+  const bulkDeleteEvents = useMutation(api.events.mutations.bulkDeleteEvents);
+
+  const [selectedEvents, setSelectedEvents] = useState<Set<Id<"events">>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteResult, setDeleteResult] = useState<{
+    deletedCount: number;
+    failedCount: number;
+    failedEvents: Array<{ eventId: string; reason: string }>;
+  } | null>(null);
 
   const isLoading = events === undefined || credits === undefined;
+
+  // Helper: Check if event has tickets sold
+  const hasTicketsSold = (event: any) => {
+    return event.ticketsSold > 0;
+  };
+
+  // Quick select functions
+  const selectAllEvents = () => {
+    if (!events) return;
+    setSelectedEvents(new Set(events.map((e) => e._id)));
+  };
+
+  const selectEventsWithTickets = () => {
+    if (!events) return;
+    const eventsWithTickets = events.filter((e) => hasTicketsSold(e));
+    setSelectedEvents(new Set(eventsWithTickets.map((e) => e._id)));
+  };
+
+  const selectEventsWithoutTickets = () => {
+    if (!events) return;
+    const eventsWithoutTickets = events.filter((e) => !hasTicketsSold(e));
+    setSelectedEvents(new Set(eventsWithoutTickets.map((e) => e._id)));
+  };
+
+  // Handle checkbox selection
+  const toggleEventSelection = (eventId: Id<"events">) => {
+    const newSelection = new Set(selectedEvents);
+    if (newSelection.has(eventId)) {
+      newSelection.delete(eventId);
+    } else {
+      newSelection.add(eventId);
+    }
+    setSelectedEvents(newSelection);
+  };
+
+  // Handle select all
+  const toggleSelectAll = () => {
+    if (!events) return;
+    if (selectedEvents.size === events.length) {
+      setSelectedEvents(new Set());
+    } else {
+      setSelectedEvents(new Set(events.map((e) => e._id)));
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedEvents.size === 0) return;
+
+    setIsDeleting(true);
+    try {
+      const result = await bulkDeleteEvents({
+        eventIds: Array.from(selectedEvents),
+      });
+
+      setDeleteResult(result);
+      setSelectedEvents(new Set());
+      setShowDeleteConfirm(false);
+
+      // Show result message for a few seconds
+      setTimeout(() => {
+        setDeleteResult(null);
+      }, 5000);
+    } catch (error) {
+      console.error("Error deleting events:", error);
+      alert(`Error deleting events: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -142,9 +224,103 @@ export default function OrganizerEventsPage() {
         )}
 
 
+        {/* Delete Result Notification */}
+        {deleteResult && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`mb-4 p-4 rounded-lg ${
+              deleteResult.failedCount > 0
+                ? "bg-yellow-50 border border-yellow-200"
+                : "bg-green-50 border border-green-200"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900">
+                  {deleteResult.deletedCount > 0 && (
+                    <span className="text-green-700">
+                      Successfully deleted {deleteResult.deletedCount} event{deleteResult.deletedCount !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                </p>
+                {deleteResult.failedCount > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-semibold text-yellow-700 mb-1">
+                      Failed to delete {deleteResult.failedCount} event{deleteResult.failedCount !== 1 ? "s" : ""}:
+                    </p>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {deleteResult.failedEvents.map((failed, i) => (
+                        <li key={i}>• {failed.reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setDeleteResult(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {/* My Events Section */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">My Events</h2>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">My Events</h2>
+            {selectedEvents.size > 0 && (
+              <motion.button
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Selected ({selectedEvents.size})
+              </motion.button>
+            )}
+          </div>
+
+          {/* Quick Select Buttons */}
+          {events.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 mb-4 p-4 bg-white rounded-lg border border-gray-200">
+              <span className="text-sm font-medium text-gray-700">Quick Select:</span>
+              <button
+                onClick={selectAllEvents}
+                className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+              >
+                All Events ({events.length})
+              </button>
+              <button
+                onClick={selectEventsWithTickets}
+                className="px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+              >
+                Events With Tickets ({events.filter((e) => hasTicketsSold(e)).length})
+              </button>
+              <button
+                onClick={selectEventsWithoutTickets}
+                className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Events Without Tickets ({events.filter((e) => !hasTicketsSold(e)).length})
+              </button>
+              <button
+                onClick={() => setSelectedEvents(new Set())}
+                className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+              >
+                Clear Selection
+              </button>
+              {selectedEvents.size > 0 && (
+                <span className="ml-auto text-sm font-medium text-gray-900">
+                  {selectedEvents.size} selected
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {events.length === 0 ? (
@@ -182,9 +358,20 @@ export default function OrganizerEventsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 * index }}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="relative bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   <div className="flex flex-col sm:flex-row">
+                    {/* Selection Checkbox */}
+                    <div className="absolute top-4 left-4 z-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedEvents.has(event._id)}
+                        onChange={() => toggleEventSelection(event._id)}
+                        className="w-5 h-5 text-blue-600 bg-white border-2 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+
                     {/* Event Image */}
                     <div className="sm:w-48 h-32 sm:h-auto bg-gray-200 flex-shrink-0">
                       {event.imageUrl ? (
@@ -298,6 +485,65 @@ export default function OrganizerEventsPage() {
                 </motion.div>
               );
             })}
+          </div>
+        )}
+
+        {/* Confirmation Dialog */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+            >
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Delete {selectedEvents.size} Event{selectedEvents.size !== 1 ? "s" : ""}?
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    This will permanently delete the selected event{selectedEvents.size !== 1 ? "s" : ""} and all
+                    associated data (tickets, staff, bundles, seating charts, etc.).
+                  </p>
+                  <p className="text-red-600 text-sm font-semibold mt-2">
+                    This action cannot be undone!
+                  </p>
+                  <p className="text-gray-500 text-xs mt-2">
+                    Note: Events with sold tickets cannot be deleted and will be skipped.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete {selectedEvents.size} Event{selectedEvents.size !== 1 ? "s" : ""}
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </main>

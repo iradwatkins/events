@@ -15,6 +15,9 @@ export interface TableRenderProps {
     height: number;
     rotation?: number;
     capacity: number;
+    reservationStatus?: "AVAILABLE" | "RESERVED" | "UNAVAILABLE";
+    reservationType?: "VIP" | "SPONSOR" | "STAFF" | "CUSTOM";
+    reservationNotes?: string;
     seats: Array<{
       id: string;
       number: string;
@@ -48,11 +51,35 @@ export default function TableRenderer({
 }: TableRenderProps) {
   // Check if this is a special area (no seats)
   const isSpecialArea = table.capacity === 0;
+
+  // Get colors based on reservation status
+  const getReservationColors = () => {
+    if (table.reservationStatus === "RESERVED") {
+      switch (table.reservationType) {
+        case "VIP":
+          return { fill: "#FDF4FF", stroke: "#9333EA", label: "VIP" }; // Purple
+        case "SPONSOR":
+          return { fill: "#EFF6FF", stroke: "#2563EB", label: "SPONSOR" }; // Blue
+        case "STAFF":
+          return { fill: "#F0FDF4", stroke: "#16A34A", label: "STAFF" }; // Green
+        case "CUSTOM":
+          return { fill: "#FEFCE8", stroke: "#CA8A04", label: "RESERVED" }; // Yellow
+        default:
+          return { fill: "#F3F4F6", stroke: "#6B7280", label: "RESERVED" }; // Gray
+      }
+    } else if (table.reservationStatus === "UNAVAILABLE") {
+      return { fill: "#FEE2E2", stroke: "#DC2626", label: "UNAVAILABLE" }; // Red
+    }
+    return { fill: TABLE_COLORS.FILL_NONE, stroke: TABLE_COLORS.STROKE, label: null };
+  };
+
+  const reservationColors = getReservationColors();
+
   const renderTableShape = () => {
     const commonProps = {
       className: `transition-all`,
-      fill: TABLE_COLORS.FILL_NONE,
-      stroke: isSelected ? TABLE_COLORS.SELECTED : TABLE_COLORS.STROKE,
+      fill: reservationColors.fill,
+      stroke: isSelected ? TABLE_COLORS.SELECTED : reservationColors.stroke,
       strokeWidth: isSelected ? STROKE_WIDTH.SELECTED : STROKE_WIDTH.TABLE,
     };
 
@@ -305,6 +332,30 @@ export default function TableRenderer({
             className="text-sm font-bold pointer-events-none select-none fill-gray-900"
           >
             {table.number}
+          </text>
+        </g>
+      )}
+
+      {/* Reservation badge */}
+      {showLabel && reservationColors.label && (
+        <g>
+          <rect
+            x={table.width / 2 - 35}
+            y={table.height / 2 + 18}
+            width={70}
+            height={18}
+            rx={3}
+            fill={reservationColors.stroke}
+            fillOpacity={0.9}
+          />
+          <text
+            x={table.width / 2}
+            y={table.height / 2 + 27}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            className="text-xs font-bold pointer-events-none select-none fill-white"
+          >
+            {reservationColors.label}
           </text>
         </g>
       )}

@@ -345,90 +345,6 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
               />
             </div>
 
-            {/* Bundle Type Selector */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bundle Type *
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, bundleType: "SINGLE_EVENT", selectedEventIds: [eventId], includedTiers: [] })}
-                  className={`px-4 py-3 rounded-lg border-2 font-medium transition-all ${
-                    formData.bundleType === "SINGLE_EVENT"
-                      ? "border-purple-600 bg-purple-50 text-purple-700"
-                      : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-                  }`}
-                >
-                  <Calendar className="w-5 h-5 mx-auto mb-1" />
-                  Single Event
-                  <p className="text-xs mt-1 opacity-80">Tickets from this event only</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, bundleType: "MULTI_EVENT", selectedEventIds: [eventId], includedTiers: [] })}
-                  className={`px-4 py-3 rounded-lg border-2 font-medium transition-all ${
-                    formData.bundleType === "MULTI_EVENT"
-                      ? "border-purple-600 bg-purple-50 text-purple-700"
-                      : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
-                  }`}
-                >
-                  <Package className="w-5 h-5 mx-auto mb-1" />
-                  Multi-Event Bundle
-                  <p className="text-xs mt-1 opacity-80">Tickets across multiple events</p>
-                </button>
-              </div>
-            </div>
-
-            {/* Event Multi-Select (only show for multi-event bundles) */}
-            {formData.bundleType === "MULTI_EVENT" && organizerEvents && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Events for Bundle *
-                </label>
-                <div className="border border-gray-300 rounded-lg p-3 bg-white max-h-48 overflow-y-auto space-y-2">
-                  {organizerEvents.map((event) => (
-                    <label key={event._id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.selectedEventIds.includes(event._id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({
-                              ...formData,
-                              selectedEventIds: [...formData.selectedEventIds, event._id],
-                              includedTiers: [], // Clear tiers when events change
-                            });
-                          } else {
-                            // Don't allow deselecting if it's the last event
-                            if (formData.selectedEventIds.length > 1) {
-                              setFormData({
-                                ...formData,
-                                selectedEventIds: formData.selectedEventIds.filter(id => id !== event._id),
-                                includedTiers: formData.includedTiers.filter(tier => tier.eventId !== event._id),
-                              });
-                            }
-                          }
-                        }}
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{event.name}</div>
-                        {event.startDate && (
-                          <div className="text-xs text-gray-500">
-                            {new Date(event.startDate).toLocaleDateString()}
-                          </div>
-                        )}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Select at least 2 events for a multi-event bundle
-                </p>
-              </div>
-            )}
-
             {/* Included Tiers */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -496,35 +412,14 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600"
                 defaultValue=""
               >
-                <option value="">+ Add Ticket Tier</option>
-                {formData.bundleType === "MULTI_EVENT" ? (
-                  // Group by event for multi-event bundles
-                  formData.selectedEventIds.map(evtId => {
-                    const event = organizerEvents?.find(e => e._id === evtId);
-                    const eventTiers = multiEventTiers?.filter(t => t.eventId === evtId && !formData.includedTiers.some(it => it.tierId === t._id)) || [];
-
-                    if (eventTiers.length === 0) return null;
-
-                    return (
-                      <optgroup key={evtId} label={event?.name || "Event"}>
-                        {eventTiers.map(tier => (
-                          <option key={tier._id} value={tier._id}>
-                            {tier.name} - ${(tier.price / 100).toFixed(2)} ({tier.available} available)
-                          </option>
-                        ))}
-                      </optgroup>
-                    );
-                  })
-                ) : (
-                  // Standard list for single-event bundles
-                  availableTiers
-                    ?.filter(tier => !formData.includedTiers.some(it => it.tierId === tier._id))
-                    .map(tier => (
-                      <option key={tier._id} value={tier._id}>
-                        {tier.name} - ${(tier.price / 100).toFixed(2)} ({tier.available} available)
-                      </option>
-                    ))
-                )}
+                <option value="">+ Add Ticket Type</option>
+                {availableTiers
+                  ?.filter(tier => !formData.includedTiers.some(it => it.tierId === tier._id))
+                  .map(tier => (
+                    <option key={tier._id} value={tier._id}>
+                      {tier.name} - ${(tier.price / 100).toFixed(2)} ({tier.available} available)
+                    </option>
+                  ))}
               </select>
             </div>
 

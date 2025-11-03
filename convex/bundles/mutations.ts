@@ -248,6 +248,112 @@ export const updateTicketBundle = mutation({
 });
 
 /**
+ * Purchase a ticket bundle
+ */
+export const createBundlePurchase = mutation({
+  args: {
+    bundleId: v.id("ticketBundles"),
+    quantity: v.number(),
+    buyerName: v.string(),
+    buyerEmail: v.string(),
+    buyerPhone: v.optional(v.string()),
+    paymentId: v.string(),
+    paymentStatus: v.string(),
+    totalPaid: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Get bundle details
+    const bundle = await ctx.db.get(args.bundleId);
+    if (!bundle) throw new Error("Bundle not found");
+
+    // Check if bundle is active
+    if (!bundle.isActive) {
+      throw new Error("This bundle is no longer available");
+    }
+
+    // Check sale period
+    const now = Date.now();
+    if (bundle.saleStart && now < bundle.saleStart) {
+      throw new Error("This bundle is not yet available for purchase");
+    }
+    if (bundle.saleEnd && now > bundle.saleEnd) {
+      throw new Error("This bundle sale has ended");
+    }
+
+    // Check availability
+    const available = bundle.totalQuantity - bundle.sold;
+    if (available < args.quantity) {
+      throw new Error(`Only ${available} bundle${available === 1 ? '' : 's'} available`);
+    }
+
+    // Update bundle sold count
+    await ctx.db.patch(args.bundleId, {
+      sold: bundle.sold + args.quantity,
+      updatedAt: Date.now(),
+    });
+
+    // Create individual tickets for each included tier
+    const ticketIds: string[] = [];
+
+    for (let i = 0; i < args.quantity; i++) {
+      for (const includedTier of bundle.includedTiers) {
+        for (let j = 0; j < includedTier.quantity; j++) {
+          // Get tier details
+          const tier = await ctx.db.get(includedTier.tierId);
+          if (!tier) continue;
+
+          // Generate ticket code
+          const ticketCode = `${Math.random().toString(36).substring(2, 9).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
+
+          // Create ticket
+          const ticketId = await ctx.db.insert("tickets", {
+            eventId: includedTier.eventId || bundle.eventId!,
+            ticketTierId: includedTier.tierId,
+            bundleId: args.bundleId,
+            ticketCode,
+            attendeeName: args.buyerName,
+            attendeeEmail: args.buyerEmail,
+            status: "VALID",
+            createdAt: Date.now(),
+          });
+
+          ticketIds.push(ticketId);
+
+          // Update tier sold count
+          await ctx.db.patch(includedTier.tierId, {
+            sold: tier.sold + 1,
+          });
+        }
+      }
+    }
+
+    // Create bundle purchase record
+    const purchaseId = await ctx.db.insert("bundlePurchases", {
+      bundleId: args.bundleId,
+      quantity: args.quantity,
+      buyerName: args.buyerName,
+      buyerEmail: args.buyerEmail,
+      buyerPhone: args.buyerPhone,
+      paymentId: args.paymentId,
+      paymentStatus: args.paymentStatus,
+      totalPaid: args.totalPaid,
+      ticketIds,
+      purchaseDate: Date.now(),
+      status: "COMPLETED",
+    });
+
+    // TODO: Send confirmation email with tickets
+    // This would integrate with your email service
+
+    return {
+      purchaseId,
+      ticketIds,
+      ticketCodes: ticketIds.length,
+    };
+  },
+});
+
+/**
  * Delete a ticket bundle
  */
 export const deleteTicketBundle = mutation({

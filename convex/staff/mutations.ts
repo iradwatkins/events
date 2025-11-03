@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
+import { HIERARCHY_CONFIG, STAFF_ROLES } from "../lib/roles";
 
 /**
  * Generate a unique referral code for a staff member
@@ -11,6 +12,29 @@ function generateReferralCode(name: string): string {
     .toUpperCase();
   const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `${namePart}${randomPart}`;
+}
+
+/**
+ * Get authenticated user - requires valid authentication
+ * @throws Error if not authenticated
+ */
+async function getAuthenticatedUser(ctx: any) {
+  const identity = await ctx.auth.getUserIdentity();
+
+  if (!identity?.email) {
+    throw new Error("Authentication required. Please sign in to continue.");
+  }
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_email", (q: any) => q.eq("email", identity.email))
+    .first();
+
+  if (!user) {
+    throw new Error("User account not found. Please contact support.");
+  }
+
+  return user;
 }
 
 /**
@@ -29,26 +53,7 @@ export const addStaffMember = mutation({
     allocatedTickets: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    // TESTING MODE: Use test user if not authenticated
-    let currentUser;
-    if (!identity) {
-      console.warn("[addStaffMember] TESTING MODE - Using test user");
-      currentUser = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
-        .first();
-    } else {
-      currentUser = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-    }
-
-    if (!currentUser) {
-      throw new Error("User not found. Please log in.");
-    }
+    const currentUser = await getAuthenticatedUser(ctx);
 
     // Verify user is the event organizer
     const event = await ctx.db.get(args.eventId);
@@ -101,7 +106,7 @@ export const addStaffMember = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === "SCANNER"), // Scanners can always scan, sellers only if approved
+      canScan: args.canScan || (args.role === STAFF_ROLES.SCANNER), // Scanners can always scan, sellers only if approved
       commissionType: args.commissionType,
       commissionValue: args.commissionValue,
       commissionPercent: args.commissionType === "PERCENTAGE" ? args.commissionValue : undefined,
@@ -788,6 +793,14 @@ export const assignSubSeller = mutation({
     // Calculate hierarchy level (parent level + 1)
     const hierarchyLevel = (parentStaff.hierarchyLevel || 1) + 1;
 
+    // HIERARCHY DEPTH LIMIT: Prevent unlimited depth for performance
+    if (hierarchyLevel > HIERARCHY_CONFIG.MAX_DEPTH) {
+      throw new Error(
+        `Cannot assign sub-seller: Maximum hierarchy depth of ${HIERARCHY_CONFIG.MAX_DEPTH} levels reached. ` +
+        `Current level would be ${hierarchyLevel}. This limit prevents performance issues with deep hierarchies.`
+      );
+    }
+
     // Calculate commission values based on parent's commission
     // Sub-seller gets their percentage of parent's commission
     const parentCommissionValue = parentStaff.commissionValue || 0;
@@ -812,7 +825,7 @@ export const assignSubSeller = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === "SCANNER"),
+      canScan: args.canScan || (args.role === STAFF_ROLES.SCANNER),
       commissionType: parentCommissionType,
       commissionValue: subSellerCommissionValue,
       commissionPercent: parentCommissionType === "PERCENTAGE" ? subSellerCommissionValue : undefined,
@@ -923,7 +936,7 @@ export const addGlobalStaff = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === "SCANNER"),
+      canScan: args.canScan || (args.role === STAFF_ROLES.SCANNER),
       commissionType: args.commissionType,
       commissionValue: args.commissionValue,
       commissionPercent: args.commissionType === "PERCENTAGE" ? args.commissionValue : undefined,
@@ -1129,7 +1142,7 @@ export const addGlobalSubSeller = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === "SCANNER"),
+      canScan: args.canScan || (args.role === STAFF_ROLES.SCANNER),
       referralCode,
       isActive: true,
       ticketsSold: 0,

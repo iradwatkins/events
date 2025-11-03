@@ -10,7 +10,6 @@ import {
   Users,
   BarChart3,
   Gift,
-  Package,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -50,11 +49,6 @@ const navItems = [
     title: 'Create Event',
     url: '/organizer/events/create',
     icon: Plus,
-  },
-  {
-    title: 'Multi-Event Bundles',
-    url: '/organizer/bundles',
-    icon: Package,
   },
   {
     title: 'Analytics',

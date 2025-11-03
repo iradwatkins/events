@@ -195,10 +195,10 @@ export default function ElementLibrary({
       {/* Help Text - Polished */}
       <div className="mt-6 p-3 rounded-lg" style={{ backgroundColor: "rgba(102, 126, 234, 0.1)", border: "1px solid rgba(102, 126, 234, 0.3)" }}>
         <p className="text-xs mb-2" style={{ color: "var(--seating-primary)" }}>
-          💡 <strong>Tip:</strong> Click any table to add it to your floor plan. Drag to position, and click to select for editing.
+          💡 <strong>Tip:</strong> Drag any table from the library and drop it onto the canvas where you want it placed.
         </p>
         <p className="text-xs" style={{ color: "var(--seating-primary)" }}>
-          ⌨️ <strong>Hold Shift</strong> and drag to group tables together.
+          ⌨️ <strong>Hold Shift</strong> and drag on the canvas to group tables together.
         </p>
       </div>
     </div>
@@ -296,8 +296,27 @@ function TablePreview({ shape, capacity, isRow }: { shape: TableShape; capacity:
 }
 
 function LibraryItem({ config, onSelect }: LibraryItemProps) {
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  const handleDragStart = (e: React.DragEvent<HTMLButtonElement>) => {
+    setIsDragging(true);
+    // Store table config as JSON in dataTransfer
+    e.dataTransfer.setData("application/json", JSON.stringify({
+      type: "table-from-library",
+      config: config
+    }));
+    e.dataTransfer.effectAllowed = "copy";
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
   return (
     <button
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onClick={() => onSelect(config)}
       className="w-full seating-library-item text-left active:scale-95"
       style={{
@@ -305,8 +324,9 @@ function LibraryItem({ config, onSelect }: LibraryItemProps) {
         border: "2px solid var(--seating-neutral-300)",
         borderRadius: "var(--seating-radius-lg)",
         padding: "12px",
-        cursor: "pointer",
+        cursor: isDragging ? "grabbing" : "grab",
         transition: "var(--seating-transition)",
+        opacity: isDragging ? 0.5 : 1,
       }}
       onMouseOver={(e) => {
         e.currentTarget.style.borderColor = "var(--seating-primary)";

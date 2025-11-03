@@ -53,14 +53,14 @@ export default function EventsModerationPage() {
   };
 
   const handleDeleteEvent = async (eventId: Id<"events">, eventName: string) => {
-    if (!confirm(`Are you sure you want to delete "${eventName}"?\n\nThis will permanently delete:\n- The event\n- All ticket tiers and bundles\n- All contact information\n- The associated flyer image from the server\n\nThis action cannot be undone!`)) {
+    if (!confirm(`Are you sure you want to delete "${eventName}"?\n\nThis will permanently delete:\n- The event\n- ALL tickets (even if sold)\n- ALL orders and payments\n- ALL staff positions and transfers\n- All ticket tiers and bundles\n- All seating charts and reservations\n- All contact information\n- The associated flyer image from the server\n\nThis action cannot be undone!`)) {
       return;
     }
 
     try {
       const result = await deleteEvent({ eventId });
       if (result.success) {
-        alert(`Event "${eventName}" deleted successfully!\n\nDeleted:\n- Event record\n- ${result.deleted.tiers} ticket tier(s)\n- ${result.deleted.bundles} bundle(s)\n- ${result.deleted.contacts} contact(s)\n- ${result.deleted.flyer ? 'Flyer image' : 'No flyer'}`);
+        alert(`Event "${eventName}" deleted successfully!\n\nDeleted:\n- Event record\n- ${result.deleted.tickets} ticket(s)\n- ${result.deleted.orders} order(s)\n- ${result.deleted.orderItems} order item(s)\n- ${result.deleted.staffPositions} staff position(s)\n- ${result.deleted.transfers} ticket transfer(s)\n- ${result.deleted.seatingCharts} seating chart(s)\n- ${result.deleted.seatReservations} seat reservation(s)\n- ${result.deleted.tiers} ticket tier(s)\n- ${result.deleted.bundles} bundle(s)\n- ${result.deleted.contacts} contact(s)\n- ${result.deleted.flyer ? 'Flyer image' : 'No flyer'}`);
       }
       // Page will auto-refresh via Convex reactivity
     } catch (error: unknown) {

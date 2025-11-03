@@ -83,7 +83,7 @@ export default function BundlesPage() {
               Ticket Bundles & Packages
             </h1>
             <p className="text-xl text-purple-100 max-w-2xl mx-auto">
-              Save big on multi-event passes and VIP packages. Buy once, enjoy multiple events!
+              Save big with ticket bundles and VIP packages. Buy multiple tickets together at a discounted price!
             </p>
           </div>
         </div>
@@ -181,7 +181,7 @@ export default function BundlesPage() {
             <p className="text-gray-600">
               {searchQuery
                 ? "Try adjusting your search terms"
-                : "Check back soon for exciting multi-event packages"}
+                : "Check back soon for exciting ticket bundles and packages"}
             </p>
           </div>
         ) : (
@@ -211,13 +211,6 @@ export default function BundlesPage() {
                   <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                     Save {bundle.percentageSavings}%
                   </div>
-
-                  {/* Bundle Type Badge */}
-                  {bundle.bundleType === "MULTI_EVENT" && (
-                    <div className="absolute top-4 left-4 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
-                      Multi-Event
-                    </div>
-                  )}
                 </div>
 
                 {/* Bundle Details */}

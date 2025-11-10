@@ -24,7 +24,7 @@ export const logUploadedFlyer = mutation({
       // TESTING MODE: Get test user
       user = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       // Production: Get user by email from identity

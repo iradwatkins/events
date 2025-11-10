@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎟️ Complete Ticket System - Design & Sell</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        /* Mode Switcher */
+        .mode-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .mode-btn {
+            padding: 12px 30px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+
+        .mode-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 350px;
+            gap: 20px;
+            padding: 20px;
+            min-height: 700px;
+        }
+
+        /* Left Sidebar - Table Library */
+        .table-library {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .library-header {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .library-section {
+            margin-bottom: 25px;
+        }
+
+        .library-section h4 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .library-item {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: move;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .library-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .library-item-icon {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .library-item-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
+        .library-item-capacity {
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        /* Center - Floor Plan */
+        .floor-plan-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            overflow: auto;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .control-btn.danger {
+            background: #e74c3c;
+        }
+
+        .control-btn.success {
+            background: #4CAF50;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+
+        .legend-box.available { background: #4CAF50; }
+        .legend-box.selected { background: #FFC107; }
+        .legend-box.sold { background: #999; opacity: 0.5; }
+
+        #floorPlan {
+            background: white;
+            min-height: 700px;
+            position: relative;
+            border: 2px dashed #ddd;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        /* Table Elements - Outlined Style */
+        .table-element {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            transition: all 0.3s;
+        }
+
+        .table-element:hover {
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+            z-index: 100;
+        }
+
+        .table-element.selected-table {
+            filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.8));
+        }
+
+        .table-outline {
+            fill: none;
+            stroke: #2c3e50;
+            stroke-width: 3;
+        }
+
+        .table-center {
+            fill: #f8f9fa;
+            stroke: #2c3e50;
+            stroke-width: 2;
+        }
+
+        .table-label {
+            fill: #2c3e50;
+            font-weight: 700;
+            font-size: 14px;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        /* Individual Seats */
+        .seat {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .seat.available {
+            fill: #4CAF50;
+            stroke: #2c3e50;
+            stroke-width: 2;
+        }
+
+        .seat.available:hover {
+            fill: #66BB6A;
+            stroke: #667eea;
+            stroke-width: 3;
+        }
+
+        .seat.selected {
+            fill: #FFC107;
+            stroke: #2c3e50;
+            stroke-width: 3;
+            filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.6));
+        }
+
+        .seat.sold {
+            fill: #999;
+            stroke: #666;
+            stroke-width: 2;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .seat-number {
+            fill: white;
+            font-size: 9px;
+            font-weight: bold;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none;
+            z-index: 200;
+        }
+
+        .table-element:hover .delete-btn {
+            display: block;
+        }
+
+        /* Right Sidebar - Shopping Cart */
+        .cart-sidebar {
+            background: white;
+            border-radius: 15px;
+            border: 2px solid #ddd;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 250px);
+            position: sticky;
+            top: 20px;
+        }
+
+        .cart-header {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .cart-empty-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .cart-item {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .cart-item:hover {
+            border-color: #667eea;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95em;
+        }
+
+        .cart-item-details {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-top: 2px;
+        }
+
+        .cart-item-price {
+            font-weight: 700;
+            color: #667eea;
+            margin-right: 8px;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .cart-summary {
+            border-top: 2px solid #ddd;
+            padding-top: 15px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 1em;
+        }
+
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 1.3em;
+            color: #2c3e50;
+            border-top: 2px solid #667eea;
+            padding-top: 12px;
+            margin-top: 8px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 12px;
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .clear-cart-btn {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .clear-cart-btn:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* Price Settings */
+        .price-settings {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #e8f5e9;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+        }
+
+        .price-settings h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .price-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .price-input label {
+            font-size: 0.85em;
+            color: #666;
+            min-width: 85px;
+        }
+
+        .price-input input {
+            width: 70px;
+            padding: 4px 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        /* Bulk Options */
+        .bulk-options {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #fff3e0;
+            border: 2px solid #FF9800;
+            border-radius: 8px;
+        }
+
+        .bulk-options h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .bulk-btn {
+            width: 100%;
+            padding: 8px;
+            background: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 6px;
+        }
+
+        .bulk-btn:hover {
+            background: #F57C00;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 1.3em;
+            cursor: pointer;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            white-space: nowrap;
+        }
+
+        /* Mode Visibility */
+        .designer-mode { display: none; }
+        .selling-mode { display: none; }
+
+        .mode-designer .designer-mode { display: block; }
+        .mode-selling .selling-mode { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎟️ Complete Ticket System</h1>
+            <p>Design your floor plan • Set prices • Sell tickets</p>
+            
+            <div class="mode-switcher">
+                <button class="mode-btn active" onclick="switchMode('designer')">
+                    🎨 Designer Mode
+                </button>
+                <button class="mode-btn" onclick="switchMode('selling')">
+                    🎫 Selling Mode
+                </button>
+            </div>
+        </div>
+
+        <div class="main-layout mode-designer" id="mainLayout">
+            <!-- Left Sidebar: Table Library -->
+            <div class="table-library designer-mode">
+                <div class="library-header">🪑 Table Library</div>
+                
+                <div class="library-section">
+                    <h4>Dining Tables</h4>
+                    
+                    <div class="library-item" draggable="true" data-table-type="round-8">
+                        <div class="library-item-icon">⭕</div>
+                        <div class="library-item-title">Round Table</div>
+                        <div class="library-item-capacity">8 Seats</div>
+                    </div>
+                    
+                    <div class="library-item" draggable="true" data-table-type="round-10">
+                        <div class="library-item-icon">⭕</div>
+                        <div class="library-item-title">Round Table</div>
+                        <div class="library-item-capacity">10 Seats</div>
+                    </div>
+                    
+                    <div class="library-item" draggable="true" data-table-type="round-12">
+                        <div class="library-item-icon">⭕</div>
+                        <div class="library-item-title">Round Table</div>
+                        <div class="library-item-capacity">12 Seats</div>
+                    </div>
+                    
+                    <div class="library-item" draggable="true" data-table-type="vip-table">
+                        <div class="library-item-icon">👑</div>
+                        <div class="library-item-title">VIP Table</div>
+                        <div class="library-item-capacity">8 Seats (Premium)</div>
+                    </div>
+                </div>
+                
+                <div class="library-section">
+                    <h4>Special Areas</h4>
+                    
+                    <div class="library-item" draggable="true" data-table-type="stage">
+                        <div class="library-item-icon">🎭</div>
+                        <div class="library-item-title">Stage</div>
+                    </div>
+                    
+                    <div class="library-item" draggable="true" data-table-type="dancefloor">
+                        <div class="library-item-icon">💃</div>
+                        <div class="library-item-title">Dance Floor</div>
+                    </div>
+                    
+                    <div class="library-item" draggable="true" data-table-type="bar">
+                        <div class="library-item-icon">🍸</div>
+                        <div class="library-item-title">Bar</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: Floor Plan -->
+            <div class="floor-plan-section">
+                <div class="controls-bar">
+                    <div class="control-group">
+                        <button class="control-btn designer-mode" onclick="clearFloorPlan()">🗑️ Clear All</button>
+                        <button class="control-btn success designer-mode" onclick="saveLayout()">💾 Save Layout</button>
+                        <button class="control-btn designer-mode" onclick="exportLayout()">📤 Export</button>
+                    </div>
+                    
+                    <div class="legend selling-mode">
+                        <div class="legend-item">
+                            <div class="legend-box available"></div>
+                            <span>Available</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box selected"></div>
+                            <span>Selected</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box sold"></div>
+                            <span>Sold</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <span id="statsDisplay" style="font-weight: 600; color: #667eea;">
+                            Tables: <span id="tableCount">0</span> | 
+                            Total Seats: <span id="seatCount">0</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div id="floorPlan"></div>
+            </div>
+
+            <!-- Right Sidebar: Shopping Cart -->
+            <div class="cart-sidebar">
+                <div class="cart-header">🛒 Shopping Cart</div>
+                
+                <div class="price-settings selling-mode">
+                    <h4>💰 Ticket Prices</h4>
+                    <div class="price-input">
+                        <label>Regular:</label>
+                        <input type="number" id="regularPrice" value="50" min="1">
+                    </div>
+                    <div class="price-input">
+                        <label>VIP:</label>
+                        <input type="number" id="vipPrice" value="100" min="1">
+                    </div>
+                </div>
+                
+                <div class="bulk-options selling-mode" id="bulkOptions" style="display: none;">
+                    <h4>🎯 Quick Actions</h4>
+                    <button class="bulk-btn" onclick="selectWholeTable()">Buy Entire Table</button>
+                    <button class="bulk-btn" onclick="selectAllAvailable()">Select All Available</button>
+                </div>
+                
+                <div class="cart-items" id="cartItems">
+                    <div class="cart-empty">
+                        <div class="cart-empty-icon">🎫</div>
+                        <p>No tickets selected</p>
+                    </div>
+                </div>
+                
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>Tickets:</span>
+                        <span id="ticketCount">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (10%):</span>
+                        <span id="tax">$0</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span id="total">$0</span>
+                    </div>
+                </div>
+                
+                <button class="checkout-btn selling-mode" id="checkoutBtn" onclick="openCheckout()" disabled>
+                    Proceed to Checkout
+                </button>
+                <button class="clear-cart-btn selling-mode" onclick="clearCart()">Clear Cart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeCheckout()">×</button>
+            <div class="modal-header">
+                <div class="modal-icon">✅</div>
+                <h2>Complete Purchase</h2>
+                <p style="color: #7f8c8d;">Total: <strong id="modalTotal">$0</strong></p>
+            </div>
+
+            <form id="checkoutForm" onsubmit="completePurchase(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="customerName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="customerEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone *</label>
+                    <input type="tel" id="customerPhone" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Method *</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Select method</option>
+                        <option value="credit">Credit Card</option>
+                        <option value="debit">Debit Card</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="cash">Cash</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    💳 Complete Purchase
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // ==========================================
+        // STATE MANAGEMENT
+        // ==========================================
+        
+        let currentMode = 'designer';
+        let tables = [];
+        let tableIdCounter = 1;
+        let cart = [];
+        let soldSeats = {}; // { tableId: [seatNumbers] }
+        let selectedTable = null;
+        let isDragging = false;
+        let dragElement = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        const TABLE_CONFIGS = {
+            'round-8': { seats: 8, radius: 80, type: 'regular' },
+            'round-10': { seats: 10, radius: 90, type: 'regular' },
+            'round-12': { seats: 12, radius: 100, type: 'regular' },
+            'vip-table': { seats: 8, radius: 80, type: 'vip' },
+            'stage': { seats: 0, width: 300, height: 80, type: 'special' },
+            'dancefloor': { seats: 0, width: 200, height: 200, type: 'special' },
+            'bar': { seats: 0, width: 150, height: 80, type: 'special' }
+        };
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+
+        function init() {
+            setupDragAndDrop();
+            renderFloorPlan();
+            updateStats();
+            updateCart();
+            
+            // Demo data
+            soldSeats[1] = [1, 2];
+        }
+
+        // ==========================================
+        // MODE SWITCHING
+        // ==========================================
+
+        function switchMode(mode) {
+            currentMode = mode;
+            const layout = document.getElementById('mainLayout');
+            const buttons = document.querySelectorAll('.mode-btn');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (mode === 'designer') {
+                layout.classList.remove('mode-selling');
+                layout.classList.add('mode-designer');
+            } else {
+                layout.classList.remove('mode-designer');
+                layout.classList.add('mode-selling');
+                renderFloorPlan(); // Re-render for seat selection
+            }
+        }
+
+        // ==========================================
+        // DRAG AND DROP
+        // ==========================================
+
+        function setupDragAndDrop() {
+            const libraryItems = document.querySelectorAll('.library-item');
+            const floorPlan = document.getElementById('floorPlan');
+            
+            libraryItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('tableType', item.dataset.tableType);
+                });
+            });
+            
+            floorPlan.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            
+            floorPlan.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const tableType = e.dataTransfer.getData('tableType');
+                if (tableType && currentMode === 'designer') {
+                    const rect = floorPlan.getBoundingClientRect();
+                    addTable(tableType, e.clientX - rect.left, e.clientY - rect.top);
+                }
+            });
+        }
+
+        function addTable(type, x, y) {
+            const config = TABLE_CONFIGS[type];
+            const table = {
+                id: tableIdCounter++,
+                type: type,
+                x: Math.max(0, x - (config.radius || config.width/2)),
+                y: Math.max(0, y - (config.radius || config.height/2)),
+                config: config
+            };
+            
+            tables.push(table);
+            renderFloorPlan();
+            updateStats();
+        }
+
+        function deleteTable(tableId) {
+            if (confirm('Delete this table?')) {
+                tables = tables.filter(t => t.id !== tableId);
+                delete soldSeats[tableId];
+                renderFloorPlan();
+                updateStats();
+            }
+        }
+
+        // ==========================================
+        // RENDERING
+        // ==========================================
+
+        function renderFloorPlan() {
+            const plan = document.getElementById('floorPlan');
+            plan.innerHTML = '';
+            
+            tables.forEach(table => {
+                const element = createTableElement(table);
+                plan.appendChild(element);
+            });
+        }
+
+        function createTableElement(table) {
+            const div = document.createElement('div');
+            div.className = 'table-element';
+            div.style.left = table.x + 'px';
+            div.style.top = table.y + 'px';
+            div.dataset.tableId = table.id;
+            
+            if (table.config.seats > 0) {
+                div.innerHTML = renderRoundTable(table);
+            } else {
+                div.innerHTML = renderSpecialArea(table);
+            }
+            
+            // Add delete button (designer mode)
+            if (currentMode === 'designer') {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '×';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteTable(table.id);
+                };
+                div.appendChild(deleteBtn);
+                
+                makeTableDraggable(div);
+            }
+            
+            return div;
+        }
+
+        function renderRoundTable(table) {
+            const r = table.config.radius;
+            const seatR = 12;
+            const angleStep = (2 * Math.PI) / table.config.seats;
+            const size = r * 2 + 60;
+            const center = size / 2;
+            
+            let svg = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">`;
+            
+            // Table circle
+            svg += `<circle class="table-outline" cx="${center}" cy="${center}" r="${r}"/>`;
+            svg += `<circle class="table-center" cx="${center}" cy="${center}" r="${r - 15}"/>`;
+            
+            // Label
+            const vipLabel = table.config.type === 'vip' ? '👑 VIP ' : '';
+            svg += `<text class="table-label" x="${center}" y="${center - 5}">
+                        ${vipLabel}Table ${table.id}
+                    </text>`;
+            svg += `<text class="table-label" x="${center}" y="${center + 15}" style="font-size: 11px;">
+                        ${table.config.seats} Seats
+                    </text>`;
+            
+            // Seats (only in selling mode)
+            if (currentMode === 'selling') {
+                for (let i = 0; i < table.config.seats; i++) {
+                    const angle = i * angleStep - Math.PI / 2;
+                    const seatX = center + (r + 18) * Math.cos(angle);
+                    const seatY = center + (r + 18) * Math.sin(angle);
+                    const seatNum = i + 1;
+                    
+                    let status = 'available';
+                    if (isSeatSold(table.id, seatNum)) {
+                        status = 'sold';
+                    } else if (isSeatInCart(table.id, seatNum)) {
+                        status = 'selected';
+                    }
+                    
+                    svg += `
+                        <circle class="seat ${status}" 
+                                cx="${seatX}" cy="${seatY}" r="${seatR}"
+                                data-table-id="${table.id}"
+                                data-seat-number="${seatNum}"
+                                data-seat-type="${table.config.type}"
+                                onmouseenter="showTooltip(event, ${table.id}, ${seatNum}, '${table.config.type}')"
+                                onmouseleave="hideTooltip()"
+                                onclick="handleSeatClick(${table.id}, ${seatNum}, '${table.config.type}', '${status}')"/>
+                        <text class="seat-number" x="${seatX}" y="${seatY + 4}">${seatNum}</text>
+                    `;
+                }
+            }
+            
+            svg += '</svg>';
+            return svg;
+        }
+
+        function renderSpecialArea(table) {
+            const w = table.config.width;
+            const h = table.config.height;
+            
+            let label = '';
+            if (table.type === 'stage') label = '🎭 STAGE';
+            else if (table.type === 'dancefloor') label = '💃 DANCE FLOOR';
+            else if (table.type === 'bar') label = '🍸 BAR';
+            
+            return `
+                <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+                    <rect class="special-area" width="${w}" height="${h}" rx="10"/>
+                    <text class="area-label" x="${w/2}" y="${h/2 + 8}">${label}</text>
+                </svg>
+            `;
+        }
+
+        function makeTableDraggable(element) {
+            element.addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('delete-btn')) return;
+                
+                isDragging = true;
+                dragElement = element;
+                
+                const rect = element.getBoundingClientRect();
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+            });
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || !dragElement) return;
+            
+            const plan = document.getElementById('floorPlan');
+            const rect = plan.getBoundingClientRect();
+            
+            let x = e.clientX - rect.left - dragOffset.x;
+            let y = e.clientY - rect.top - dragOffset.y;
+            
+            x = Math.max(0, Math.min(x, rect.width - dragElement.offsetWidth));
+            y = Math.max(0, Math.min(y, rect.height - dragElement.offsetHeight));
+            
+            dragElement.style.left = x + 'px';
+            dragElement.style.top = y + 'px';
+            
+            // Update table position
+            const tableId = parseInt(dragElement.dataset.tableId);
+            const table = tables.find(t => t.id === tableId);
+            if (table) {
+                table.x = x;
+                table.y = y;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            dragElement = null;
+        });
+
+        // ==========================================
+        // SEAT SELECTION
+        // ==========================================
+
+        function handleSeatClick(tableId, seatNum, seatType, status) {
+            if (currentMode !== 'selling') return;
+            if (status === 'sold') return;
+            
+            const seatId = `${tableId}-${seatNum}`;
+            
+            if (isSeatInCart(tableId, seatNum)) {
+                cart = cart.filter(item => item.id !== seatId);
+            } else {
+                const price = seatType === 'vip' 
+                    ? parseInt(document.getElementById('vipPrice').value)
+                    : parseInt(document.getElementById('regularPrice').value);
+                
+                cart.push({
+                    id: seatId,
+                    tableId: tableId,
+                    seatNumber: seatNum,
+                    type: seatType,
+                    price: price
+                });
+                
+                selectedTable = tableId;
+            }
+            
+            renderFloorPlan();
+            updateCart();
+        }
+
+        function isSeatSold(tableId, seatNum) {
+            return soldSeats[tableId] && soldSeats[tableId].includes(seatNum);
+        }
+
+        function isSeatInCart(tableId, seatNum) {
+            return cart.some(item => item.tableId === tableId && item.seatNumber === seatNum);
+        }
+
+        // ==========================================
+        // CART MANAGEMENT
+        // ==========================================
+
+        function updateCart() {
+            const cartItems = document.getElementById('cartItems');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="cart-empty">
+                        <div class="cart-empty-icon">🎫</div>
+                        <p>No tickets selected</p>
+                    </div>
+                `;
+                checkoutBtn.disabled = true;
+                document.getElementById('bulkOptions').style.display = 'none';
+            } else {
+                let html = '';
+                cart.forEach(item => {
+                    html += `
+                        <div class="cart-item">
+                            <div class="cart-item-info">
+                                <div class="cart-item-title">
+                                    ${item.type === 'vip' ? '👑' : '🎫'} Table ${item.tableId} - Seat ${item.seatNumber}
+                                </div>
+                                <div class="cart-item-details">
+                                    ${item.type.toUpperCase()}
+                                </div>
+                            </div>
+                            <span class="cart-item-price">$${item.price}</span>
+                            <button class="remove-btn" onclick="removeFromCart('${item.id}')">×</button>
+                        </div>
+                    `;
+                });
+                cartItems.innerHTML = html;
+                checkoutBtn.disabled = false;
+                
+                if (selectedTable) {
+                    document.getElementById('bulkOptions').style.display = 'block';
+                }
+            }
+            
+            // Update summary
+            const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+            const tax = subtotal * 0.1;
+            const total = subtotal + tax;
+            
+            document.getElementById('ticketCount').textContent = cart.length;
+            document.getElementById('subtotal').textContent = `$${subtotal}`;
+            document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function removeFromCart(seatId) {
+            cart = cart.filter(item => item.id !== seatId);
+            renderFloorPlan();
+            updateCart();
+        }
+
+        function clearCart() {
+            if (cart.length === 0) return;
+            if (confirm('Clear cart?')) {
+                cart = [];
+                renderFloorPlan();
+                updateCart();
+            }
+        }
+
+        // ==========================================
+        // BULK ACTIONS
+        // ==========================================
+
+        function selectWholeTable() {
+            if (!selectedTable) return;
+            
+            const table = tables.find(t => t.id === selectedTable);
+            if (!table) return;
+            
+            for (let i = 1; i <= table.config.seats; i++) {
+                if (!isSeatSold(selectedTable, i) && !isSeatInCart(selectedTable, i)) {
+                    handleSeatClick(selectedTable, i, table.config.type, 'available');
+                }
+            }
+        }
+
+        function selectAllAvailable() {
+            selectWholeTable();
+        }
+
+        // ==========================================
+        // CHECKOUT
+        // ==========================================
+
+        function openCheckout() {
+            if (cart.length === 0) return;
+            
+            const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+            const total = subtotal * 1.1;
+            
+            document.getElementById('modalTotal').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('checkoutModal').classList.add('active');
+        }
+
+        function closeCheckout() {
+            document.getElementById('checkoutModal').classList.remove('active');
+            document.getElementById('checkoutForm').reset();
+        }
+
+        function completePurchase(e) {
+            e.preventDefault();
+            
+            // Mark seats as sold
+            cart.forEach(item => {
+                if (!soldSeats[item.tableId]) {
+                    soldSeats[item.tableId] = [];
+                }
+                soldSeats[item.tableId].push(item.seatNumber);
+            });
+            
+            const total = cart.reduce((sum, item) => sum + item.price, 0) * 1.1;
+            
+            cart = [];
+            renderFloorPlan();
+            updateCart();
+            closeCheckout();
+            
+            alert(`✅ Purchase Complete!\n\nTotal: $${total.toFixed(2)}\nConfirmation sent to your email.`);
+        }
+
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+
+        function updateStats() {
+            const totalTables = tables.filter(t => t.config.seats > 0).length;
+            const totalSeats = tables.reduce((sum, t) => sum + t.config.seats, 0);
+            
+            document.getElementById('tableCount').textContent = totalTables;
+            document.getElementById('seatCount').textContent = totalSeats;
+        }
+
+        function clearFloorPlan() {
+            if (confirm('Clear all tables?')) {
+                tables = [];
+                tableIdCounter = 1;
+                renderFloorPlan();
+                updateStats();
+            }
+        }
+
+        function saveLayout() {
+            localStorage.setItem('floorPlanLayout', JSON.stringify(tables));
+            alert('✅ Layout saved!');
+        }
+
+        function exportLayout() {
+            const data = {
+                tables: tables,
+                soldSeats: soldSeats,
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'floor-plan-export.json';
+            a.click();
+        }
+
+        function showTooltip(e, tableId, seatNum, seatType) {
+            if (currentMode !== 'selling') return;
+            
+            const tooltip = document.getElementById('tooltip');
+            const price = seatType === 'vip' 
+                ? document.getElementById('vipPrice').value
+                : document.getElementById('regularPrice').value;
+            
+            if (isSeatSold(tableId, seatNum)) {
+                tooltip.textContent = `Table ${tableId} - Seat ${seatNum}: SOLD`;
+            } else {
+                tooltip.textContent = `Table ${tableId} - Seat ${seatNum}: $${price}`;
+            }
+            
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.pageX + 10) + 'px';
+            tooltip.style.top = (e.pageY + 10) + 'px';
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').style.display = 'none';
+        }
+
+        // ==========================================
+        // START
+        // ==========================================
+
+        init();
+    </script>
+</body>
+</html>

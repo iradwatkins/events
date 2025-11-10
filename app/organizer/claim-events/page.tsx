@@ -280,7 +280,7 @@ export default function ClaimEventsPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-purple-600">
+                        <div className="w-full h-full flex items-center justify-center bg-primary">
                           <Gift className="w-16 h-16 text-white opacity-50" />
                         </div>
                       )}
@@ -313,7 +313,7 @@ export default function ClaimEventsPage() {
                         )}
 
                         {event.category && (
-                          <span className="inline-block px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
+                          <span className="inline-block px-2 py-1 text-xs font-semibold bg-accent text-primary rounded-full">
                             {event.category}
                           </span>
                         )}

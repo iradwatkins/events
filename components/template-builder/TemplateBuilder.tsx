@@ -232,8 +232,8 @@ export default function TemplateBuilder({
         {/* Stats and actions */}
         <div className="flex items-center gap-4">
           {/* Capacity counter */}
-          <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-            <span className="text-sm font-medium text-blue-900">
+          <div className="px-4 py-2 bg-accent border border-border rounded-lg">
+            <span className="text-sm font-medium text-foreground">
               Total Capacity: <span className="text-lg font-bold">{totalCapacity}</span> seats
             </span>
           </div>
@@ -258,7 +258,7 @@ export default function TemplateBuilder({
             <button
               onClick={handleSave}
               disabled={items.length === 0}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <Save className="w-5 h-5" />
               Save Layout
@@ -268,10 +268,10 @@ export default function TemplateBuilder({
       </div>
 
       {/* Info banner */}
-      <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
+      <div className="px-4 py-3 bg-accent border-b border-border">
         <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
+          <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-accent-foreground">
             <strong>How to use:</strong> Drag tables and row sections from the left toolbar onto the canvas.
             Click items to select and edit their properties in the right panel. Drag items on the canvas to reposition them.
           </div>

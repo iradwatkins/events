@@ -106,7 +106,7 @@ export function TierAvailabilityBadge({ saleStart, saleEnd, sold, quantity }: Ti
 
   if (isNotStarted) {
     return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-accent text-accent-foreground">
         Coming Soon
       </span>
     );

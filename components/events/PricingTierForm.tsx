@@ -63,22 +63,22 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
 
   if (!expanded && tiers.length === 0) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-accent border border-border rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Clock className="w-5 h-5 text-blue-600" />
+          <div className="flex-shrink-0 w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+            <Clock className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
-            <h4 className="font-medium text-blue-900 mb-1">
+            <h4 className="font-medium text-foreground mb-1">
               Early Bird Pricing (Optional)
             </h4>
-            <p className="text-sm text-blue-700 mb-3">
+            <p className="text-sm text-primary mb-3">
               Create time-based pricing tiers to reward early buyers. Example: $50 Early Bird → $75 Regular → $100 Last Chance
             </p>
             <button
               type="button"
               onClick={addTier}
-              className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              className="text-sm font-medium text-primary hover:text-primary flex items-center gap-1"
             >
               <Plus className="w-4 h-4" />
               Add Early Bird Pricing
@@ -102,7 +102,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
           <button
             type="button"
             onClick={addTier}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Tier
@@ -121,7 +121,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                      <div className="w-6 h-6 bg-accent text-primary rounded-full flex items-center justify-center text-xs font-bold">
                         {index + 1}
                       </div>
                       <h5 className="font-medium text-gray-900">Pricing Tier {index + 1}</h5>
@@ -146,7 +146,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
                         value={tier.name}
                         onChange={(e) => updateTier(tier.id, "name", e.target.value)}
                         placeholder='e.g., "Early Bird", "Regular", "Last Chance"'
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                     </div>
 
@@ -164,7 +164,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
                           value={tier.price}
                           onChange={(e) => updateTier(tier.id, "price", e.target.value)}
                           placeholder="0.00"
-                          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         />
                       </div>
                     </div>
@@ -178,7 +178,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
                         type="date"
                         value={tier.availableFrom}
                         onChange={(e) => updateTier(tier.id, "availableFrom", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                     </div>
 
@@ -193,7 +193,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
                         value={tier.availableUntil}
                         onChange={(e) => updateTier(tier.id, "availableUntil", e.target.value)}
                         min={tier.availableFrom}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -223,7 +223,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
           <button
             type="button"
             onClick={addTier}
-            className="w-full py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-primary transition-colors flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Another Pricing Tier

@@ -29,7 +29,7 @@ export default function TicketValidationPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">Validating ticket...</p>
         </div>
       </div>
@@ -51,7 +51,7 @@ export default function TicketValidationPage() {
               </p>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Events
@@ -68,13 +68,13 @@ export default function TicketValidationPage() {
   const isUpcoming = event.startDate && event.startDate >= Date.now();
 
   return (
-    <div className="min-h-screen bg-purple-600">
+    <div className="min-h-screen bg-primary">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
+            className="inline-flex items-center gap-2 text-gray-700 hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-medium">Back to Events</span>
@@ -88,8 +88,8 @@ export default function TicketValidationPage() {
           {/* Ticket Status Banner */}
           <div className={`rounded-lg p-6 mb-6 ${
             isValid
-              ? "bg-purple-600 text-white"
-              : "bg-purple-600 text-white"
+              ? "bg-primary text-white"
+              : "bg-primary text-white"
           }`}>
             <div className="flex items-center gap-4">
               {isValid ? (
@@ -134,7 +134,7 @@ export default function TicketValidationPage() {
                   <div className="space-y-3">
                     {event.startDate && (
                       <div className="flex items-start gap-3">
-                        <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <Calendar className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                         <div>
                           <p className="font-semibold text-gray-900">
                             {format(event.startDate, "EEEE, MMMM d, yyyy")}
@@ -149,7 +149,7 @@ export default function TicketValidationPage() {
 
                     {event.location && typeof event.location === 'object' && (
                       <div className="flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                         <div>
                           {event.location.venueName && (
                             <p className="font-semibold text-gray-900">{event.location.venueName}</p>
@@ -230,12 +230,12 @@ export default function TicketValidationPage() {
                   )}
 
                   {seat && (
-                    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 -mx-2">
-                      <dt className="text-blue-700 font-semibold flex items-center gap-2 mb-2">
+                    <div className="bg-accent border-2 border-border rounded-lg p-4 -mx-2">
+                      <dt className="text-primary font-semibold flex items-center gap-2 mb-2">
                         <Armchair className="w-5 h-5" />
                         Assigned Seat
                       </dt>
-                      <dd className="text-blue-900 font-bold text-xl">
+                      <dd className="text-foreground font-bold text-xl">
                         {seat.sectionName} • Row {seat.rowLabel} • Seat {seat.seatNumber}
                       </dd>
                     </div>
@@ -275,7 +275,7 @@ export default function TicketValidationPage() {
               {isUpcoming && isValid && (
                 <Link
                   href="/my-tickets"
-                  className="block w-full text-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                  className="block w-full text-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold"
                 >
                   View All My Tickets
                 </Link>

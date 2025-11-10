@@ -47,7 +47,7 @@ export default function TicketTiersPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -58,7 +58,7 @@ export default function TicketTiersPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
           <p className="text-gray-600">You don't have permission to access this page.</p>
-          <Link href="/" className="mt-4 inline-block text-blue-600 hover:underline">
+          <Link href="/" className="mt-4 inline-block text-primary hover:underline">
             Go to Homepage
           </Link>
         </div>
@@ -94,7 +94,6 @@ export default function TicketTiersPage() {
       setTierSaleStart("");
       setTierSaleEnd("");
       setShowAddTier(false);
-      alert("Ticket tier created successfully!");
     } catch (error: any) {
       console.error("Create tier error:", error);
       alert(error.message || "Failed to create ticket tier");
@@ -102,13 +101,8 @@ export default function TicketTiersPage() {
   };
 
   const handleDeleteTier = async (tierId: Id<"ticketTiers">) => {
-    if (!confirm("Are you sure you want to delete this ticket tier?")) {
-      return;
-    }
-
     try {
       await deleteTier({ tierId });
-      alert("Ticket tier deleted successfully!");
     } catch (error: any) {
       console.error("Delete tier error:", error);
       alert(error.message || "Failed to delete ticket tier");
@@ -137,7 +131,7 @@ export default function TicketTiersPage() {
             </div>
             <button
               onClick={() => setShowAddTier(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+              className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg"
             >
               <Plus className="w-5 h-5" />
               Add Ticket Tier
@@ -150,8 +144,8 @@ export default function TicketTiersPage() {
       <main className="container mx-auto px-4 py-8">
         {tiers.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Ticket className="w-8 h-8 text-blue-600" />
+            <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
+              <Ticket className="w-8 h-8 text-primary" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No ticket tiers yet</h3>
             <p className="text-gray-600 mb-6">
@@ -159,7 +153,7 @@ export default function TicketTiersPage() {
             </p>
             <button
               onClick={() => setShowAddTier(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
               <Plus className="w-5 h-5" />
               Create Your First Ticket Tier
@@ -344,7 +338,7 @@ export default function TicketTiersPage() {
               {/* Sale Period (Optional) */}
               <div className="border-t pt-6">
                 <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Info className="w-5 h-5 text-blue-600" />
+                  <Info className="w-5 h-5 text-primary" />
                   Sale Period (Optional)
                 </h3>
 
@@ -386,7 +380,7 @@ export default function TicketTiersPage() {
               </button>
               <button
                 onClick={handleCreateTier}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold"
               >
                 Create Ticket Tier
               </button>

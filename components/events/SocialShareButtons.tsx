@@ -80,7 +80,7 @@ export function SocialShareButtons({ eventName, eventUrl, eventDate, hasTickets 
 
       <button
         onClick={handleInstagramShare}
-        className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+        className="flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
         aria-label="Share on Instagram"
       >
         <Instagram className="w-4 h-4" />

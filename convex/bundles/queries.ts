@@ -304,7 +304,7 @@ export const getAllOrganizerBundles = query({
       console.warn("[getAllOrganizerBundles] TESTING MODE - Using test user");
       user = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       user = await ctx.db

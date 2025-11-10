@@ -18,7 +18,7 @@ export const createStripeConnectAccount = mutation({
       console.warn("[createStripeConnectAccount] TESTING MODE - No authentication required");
       user = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       user = await ctx.db
@@ -67,7 +67,7 @@ export const saveStripeConnectAccount = mutation({
       console.warn("[saveStripeConnectAccount] TESTING MODE - No authentication required");
       user = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       user = await ctx.db

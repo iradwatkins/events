@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   FileText,
   Archive,
+  Eye,
+  Copy,
 } from "lucide-react";
 import { useState } from "react";
 import { Id } from "@/convex/_generated/dataModel";
@@ -28,24 +30,29 @@ export default function ProductsManagementPage() {
   );
 
   const deleteProduct = useMutation(api.products.mutations.deleteProduct);
+  const duplicateProduct = useMutation(api.products.mutations.duplicateProduct);
 
   const handleDeleteProduct = async (productId: Id<"products">, productName: string) => {
-    if (!confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone!`)) {
-      return;
-    }
-
     try {
       await deleteProduct({ productId });
-      alert(`Product "${productName}" deleted successfully!`);
     } catch (error: unknown) {
       alert(`Failed to delete product: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  const handleDuplicateProduct = async (productId: Id<"products">, productName: string) => {
+    try {
+      const newProductId = await duplicateProduct({ productId });
+      window.location.href = `/admin/products/${newProductId}/edit`;
+    } catch (error: unknown) {
+      alert(`Failed to duplicate product: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
   if (!allProducts) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -67,7 +74,7 @@ export default function ProductsManagementPage() {
         </div>
         <Link
           href="/admin/products/create"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Product
@@ -78,7 +85,7 @@ export default function ProductsManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <Package className="w-5 h-5" />
             </div>
             <div>
@@ -132,7 +139,7 @@ export default function ProductsManagementPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
           >
             <option value="all">All Products</option>
             <option value="ACTIVE">Active Only</option>
@@ -153,7 +160,7 @@ export default function ProductsManagementPage() {
           <p className="text-gray-600">No products found</p>
           <Link
             href="/admin/products/create"
-            className="inline-flex items-center gap-2 mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Create Your First Product
@@ -172,7 +179,7 @@ export default function ProductsManagementPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-purple-600">
+                  <div className="w-full h-full flex items-center justify-center bg-primary">
                     <Package className="w-16 h-16 text-gray-400" />
                   </div>
                 )}
@@ -214,26 +221,47 @@ export default function ProductsManagementPage() {
                 </div>
 
                 {product.category && (
-                  <span className="inline-block px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded">
+                  <span className="inline-block px-2 py-1 bg-accent text-primary text-xs rounded">
                     {product.category}
                   </span>
                 )}
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
-                  <Link
-                    href={`/admin/products/${product._id}/edit`}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => handleDeleteProduct(product._id, product.name)}
-                    className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div className="space-y-2 mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/shop/${product._id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      View
+                    </Link>
+                    <Link
+                      href={`/admin/products/${product._id}/edit`}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-accent text-primary rounded-lg hover:bg-blue-200 transition-colors text-xs"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      Edit
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleDuplicateProduct(product._id, product.name)}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-accent text-primary rounded-lg hover:bg-blue-200 transition-colors text-xs"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      Duplicate
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product._id, product.name)}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-xs"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

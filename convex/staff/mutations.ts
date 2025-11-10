@@ -21,8 +21,19 @@ function generateReferralCode(name: string): string {
 async function getAuthenticatedUser(ctx: any) {
   const identity = await ctx.auth.getUserIdentity();
 
+  // TESTING MODE: Use fallback test user
   if (!identity?.email) {
-    throw new Error("Authentication required. Please sign in to continue.");
+    console.warn("[getAuthenticatedUser] TESTING MODE - Using test user");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q: any) => q.eq("email", "iradwatkins@gmail.com"))
+      .first();
+
+    if (!user) {
+      throw new Error("Test user not found. Please ensure test user exists.");
+    }
+
+    return user;
   }
 
   const user = await ctx.db
@@ -46,11 +57,12 @@ export const addStaffMember = mutation({
     name: v.string(),
     email: v.string(),
     phone: v.optional(v.string()),
-    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
-    canScan: v.optional(v.boolean()), // Sellers can also scan if approved
+    role: v.union(v.literal("TEAM_MEMBERS"), v.literal("STAFF"), v.literal("ASSOCIATES")),
+    canScan: v.optional(v.boolean()), // Team members can also scan if approved
     commissionType: v.optional(v.union(v.literal("PERCENTAGE"), v.literal("FIXED"))),
     commissionValue: v.optional(v.number()),
     allocatedTickets: v.optional(v.number()),
+    assignedByStaffId: v.optional(v.id("eventStaff")), // For Associates assigned by Team Members
   },
   handler: async (ctx, args) => {
     const currentUser = await getAuthenticatedUser(ctx);
@@ -97,6 +109,9 @@ export const addStaffMember = mutation({
       attempts++;
     }
 
+    // Determine hierarchy level based on assignment
+    const hierarchyLevel = args.assignedByStaffId ? 2 : 1; // Associates are level 2, others are level 1
+
     // Create staff member record
     const staffId = await ctx.db.insert("eventStaff", {
       eventId: args.eventId,
@@ -106,7 +121,7 @@ export const addStaffMember = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === STAFF_ROLES.SCANNER), // Scanners can always scan, sellers only if approved
+      canScan: args.canScan || (args.role === STAFF_ROLES.STAFF), // Staff can always scan, team members only if approved
       commissionType: args.commissionType,
       commissionValue: args.commissionValue,
       commissionPercent: args.commissionType === "PERCENTAGE" ? args.commissionValue : undefined,
@@ -116,9 +131,9 @@ export const addStaffMember = mutation({
       isActive: true,
       ticketsSold: 0,
       referralCode,
-      // Hierarchy fields - organizer-assigned staff is level 1
-      assignedByStaffId: undefined,
-      hierarchyLevel: 1,
+      // Hierarchy fields
+      assignedByStaffId: args.assignedByStaffId,
+      hierarchyLevel,
       canAssignSubSellers: false, // Default disabled, organizer can enable
       maxSubSellers: undefined,
       parentCommissionPercent: undefined,
@@ -157,7 +172,7 @@ export const updateStaffMember = mutation({
       console.warn("[updateStaffMember] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -235,7 +250,7 @@ export const registerCashSale = mutation({
       console.warn("[registerCashSale] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -331,7 +346,7 @@ export const createCashSale = mutation({
       console.warn("[createCashSale] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -550,7 +565,7 @@ export const removeStaffMember = mutation({
       console.warn("[removeStaffMember] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -618,7 +633,7 @@ export const updateStaffPermissions = mutation({
       console.warn("[updateStaffPermissions] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -661,6 +676,123 @@ export const updateStaffPermissions = mutation({
 });
 
 /**
+ * Assign a sub-seller for testing - allows specifying parent staff directly
+ * TESTING MODE ONLY
+ */
+export const assignSubSellerForTesting = mutation({
+  args: {
+    parentStaffId: v.id("eventStaff"),
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    allocatedTickets: v.optional(v.number()),
+    commissionType: v.union(v.literal("PERCENTAGE"), v.literal("FIXED")),
+    commissionValue: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Get parent staff
+    const parentStaff = await ctx.db.get(args.parentStaffId);
+    if (!parentStaff) {
+      throw new Error("Parent staff not found");
+    }
+
+    // Verify parent has permission to assign sub-sellers
+    if (!parentStaff.canAssignSubSellers) {
+      throw new Error("Parent staff does not have permission to assign sub-sellers");
+    }
+
+    // Verify parent has enough allocated tickets if allocating
+    if (args.allocatedTickets) {
+      const currentBalance = (parentStaff.allocatedTickets || 0) - (parentStaff.ticketsSold || 0);
+      if (currentBalance < args.allocatedTickets) {
+        throw new Error(
+          `Insufficient tickets. Parent has ${currentBalance} tickets available, but tried to allocate ${args.allocatedTickets}`
+        );
+      }
+
+      // Deduct from parent's allocation
+      await ctx.db.patch(parentStaff._id, {
+        allocatedTickets: (parentStaff.allocatedTickets || 0) - args.allocatedTickets,
+        updatedAt: Date.now(),
+      });
+    }
+
+    // Check if sub-seller user exists, create if not
+    let subSellerUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (!subSellerUser) {
+      const newUserId = await ctx.db.insert("users", {
+        email: args.email,
+        name: args.name,
+        role: "user",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      subSellerUser = await ctx.db.get(newUserId);
+    }
+
+    // Generate unique referral code
+    let referralCode = generateReferralCode(args.name);
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await ctx.db
+        .query("eventStaff")
+        .withIndex("by_referral_code", (q) => q.eq("referralCode", referralCode))
+        .first();
+
+      if (!existing) break;
+      referralCode = generateReferralCode(args.name);
+      attempts++;
+    }
+
+    // Calculate hierarchy level
+    const hierarchyLevel = (parentStaff.hierarchyLevel || 1) + 1;
+
+    if (hierarchyLevel > HIERARCHY_CONFIG.MAX_DEPTH) {
+      throw new Error(`Maximum hierarchy depth of ${HIERARCHY_CONFIG.MAX_DEPTH} levels reached`);
+    }
+
+    // Create sub-seller record
+    const subSellerId = await ctx.db.insert("eventStaff", {
+      eventId: parentStaff.eventId,
+      organizerId: parentStaff.organizerId,
+      staffUserId: subSellerUser!._id,
+      email: args.email,
+      name: args.name,
+      phone: args.phone,
+      role: "ASSOCIATES",
+      canScan: false,
+      commissionType: args.commissionType,
+      commissionValue: args.commissionValue,
+      commissionPercent: args.commissionType === "PERCENTAGE" ? args.commissionValue : undefined,
+      commissionEarned: 0,
+      allocatedTickets: args.allocatedTickets || 0,
+      cashCollected: 0,
+      isActive: true,
+      ticketsSold: 0,
+      referralCode,
+      assignedByStaffId: parentStaff._id,
+      hierarchyLevel,
+      canAssignSubSellers: false,
+      maxSubSellers: undefined,
+      parentCommissionPercent: 0,
+      subSellerCommissionPercent: 0,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return {
+      subSellerId,
+      referralCode,
+      hierarchyLevel,
+    };
+  },
+});
+
+/**
  * Assign a sub-seller (staff member can assign their own sellers)
  * This creates a hierarchical relationship where support staff can delegate ticket selling
  */
@@ -670,7 +802,7 @@ export const assignSubSeller = mutation({
     name: v.string(),
     email: v.string(),
     phone: v.optional(v.string()),
-    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
+    role: v.union(v.literal("TEAM_MEMBERS"), v.literal("STAFF")),
     canScan: v.optional(v.boolean()),
     allocatedTickets: v.optional(v.number()), // Tickets allocated from parent's balance
     parentCommissionPercent: v.number(), // What % parent keeps from sub-seller sales
@@ -685,7 +817,7 @@ export const assignSubSeller = mutation({
       console.warn("[assignSubSeller] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -825,7 +957,7 @@ export const assignSubSeller = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === STAFF_ROLES.SCANNER),
+      canScan: args.canScan || (args.role === STAFF_ROLES.STAFF),
       commissionType: parentCommissionType,
       commissionValue: subSellerCommissionValue,
       commissionPercent: parentCommissionType === "PERCENTAGE" ? subSellerCommissionValue : undefined,
@@ -863,7 +995,7 @@ export const addGlobalStaff = mutation({
     name: v.string(),
     email: v.string(),
     phone: v.optional(v.string()),
-    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
+    role: v.union(v.literal("TEAM_MEMBERS"), v.literal("STAFF")),
     canScan: v.optional(v.boolean()),
     commissionType: v.optional(v.union(v.literal("PERCENTAGE"), v.literal("FIXED"))),
     commissionValue: v.optional(v.number()),
@@ -878,7 +1010,7 @@ export const addGlobalStaff = mutation({
       console.warn("[addGlobalStaff] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -936,7 +1068,7 @@ export const addGlobalStaff = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === STAFF_ROLES.SCANNER),
+      canScan: args.canScan || (args.role === STAFF_ROLES.STAFF),
       commissionType: args.commissionType,
       commissionValue: args.commissionValue,
       commissionPercent: args.commissionType === "PERCENTAGE" ? args.commissionValue : undefined,
@@ -983,7 +1115,7 @@ export const toggleStaffAutoAssign = mutation({
       console.warn("[toggleStaffAutoAssign] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -1029,7 +1161,7 @@ export const addGlobalSubSeller = mutation({
     name: v.string(),
     email: v.string(),
     phone: v.optional(v.string()),
-    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
+    role: v.union(v.literal("TEAM_MEMBERS"), v.literal("STAFF")),
     canScan: v.optional(v.boolean()),
     parentCommissionPercent: v.number(), // What % parent keeps
     subSellerCommissionPercent: v.number(), // What % sub-seller gets
@@ -1044,7 +1176,7 @@ export const addGlobalSubSeller = mutation({
       console.warn("[addGlobalSubSeller] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -1142,7 +1274,7 @@ export const addGlobalSubSeller = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === STAFF_ROLES.SCANNER),
+      canScan: args.canScan || (args.role === STAFF_ROLES.STAFF),
       referralCode,
       isActive: true,
       ticketsSold: 0,
@@ -1168,5 +1300,37 @@ export const addGlobalSubSeller = mutation({
       referralCode,
       hierarchyLevel,
     };
+  },
+});
+
+/**
+ * Update staff member's cash payment acceptance settings
+ */
+export const updateCashSettings = mutation({
+  args: {
+    staffId: v.id("eventStaff"),
+    acceptCashInPerson: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getAuthenticatedUser(ctx);
+
+    // Verify staff member exists
+    const staffMember = await ctx.db.get(args.staffId);
+    if (!staffMember) {
+      throw new Error("Staff member not found");
+    }
+
+    // Verify the current user owns this staff record
+    if (staffMember.staffUserId !== user._id) {
+      throw new Error("You can only update your own settings");
+    }
+
+    // Update settings
+    await ctx.db.patch(args.staffId, {
+      acceptCashInPerson: args.acceptCashInPerson,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
   },
 });

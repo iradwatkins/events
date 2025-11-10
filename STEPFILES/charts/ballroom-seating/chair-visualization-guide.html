@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chair Visualization Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .table-example {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .table-example h3 {
+            font-size: 1.1em;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+
+        .table-example p {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .table-visual {
+            position: relative;
+            margin: 0 auto;
+            display: inline-block;
+        }
+
+        .table {
+            background: #4a4a4a;
+            border: 2px solid #1a1a1a;
+            border-radius: 4px;
+        }
+
+        .table.round {
+            border-radius: 50%;
+        }
+
+        .chair {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: 500;
+            font-size: 0.85em;
+            z-index: 5;
+        }
+
+        .features {
+            background: #fafafa;
+            padding: 30px;
+            border-radius: 6px;
+            margin-top: 40px;
+        }
+
+        .features h2 {
+            font-size: 1.3em;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+        }
+
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            padding: 8px 0;
+            color: #666;
+        }
+
+        .features li:before {
+            content: "✓ ";
+            color: #1a1a1a;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chair Visualization System</h1>
+        <p class="subtitle">Visual representation of chairs around each table type</p>
+
+        <div class="grid">
+            <!-- Round Table 8 -->
+            <div class="table-example">
+                <h3>Round Table - 8 Guests</h3>
+                <p>8 chairs evenly spaced (45° apart)</p>
+                <div class="table-visual" style="width: 150px; height: 150px;">
+                    <div class="table round" style="width: 150px; height: 150px;"></div>
+                    <div class="label">Table 1</div>
+                    <!-- 8 chairs -->
+                    <div class="chair" style="left: 67px; top: -4px;"></div>
+                    <div class="chair" style="left: 126px; top: 14px;"></div>
+                    <div class="chair" style="left: 146px; top: 67px;"></div>
+                    <div class="chair" style="left: 126px; top: 120px;"></div>
+                    <div class="chair" style="left: 67px; top: 138px;"></div>
+                    <div class="chair" style="left: 8px; top: 120px;"></div>
+                    <div class="chair" style="left: -12px; top: 67px;"></div>
+                    <div class="chair" style="left: 8px; top: 14px;"></div>
+                </div>
+            </div>
+
+            <!-- Round Table 10 -->
+            <div class="table-example">
+                <h3>Round Table - 10 Guests</h3>
+                <p>10 chairs evenly spaced (36° apart)</p>
+                <div class="table-visual" style="width: 180px; height: 180px;">
+                    <div class="table round" style="width: 180px; height: 180px;"></div>
+                    <div class="label">Table 2</div>
+                    <!-- 10 chairs -->
+                    <div class="chair" style="left: 82px; top: -8px;"></div>
+                    <div class="chair" style="left: 140px; top: 14px;"></div>
+                    <div class="chair" style="left: 170px; top: 55px;"></div>
+                    <div class="chair" style="left: 170px; top: 105px;"></div>
+                    <div class="chair" style="left: 140px; top: 146px;"></div>
+                    <div class="chair" style="left: 82px; top: 168px;"></div>
+                    <div class="chair" style="left: 24px; top: 146px;"></div>
+                    <div class="chair" style="left: -6px; top: 105px;"></div>
+                    <div class="chair" style="left: -6px; top: 55px;"></div>
+                    <div class="chair" style="left: 24px; top: 14px;"></div>
+                </div>
+            </div>
+
+            <!-- Round Table 12 -->
+            <div class="table-example">
+                <h3>Round Table - 12 Guests</h3>
+                <p>12 chairs evenly spaced (30° apart)</p>
+                <div class="table-visual" style="width: 200px; height: 200px;">
+                    <div class="table round" style="width: 200px; height: 200px;"></div>
+                    <div class="label">Table 3</div>
+                    <!-- 12 chairs -->
+                    <div class="chair" style="left: 92px; top: -8px;"></div>
+                    <div class="chair" style="left: 146px; top: 8px;"></div>
+                    <div class="chair" style="left: 185px; top: 46px;"></div>
+                    <div class="chair" style="left: 192px; top: 92px;"></div>
+                    <div class="chair" style="left: 185px; top: 138px;"></div>
+                    <div class="chair" style="left: 146px; top: 176px;"></div>
+                    <div class="chair" style="left: 92px; top: 192px;"></div>
+                    <div class="chair" style="left: 38px; top: 176px;"></div>
+                    <div class="chair" style="left: -1px; top: 138px;"></div>
+                    <div class="chair" style="left: -8px; top: 92px;"></div>
+                    <div class="chair" style="left: -1px; top: 46px;"></div>
+                    <div class="chair" style="left: 38px; top: 8px;"></div>
+                </div>
+            </div>
+
+            <!-- Rectangle Table -->
+            <div class="table-example">
+                <h3>Rectangle Table - 8 Guests</h3>
+                <p>3 chairs per long side, 1 per short side</p>
+                <div class="table-visual" style="width: 250px; height: 100px;">
+                    <div class="table" style="width: 250px; height: 100px;"></div>
+                    <div class="label">Table 4</div>
+                    <!-- 8 chairs -->
+                    <!-- Left side -->
+                    <div class="chair" style="left: -12px; top: 17px;"></div>
+                    <div class="chair" style="left: -12px; top: 42px;"></div>
+                    <div class="chair" style="left: -12px; top: 67px;"></div>
+                    <!-- Right side -->
+                    <div class="chair" style="left: 254px; top: 17px;"></div>
+                    <div class="chair" style="left: 254px; top: 42px;"></div>
+                    <div class="chair" style="left: 254px; top: 67px;"></div>
+                    <!-- Top -->
+                    <div class="chair" style="left: 117px; top: -12px;"></div>
+                    <!-- Bottom -->
+                    <div class="chair" style="left: 117px; top: 104px;"></div>
+                </div>
+            </div>
+
+            <!-- Head Table -->
+            <div class="table-example">
+                <h3>Head Table - 12 Guests</h3>
+                <p>12 chairs along front (one side only)</p>
+                <div class="table-visual" style="width: 400px; height: 100px;">
+                    <div class="table" style="width: 400px; height: 100px; background: #2c2c2c;"></div>
+                    <div class="label">Head Table</div>
+                    <!-- 12 chairs along bottom -->
+                    <div class="chair" style="left: 0px; top: 104px;"></div>
+                    <div class="chair" style="left: 36px; top: 104px;"></div>
+                    <div class="chair" style="left: 72px; top: 104px;"></div>
+                    <div class="chair" style="left: 108px; top: 104px;"></div>
+                    <div class="chair" style="left: 144px; top: 104px;"></div>
+                    <div class="chair" style="left: 180px; top: 104px;"></div>
+                    <div class="chair" style="left: 216px; top: 104px;"></div>
+                    <div class="chair" style="left: 252px; top: 104px;"></div>
+                    <div class="chair" style="left: 288px; top: 104px;"></div>
+                    <div class="chair" style="left: 324px; top: 104px;"></div>
+                    <div class="chair" style="left: 360px; top: 104px;"></div>
+                    <div class="chair" style="left: 396px; top: 104px;"></div>
+                </div>
+            </div>
+
+            <!-- Cocktail Table -->
+            <div class="table-example">
+                <h3>Cocktail Table - 4 Guests</h3>
+                <p>4 chairs evenly spaced (90° apart)</p>
+                <div class="table-visual" style="width: 80px; height: 80px;">
+                    <div class="table round" style="width: 80px; height: 80px; background: #666;"></div>
+                    <div class="label" style="font-size: 0.75em;">Cocktail</div>
+                    <!-- 4 chairs -->
+                    <div class="chair" style="left: 32px; top: -8px;"></div>
+                    <div class="chair" style="left: 80px; top: 32px;"></div>
+                    <div class="chair" style="left: 32px; top: 72px;"></div>
+                    <div class="chair" style="left: -16px; top: 32px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <h2>Chair Visualization Features</h2>
+            <ul>
+                <li><strong>Automatic positioning:</strong> Chairs appear automatically based on table capacity</li>
+                <li><strong>Round tables:</strong> Chairs evenly distributed around the perimeter</li>
+                <li><strong>Rectangle tables:</strong> Chairs positioned along long sides and ends</li>
+                <li><strong>Head tables:</strong> Chairs only on front side (guests face outward)</li>
+                <li><strong>Visual clarity:</strong> White circles with dark borders for clear visibility</li>
+                <li><strong>Professional appearance:</strong> Clean, minimalist design suitable for presentations</li>
+                <li><strong>Accurate capacity:</strong> Number of chairs matches table capacity exactly</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

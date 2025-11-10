@@ -10,9 +10,10 @@ import { ListView } from "@/components/events/ListView";
 import { SearchFilters } from "@/components/events/SearchFilters";
 import { ViewToggle } from "@/components/events/ViewToggle";
 import Link from "next/link";
-import { Plus, LogOut, User, Ticket, Calendar, LogIn, Package, TrendingDown, ChevronRight } from "lucide-react";
+import { Plus, LogOut, User, Ticket, Calendar, LogIn, Sun, Moon, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function Home() {
   const { user, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth();
@@ -22,6 +23,13 @@ export default function Home() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showPastEvents, setShowPastEvents] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch for theme
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -45,14 +53,10 @@ export default function Home() {
     showPastEvents ? { limit: 100 } : "skip"
   );
 
-  const events = showPastEvents ? pastEvents : upcomingEvents;
+  // Fetch active products
+  const products = useQuery(api.products.queries.getActiveProducts);
 
-  // Fetch featured bundles (top 3 by savings)
-  const allBundles = useQuery(api.bundles.queries.getAllActiveBundles);
-  const featuredBundles = useMemo(() => {
-    if (!allBundles) return [];
-    return allBundles.slice(0, 3); // Already sorted by savings in the query
-  }, [allBundles]);
+  const events = showPastEvents ? pastEvents : upcomingEvents;
 
   // Filter events based on search and category
   const filteredEvents = useMemo(() => {
@@ -93,13 +97,13 @@ export default function Home() {
   const isLoading = events === undefined;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="bg-white shadow-sm sticky top-0 z-50"
+        className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50"
       >
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -117,8 +121,8 @@ export default function Home() {
                 />
               </motion.div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">SteppersLife Events</h1>
-                <p className="text-sm text-gray-500">Discover amazing stepping events</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">SteppersLife Events</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Discover amazing stepping events</p>
               </div>
             </Link>
 
@@ -128,6 +132,23 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="flex items-center gap-3"
             >
+              {/* Theme Toggle Button */}
+              {mounted && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                  ) : (
+                    <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                  )}
+                </motion.button>
+              )}
+
               {isAuthenticated ? (
                 <>
                   {/* Profile Dropdown */}
@@ -145,7 +166,7 @@ export default function Home() {
                           className="rounded-full"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                           <User className="w-4 h-4 text-white" />
                         </div>
                       )}
@@ -216,7 +237,7 @@ export default function Home() {
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link
                       href="/organizer/events/create"
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                       <span className="hidden sm:inline">Create Event</span>
@@ -229,7 +250,7 @@ export default function Home() {
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link
                       href="/login"
-                      className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-primary transition-colors"
                     >
                       <LogIn className="w-4 h-4" />
                       <span className="hidden sm:inline">Sign In</span>
@@ -238,7 +259,7 @@ export default function Home() {
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Link
                       href="/organizer/events/create"
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                       <span className="hidden sm:inline">Create Event</span>
@@ -269,73 +290,6 @@ export default function Home() {
           />
         </motion.div>
 
-        {/* Featured Bundles Section */}
-        {!showPastEvents && featuredBundles && featuredBundles.length > 0 && (
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.35 }}
-            className="mb-12"
-          >
-            <div className="bg-purple-600 rounded-xl p-8 text-white shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Package className="w-6 h-6" />
-                    <h2 className="text-2xl font-bold">Featured Bundles</h2>
-                  </div>
-                  <p className="text-purple-100">Save big on multi-event passes and VIP packages</p>
-                </div>
-                <Link
-                  href="/bundles"
-                  className="px-6 py-3 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center gap-2"
-                >
-                  View All Bundles
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {featuredBundles.map((bundle: any) => (
-                  <Link
-                    key={bundle._id}
-                    href={`/bundles/${bundle._id}`}
-                    className="group bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:bg-white/20 transition-all border border-white/20 hover:border-white/40"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="bg-green-400 text-green-900 px-3 py-1 rounded-full text-sm font-bold">
-                        Save {bundle.percentageSavings}%
-                      </div>
-                      {bundle.bundleType === "MULTI_EVENT" && (
-                        <div className="text-xs px-2 py-1 bg-purple-400 text-purple-900 rounded-full font-semibold">
-                          Multi-Event
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="text-lg font-bold mb-2 group-hover:text-purple-100 transition-colors">
-                      {bundle.name}
-                    </h3>
-                    <p className="text-sm text-purple-100 mb-4 line-clamp-2 opacity-90">
-                      {bundle.description || `Bundle includes ${bundle.events?.length || 0} events`}
-                    </p>
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <div className="text-2xl font-bold">
-                          ${(bundle.price / 100).toFixed(2)}
-                        </div>
-                        <div className="text-sm text-purple-200 line-through opacity-75">
-                          ${(bundle.regularPrice / 100).toFixed(2)}
-                        </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-
         {/* Results Count and View Toggle */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -355,7 +309,7 @@ export default function Home() {
         {/* Loading State */}
         {isLoading && (
           <div className="text-center py-16">
-            <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-4 text-gray-500">Loading events...</p>
           </div>
         )}
@@ -370,8 +324,94 @@ export default function Home() {
         )}
       </main>
 
+      {/* Products Section */}
+      {products && products.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="container mx-auto px-4 py-16"
+        >
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <ShoppingBag className="w-8 h-8 text-primary" />
+                Shop Products
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                Browse our exclusive stepping merchandise and products
+              </p>
+            </div>
+            <Link
+              href="/shop"
+              className="text-primary hover:underline font-medium"
+            >
+              View All Products →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {products.slice(0, 8).map((product) => (
+              <motion.div
+                key={product._id}
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow"
+              >
+                <Link href={`/shop/${product._id}`}>
+                  <div className="relative h-48 bg-gray-200 dark:bg-gray-700">
+                    {product.primaryImage ? (
+                      <Image
+                        src={product.primaryImage}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ShoppingBag className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+                    {product.compareAtPrice && product.compareAtPrice > product.price && (
+                      <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded-md text-xs font-bold">
+                        SALE
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                      {product.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xl font-bold text-primary">
+                          ${(product.price / 100).toFixed(2)}
+                        </span>
+                        {product.compareAtPrice && product.compareAtPrice > product.price && (
+                          <span className="ml-2 text-sm text-gray-500 line-through">
+                            ${(product.compareAtPrice / 100).toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                      {product.trackInventory && (
+                        <span className={`text-xs ${product.inventoryQuantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {product.inventoryQuantity > 0 ? `${product.inventoryQuantity} in stock` : 'Out of stock'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+      )}
+
       {/* Footer */}
-      <footer className="bg-white border-t mt-16">
+      <footer className="bg-white dark:bg-gray-800 border-t mt-16">
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
@@ -385,17 +425,17 @@ export default function Home() {
               <h3 className="font-semibold mb-3">For Organizers</h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  <Link href="/organizer/events/create" className="hover:text-blue-600">
+                  <Link href="/organizer/events/create" className="hover:text-primary">
                     Create Event
                   </Link>
                 </li>
                 <li>
-                  <Link href="/pricing" className="hover:text-blue-600">
+                  <Link href="/pricing" className="hover:text-primary">
                     Pricing
                   </Link>
                 </li>
                 <li>
-                  <Link href="/help" className="hover:text-blue-600">
+                  <Link href="/help" className="hover:text-primary">
                     Help Center
                   </Link>
                 </li>
@@ -405,12 +445,12 @@ export default function Home() {
               <h3 className="font-semibold mb-3">Legal</h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  <Link href="/privacy" className="hover:text-blue-600">
+                  <Link href="/privacy" className="hover:text-primary">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="hover:text-blue-600">
+                  <Link href="/terms" className="hover:text-primary">
                     Terms of Service
                   </Link>
                 </li>

@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎟️ Event Ticket Purchasing System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            padding: 20px;
+            min-height: 600px;
+        }
+
+        /* Floor Plan Area */
+        .floor-plan-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            overflow: auto;
+        }
+
+        .floor-plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .floor-plan-header h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 2px solid #333;
+        }
+
+        .legend-box.available {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .legend-box.selected {
+            background: linear-gradient(135deg, #FFC107, #FFB300);
+        }
+
+        .legend-box.sold {
+            background: #999;
+            opacity: 0.5;
+        }
+
+        #floorPlan {
+            background: white;
+            min-height: 800px;
+            min-width: 100%;
+            position: relative;
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            padding: 40px;
+        }
+
+        /* Table Elements - Outlined Style */
+        .table-element {
+            position: absolute;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .table-circle {
+            position: relative;
+        }
+
+        .table-outline {
+            fill: none;
+            stroke: #2c3e50;
+            stroke-width: 3;
+        }
+
+        .table-center {
+            fill: #f8f9fa;
+            stroke: #2c3e50;
+            stroke-width: 2;
+        }
+
+        .table-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 16px;
+            pointer-events: none;
+            text-align: center;
+        }
+
+        /* Individual Seats */
+        .seat {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .seat.available {
+            fill: #4CAF50;
+            stroke: #2c3e50;
+            stroke-width: 2;
+        }
+
+        .seat.available:hover {
+            fill: #66BB6A;
+            stroke: #667eea;
+            stroke-width: 3;
+            filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.4));
+        }
+
+        .seat.selected {
+            fill: #FFC107;
+            stroke: #2c3e50;
+            stroke-width: 3;
+            filter: drop-shadow(0 4px 8px rgba(255, 193, 7, 0.6));
+        }
+
+        .seat.sold {
+            fill: #999;
+            stroke: #666;
+            stroke-width: 2;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .seat-number {
+            fill: white;
+            font-size: 10px;
+            font-weight: bold;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        /* Special Areas */
+        .special-area {
+            fill: #e8eaf6;
+            stroke: #5c6bc0;
+            stroke-width: 3;
+            stroke-dasharray: 10, 5;
+        }
+
+        .area-label {
+            fill: #5c6bc0;
+            font-size: 20px;
+            font-weight: bold;
+            text-anchor: middle;
+        }
+
+        /* Sidebar - Shopping Cart */
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            border: 2px solid #ddd;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 200px);
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .cart-empty-icon {
+            font-size: 4em;
+            margin-bottom: 10px;
+        }
+
+        .cart-item {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .cart-item:hover {
+            border-color: #667eea;
+            transform: translateX(-5px);
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-details {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        .cart-item-price {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1em;
+            margin-right: 10px;
+        }
+
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .remove-btn:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
+        .cart-summary {
+            border-top: 2px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 1.1em;
+        }
+
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 1.4em;
+            color: #2c3e50;
+            border-top: 2px solid #667eea;
+            padding-top: 15px;
+            margin-top: 10px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .clear-cart-btn {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .clear-cart-btn:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* Bulk Purchase Options */
+        .bulk-options {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f5e9;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+        }
+
+        .bulk-options h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .bulk-btn {
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 8px;
+        }
+
+        .bulk-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        /* Price Settings */
+        .price-settings {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .price-settings h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .price-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .price-input label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            min-width: 120px;
+        }
+
+        .price-input input {
+            width: 80px;
+            padding: 5px 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-icon {
+            font-size: 5em;
+            margin-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: #c0392b;
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: relative;
+                max-height: none;
+            }
+        }
+
+        /* Tooltip */
+        .seat-tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎟️ Event Ticket Purchasing System</h1>
+            <p>Select your seats • Choose tables • Complete purchase</p>
+        </div>
+
+        <div class="main-layout">
+            <!-- Floor Plan Section -->
+            <div class="floor-plan-section">
+                <div class="floor-plan-header">
+                    <h2>Floor Plan</h2>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-box available"></div>
+                            <span>Available</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box selected"></div>
+                            <span>Selected</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box sold"></div>
+                            <span>Sold</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Settings -->
+                <div class="price-settings">
+                    <h3>💰 Ticket Prices</h3>
+                    <div class="price-input">
+                        <label>Regular Seat:</label>
+                        <input type="number" id="regularPrice" value="50" min="1">
+                    </div>
+                    <div class="price-input">
+                        <label>VIP Seat:</label>
+                        <input type="number" id="vipPrice" value="100" min="1">
+                    </div>
+                    <div class="price-input">
+                        <label>Whole Table:</label>
+                        <input type="number" id="tablePrice" value="400" min="1">
+                    </div>
+                </div>
+
+                <div id="floorPlan"></div>
+            </div>
+
+            <!-- Shopping Cart Sidebar -->
+            <div class="sidebar">
+                <h2>🛒 Shopping Cart</h2>
+                
+                <div class="cart-items" id="cartItems">
+                    <div class="cart-empty">
+                        <div class="cart-empty-icon">🎫</div>
+                        <p>No tickets selected yet</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">Click on seats to add them to your cart</p>
+                    </div>
+                </div>
+
+                <div class="bulk-options" id="bulkOptions" style="display: none;">
+                    <h4>🎯 Quick Purchase Options</h4>
+                    <button class="bulk-btn" onclick="selectWholeTable()">Purchase Entire Table</button>
+                    <button class="bulk-btn" onclick="selectAvailableSeats()">Select All Available Seats</button>
+                </div>
+
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>Tickets:</span>
+                        <span id="ticketCount">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (10%):</span>
+                        <span id="tax">$0</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span id="total">$0</span>
+                    </div>
+                </div>
+
+                <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()" disabled>
+                    Proceed to Checkout
+                </button>
+                <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content" style="position: relative;">
+            <button class="modal-close" onclick="closeCheckout()">×</button>
+            <div class="modal-header">
+                <div class="modal-icon">✅</div>
+                <h2>Complete Your Purchase</h2>
+                <p style="color: #7f8c8d;">Total: <strong id="modalTotal">$0</strong></p>
+            </div>
+
+            <form id="checkoutForm" onsubmit="completePurchase(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="customerName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <input type="email" id="customerEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="customerPhone" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Method *</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Select payment method</option>
+                        <option value="credit">Credit Card</option>
+                        <option value="debit">Debit Card</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="cash">Cash at Venue</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Special Requests (Optional)</label>
+                    <input type="text" id="specialRequests" placeholder="Dietary restrictions, accessibility needs, etc.">
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    💳 Complete Purchase
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Seat Tooltip -->
+    <div class="seat-tooltip" id="seatTooltip"></div>
+
+    <script>
+        // ==========================================
+        // DATA STRUCTURES
+        // ==========================================
+
+        const floorPlan = {
+            tables: [
+                // Front Tables (VIP)
+                { id: 1, x: 100, y: 100, seats: 8, type: 'vip' },
+                { id: 2, x: 350, y: 100, seats: 8, type: 'vip' },
+                { id: 3, x: 600, y: 100, seats: 8, type: 'vip' },
+                
+                // Middle Tables (Regular)
+                { id: 4, x: 100, y: 300, seats: 10, type: 'regular' },
+                { id: 5, x: 350, y: 300, seats: 10, type: 'regular' },
+                { id: 6, x: 600, y: 300, seats: 10, type: 'regular' },
+                
+                // Back Tables (Regular)
+                { id: 7, x: 100, y: 500, seats: 10, type: 'regular' },
+                { id: 8, x: 350, y: 500, seats: 10, type: 'regular' },
+                { id: 9, x: 600, y: 500, seats: 10, type: 'regular' },
+            ],
+            specialAreas: [
+                { type: 'stage', x: 250, y: 20, width: 300, height: 60, label: '🎭 STAGE' },
+                { type: 'dancefloor', x: 850, y: 250, width: 200, height: 200, label: '💃 DANCE FLOOR' },
+                { type: 'bar', x: 850, y: 100, width: 150, height: 80, label: '🍸 BAR' },
+            ]
+        };
+
+        let cart = [];
+        let soldSeats = {}; // Format: { tableId: [seatNumbers] }
+        let currentTable = null;
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+
+        function init() {
+            renderFloorPlan();
+            updateCart();
+            
+            // Simulate some sold seats for demo
+            soldSeats[1] = [1, 2];
+            soldSeats[4] = [1, 3, 5];
+            updateSeatStatuses();
+        }
+
+        // ==========================================
+        // FLOOR PLAN RENDERING
+        // ==========================================
+
+        function renderFloorPlan() {
+            const plan = document.getElementById('floorPlan');
+            let svg = '<svg width="1100" height="700" xmlns="http://www.w3.org/2000/svg">';
+            
+            // Render special areas
+            floorPlan.specialAreas.forEach(area => {
+                svg += `
+                    <rect class="special-area" 
+                          x="${area.x}" y="${area.y}" 
+                          width="${area.width}" height="${area.height}" 
+                          rx="10"/>
+                    <text class="area-label" 
+                          x="${area.x + area.width/2}" 
+                          y="${area.y + area.height/2 + 7}">
+                        ${area.label}
+                    </text>
+                `;
+            });
+            
+            // Render tables
+            floorPlan.tables.forEach(table => {
+                svg += renderTable(table);
+            });
+            
+            svg += '</svg>';
+            plan.innerHTML = svg;
+            
+            // Add event listeners
+            addSeatEventListeners();
+        }
+
+        function renderTable(table) {
+            const radius = 80;
+            const centerX = table.x + radius;
+            const centerY = table.y + radius;
+            const seatRadius = 15;
+            const angleStep = (2 * Math.PI) / table.seats;
+            
+            let svg = `<g class="table-element" data-table-id="${table.id}">`;
+            
+            // Table outline (large circle)
+            svg += `<circle class="table-outline" cx="${centerX}" cy="${centerY}" r="${radius}"/>`;
+            
+            // Table center
+            svg += `<circle class="table-center" cx="${centerX}" cy="${centerY}" r="${radius - 20}"/>`;
+            
+            // Table label
+            const tableType = table.type === 'vip' ? '👑 VIP' : '';
+            svg += `<text class="table-label" x="${centerX}" y="${centerY - 5}" 
+                         style="position: absolute; left: ${table.x + radius}px; top: ${table.y + radius}px;">
+                        Table ${table.id} ${tableType}
+                    </text>`;
+            svg += `<text class="table-label" x="${centerX}" y="${centerY + 15}" 
+                         style="font-size: 12px; position: absolute; left: ${table.x + radius}px; top: ${table.y + radius + 20}px;">
+                        ${table.seats} Seats
+                    </text>`;
+            
+            // Individual seats arranged in circle
+            for (let i = 0; i < table.seats; i++) {
+                const angle = i * angleStep - Math.PI / 2; // Start from top
+                const seatX = centerX + (radius + 10) * Math.cos(angle);
+                const seatY = centerY + (radius + 10) * Math.sin(angle);
+                
+                const seatId = `${table.id}-${i + 1}`;
+                const status = isSeatSold(table.id, i + 1) ? 'sold' : 'available';
+                
+                svg += `
+                    <g class="seat-group" data-seat-id="${seatId}">
+                        <circle class="seat ${status}" 
+                                cx="${seatX}" cy="${seatY}" r="${seatRadius}"
+                                data-table-id="${table.id}" 
+                                data-seat-number="${i + 1}"
+                                data-seat-type="${table.type}"/>
+                        <text class="seat-number" x="${seatX}" y="${seatY + 4}">
+                            ${i + 1}
+                        </text>
+                    </g>
+                `;
+            }
+            
+            svg += '</g>';
+            return svg;
+        }
+
+        // ==========================================
+        // SEAT INTERACTION
+        // ==========================================
+
+        function addSeatEventListeners() {
+            document.querySelectorAll('.seat').forEach(seat => {
+                if (!seat.classList.contains('sold')) {
+                    seat.addEventListener('click', handleSeatClick);
+                    seat.addEventListener('mouseenter', showSeatTooltip);
+                    seat.addEventListener('mouseleave', hideSeatTooltip);
+                }
+            });
+        }
+
+        function handleSeatClick(e) {
+            const seat = e.target;
+            const tableId = parseInt(seat.dataset.tableId);
+            const seatNumber = parseInt(seat.dataset.seatNumber);
+            const seatType = seat.dataset.seatType;
+            
+            if (seat.classList.contains('sold')) return;
+            
+            const seatId = `${tableId}-${seatNumber}`;
+            
+            if (seat.classList.contains('selected')) {
+                // Remove from cart
+                seat.classList.remove('selected');
+                seat.classList.add('available');
+                cart = cart.filter(item => item.id !== seatId);
+            } else {
+                // Add to cart
+                seat.classList.remove('available');
+                seat.classList.add('selected');
+                
+                const price = seatType === 'vip' 
+                    ? parseInt(document.getElementById('vipPrice').value)
+                    : parseInt(document.getElementById('regularPrice').value);
+                
+                cart.push({
+                    id: seatId,
+                    tableId: tableId,
+                    seatNumber: seatNumber,
+                    type: seatType,
+                    price: price
+                });
+            }
+            
+            updateCart();
+        }
+
+        function showSeatTooltip(e) {
+            const seat = e.target;
+            const tableId = seat.dataset.tableId;
+            const seatNumber = seat.dataset.seatNumber;
+            const seatType = seat.dataset.seatType;
+            
+            const tooltip = document.getElementById('seatTooltip');
+            
+            if (seat.classList.contains('sold')) {
+                tooltip.textContent = `Table ${tableId} - Seat ${seatNumber}: SOLD`;
+            } else {
+                const price = seatType === 'vip' 
+                    ? document.getElementById('vipPrice').value
+                    : document.getElementById('regularPrice').value;
+                tooltip.textContent = `Table ${tableId} - Seat ${seatNumber}: $${price} (${seatType.toUpperCase()})`;
+            }
+            
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.pageX + 10) + 'px';
+            tooltip.style.top = (e.pageY + 10) + 'px';
+        }
+
+        function hideSeatTooltip() {
+            document.getElementById('seatTooltip').style.display = 'none';
+        }
+
+        // ==========================================
+        // CART MANAGEMENT
+        // ==========================================
+
+        function updateCart() {
+            const cartItems = document.getElementById('cartItems');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="cart-empty">
+                        <div class="cart-empty-icon">🎫</div>
+                        <p>No tickets selected yet</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">Click on seats to add them to your cart</p>
+                    </div>
+                `;
+                checkoutBtn.disabled = true;
+                document.getElementById('bulkOptions').style.display = 'none';
+            } else {
+                let html = '';
+                cart.forEach(item => {
+                    html += `
+                        <div class="cart-item">
+                            <div class="cart-item-info">
+                                <div class="cart-item-title">
+                                    ${item.type === 'vip' ? '👑 VIP' : '🎫'} Table ${item.tableId} - Seat ${item.seatNumber}
+                                </div>
+                                <div class="cart-item-details">
+                                    ${item.type.toUpperCase()} Ticket
+                                </div>
+                            </div>
+                            <span class="cart-item-price">$${item.price}</span>
+                            <button class="remove-btn" onclick="removeFromCart('${item.id}')">×</button>
+                        </div>
+                    `;
+                });
+                cartItems.innerHTML = html;
+                checkoutBtn.disabled = false;
+                
+                // Show bulk options if viewing a table
+                if (currentTable) {
+                    document.getElementById('bulkOptions').style.display = 'block';
+                }
+            }
+            
+            // Update summary
+            const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+            const tax = subtotal * 0.1;
+            const total = subtotal + tax;
+            
+            document.getElementById('ticketCount').textContent = cart.length;
+            document.getElementById('subtotal').textContent = `$${subtotal}`;
+            document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function removeFromCart(seatId) {
+            cart = cart.filter(item => item.id !== seatId);
+            
+            // Update seat visual
+            const [tableId, seatNumber] = seatId.split('-');
+            const seat = document.querySelector(`[data-table-id="${tableId}"][data-seat-number="${seatNumber}"]`);
+            if (seat) {
+                seat.classList.remove('selected');
+                seat.classList.add('available');
+            }
+            
+            updateCart();
+        }
+
+        function clearCart() {
+            if (cart.length === 0) return;
+            
+            if (confirm('Are you sure you want to clear your cart?')) {
+                cart.forEach(item => {
+                    const seat = document.querySelector(`[data-table-id="${item.tableId}"][data-seat-number="${item.seatNumber}"]`);
+                    if (seat) {
+                        seat.classList.remove('selected');
+                        seat.classList.add('available');
+                    }
+                });
+                
+                cart = [];
+                updateCart();
+            }
+        }
+
+        // ==========================================
+        // BULK PURCHASE OPTIONS
+        // ==========================================
+
+        function selectWholeTable() {
+            if (!currentTable) {
+                alert('Please select a table first');
+                return;
+            }
+            
+            const table = floorPlan.tables.find(t => t.id === currentTable);
+            if (!table) return;
+            
+            // Select all available seats
+            for (let i = 1; i <= table.seats; i++) {
+                if (!isSeatSold(currentTable, i)) {
+                    const seatId = `${currentTable}-${i}`;
+                    
+                    // Check if already in cart
+                    if (!cart.find(item => item.id === seatId)) {
+                        const seat = document.querySelector(`[data-table-id="${currentTable}"][data-seat-number="${i}"]`);
+                        if (seat && !seat.classList.contains('sold')) {
+                            seat.classList.remove('available');
+                            seat.classList.add('selected');
+                            
+                            const price = table.type === 'vip' 
+                                ? parseInt(document.getElementById('vipPrice').value)
+                                : parseInt(document.getElementById('regularPrice').value);
+                            
+                            cart.push({
+                                id: seatId,
+                                tableId: currentTable,
+                                seatNumber: i,
+                                type: table.type,
+                                price: price
+                            });
+                        }
+                    }
+                }
+            }
+            
+            updateCart();
+        }
+
+        function selectAvailableSeats() {
+            if (!currentTable) {
+                alert('Please select a table first');
+                return;
+            }
+            
+            selectWholeTable();
+        }
+
+        // ==========================================
+        // CHECKOUT PROCESS
+        // ==========================================
+
+        function openCheckout() {
+            if (cart.length === 0) return;
+            
+            const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+            const tax = subtotal * 0.1;
+            const total = subtotal + tax;
+            
+            document.getElementById('modalTotal').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('checkoutModal').classList.add('active');
+        }
+
+        function closeCheckout() {
+            document.getElementById('checkoutModal').classList.remove('active');
+            document.getElementById('checkoutForm').reset();
+        }
+
+        function completePurchase(e) {
+            e.preventDefault();
+            
+            const customerData = {
+                name: document.getElementById('customerName').value,
+                email: document.getElementById('customerEmail').value,
+                phone: document.getElementById('customerPhone').value,
+                paymentMethod: document.getElementById('paymentMethod').value,
+                specialRequests: document.getElementById('specialRequests').value,
+                tickets: cart,
+                total: cart.reduce((sum, item) => sum + item.price, 0) * 1.1
+            };
+            
+            // Mark seats as sold
+            cart.forEach(item => {
+                if (!soldSeats[item.tableId]) {
+                    soldSeats[item.tableId] = [];
+                }
+                soldSeats[item.tableId].push(item.seatNumber);
+            });
+            
+            // Update seat statuses
+            updateSeatStatuses();
+            
+            // Clear cart
+            cart = [];
+            updateCart();
+            
+            // Close modal
+            closeCheckout();
+            
+            // Show success message
+            alert(`✅ Purchase Successful!\n\nConfirmation has been sent to ${customerData.email}\n\nTotal: $${customerData.total.toFixed(2)}\nTickets: ${customerData.tickets.length}`);
+            
+            console.log('Purchase completed:', customerData);
+        }
+
+        // ==========================================
+        // HELPER FUNCTIONS
+        // ==========================================
+
+        function isSeatSold(tableId, seatNumber) {
+            return soldSeats[tableId] && soldSeats[tableId].includes(seatNumber);
+        }
+
+        function updateSeatStatuses() {
+            document.querySelectorAll('.seat').forEach(seat => {
+                const tableId = parseInt(seat.dataset.tableId);
+                const seatNumber = parseInt(seat.dataset.seatNumber);
+                
+                if (isSeatSold(tableId, seatNumber)) {
+                    seat.classList.remove('available', 'selected');
+                    seat.classList.add('sold');
+                }
+            });
+        }
+
+        // ==========================================
+        // START APPLICATION
+        // ==========================================
+
+        init();
+    </script>
+</body>
+</html>

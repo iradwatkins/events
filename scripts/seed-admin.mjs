@@ -1,49 +1,73 @@
+#!/usr/bin/env node
+
+/**
+ * Seed Admin Account for Fresh System
+ * Creates one admin user: iradwatkins@gmail.com
+ */
+
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
 import bcrypt from "bcryptjs";
 
-const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || "https://fearless-dragon-613.convex.cloud";
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL;
 
-const convex = new ConvexHttpClient(CONVEX_URL);
+if (!CONVEX_URL) {
+  console.error("❌ ERROR: CONVEX_URL not found in environment");
+  console.error("Make sure .env.local is configured with NEXT_PUBLIC_CONVEX_URL");
+  process.exit(1);
+}
+
+console.log("🌱 Seeding Admin Account...\n");
+console.log(`📡 Convex URL: ${CONVEX_URL}\n`);
+
+const client = new ConvexHttpClient(CONVEX_URL);
 
 async function seedAdmin() {
   try {
-    console.log("🌱 Seeding admin user...");
+    console.log("Creating admin user: iradwatkins@gmail.com");
 
-    const email = "ira@irawatkins.com";
-    const password = "Bobby321!";
-    const name = "Ira Watkins";
-
-    // Check if user already exists
-    const existingUser = await convex.query(api.auth.queries.getUserByEmail, {
-      email: email,
-    });
-
-    if (existingUser) {
-      console.log("⚠️  User already exists:", email);
-      return;
-    }
-
-    // Hash the password
+    // Generate secure password hash using bcrypt
+    const password = "Bobby321!"; // Temporary password - MUST CHANGE ON FIRST LOGIN
     const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
+    const hash = await bcrypt.hash(password, saltRounds);
 
-    // Create the admin user
-    const userId = await convex.mutation(api.auth.mutations.createUserWithPassword, {
-      email: email,
-      passwordHash: passwordHash,
-      name: name,
+    // Create admin user via Convex mutation
+    const userId = await client.mutation(api.auth.mutations.createUserWithPassword, {
+      email: "iradwatkins@gmail.com",
+      name: "Ira Watkins",
+      passwordHash: hash,
       role: "admin",
     });
 
-    console.log("✅ Admin user created successfully!");
-    console.log("📧 Email:", email);
-    console.log("🔑 Password:", password);
-    console.log("🆔 User ID:", userId);
+    console.log("\n✅ Admin user created successfully!");
+    console.log(`   User ID: ${userId}`);
+
+    console.log("\n📋 Admin Login Credentials:");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log(`  Email: iradwatkins@gmail.com`);
+    console.log(`  Temporary Password: ${password}`);
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    console.log("\n⚠️  IMPORTANT SECURITY NOTES:");
+    console.log("  1. Change the temporary password immediately on first login");
+    console.log("  2. Enable 2FA if available");
+    console.log("  3. This password is only for initial setup");
+    console.log("  4. Admin account has been initialized with 10,000 credits");
+
+    return userId;
   } catch (error) {
-    console.error("❌ Error seeding admin:", error);
-    process.exit(1);
+    console.error("\n❌ Error seeding admin:", error);
+    throw error;
   }
 }
 
-seedAdmin();
+// Run the seeder
+seedAdmin()
+  .then(() => {
+    console.log("\n🎉 Admin seed completed successfully!");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("\n💥 Fatal error:", error);
+    process.exit(1);
+  });

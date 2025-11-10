@@ -467,8 +467,7 @@ export const releaseSeats = mutation({
 });
 
 /**
- * Temporarily hold seats for a user session (15 minute timeout)
- * Used during checkout to prevent double-bookings
+ * Hold seats temporarily for a shopping session (15-minute expiry)
  */
 export const holdSeatsForSession = mutation({
   args: {
@@ -480,10 +479,6 @@ export const holdSeatsForSession = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    const now = Date.now();
-    const sessionExpiry = now + (15 * 60 * 1000); // 15 minutes from now
-
-    // Get the seating chart
     const seatingChart = await ctx.db
       .query("seatingCharts")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
@@ -493,59 +488,62 @@ export const holdSeatsForSession = mutation({
       throw new Error("Seating chart not found");
     }
 
-    // Update the seating chart with session holds
-    const updatedSections = seatingChart.sections.map((section: any) => {
+    const expiryTime = Date.now() + (15 * 60 * 1000); // 15 minutes from now
+
+    // Check if seats are available and hold them
+    const updatedSections = seatingChart.sections.map(section => {
       if (!section.tables) return section;
 
-      const updatedTables = section.tables.map((table: any) => {
-        const updatedSeats = table.seats.map((seat: any) => {
-          const seatHold = args.seats.find(
-            (s) => s.tableId === table.id && s.seatNumber === seat.number
-          );
+      return {
+        ...section,
+        tables: section.tables.map(table => {
+          const seatsToHold = args.seats.filter(s => s.tableId === table.id);
+          if (seatsToHold.length === 0) return table;
 
-          if (seatHold) {
-            // Check if seat is already sold or reserved by another session
-            if (seat.status === "RESERVED" || seat.status === "UNAVAILABLE") {
-              throw new Error(`Seat ${seat.number} at Table ${table.number} is already taken`);
-            }
+          return {
+            ...table,
+            seats: table.seats.map(seat => {
+              const shouldHold = seatsToHold.some(s => s.seatNumber === seat.number);
 
-            // Check if held by another active session
-            if (
-              seat.sessionId &&
-              seat.sessionId !== args.sessionId &&
-              seat.sessionExpiry &&
-              seat.sessionExpiry > now
-            ) {
-              throw new Error(`Seat ${seat.number} at Table ${table.number} is being selected by another user`);
-            }
+              if (shouldHold) {
+                // Check if seat is available
+                if (seat.status !== "AVAILABLE") {
+                  // Check if it's an expired hold
+                  if (seat.sessionExpiry && seat.sessionExpiry < Date.now()) {
+                    // Expired, we can take it
+                    return {
+                      ...seat,
+                      status: "RESERVED" as const,
+                      sessionId: args.sessionId,
+                      sessionExpiry: expiryTime,
+                    };
+                  }
+                  throw new Error(`Seat ${seat.number} at table ${table.number} is not available`);
+                }
 
-            // Hold the seat for this session
-            return {
-              ...seat,
-              sessionId: args.sessionId,
-              sessionExpiry,
-            };
-          }
+                return {
+                  ...seat,
+                  status: "RESERVED" as const,
+                  sessionId: args.sessionId,
+                  sessionExpiry: expiryTime,
+                };
+              }
 
-          return seat;
-        });
-
-        return { ...table, seats: updatedSeats };
-      });
-
-      return { ...section, tables: updatedTables };
+              return seat;
+            }),
+          };
+        }),
+      };
     });
 
-    await ctx.db.patch(seatingChart._id, {
-      sections: updatedSections,
-    });
+    await ctx.db.patch(seatingChart._id, { sections: updatedSections });
 
-    return { success: true, expiresAt: sessionExpiry };
+    return { success: true, expiresAt: expiryTime };
   },
 });
 
 /**
- * Release seats held by a session (when user deselects or session expires)
+ * Release session holds when user deselects seats or abandons cart
  */
 export const releaseSessionHolds = mutation({
   args: {
@@ -563,305 +561,92 @@ export const releaseSessionHolds = mutation({
       .first();
 
     if (!seatingChart) {
-      return { success: true };
+      return { success: true }; // Chart doesn't exist, nothing to release
     }
 
-    // Update the seating chart to release session holds
-    const updatedSections = seatingChart.sections.map((section: any) => {
+    const updatedSections = seatingChart.sections.map(section => {
       if (!section.tables) return section;
 
-      const updatedTables = section.tables.map((table: any) => {
-        const updatedSeats = table.seats.map((seat: any) => {
-          // If specific seats provided, only release those
-          if (args.seats) {
-            const shouldRelease = args.seats.some(
-              (s) => s.tableId === table.id && s.seatNumber === seat.number
-            );
+      return {
+        ...section,
+        tables: section.tables.map(table => {
+          return {
+            ...table,
+            seats: table.seats.map(seat => {
+              // If specific seats provided, only release those
+              if (args.seats) {
+                const shouldRelease = args.seats.some(
+                  s => s.tableId === table.id && s.seatNumber === seat.number
+                );
+                if (!shouldRelease) return seat;
+              }
 
-            if (shouldRelease && seat.sessionId === args.sessionId) {
-              const { sessionId, sessionExpiry, ...rest } = seat;
-              return rest;
-            }
-          } else {
-            // Release all seats held by this session
-            if (seat.sessionId === args.sessionId) {
-              const { sessionId, sessionExpiry, ...rest } = seat;
-              return rest;
-            }
-          }
+              // Release if it belongs to this session
+              if (seat.sessionId === args.sessionId) {
+                const { sessionId, sessionExpiry, ...rest } = seat;
+                return { ...rest, status: "AVAILABLE" as const };
+              }
 
-          return seat;
-        });
-
-        return { ...table, seats: updatedSeats };
-      });
-
-      return { ...section, tables: updatedTables };
+              return seat;
+            }),
+          };
+        }),
+      };
     });
 
-    await ctx.db.patch(seatingChart._id, {
-      sections: updatedSections,
-    });
+    await ctx.db.patch(seatingChart._id, { sections: updatedSections });
 
     return { success: true };
   },
 });
 
 /**
- * Clean up expired session holds (should be run periodically)
+ * Cleanup expired session holds (called periodically)
  */
 export const cleanupExpiredSessionHolds = mutation({
   args: {
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-    const now = Date.now();
     const seatingChart = await ctx.db
       .query("seatingCharts")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
       .first();
 
     if (!seatingChart) {
-      return { success: true, cleaned: 0 };
+      return { success: true, cleanedCount: 0 };
     }
 
+    const now = Date.now();
     let cleanedCount = 0;
 
-    const updatedSections = seatingChart.sections.map((section: any) => {
+    const updatedSections = seatingChart.sections.map(section => {
       if (!section.tables) return section;
 
-      const updatedTables = section.tables.map((table: any) => {
-        const updatedSeats = table.seats.map((seat: any) => {
-          // Remove expired session holds
-          if (seat.sessionId && seat.sessionExpiry && seat.sessionExpiry < now) {
-            cleanedCount++;
-            const { sessionId, sessionExpiry, ...rest } = seat;
-            return rest;
-          }
+      return {
+        ...section,
+        tables: section.tables.map(table => {
+          return {
+            ...table,
+            seats: table.seats.map(seat => {
+              // Check if this seat has an expired session hold
+              if (seat.sessionId && seat.sessionExpiry && seat.sessionExpiry < now) {
+                cleanedCount++;
+                const { sessionId, sessionExpiry, ...rest } = seat;
+                return { ...rest, status: "AVAILABLE" as const };
+              }
 
-          return seat;
-        });
-
-        return { ...table, seats: updatedSeats };
-      });
-
-      return { ...section, tables: updatedTables };
+              return seat;
+            }),
+          };
+        }),
+      };
     });
 
     if (cleanedCount > 0) {
-      await ctx.db.patch(seatingChart._id, {
-        sections: updatedSections,
-      });
+      await ctx.db.patch(seatingChart._id, { sections: updatedSections });
     }
 
-    return { success: true, cleaned: cleanedCount };
-  },
-});
-
-/**
- * Assign pricing zone to a table
- */
-export const assignPricingZoneToTable = mutation({
-  args: {
-    eventId: v.id("events"),
-    sectionId: v.string(),
-    tableId: v.string(),
-    pricingZone: v.optional(v.string()), // null to remove zone
-  },
-  handler: async (ctx, args) => {
-    // Get the seating chart
-    const seatingChart = await ctx.db
-      .query("seatingCharts")
-      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
-      .first();
-
-    if (!seatingChart) {
-      throw new Error("Seating chart not found");
-    }
-
-    // Find and update the table
-    const updatedSections = seatingChart.sections.map((section) => {
-      if (section.id !== args.sectionId) return section;
-
-      return {
-        ...section,
-        tables: section.tables?.map((table) => {
-          if (table.id !== args.tableId) return table;
-
-          return {
-            ...table,
-            pricingZone: args.pricingZone,
-          };
-        }),
-      };
-    });
-
-    // Update the seating chart
-    await ctx.db.patch(seatingChart._id, {
-      sections: updatedSections,
-      updatedAt: Date.now(),
-    });
-
-    return { success: true };
-  },
-});
-
-/**
- * Assign pricing zone to multiple tables at once
- */
-export const assignPricingZoneToMultipleTables = mutation({
-  args: {
-    eventId: v.id("events"),
-    tables: v.array(v.object({
-      sectionId: v.string(),
-      tableId: v.string(),
-    })),
-    pricingZone: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    // Get the seating chart
-    const seatingChart = await ctx.db
-      .query("seatingCharts")
-      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
-      .first();
-
-    if (!seatingChart) {
-      throw new Error("Seating chart not found");
-    }
-
-    // Build a map of table IDs to update
-    const tableIdsToUpdate = new Set(args.tables.map(t => t.tableId));
-
-    // Find and update all matching tables
-    const updatedSections = seatingChart.sections.map((section) => {
-      const needsUpdate = args.tables.some(t => t.sectionId === section.id);
-      if (!needsUpdate) return section;
-
-      return {
-        ...section,
-        tables: section.tables?.map((table) => {
-          if (!tableIdsToUpdate.has(table.id)) return table;
-
-          return {
-            ...table,
-            pricingZone: args.pricingZone,
-          };
-        }),
-      };
-    });
-
-    // Update the seating chart
-    await ctx.db.patch(seatingChart._id, {
-      sections: updatedSections,
-      updatedAt: Date.now(),
-    });
-
-    return { success: true, updatedCount: args.tables.length };
-  },
-});
-
-/**
- * Set table reservation status
- * Allows organizers to mark tables as RESERVED (VIP, sponsors, etc.)
- * Updates all seats at the table to match the reservation status
- */
-export const setTableReservationStatus = mutation({
-  args: {
-    eventId: v.id("events"),
-    sectionId: v.string(),
-    tableId: v.string(),
-    status: v.union(
-      v.literal("AVAILABLE"),
-      v.literal("RESERVED"),
-      v.literal("UNAVAILABLE")
-    ),
-    reservationType: v.optional(v.union(
-      v.literal("VIP"),
-      v.literal("SPONSOR"),
-      v.literal("STAFF"),
-      v.literal("CUSTOM")
-    )),
-    notes: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
-    // Get user
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user) throw new Error("User not found");
-
-    // Get event to verify ownership
-    const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
-
-    // Check if user is organizer or admin
-    if (event.organizerId !== user._id && user.role !== "admin") {
-      throw new Error("Only the event organizer can manage table reservations");
-    }
-
-    // Get seating chart
-    const seatingChart = await ctx.db
-      .query("seatingCharts")
-      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
-      .first();
-
-    if (!seatingChart) {
-      throw new Error("Seating chart not found for this event");
-    }
-
-    // Find the section
-    const section = seatingChart.sections.find(s => s.id === args.sectionId);
-    if (!section) {
-      throw new Error(`Section ${args.sectionId} not found`);
-    }
-
-    // Find the table
-    const table = section.tables?.find(t => t.id === args.tableId);
-    if (!table) {
-      throw new Error(`Table ${args.tableId} not found in section ${args.sectionId}`);
-    }
-
-    // Update the table with reservation info and update all seats at this table
-    const updatedSections = seatingChart.sections.map(section => {
-      if (section.id !== args.sectionId) return section;
-
-      return {
-        ...section,
-        tables: section.tables?.map(table => {
-          if (table.id !== args.tableId) return table;
-
-          // Update table reservation status and all its seats
-          return {
-            ...table,
-            reservationStatus: args.status,
-            reservationType: args.reservationType,
-            reservationNotes: args.notes,
-            // Update all seats at this table to match reservation status
-            seats: table.seats.map(seat => ({
-              ...seat,
-              status: args.status,
-            })),
-          };
-        }),
-      };
-    });
-
-    // Update the seating chart
-    await ctx.db.patch(seatingChart._id, {
-      sections: updatedSections,
-      updatedAt: Date.now(),
-    });
-
-    return {
-      success: true,
-      tableId: args.tableId,
-      status: args.status,
-      seatsUpdated: table.seats.length,
-    };
+    return { success: true, cleanedCount };
   },
 });

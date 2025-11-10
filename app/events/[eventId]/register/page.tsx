@@ -82,7 +82,7 @@ export default function FreeEventRegisterPage() {
   if (!eventDetails) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -95,7 +95,7 @@ export default function FreeEventRegisterPage() {
           <p className="text-gray-600 mb-4">This is not a free event. Please use the checkout page to purchase tickets.</p>
           <Link
             href={`/events/${eventId}/checkout`}
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
           >
             Go to Checkout
           </Link>
@@ -109,7 +109,7 @@ export default function FreeEventRegisterPage() {
     const ticketUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/ticket/${registrationData.ticketCode}`;
 
     return (
-      <div className="min-h-screen bg-purple-600 py-12">
+      <div className="min-h-screen bg-primary py-12">
         <div className="container mx-auto px-4 max-w-2xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -118,7 +118,7 @@ export default function FreeEventRegisterPage() {
             className="bg-white rounded-lg shadow-xl overflow-hidden"
           >
             {/* Success Header */}
-            <div className="bg-purple-600 p-8 text-center">
+            <div className="bg-primary p-8 text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -128,7 +128,7 @@ export default function FreeEventRegisterPage() {
                 <CheckCircle2 className="w-12 h-12 text-green-600" />
               </motion.div>
               <h1 className="text-3xl font-bold text-white mb-2">You're Registered!</h1>
-              <p className="text-green-100">Your free ticket has been confirmed</p>
+              <p className="text-white/80">Your free ticket has been confirmed</p>
             </div>
 
             {/* Event Details */}
@@ -137,13 +137,13 @@ export default function FreeEventRegisterPage() {
               <div className="space-y-3 text-gray-700">
                 {eventDetails.startDate && (
                   <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 text-blue-600" />
+                    <Calendar className="w-5 h-5 text-primary" />
                     <span>{format(new Date(eventDetails.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
                   </div>
                 )}
                 {eventDetails.location && typeof eventDetails.location === "object" && (
                   <div className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-blue-600" />
+                    <MapPin className="w-5 h-5 text-primary" />
                     <span>
                       {eventDetails.location.venueName && `${eventDetails.location.venueName}, `}
                       {eventDetails.location.city}, {eventDetails.location.state}
@@ -186,14 +186,14 @@ export default function FreeEventRegisterPage() {
 
             {/* Staff Attribution */}
             {referralCode && staffMemberInfo && (
-              <div className="p-8 bg-blue-50 border-t border-blue-100">
+              <div className="p-8 bg-accent border-t border-blue-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <UserCheck className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center">
+                    <UserCheck className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-blue-900">Referred by {staffMemberInfo.name}</p>
-                    <p className="text-sm text-blue-700">Thanks for using their referral code!</p>
+                    <p className="font-semibold text-foreground">Referred by {staffMemberInfo.name}</p>
+                    <p className="text-sm text-primary">Thanks for using their referral code!</p>
                   </div>
                 </div>
               </div>
@@ -203,7 +203,7 @@ export default function FreeEventRegisterPage() {
             <div className="p-8 bg-gray-50 border-t space-y-3">
               <Link
                 href="/my-tickets"
-                className="block w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center font-medium"
+                className="block w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-center font-medium"
               >
                 <div className="flex items-center justify-center gap-2">
                   <Ticket className="w-5 h-5" />
@@ -240,25 +240,25 @@ export default function FreeEventRegisterPage() {
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {/* Header */}
-          <div className="bg-purple-600 p-8 text-center">
+          <div className="bg-primary p-8 text-center">
             <Ticket className="w-16 h-16 text-white mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-white mb-2">Register for Free</h1>
-            <p className="text-blue-100">No payment required</p>
+            <p className="text-white/80">No payment required</p>
           </div>
 
           {/* Event Info */}
-          <div className="p-8 border-b bg-purple-600">
+          <div className="p-8 border-b bg-background">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">{eventDetails.name}</h2>
             <div className="space-y-3 text-gray-700">
               {eventDetails.startDate && (
                 <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-blue-600" />
+                  <Calendar className="w-5 h-5 text-primary" />
                   <span>{format(new Date(eventDetails.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
                 </div>
               )}
               {eventDetails.location && typeof eventDetails.location === "object" && (
                 <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-blue-600" />
+                  <MapPin className="w-5 h-5 text-primary" />
                   <span>
                     {eventDetails.location.venueName && `${eventDetails.location.venueName}, `}
                     {eventDetails.location.city}, {eventDetails.location.state}
@@ -278,16 +278,16 @@ export default function FreeEventRegisterPage() {
 
           {/* Referral Code Banner */}
           {referralCode && staffMemberInfo && (
-            <div className="p-6 bg-blue-50 border-b border-blue-100">
+            <div className="p-6 bg-accent border-b border-blue-100">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <UserCheck className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
+                  <UserCheck className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1">
+                  <h4 className="font-semibold text-foreground mb-1">
                     Referred by {staffMemberInfo.name}
                   </h4>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-sm text-primary">
                     Your registration will be credited to this staff member
                   </p>
                 </div>
@@ -338,7 +338,7 @@ export default function FreeEventRegisterPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full px-6 py-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold text-lg shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>

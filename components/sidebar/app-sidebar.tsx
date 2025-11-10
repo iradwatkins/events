@@ -70,7 +70,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Header with Logo */}
       <SidebarHeader>
         <Link href="/organizer/events" className="flex items-center gap-2 px-2 py-1.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
             <Ticket className="h-5 w-5" />
           </div>
           <span className="font-semibold text-lg">SteppersLife</span>
@@ -103,7 +103,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-primary">
                 <Users className="h-4 w-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">

@@ -23,7 +23,7 @@ export default function AdminDashboard() {
   if (!analytics || !recentActivity) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -42,7 +42,7 @@ export default function AdminDashboard() {
       value: analytics.events.total,
       subtext: `${analytics.events.published} published`,
       icon: Calendar,
-      color: "purple",
+      color: "blue",
       change: `+${analytics.events.recentCreated} this week`,
     },
     {
@@ -94,8 +94,7 @@ export default function AdminDashboard() {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           const colorClasses = {
-            blue: "bg-blue-100 text-blue-600",
-            purple: "bg-purple-100 text-purple-600",
+            blue: "bg-accent text-primary",
             green: "bg-green-100 text-green-600",
             orange: "bg-orange-100 text-orange-600",
           }[stat.color];
@@ -126,7 +125,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Revenue Stats */}
-      <div className="bg-purple-600 rounded-lg shadow-md p-6 text-white">
+      <div className="bg-primary rounded-lg shadow-md p-6 text-white">
         <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
           <DollarSign className="w-6 h-6" />
           Revenue Overview
@@ -134,9 +133,9 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {revenueStats.map((stat) => (
             <div key={stat.name}>
-              <p className="text-green-100 text-sm mb-1">{stat.name}</p>
+              <p className="text-primary-foreground/80 text-sm mb-1">{stat.name}</p>
               <p className="text-3xl font-bold mb-1">{stat.value}</p>
-              <p className="text-green-100 text-xs">{stat.description}</p>
+              <p className="text-primary-foreground/80 text-xs">{stat.description}</p>
             </div>
           ))}
         </div>
@@ -156,7 +155,7 @@ export default function AdminDashboard() {
           </p>
           <Link
             href="/admin/events"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Calendar className="w-5 h-5" />
             Go to Event Moderation
@@ -223,27 +222,27 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link
           href="/admin/users"
-          className="bg-white border-2 border-blue-200 rounded-lg p-6 hover:border-blue-400 transition-colors"
+          className="bg-white border-2 border-border rounded-lg p-6 hover:border-primary transition-colors"
         >
-          <Users className="w-8 h-8 text-blue-600 mb-3" />
+          <Users className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-gray-900 mb-1">Manage Users</h3>
           <p className="text-sm text-gray-600">View and moderate all platform users</p>
         </Link>
 
         <Link
           href="/admin/events"
-          className="bg-white border-2 border-purple-200 rounded-lg p-6 hover:border-purple-400 transition-colors"
+          className="bg-white border-2 border-border rounded-lg p-6 hover:border-primary transition-colors"
         >
-          <Calendar className="w-8 h-8 text-purple-600 mb-3" />
+          <Calendar className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-gray-900 mb-1">Manage Events</h3>
           <p className="text-sm text-gray-600">Moderate and manage all events</p>
         </Link>
 
         <Link
           href="/admin/analytics"
-          className="bg-white border-2 border-green-200 rounded-lg p-6 hover:border-green-400 transition-colors"
+          className="bg-white border-2 border-border rounded-lg p-6 hover:border-primary transition-colors"
         >
-          <Activity className="w-8 h-8 text-green-600 mb-3" />
+          <Activity className="w-8 h-8 text-primary mb-3" />
           <h3 className="font-semibold text-gray-900 mb-1">View Analytics</h3>
           <p className="text-sm text-gray-600">Detailed platform analytics and reports</p>
         </Link>

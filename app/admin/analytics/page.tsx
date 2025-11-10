@@ -77,7 +77,7 @@ export default function PlatformAnalyticsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-primary rounded-lg shadow-md p-6 text-white"
         >
           <div className="flex items-center justify-between mb-4">
             <DollarSign className="w-8 h-8" />
@@ -94,7 +94,7 @@ export default function PlatformAnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-primary rounded-lg shadow-md p-6 text-white"
         >
           <div className="flex items-center justify-between mb-4">
             <Users className="w-8 h-8" />
@@ -109,22 +109,22 @@ export default function PlatformAnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-primary rounded-lg shadow-md p-6 text-white"
         >
           <div className="flex items-center justify-between mb-4">
             <Calendar className="w-8 h-8" />
             <TrendingUp className="w-5 h-5" />
           </div>
-          <p className="text-purple-100 text-sm mb-1">Total Events</p>
+          <p className="text-white/80 text-sm mb-1">Total Events</p>
           <p className="text-3xl font-bold mb-1">{analytics.events.total.toLocaleString()}</p>
-          <p className="text-purple-100 text-xs">+{analytics.events.recentCreated} this week</p>
+          <p className="text-white/80 text-xs">+{analytics.events.recentCreated} this week</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-purple-600 rounded-lg shadow-md p-6 text-white"
+          className="bg-primary rounded-lg shadow-md p-6 text-white"
         >
           <div className="flex items-center justify-between mb-4">
             <Ticket className="w-8 h-8" />
@@ -165,7 +165,7 @@ export default function PlatformAnalyticsPage() {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full"
+                className="bg-primary h-2 rounded-full"
                 style={{
                   width: `${analytics.revenue.gmv > 0 ? (analytics.revenue.platformRevenue / analytics.revenue.gmv) * 100 : 0}%`,
                 }}
@@ -188,7 +188,7 @@ export default function PlatformAnalyticsPage() {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-purple-600 h-2 rounded-full"
+                className="bg-primary h-2 rounded-full"
                 style={{
                   width: `${analytics.revenue.averageOrderValue > 0 ? Math.min((analytics.revenue.averageOrderValue / 10000) * 100, 100) : 0}%`,
                 }}
@@ -203,7 +203,7 @@ export default function PlatformAnalyticsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-accent text-primary rounded-full flex items-center justify-center">
               <PieChart className="w-6 h-6" />
             </div>
             <div>
@@ -213,7 +213,7 @@ export default function PlatformAnalyticsPage() {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3">
             <div
-              className="bg-blue-600 h-3 rounded-full"
+              className="bg-primary h-3 rounded-full"
               style={{ width: `${conversionRate}%` }}
             ></div>
           </div>
@@ -245,7 +245,7 @@ export default function PlatformAnalyticsPage() {
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-accent text-primary rounded-full flex items-center justify-center">
               <BarChart3 className="w-6 h-6" />
             </div>
             <div>
@@ -255,7 +255,7 @@ export default function PlatformAnalyticsPage() {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3">
             <div
-              className="bg-purple-600 h-3 rounded-full"
+              className="bg-primary h-3 rounded-full"
               style={{ width: `${eventPublishRate}%` }}
             ></div>
           </div>
@@ -306,7 +306,7 @@ export default function PlatformAnalyticsPage() {
                           ? "bg-gray-100 text-gray-800"
                           : index === 2
                           ? "bg-orange-100 text-orange-800"
-                          : "bg-blue-50 text-blue-600"
+                          : "bg-accent text-primary"
                       }`}
                     >
                       {index + 1}
@@ -352,7 +352,7 @@ export default function PlatformAnalyticsPage() {
                       ? "bg-gray-100 text-gray-800"
                       : index === 2
                       ? "bg-orange-100 text-orange-800"
-                      : "bg-blue-50 text-blue-600"
+                      : "bg-accent text-primary"
                   }`}
                 >
                   {index + 1}

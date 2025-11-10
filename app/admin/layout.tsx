@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -20,8 +20,11 @@ import {
   Upload,
   Package,
   ShoppingCart,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -43,13 +46,20 @@ export default function AdminLayout({
   const pathname = usePathname();
   const currentUser = useQuery(api.users.queries.getCurrentUser);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // TEMPORARY: Access control disabled for testing
   // Check if user is admin
   // if (currentUser === undefined) {
   //   return (
   //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-  //       <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+  //       <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
   //     </div>
   //   );
   // }
@@ -65,7 +75,7 @@ export default function AdminLayout({
   //         </p>
   //         <Link
   //           href="/"
-  //           className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+  //           className="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
   //         >
   //           Go to Homepage
   //         </Link>
@@ -81,10 +91,10 @@ export default function AdminLayout({
         initial={false}
         animate={{ width: sidebarCollapsed ? 80 : 280 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="bg-purple-600 shadow-xl flex flex-col fixed h-screen z-50"
+        className="bg-primary shadow-xl flex flex-col fixed h-screen z-50"
       >
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-blue-800">
+        <div className="p-4 border-b border-primary/80">
           <div className="flex items-center justify-between">
             <AnimatePresence mode="wait">
               {!sidebarCollapsed && (
@@ -98,7 +108,7 @@ export default function AdminLayout({
                   <Shield className="w-8 h-8 text-white flex-shrink-0" />
                   <div>
                     <h1 className="text-lg font-bold text-white">Admin Panel</h1>
-                    <p className="text-xs text-blue-100">SteppersLife</p>
+                    <p className="text-xs text-primary-foreground/80">SteppersLife</p>
                   </div>
                 </motion.div>
               )}
@@ -131,8 +141,8 @@ export default function AdminLayout({
                   flex items-center gap-3 px-3 py-3 rounded-lg transition-all
                   ${
                     isActive
-                      ? "bg-white text-blue-900 shadow-md"
-                      : "text-white hover:bg-blue-800 hover:shadow-sm"
+                      ? "bg-white text-foreground shadow-md"
+                      : "text-white hover:bg-primary/80 hover:shadow-sm"
                   }
                   ${sidebarCollapsed ? "justify-center" : ""}
                 `}
@@ -158,7 +168,7 @@ export default function AdminLayout({
         </nav>
 
         {/* User Info & Toggle */}
-        <div className="border-t border-blue-800 p-4">
+        <div className="border-t border-primary/80 p-4">
           <AnimatePresence mode="wait">
             {!sidebarCollapsed && (
               <motion.div
@@ -168,17 +178,17 @@ export default function AdminLayout({
                 transition={{ duration: 0.2 }}
                 className="mb-4"
               >
-                <div className="bg-blue-800 rounded-lg p-3">
+                <div className="bg-primary/80 rounded-lg p-3">
                   <p className="text-sm font-medium text-white truncate">
                     {currentUser?.name || "Guest"}
                   </p>
-                  <p className="text-xs text-blue-100 truncate">
+                  <p className="text-xs text-primary-foreground/80 truncate">
                     {currentUser?.email || "Not logged in"}
                   </p>
                 </div>
                 <Link
                   href="/"
-                  className="mt-3 flex items-center justify-center gap-2 w-full px-3 py-2 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-colors text-sm"
+                  className="mt-3 flex items-center justify-center gap-2 w-full px-3 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary/70 transition-colors text-sm"
                 >
                   <LogOut className="w-4 h-4" />
                   Exit Admin
@@ -187,10 +197,55 @@ export default function AdminLayout({
             )}
           </AnimatePresence>
 
-          {/* Toggle Button */}
+          {/* Theme Toggle Button */}
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 mb-2 bg-primary/80 text-white rounded-lg hover:bg-primary/70 transition-colors"
+              title={sidebarCollapsed ? (theme === "dark" ? "Light mode" : "Dark mode") : undefined}
+            >
+              {theme === "dark" ? (
+                <>
+                  <Sun className={sidebarCollapsed ? "w-5 h-5" : "w-4 h-4"} />
+                  <AnimatePresence mode="wait">
+                    {!sidebarCollapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: "auto" }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-sm font-medium whitespace-nowrap overflow-hidden"
+                      >
+                        Light Mode
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </>
+              ) : (
+                <>
+                  <Moon className={sidebarCollapsed ? "w-5 h-5" : "w-4 h-4"} />
+                  <AnimatePresence mode="wait">
+                    {!sidebarCollapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: "auto" }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-sm font-medium whitespace-nowrap overflow-hidden"
+                      >
+                        Dark Mode
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Collapse Toggle Button */}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-primary/80 text-white rounded-lg hover:bg-primary/70 transition-colors"
             title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {sidebarCollapsed ? (
@@ -225,7 +280,7 @@ export default function AdminLayout({
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 text-blue-900 rounded-full flex items-center justify-center font-bold">
+                <div className="w-10 h-10 bg-accent text-foreground rounded-full flex items-center justify-center font-bold">
                   {currentUser?.name?.charAt(0)?.toUpperCase() || "?"}
                 </div>
               </div>

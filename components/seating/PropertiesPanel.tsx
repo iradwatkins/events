@@ -113,9 +113,6 @@ export default function PropertiesPanel({
   const isTable = target.type === "table";
   const data = target.data;
 
-  // Determine if we're on mobile
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
   // Table-specific handlers
   const handleTableCapacityChange = (value: string) => {
     const capacity = parseInt(value) || 0;
@@ -168,9 +165,15 @@ export default function PropertiesPanel({
     onUpdate({ rotation: newRotation });
   };
 
-  // Panel content (shared between desktop and mobile)
-  const panelContent = (
-    <>
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, x: 300 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 300 }}
+        transition={{ duration: 0.3 }}
+        className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl border-l border-gray-200 overflow-y-auto z-40"
+      >
         {/* Header */}
         <div className="bg-purple-600 px-6 py-4 text-white sticky top-0 z-10">
           <div className="flex items-center justify-between">
@@ -272,94 +275,92 @@ export default function PropertiesPanel({
             )}
           </CollapsibleSection>
 
-          {/* Position & Size Section - Only show for tables */}
-          {isTable && (
-            <CollapsibleSection title="Position & Size" icon={<RotateCw className="w-4 h-4 text-gray-600" />}>
-              {/* Position */}
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Position (pixels)
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">X</label>
-                    <input
-                      type="number"
-                      value={Math.round(data.x || 0)}
-                      onChange={(e) => onUpdate({ x: parseInt(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Y</label>
-                    <input
-                      type="number"
-                      value={Math.round(data.y || 0)}
-                      onChange={(e) => onUpdate({ y: parseInt(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Dimensions */}
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Table Size (pixels)
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Width</label>
-                    <input
-                      type="number"
-                      min="60"
-                      value={Math.round(data.width || 0)}
-                      onChange={(e) => onUpdate({ width: parseInt(e.target.value) || 100 })}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Height</label>
-                    <input
-                      type="number"
-                      min="60"
-                      value={Math.round(data.height || 0)}
-                      onChange={(e) => onUpdate({ height: parseInt(e.target.value) || 100 })}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Rotation */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Rotation
-                </label>
-                <div className="flex items-center gap-3">
+          {/* Position & Size Section */}
+          <CollapsibleSection title="Position & Size" icon={<RotateCw className="w-4 h-4 text-gray-600" />}>
+            {/* Position */}
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                Position (pixels)
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">X</label>
                   <input
-                    type="range"
-                    min="0"
-                    max="360"
-                    step="15"
-                    value={data.rotation || 0}
-                    onChange={(e) => onUpdate({ rotation: parseInt(e.target.value) })}
-                    className="flex-1"
+                    type="number"
+                    value={Math.round(data.x || 0)}
+                    onChange={(e) => onUpdate({ x: parseInt(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
-                  <span className="text-xs font-medium text-gray-700 w-10 text-right">
-                    {data.rotation || 0}°
-                  </span>
-                  <button
-                    onClick={handleRotate}
-                    className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                    title="Rotate 15°"
-                  >
-                    <RotateCw className="w-4 h-4 text-gray-700" />
-                  </button>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Y</label>
+                  <input
+                    type="number"
+                    value={Math.round(data.y || 0)}
+                    onChange={(e) => onUpdate({ y: parseInt(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
                 </div>
               </div>
-            </CollapsibleSection>
-          )}
+            </div>
+
+            {/* Dimensions */}
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                Dimensions (pixels)
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Width</label>
+                  <input
+                    type="number"
+                    min={isTable ? "60" : "100"}
+                    value={Math.round(data.width || 0)}
+                    onChange={(e) => onUpdate({ width: parseInt(e.target.value) || 100 })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Height</label>
+                  <input
+                    type="number"
+                    min={isTable ? "60" : "80"}
+                    value={Math.round(data.height || 0)}
+                    onChange={(e) => onUpdate({ height: parseInt(e.target.value) || 100 })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Rotation */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                Rotation
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  step="15"
+                  value={data.rotation || 0}
+                  onChange={(e) => onUpdate({ rotation: parseInt(e.target.value) })}
+                  className="flex-1"
+                />
+                <span className="text-xs font-medium text-gray-700 w-10 text-right">
+                  {data.rotation || 0}°
+                </span>
+                <button
+                  onClick={handleRotate}
+                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  title="Rotate 15°"
+                >
+                  <RotateCw className="w-4 h-4 text-gray-700" />
+                </button>
+              </div>
+            </div>
+          </CollapsibleSection>
 
           {/* Table-specific: Seating Arrangement */}
           {isTable && (data as Table).shape === "ROUND" && (
@@ -456,47 +457,6 @@ export default function PropertiesPanel({
             Delete {isTable ? "Table" : "Section"}
           </button>
         </div>
-    </>
-  );
-
-  // Mobile: Modal overlay
-  if (isMobile) {
-    return (
-      <AnimatePresence>
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/20 z-40 md:hidden"
-          onClick={onClose}
-        />
-
-        {/* Modal */}
-        <motion.div
-          initial={{ opacity: 0, y: 300 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 300 }}
-          transition={{ duration: 0.3 }}
-          className="fixed bottom-0 left-0 right-0 max-h-[80vh] bg-white rounded-t-2xl shadow-2xl overflow-y-auto z-50 md:hidden"
-        >
-          {panelContent}
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
-
-  // Desktop/Tablet: Part of grid layout (not fixed)
-  return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, x: 300 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 300 }}
-        transition={{ duration: 0.3 }}
-        className="hidden md:block bg-white shadow-2xl border-l border-gray-200 overflow-y-auto h-full"
-      >
-        {panelContent}
       </motion.div>
     </AnimatePresence>
   );

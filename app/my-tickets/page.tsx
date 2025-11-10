@@ -230,7 +230,7 @@ export default function MyTicketsPage() {
   if (!tickets) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -244,7 +244,7 @@ export default function MyTicketsPage() {
           <p className="text-gray-600 mb-4">Your purchased tickets will appear here</p>
           <Link
             href="/events"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90"
           >
             Browse Events
           </Link>
@@ -287,7 +287,7 @@ export default function MyTicketsPage() {
               </span>
               <button
                 onClick={() => setShowBundleModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
               >
                 <Package className="w-4 h-4" />
                 Create Bundle
@@ -333,7 +333,7 @@ export default function MyTicketsPage() {
                           )}
                         </div>
                       </div>
-                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-accent text-primary px-3 py-1 rounded-full text-sm font-medium">
                         {eventTickets.length} ticket{eventTickets.length !== 1 ? 's' : ''}
                       </span>
                     </div>
@@ -348,7 +348,7 @@ export default function MyTicketsPage() {
                             key={ticket._id}
                             className={`border rounded-lg transition-all ${
                               selectedTickets.includes(ticket._id)
-                                ? 'border-blue-500 bg-blue-50'
+                                ? 'border-primary bg-accent'
                                 : 'border-gray-200'
                             }`}
                           >
@@ -370,7 +370,7 @@ export default function MyTicketsPage() {
                                         {ticket.attendeeName || 'Unnamed Ticket'}
                                       </span>
                                       {ticket.bundleId && (
-                                        <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                                        <span className="px-2 py-1 bg-accent text-primary text-xs rounded-full">
                                           {ticket.bundleName || 'Bundled'}
                                         </span>
                                       )}
@@ -455,7 +455,7 @@ export default function MyTicketsPage() {
                                       <div className="flex gap-2 mt-4">
                                         <button
                                           onClick={() => handleShareTicket(ticket.ticketCode, event.name)}
-                                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-sm"
                                         >
                                           <Share2 className="w-4 h-4" />
                                           Share
@@ -484,20 +484,20 @@ export default function MyTicketsPage() {
                       if (bundleInThisEvent.length === 0) return null;
 
                       return (
-                        <div key={bundleId} className="mt-4 p-3 bg-purple-50 rounded-lg">
+                        <div key={bundleId} className="mt-4 p-3 bg-accent rounded-lg">
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                              <Package className="w-4 h-4 text-purple-600" />
-                              <span className="text-sm font-medium text-purple-700">
+                              <Package className="w-4 h-4 text-primary" />
+                              <span className="text-sm font-medium text-primary">
                                 Bundle: {bundleInThisEvent[0].bundleName}
                               </span>
-                              <span className="text-sm text-purple-600">
+                              <span className="text-sm text-primary">
                                 ({bundleInThisEvent.length} tickets)
                               </span>
                             </div>
                             <button
                               onClick={() => handleUnbundle(bundleInThisEvent.map(t => t._id))}
-                              className="flex items-center gap-1 px-3 py-1 text-sm text-purple-700 hover:bg-purple-100 rounded-lg transition-colors"
+                              className="flex items-center gap-1 px-3 py-1 text-sm text-primary hover:bg-accent rounded-lg transition-colors"
                             >
                               <PackageOpen className="w-4 h-4" />
                               Unbundle
@@ -606,7 +606,7 @@ export default function MyTicketsPage() {
                   type="text"
                   value={transferName}
                   onChange={(e) => setTransferName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                   placeholder="Enter recipient's name"
                 />
               </div>
@@ -619,7 +619,7 @@ export default function MyTicketsPage() {
                   type="email"
                   value={transferEmail}
                   onChange={(e) => setTransferEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                   placeholder="Enter recipient's email"
                 />
               </div>
@@ -628,7 +628,7 @@ export default function MyTicketsPage() {
                 <button
                   onClick={handleSubmitTransfer}
                   disabled={isTransferring}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50"
                 >
                   {isTransferring ? 'Transferring...' : 'Transfer Ticket'}
                 </button>
@@ -671,7 +671,7 @@ export default function MyTicketsPage() {
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                   placeholder="Enter attendee name"
                 />
               </div>
@@ -684,7 +684,7 @@ export default function MyTicketsPage() {
                   type="email"
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                   placeholder="Enter attendee email"
                 />
               </div>
@@ -692,7 +692,7 @@ export default function MyTicketsPage() {
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleSubmitEdit}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90"
                 >
                   Save Changes
                 </button>
@@ -735,7 +735,7 @@ export default function MyTicketsPage() {
                   type="text"
                   value={bundleName}
                   onChange={(e) => setBundleName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                   placeholder="Enter bundle name (e.g., Family Pack)"
                 />
               </div>
@@ -749,7 +749,7 @@ export default function MyTicketsPage() {
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleCreateBundle}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  className="flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90"
                 >
                   Create Bundle
                 </button>

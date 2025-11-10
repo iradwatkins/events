@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import TableRenderer from "./TableRenderer";
-import RowRenderer from "./RowRenderer";
 
 interface Table {
   id: string;
@@ -54,16 +53,6 @@ interface VisualSeatingCanvasProps {
   selectedTableId?: string;
   onTableSelect?: (sectionId: string, tableId: string) => void;
   onTableUpdate?: (sectionId: string, tableId: string, updates: Partial<Table>) => void;
-  onTableDrop?: (config: any, x: number, y: number) => void;
-  onTableContextMenu?: (e: React.MouseEvent, sectionId: string, tableId: string, tableNumber: string | number) => void;
-  // Row-specific props
-  onRowUpdate?: (sectionId: string, rowId: string, updates: any) => void;
-  // Display control props
-  showGrid?: boolean;
-  showLabels?: boolean;
-  // Multi-selection props
-  selectedElementIds?: Set<string>;
-  onMultiSelect?: (elementIds: Set<string>) => void;
 }
 
 export default function VisualSeatingCanvas({
@@ -75,50 +64,17 @@ export default function VisualSeatingCanvas({
   selectedTableId,
   onTableSelect,
   onTableUpdate,
-  onTableDrop,
-  onTableContextMenu,
-  onRowUpdate,
-  showGrid = true,
-  showLabels = true,
-  selectedElementIds,
-  onMultiSelect,
 }: VisualSeatingCanvasProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
+  const [showSectionLabels, setShowSectionLabels] = useState(true);
   const [isDraggingTable, setIsDraggingTable] = useState(false);
-  const [isResizingTable, setIsResizingTable] = useState(false);
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [selectionBox, setSelectionBox] = useState<{ startX: number; startY: number; endX: number; endY: number } | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  // Drag-and-drop from library state
-  const [isDraggingFromLibrary, setIsDraggingFromLibrary] = useState(false);
-  const [dragPreviewPosition, setDragPreviewPosition] = useState<{ x: number; y: number } | null>(null);
-  const [draggedTableConfig, setDraggedTableConfig] = useState<any>(null);
   const dragStartPos = useRef({ x: 0, y: 0, sectionX: 0, sectionY: 0 });
   const resizeStartPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
   const tableDragStartPos = useRef({ x: 0, y: 0, tableX: 0, tableY: 0 });
-  const tableResizeStartPos = useRef({ x: 0, y: 0, width: 0, height: 0, tableX: 0, tableY: 0 });
-  const currentDraggingTable = useRef<{ sectionId: string; tableId: string; isRow?: boolean } | null>(null);
-  const currentResizingTable = useRef<{ sectionId: string; tableId: string; corner: string } | null>(null);
-  const groupDragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
-
-  // Grid configuration
-  const GRID_SIZE = 50; // Must match the grid size in CSS (line 781)
-  const CANVAS_WIDTH = 3000;
-  const CANVAS_HEIGHT = 2000;
-
-  // Snap to grid function
-  const snapToGrid = (value: number): number => {
-    return Math.round(value / GRID_SIZE) * GRID_SIZE;
-  };
-
-  // Constrain to canvas bounds
-  const constrainToBounds = (x: number, y: number, width: number, height: number) => {
-    const constrainedX = Math.max(0, Math.min(x, CANVAS_WIDTH - width));
-    const constrainedY = Math.max(0, Math.min(y, CANVAS_HEIGHT - height));
-    return { x: constrainedX, y: constrainedY };
-  };
+  const currentDraggingTable = useRef<{ sectionId: string; tableId: string } | null>(null);
 
   // Handle section dragging
   useEffect(() => {
@@ -290,12 +246,11 @@ export default function VisualSeatingCanvas({
   const handleTableDragStart = (
     e: React.MouseEvent,
     sectionId: string,
-    table: Table | any,
-    isRow: boolean = false
+    table: Table
   ) => {
     e.stopPropagation();
     setIsDraggingTable(true);
-    currentDraggingTable.current = { sectionId, tableId: table.id, isRow };
+    currentDraggingTable.current = { sectionId, tableId: table.id };
     if (onTableSelect) {
       onTableSelect(sectionId, table.id);
     }
@@ -303,484 +258,106 @@ export default function VisualSeatingCanvas({
     tableDragStartPos.current = {
       x: e.clientX,
       y: e.clientY,
-      tableX: table.x || 0,
-      tableY: table.y || 0,
-    };
-
-    // If dragging a selected group, store all element positions
-    if (selectedElementIds && selectedElementIds.size > 0 && selectedElementIds.has(table.id)) {
-      const positions = new Map<string, { x: number; y: number }>();
-
-      sections.forEach((section) => {
-        section.tables?.forEach((t) => {
-          if (selectedElementIds.has(t.id)) {
-            positions.set(t.id, { x: t.x, y: t.y });
-          }
-        });
-
-        section.rows?.forEach((r: any) => {
-          if (selectedElementIds.has(r.id)) {
-            positions.set(r.id, { x: r.x || 0, y: r.y || 0 });
-          }
-        });
-      });
-
-      groupDragStartPositions.current = positions;
-    } else {
-      groupDragStartPositions.current.clear();
-    }
-  };
-
-  const handleTableDrag = useCallback(
-    (e: MouseEvent, sectionId: string, tableId: string) => {
-      if (!isDraggingTable) return;
-
-      // Calculate movement delta in screen coordinates
-      const deltaX = e.clientX - tableDragStartPos.current.x;
-      const deltaY = e.clientY - tableDragStartPos.current.y;
-
-      // Convert to SVG coordinates (3000x2000 viewBox)
-      // Scale factor depends on canvas size - use a reasonable conversion
-      const scaleFactor = 2; // Adjust movement sensitivity
-      const svgDeltaX = deltaX * scaleFactor;
-      const svgDeltaY = deltaY * scaleFactor;
-
-      // Check if we're dragging a selected group
-      if (groupDragStartPositions.current.size > 0) {
-        // Move all selected elements together using stored positions
-        sections.forEach((section) => {
-          // Move selected tables
-          section.tables?.forEach((table) => {
-            const startPos = groupDragStartPositions.current.get(table.id);
-            if (startPos && onTableUpdate) {
-              // Calculate new position
-              const rawX = startPos.x + svgDeltaX;
-              const rawY = startPos.y + svgDeltaY;
-
-              // Apply snap-to-grid
-              const snappedX = snapToGrid(rawX);
-              const snappedY = snapToGrid(rawY);
-
-              // Constrain to canvas bounds
-              const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, table.width, table.height);
-
-              onTableUpdate(section.id, table.id, {
-                x: finalX,
-                y: finalY,
-              });
-            }
-          });
-
-          // Move selected rows
-          section.rows?.forEach((row: any) => {
-            const startPos = groupDragStartPositions.current.get(row.id);
-            if (startPos && onRowUpdate) {
-              // Calculate new position
-              const rawX = startPos.x + svgDeltaX;
-              const rawY = startPos.y + svgDeltaY;
-
-              // Apply snap-to-grid
-              const snappedX = snapToGrid(rawX);
-              const snappedY = snapToGrid(rawY);
-
-              // Constrain to canvas bounds (use default width/height for rows)
-              const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, 800, 60);
-
-              onRowUpdate(section.id, row.id, {
-                x: finalX,
-                y: finalY,
-              });
-            }
-          });
-        });
-      } else {
-        // Single element drag
-        const isRow = currentDraggingTable.current?.isRow;
-        const updateFn = isRow ? onRowUpdate : onTableUpdate;
-
-        if (!updateFn) return;
-
-        // Calculate new position
-        const rawX = tableDragStartPos.current.tableX + svgDeltaX;
-        const rawY = tableDragStartPos.current.tableY + svgDeltaY;
-
-        // Apply snap-to-grid
-        const snappedX = snapToGrid(rawX);
-        const snappedY = snapToGrid(rawY);
-
-        // Get table dimensions for boundary checking
-        const table = sections.find(s => s.id === sectionId)?.tables?.find(t => t.id === tableId);
-        const row = sections.find(s => s.id === sectionId)?.rows?.find((r: any) => r.id === tableId);
-        const width = table?.width || 800; // default width for rows
-        const height = table?.height || 60; // default height for rows
-
-        // Constrain to canvas bounds
-        const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, width, height);
-
-        updateFn(sectionId, tableId, {
-          x: finalX,
-          y: finalY,
-        });
-      }
-    },
-    [isDraggingTable, onTableUpdate, onRowUpdate, sections, snapToGrid, constrainToBounds]
-  );
-
-  const handleTableDragEnd = () => {
-    setIsDraggingTable(false);
-    groupDragStartPositions.current.clear();
-  };
-
-  // Handle table resizing
-  const handleTableResizeStart = (
-    sectionId: string,
-    tableId: string,
-    corner: string,
-    e: React.MouseEvent,
-    table: Table
-  ) => {
-    e.stopPropagation();
-    setIsResizingTable(true);
-    currentResizingTable.current = { sectionId, tableId, corner };
-
-    tableResizeStartPos.current = {
-      x: e.clientX,
-      y: e.clientY,
-      width: table.width,
-      height: table.height,
       tableX: table.x,
       tableY: table.y,
     };
   };
 
-  const handleTableResize = useCallback(
-    (e: MouseEvent, sectionId: string, tableId: string, corner: string) => {
-      if (!isResizingTable || !onTableUpdate) return;
+  const handleTableDrag = useCallback(
+    (e: MouseEvent, sectionId: string, tableId: string) => {
+      if (!isDraggingTable || !onTableUpdate) return;
 
-      const deltaX = e.clientX - tableResizeStartPos.current.x;
-      const deltaY = e.clientY - tableResizeStartPos.current.y;
-      const scaleFactor = 2;
-
-      const scaledDeltaX = deltaX * scaleFactor;
-      const scaledDeltaY = deltaY * scaleFactor;
-
-      let newWidth = tableResizeStartPos.current.width;
-      let newHeight = tableResizeStartPos.current.height;
-      let newX = tableResizeStartPos.current.tableX;
-      let newY = tableResizeStartPos.current.tableY;
-
-      // Calculate new dimensions based on corner being dragged
-      switch (corner) {
-        case "nw": // Top-left
-          newWidth = tableResizeStartPos.current.width - scaledDeltaX;
-          newHeight = tableResizeStartPos.current.height - scaledDeltaY;
-          newX = tableResizeStartPos.current.tableX + scaledDeltaX;
-          newY = tableResizeStartPos.current.tableY + scaledDeltaY;
-          break;
-        case "ne": // Top-right
-          newWidth = tableResizeStartPos.current.width + scaledDeltaX;
-          newHeight = tableResizeStartPos.current.height - scaledDeltaY;
-          newY = tableResizeStartPos.current.tableY + scaledDeltaY;
-          break;
-        case "sw": // Bottom-left
-          newWidth = tableResizeStartPos.current.width - scaledDeltaX;
-          newHeight = tableResizeStartPos.current.height + scaledDeltaY;
-          newX = tableResizeStartPos.current.tableX + scaledDeltaX;
-          break;
-        case "se": // Bottom-right
-          newWidth = tableResizeStartPos.current.width + scaledDeltaX;
-          newHeight = tableResizeStartPos.current.height + scaledDeltaY;
-          break;
-      }
-
-      // Minimum size constraints
-      newWidth = Math.max(100, newWidth);
-      newHeight = Math.max(80, newHeight);
+      const deltaX = e.clientX - tableDragStartPos.current.x;
+      const deltaY = e.clientY - tableDragStartPos.current.y;
 
       onTableUpdate(sectionId, tableId, {
-        width: newWidth,
-        height: newHeight,
-        x: newX,
-        y: newY,
+        x: tableDragStartPos.current.tableX + deltaX,
+        y: tableDragStartPos.current.tableY + deltaY,
       });
     },
-    [isResizingTable, onTableUpdate]
+    [isDraggingTable, onTableUpdate]
   );
 
-  const handleTableResizeEnd = () => {
-    setIsResizingTable(false);
-    currentResizingTable.current = null;
+  const handleTableDragEnd = () => {
+    setIsDraggingTable(false);
   };
-
-  // Handle table resize dragging
-  useEffect(() => {
-    if (!isResizingTable || !currentResizingTable.current) return;
-
-    const { sectionId, tableId, corner } = currentResizingTable.current;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      handleTableResize(e, sectionId, tableId, corner);
-    };
-
-    const handleMouseUp = () => {
-      handleTableResizeEnd();
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isResizingTable]);
-
-  // Handle drag-select rectangle
-  const handleSelectionStart = (e: React.MouseEvent<SVGSVGElement>) => {
-    // Only start selection if Shift key is held and clicking on canvas background
-    if (!e.shiftKey) return;
-
-    if ((e.target as SVGElement).tagName === 'svg' || (e.target as SVGElement).tagName === 'rect') {
-      const svg = svgRef.current;
-      if (!svg) return;
-
-      const pt = svg.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
-      const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
-
-      setIsSelecting(true);
-      setSelectionBox({
-        startX: svgP.x,
-        startY: svgP.y,
-        endX: svgP.x,
-        endY: svgP.y,
-      });
-    }
-  };
-
-  const handleSelectionMove = (e: MouseEvent) => {
-    if (!isSelecting || !selectionBox || !svgRef.current) return;
-
-    const svg = svgRef.current;
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX;
-    pt.y = e.clientY;
-    const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
-
-    setSelectionBox({
-      ...selectionBox,
-      endX: svgP.x,
-      endY: svgP.y,
-    });
-  };
-
-  const handleSelectionEnd = () => {
-    if (selectionBox && onMultiSelect) {
-      // Calculate which elements are within selection
-      const minX = Math.min(selectionBox.startX, selectionBox.endX);
-      const maxX = Math.max(selectionBox.startX, selectionBox.endX);
-      const minY = Math.min(selectionBox.startY, selectionBox.endY);
-      const maxY = Math.max(selectionBox.startY, selectionBox.endY);
-
-      const selectedIds = new Set<string>();
-
-      // Check all tables and rows
-      sections.forEach((section) => {
-        // Check tables
-        section.tables?.forEach((table) => {
-          const tableMinX = table.x;
-          const tableMaxX = table.x + table.width;
-          const tableMinY = table.y;
-          const tableMaxY = table.y + table.height;
-
-          // Check if table overlaps with selection box
-          if (
-            tableMinX < maxX &&
-            tableMaxX > minX &&
-            tableMinY < maxY &&
-            tableMaxY > minY
-          ) {
-            selectedIds.add(table.id);
-          }
-        });
-
-        // Check rows
-        section.rows?.forEach((row: any) => {
-          if (row.x !== undefined && row.y !== undefined) {
-            const rowMinX = row.x;
-            const rowMaxX = row.x + 800; // Approximate row width
-            const rowMinY = row.y - 30;
-            const rowMaxY = row.y + 30;
-
-            if (
-              rowMinX < maxX &&
-              rowMaxX > minX &&
-              rowMinY < maxY &&
-              rowMaxY > minY
-            ) {
-              selectedIds.add(row.id);
-            }
-          }
-        });
-      });
-
-      onMultiSelect(selectedIds);
-    }
-
-    setIsSelecting(false);
-    setSelectionBox(null);
-  };
-
-  // Handle selection drag
-  useEffect(() => {
-    if (!isSelecting) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      handleSelectionMove(e);
-    };
-
-    const handleMouseUp = () => {
-      handleSelectionEnd();
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSelecting]);
-
-  // Handle drag-and-drop from library
-  const handleCanvasDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-
-    // Update drag preview position
-    if (svgRef.current && isDraggingFromLibrary) {
-      const svg = svgRef.current;
-      const pt = svg.createSVGPoint();
-      pt.x = e.clientX;
-      pt.y = e.clientY;
-      const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
-      setDragPreviewPosition({ x: svgP.x, y: svgP.y });
-    }
-  };
-
-  const handleCanvasDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const data = e.dataTransfer.types.includes("application/json");
-    if (data) {
-      setIsDraggingFromLibrary(true);
-    }
-  };
-
-  const handleCanvasDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    // Only hide if leaving the canvas entirely
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (rect && (
-      e.clientX < rect.left ||
-      e.clientX > rect.right ||
-      e.clientY < rect.top ||
-      e.clientY > rect.bottom
-    )) {
-      setIsDraggingFromLibrary(false);
-      setDragPreviewPosition(null);
-      setDraggedTableConfig(null);
-    }
-  };
-
-  const handleCanvasDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDraggingFromLibrary(false);
-    setDragPreviewPosition(null);
-
-    // Get table config from dataTransfer
-    try {
-      const data = JSON.parse(e.dataTransfer.getData("application/json"));
-      if (data.type === "table-from-library" && onTableDrop && svgRef.current) {
-        // Convert screen coordinates to SVG coordinates
-        const svg = svgRef.current;
-        const pt = svg.createSVGPoint();
-        pt.x = e.clientX;
-        pt.y = e.clientY;
-        const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
-
-        // Apply snap-to-grid to drop position
-        const snappedX = snapToGrid(svgP.x);
-        const snappedY = snapToGrid(svgP.y);
-
-        // Constrain to canvas bounds (use default table size)
-        const { x: finalX, y: finalY } = constrainToBounds(snappedX, snappedY, 100, 100);
-
-        // Call the drop handler with config and snapped SVG coordinates
-        onTableDrop(data.config, finalX, finalY);
-      }
-    } catch (error) {
-      console.error("Error handling drop:", error);
-    }
-
-    setDraggedTableConfig(null);
-  };
-
-  // Update dragged table config when drag starts
-  useEffect(() => {
-    const handleDrag = (e: DragEvent) => {
-      if (e.dataTransfer?.types.includes("application/json")) {
-        try {
-          const data = JSON.parse(e.dataTransfer.getData("application/json"));
-          if (data.type === "table-from-library") {
-            setDraggedTableConfig(data.config);
-          }
-        } catch {
-          // Ignore errors during drag
-        }
-      }
-    };
-
-    window.addEventListener("drag", handleDrag);
-    return () => window.removeEventListener("drag", handleDrag);
-  }, []);
 
   return (
     <div id="seating-canvas" className="relative bg-white rounded-lg border border-gray-200 overflow-hidden">
-      {/* Controls Bar - Grid/Label toggles removed per user request */}
+      {/* Controls Bar */}
+      <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+        <div className="bg-white rounded-lg shadow border border-gray-300 p-2 flex flex-col gap-2">
+          <button
+            onClick={() => setShowGrid(!showGrid)}
+            className={`p-2 rounded transition-colors ${
+              showGrid
+                ? "bg-gray-800 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100"
+            }`}
+            title={showGrid ? "Hide Grid" : "Show Grid"}
+          >
+            <GridIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowSectionLabels(!showSectionLabels)}
+            className={`p-2 rounded transition-colors ${
+              showSectionLabels
+                ? "bg-gray-800 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100"
+            }`}
+            title={showSectionLabels ? "Hide Labels" : "Show Labels"}
+          >
+            {showSectionLabels ? (
+              <Eye className="w-5 h-5" />
+            ) : (
+              <EyeOff className="w-5 h-5" />
+            )}
+          </button>
+        </div>
 
-      {/* Legend - Stats Only */}
+        <div className="bg-gray-50 border border-gray-300 rounded-lg p-3 text-xs">
+          <p className="text-gray-900 font-semibold mb-1">Quick Tips:</p>
+          <ul className="text-gray-700 space-y-1">
+            <li>• Drag sections to position</li>
+            <li>• Drag corners to resize</li>
+            <li>• Click rotate button</li>
+            <li>• Scroll to zoom</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Legend */}
       <div className="absolute top-4 left-4 z-20 bg-white rounded-lg shadow-lg border border-gray-200 p-3">
-        <h4 className="font-semibold text-gray-900 text-sm mb-2">Floor Plan</h4>
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-600">Total Tables:</span>
-            <span className="font-bold text-gray-900">
-              {sections.reduce((count, s) => count + (s.tables?.length || 0), 0)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-600">Total Seats:</span>
-            <span className="font-bold text-gray-900">
-              {sections.reduce((count, s) => {
-                return count + (s.tables?.reduce((sum, t) => sum + t.capacity, 0) || 0);
-              }, 0)}
-            </span>
-          </div>
+        <h4 className="font-semibold text-gray-900 text-sm mb-2">Sections</h4>
+        <div className="space-y-1 max-h-48 overflow-y-auto">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => onSectionSelect(section.id)}
+              className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors flex items-center gap-2 ${
+                selectedSectionId === section.id
+                  ? "bg-gray-800 text-white"
+                  : "hover:bg-gray-100 text-gray-700"
+              }`}
+            >
+              <div
+                className="w-3 h-3 border-2 flex-shrink-0"
+                style={{ borderColor: "#000000" }}
+              />
+              <span className="font-medium truncate">{section.name}</span>
+              <span className={`ml-auto ${selectedSectionId === section.id ? "text-gray-300" : "text-gray-500"}`}>{getTotalSeats(section)}</span>
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Canvas */}
       <TransformWrapper
-        initialScale={0.5}
-        minScale={0.1}
-        maxScale={5}
+        initialScale={1}
+        minScale={0.5}
+        maxScale={3}
         centerOnInit
         wheel={{ step: 0.1 }}
-        panning={{ disabled: true }}
-        doubleClick={{ disabled: false, mode: "zoomIn" }}
-        limitToBounds={true}
       >
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
@@ -810,8 +387,8 @@ export default function VisualSeatingCanvas({
             </div>
 
             <TransformComponent
-              wrapperStyle={{ width: "100%", height: "calc(100vh - 150px)", minHeight: "800px" }}
-              contentStyle={{ width: "100%", height: "100%", minHeight: "800px" }}
+              wrapperStyle={{ width: "100%", height: "600px" }}
+              contentStyle={{ width: "100%", height: "100%" }}
             >
               <div
                 ref={canvasRef}
@@ -822,15 +399,7 @@ export default function VisualSeatingCanvas({
                   backgroundSize: "contain",
                   backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
-                  minWidth: "3000px",
-                  minHeight: "2000px",
-                  outline: isDraggingFromLibrary ? '3px dashed #3B82F6' : 'none',
-                  outlineOffset: isDraggingFromLibrary ? '-6px' : '0',
                 }}
-                onDragOver={handleCanvasDragOver}
-                onDragEnter={handleCanvasDragEnter}
-                onDragLeave={handleCanvasDragLeave}
-                onDrop={handleCanvasDrop}
               >
                 {/* Grid Overlay */}
                 {showGrid && (
@@ -846,38 +415,121 @@ export default function VisualSeatingCanvas({
                   />
                 )}
 
-                {/* Empty State - Show when no tables or rows */}
-                {sections.reduce((count, s) => count + (s.tables?.length || 0) + (s.rows?.length || 0), 0) === 0 && (
+                {/* Empty State - Show when no sections */}
+                {sections.length === 0 && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="text-center">
-                      <GridIcon className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                      <p className="text-2xl font-light text-gray-400">
-                        Click on a table to start
+                    <div className="bg-white/95 rounded-lg shadow-lg border-2 border-purple-300 p-8 max-w-md text-center">
+                      <GridIcon className="w-16 h-16 text-purple-500 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        {venueImageUrl ? "Ready to Design!" : "Blank Canvas Ready"}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        {venueImageUrl
+                          ? "Your venue image is loaded. Now add sections to start designing your seating layout."
+                          : "No venue image needed! You can design your seating layout on this blank canvas."
+                        }
                       </p>
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-left">
+                        <p className="text-xs font-semibold text-purple-900 mb-2">📍 Next Steps:</p>
+                        <ol className="text-xs text-purple-800 space-y-1 list-decimal list-inside">
+                          <li>Scroll down to click "Add Section to Canvas"</li>
+                          <li>Sections will appear here - drag to position</li>
+                          <li>Add tables or rows to your sections</li>
+                        </ol>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Section Boxes - REMOVED: We show tables directly now, no section containers */}
+                {/* Section Boxes */}
+                {sections.map((section) => {
+                  const isSelected = selectedSectionId === section.id;
+                  const sectionX = section.x || 100;
+                  const sectionY = section.y || 100;
+                  const sectionWidth = section.width || 200;
+                  const sectionHeight = section.height || 150;
+                  const sectionRotation = section.rotation || 0;
 
-                {/* Tables and Rows SVG Overlay - Larger workspace */}
+                  return (
+                    <motion.div
+                      key={section.id}
+                      className={`absolute cursor-move transition-all ${
+                        isSelected ? "z-10" : ""
+                      }`}
+                      style={{
+                        left: sectionX,
+                        top: sectionY,
+                        width: sectionWidth,
+                        height: sectionHeight,
+                        backgroundColor: "transparent",
+                        border: isSelected ? "2px solid #000000" : "2px dashed #9E9E9E",
+                        borderRadius: "4px",
+                        transform: `rotate(${sectionRotation}deg)`,
+                      }}
+                      onMouseDown={(e) => handleSectionDragStart(e, section)}
+                      whileHover={{ scale: isDragging ? 1 : 1.01 }}
+                    >
+                      {/* Section Label */}
+                      {showSectionLabels && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <div className="bg-white bg-opacity-90 px-3 py-2 rounded-lg shadow-sm">
+                            <p className="font-bold text-gray-900 text-sm">
+                              {section.name}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {getTotalSeats(section)} seats
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Resize Handles (only show when selected) */}
+                      {isSelected && (
+                        <>
+                          {["nw", "ne", "sw", "se"].map((corner) => (
+                            <div
+                              key={corner}
+                              className="absolute w-3 h-3 bg-black border-2 border-white rounded-sm cursor-nwse-resize hover:scale-125 transition-transform"
+                              style={{
+                                [corner.includes("n") ? "top" : "bottom"]: "-6px",
+                                [corner.includes("w") ? "left" : "right"]: "-6px",
+                              }}
+                              onMouseDown={(e) => handleResizeStart(e, section, corner)}
+                            />
+                          ))}
+
+                          {/* Rotate Button */}
+                          <button
+                            className="absolute -top-10 left-1/2 -translate-x-1/2 p-1.5 bg-gray-700 text-white rounded-full border-2 border-white hover:bg-gray-900 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              rotateSection(section.id, sectionRotation);
+                            }}
+                            title="Rotate 15°"
+                          >
+                            <RotateCw className="w-3 h-3" />
+                          </button>
+                        </>
+                      )}
+                    </motion.div>
+                  );
+                })}
+
+                {/* Tables SVG Overlay */}
                 <svg
-                  ref={svgRef}
-                  className="absolute inset-0"
-                  style={{ width: "100%", height: "100%", overflow: "visible", pointerEvents: "auto" }}
-                  viewBox="0 0 3000 2000"
-                  preserveAspectRatio="xMidYMid meet"
-                  onMouseDown={handleSelectionStart}
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ width: "100%", height: "100%", overflow: "visible" }}
                 >
                   {sections.map((section) => {
-                    // Render tables
-                    const tables = section.tables?.map((table) => {
-                      const isSelected = selectedTableId === table.id || selectedElementIds?.has(table.id);
+                    if (!section.tables || section.tables.length === 0) return null;
+
+                    return section.tables.map((table) => {
+                      const isSelected = selectedTableId === table.id;
 
                       return (
                         <g
                           key={table.id}
-                          style={{ pointerEvents: "auto", cursor: "move" }}
+                          className="pointer-events-auto"
                           onMouseDown={(e) => {
                             e.stopPropagation();
                             handleTableDragStart(
@@ -885,11 +537,6 @@ export default function VisualSeatingCanvas({
                               section.id,
                               table
                             );
-                          }}
-                          onContextMenu={(e) => {
-                            if (onTableContextMenu) {
-                              onTableContextMenu(e as unknown as React.MouseEvent, section.id, table.id, table.number);
-                            }
                           }}
                         >
                           <TableRenderer
@@ -901,120 +548,13 @@ export default function VisualSeatingCanvas({
                               }
                             }}
                             showSeats={true}
-                            showLabel={showLabels}
-                            scale={1}
-                            onResizeStart={(corner, e) => {
-                              handleTableResizeStart(section.id, table.id, corner, e, table);
-                            }}
-                          />
-                        </g>
-                      );
-                    });
-
-                    // Render theatre-style rows
-                    const rows = section.rows?.map((row: any) => {
-                      const isSelected = selectedTableId === row.id || selectedElementIds?.has(row.id);
-
-                      return (
-                        <g
-                          key={row.id}
-                          style={{ pointerEvents: "auto", cursor: "move" }}
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            // Use same drag handling but mark as row
-                            handleTableDragStart(
-                              e as unknown as React.MouseEvent,
-                              section.id,
-                              row,
-                              true  // isRow = true
-                            );
-                          }}
-                        >
-                          <RowRenderer
-                            row={row}
-                            isSelected={isSelected}
-                            onClick={() => {
-                              if (onTableSelect) {
-                                onTableSelect(section.id, row.id);
-                              }
-                            }}
+                            showLabel={true}
                             scale={1}
                           />
                         </g>
                       );
                     });
-
-                    return (
-                      <g key={section.id}>
-                        {tables}
-                        {rows}
-                      </g>
-                    );
                   })}
-
-                  {/* Drag Preview Ghost */}
-                  {isDraggingFromLibrary && dragPreviewPosition && draggedTableConfig && (
-                    <g opacity={0.5} pointerEvents="none">
-                      {draggedTableConfig.shape === "ROUND" ? (
-                        <circle
-                          cx={dragPreviewPosition.x}
-                          cy={dragPreviewPosition.y}
-                          r={60}
-                          fill="#3B82F6"
-                          stroke="#1E40AF"
-                          strokeWidth={3}
-                        />
-                      ) : draggedTableConfig.shape === "SQUARE" ? (
-                        <rect
-                          x={dragPreviewPosition.x - 60}
-                          y={dragPreviewPosition.y - 60}
-                          width={120}
-                          height={120}
-                          fill="#3B82F6"
-                          stroke="#1E40AF"
-                          strokeWidth={3}
-                          rx={4}
-                        />
-                      ) : (
-                        <rect
-                          x={dragPreviewPosition.x - 90}
-                          y={dragPreviewPosition.y - 50}
-                          width={180}
-                          height={100}
-                          fill="#3B82F6"
-                          stroke="#1E40AF"
-                          strokeWidth={3}
-                          rx={4}
-                        />
-                      )}
-                      <text
-                        x={dragPreviewPosition.x}
-                        y={dragPreviewPosition.y}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        fill="white"
-                        fontSize="14"
-                        fontWeight="bold"
-                      >
-                        {draggedTableConfig.label}
-                      </text>
-                    </g>
-                  )}
-
-                  {/* Selection Rectangle */}
-                  {selectionBox && (
-                    <rect
-                      x={Math.min(selectionBox.startX, selectionBox.endX)}
-                      y={Math.min(selectionBox.startY, selectionBox.endY)}
-                      width={Math.abs(selectionBox.endX - selectionBox.startX)}
-                      height={Math.abs(selectionBox.endY - selectionBox.startY)}
-                      fill="rgba(59, 130, 246, 0.1)"
-                      stroke="#3B82F6"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      pointerEvents="none"
-                    />
-                  )}
                 </svg>
               </div>
             </TransformComponent>

@@ -19,7 +19,7 @@ export const getOrganizerSettlement = query({
       console.warn("[getOrganizerSettlement] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -159,7 +159,7 @@ export const getStaffSettlementDetails = query({
       console.warn("[getStaffSettlementDetails] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -286,7 +286,7 @@ export const markSettlementPaid = mutation({
       console.warn("[markSettlementPaid] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -336,7 +336,7 @@ export const markSettlementPending = mutation({
       console.warn("[markSettlementPending] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db

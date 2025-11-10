@@ -104,7 +104,7 @@ export const getStaffDashboard = query({
       console.warn("[getStaffDashboard] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -147,6 +147,9 @@ export const getStaffDashboard = query({
           referralCode: staff.referralCode,
           commissionType: staff.commissionType,
           commissionValue: staff.commissionValue,
+          hierarchyLevel: staff.hierarchyLevel,
+          canAssignSubSellers: staff.canAssignSubSellers,
+          canScan: staff.canScan,
         };
       })
     );
@@ -245,7 +248,7 @@ export const getOrganizerStaffSummary = query({
       console.warn("[getOrganizerStaffSummary] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -310,7 +313,7 @@ export const getMySubSellers = query({
       console.warn("[getMySubSellers] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -386,7 +389,7 @@ export const getHierarchyTree = query({
       console.warn("[getHierarchyTree] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -458,7 +461,7 @@ export const getMyParentStaff = query({
       console.warn("[getMyParentStaff] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -522,7 +525,7 @@ export const getSubSellerBranchSales = query({
       console.warn("[getSubSellerBranchSales] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -631,7 +634,7 @@ export const getGlobalStaff = query({
       console.warn("[getGlobalStaff] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -674,7 +677,7 @@ export const getMyGlobalSubSellers = query({
       console.warn("[getMyGlobalSubSellers] TESTING MODE - Using test user");
       currentUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
     } else {
       currentUser = await ctx.db
@@ -717,5 +720,18 @@ export const getMyGlobalSubSellers = query({
       .collect();
 
     return subSellers;
+  },
+});
+
+/**
+ * Get staff member by ID
+ */
+export const getStaffMember = query({
+  args: {
+    staffId: v.id("eventStaff"),
+  },
+  handler: async (ctx, args) => {
+    const staffMember = await ctx.db.get(args.staffId);
+    return staffMember;
   },
 });

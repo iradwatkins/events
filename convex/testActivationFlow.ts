@@ -68,7 +68,7 @@ export const testActivationFlow = mutation({
         // Get test user
         const testUser = await ctx.db
           .query("users")
-          .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+          .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
           .first();
 
         if (!testUser) {
@@ -80,9 +80,9 @@ export const testActivationFlow = mutation({
           eventId: testEvent._id,
           organizerId: testUser._id,
           staffUserId: testUser._id,
-          email: "test@stepperslife.com",
+          email: "iradwatkins@gmail.com",
           name: "Test Staff",
-          role: "SELLER",
+          role: "TEAM_MEMBERS",
           commissionType: "PERCENTAGE",
           commissionValue: 10,
           commissionPercent: 10,

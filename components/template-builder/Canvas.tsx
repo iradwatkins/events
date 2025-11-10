@@ -159,7 +159,7 @@ export default function Canvas({
         <button
           onClick={handleZoomIn}
           disabled={zoom >= 2}
-          className="px-3 py-2 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-bold text-lg"
+          className="px-3 py-2 bg-accent text-primary rounded hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-bold text-lg"
           title="Zoom In"
         >
           +
@@ -174,7 +174,7 @@ export default function Canvas({
         <button
           onClick={handleZoomOut}
           disabled={zoom <= 0.5}
-          className="px-3 py-2 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-bold text-lg"
+          className="px-3 py-2 bg-accent text-primary rounded hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-bold text-lg"
           title="Zoom Out"
         >
           −
@@ -400,7 +400,7 @@ function TableRenderer({ table, isSelected, isDragging, onDragStart }: TableRend
 
       {/* Selection indicator */}
       {isSelected && (
-        <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white" />
+        <div className="absolute -top-2 -right-2 w-4 h-4 bg-primary rounded-full border-2 border-white" />
       )}
     </div>
   );

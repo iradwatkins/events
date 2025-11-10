@@ -394,8 +394,8 @@ export default function SeatSelection({
                           isTablePackage
                             ? tableSelected
                               ? "border-green-500 bg-green-50"
-                              : "border-gray-200 bg-gray-50 hover:border-purple-300"
-                            : "border-gray-200 bg-gray-50 hover:border-blue-300"
+                              : "border-gray-200 bg-gray-50 hover:border-blue-300"
+                            : "border-gray-200 bg-gray-50 hover:border-border"
                         }`}
                       >
                         <h4 className="font-semibold text-gray-900 mb-3 text-center">
@@ -439,7 +439,7 @@ export default function SeatSelection({
                                 tableFullyAvailable
                                   ? tableSelected
                                     ? "bg-green-600 text-white hover:bg-green-700"
-                                    : "bg-purple-600 text-white hover:bg-purple-700"
+                                    : "bg-primary text-white hover:bg-blue-700"
                                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
                               }`}
                             >

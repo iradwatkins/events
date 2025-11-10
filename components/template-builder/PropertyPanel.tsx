@@ -30,7 +30,7 @@ export default function PropertyPanel({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onDuplicateItem(selectedItem.id)}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="p-2 text-primary hover:bg-accent rounded-lg transition-colors"
             title="Duplicate item"
           >
             <Copy className="w-5 h-5" />
@@ -88,8 +88,8 @@ function TableProperties({ table, onUpdate }: TablePropertiesProps) {
   return (
     <div className="space-y-4">
       {/* Table type indicator */}
-      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+      <div className="p-3 bg-accent border border-border rounded-lg">
+        <p className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Circle className="w-4 h-4" />
           Table
         </p>
@@ -98,7 +98,7 @@ function TableProperties({ table, onUpdate }: TablePropertiesProps) {
       {/* Label */}
       <div>
         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-          <Tag className="w-4 h-4 text-blue-600" />
+          <Tag className="w-4 h-4 text-primary" />
           Label
         </label>
         <input
@@ -106,7 +106,7 @@ function TableProperties({ table, onUpdate }: TablePropertiesProps) {
           value={table.label || ""}
           onChange={(e) => onUpdate({ label: e.target.value })}
           placeholder="e.g., VIP Table 1"
-          className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+          className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary transition-all"
         />
         <p className="text-xs text-gray-500 mt-1.5">Optional identifier for this table</p>
       </div>
@@ -127,7 +127,7 @@ function TableProperties({ table, onUpdate }: TablePropertiesProps) {
               onClick={() => onUpdate({ shape })}
               className={`flex flex-col items-center justify-center p-2 border-2 rounded-lg transition-all ${
                 table.shape === shape
-                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  ? "border-primary bg-accent text-primary"
                   : "border-gray-200 hover:border-gray-300 text-gray-600"
               }`}
             >
@@ -141,7 +141,7 @@ function TableProperties({ table, onUpdate }: TablePropertiesProps) {
       {/* Capacity */}
       <div>
         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-          <Users className="w-4 h-4 text-blue-600" />
+          <Users className="w-4 h-4 text-primary" />
           Capacity
         </label>
         <div className="flex items-center gap-2">
@@ -158,7 +158,7 @@ function TableProperties({ table, onUpdate }: TablePropertiesProps) {
             max="20"
             value={table.capacity}
             onChange={(e) => onUpdate({ capacity: parseInt(e.target.value) || 1 })}
-            className="flex-1 text-center px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-semibold text-lg transition-all"
+            className="flex-1 text-center px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary font-semibold text-lg transition-all"
           />
           <button
             onClick={() => onUpdate({ capacity: Math.min(20, table.capacity + 1) })}
@@ -195,17 +195,17 @@ function TableProperties({ table, onUpdate }: TablePropertiesProps) {
       </div>
 
       {/* Position info (read-only) */}
-      <div className="p-3 bg-blue-50 border-2 border-blue-100 rounded-lg">
+      <div className="p-3 bg-accent border-2 border-blue-100 rounded-lg">
         <div className="flex items-center gap-2 mb-2">
-          <MapPin className="w-4 h-4 text-blue-600" />
-          <span className="text-xs font-semibold text-blue-900">Position & Size</span>
+          <MapPin className="w-4 h-4 text-primary" />
+          <span className="text-xs font-semibold text-foreground">Position & Size</span>
         </div>
         <div className="space-y-1">
-          <p className="text-xs text-blue-700">
+          <p className="text-xs text-primary">
             <span className="font-semibold">X:</span> {Math.round(table.position.x)}px
             <span className="font-semibold ml-3">Y:</span> {Math.round(table.position.y)}px
           </p>
-          <p className="text-xs text-blue-700">
+          <p className="text-xs text-primary">
             <span className="font-semibold">Size:</span> {table.size.width} × {table.size.height}px
           </p>
         </div>
@@ -226,9 +226,9 @@ function RowSectionProperties({ rowSection, onUpdate }: RowSectionPropertiesProp
   return (
     <div className="space-y-4">
       {/* Row section type indicator */}
-      <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-        <p className="text-sm font-semibold text-purple-900">Row Section</p>
-        <p className="text-xs text-purple-700 mt-1">
+      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm font-semibold text-gray-900">Row Section</p>
+        <p className="text-xs text-primary mt-1">
           Total: {rowSection.rowCount * rowSection.seatsPerRow} seats
         </p>
       </div>
@@ -243,7 +243,7 @@ function RowSectionProperties({ rowSection, onUpdate }: RowSectionPropertiesProp
           value={rowSection.label || ""}
           onChange={(e) => onUpdate({ label: e.target.value })}
           placeholder="e.g., Main Orchestra"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
         />
       </div>
 
@@ -258,7 +258,7 @@ function RowSectionProperties({ rowSection, onUpdate }: RowSectionPropertiesProp
           max="30"
           value={rowSection.rowCount}
           onChange={(e) => onUpdate({ rowCount: parseInt(e.target.value) || 1 })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
         />
       </div>
 
@@ -273,7 +273,7 @@ function RowSectionProperties({ rowSection, onUpdate }: RowSectionPropertiesProp
           max="50"
           value={rowSection.seatsPerRow}
           onChange={(e) => onUpdate({ seatsPerRow: parseInt(e.target.value) || 1 })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
         />
       </div>
 

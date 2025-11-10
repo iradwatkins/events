@@ -28,7 +28,7 @@ export default function ShopPage() {
             </div>
             <Link
               href="/"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
               Back to Home
             </Link>
@@ -70,7 +70,7 @@ export default function ShopPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-purple-600">
+                      <div className="w-full h-full flex items-center justify-center bg-primary">
                         <Package className="w-16 h-16 text-gray-400" />
                       </div>
                     )}
@@ -110,7 +110,7 @@ export default function ShopPage() {
                     )}
 
                     {product.category && (
-                      <span className="inline-block px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded mb-4">
+                      <span className="inline-block px-2 py-1 bg-accent text-primary text-xs rounded mb-4">
                         {product.category}
                       </span>
                     )}
@@ -118,7 +118,7 @@ export default function ShopPage() {
                     {/* Add to Cart Button */}
                     <button
                       disabled={product.trackInventory && product.inventoryQuantity === 0}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="w-4 h-4" />
                       {product.trackInventory && product.inventoryQuantity === 0
@@ -135,11 +135,11 @@ export default function ShopPage() {
 
       {/* Footer Note */}
       <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-          <p className="text-blue-900 font-medium">
+        <div className="bg-accent border border-border rounded-lg p-6 text-center">
+          <p className="text-foreground font-medium">
             Shopping cart and checkout functionality coming soon!
           </p>
-          <p className="text-blue-700 text-sm mt-2">
+          <p className="text-primary text-sm mt-2">
             Currently accepting orders through our admin panel. Contact us to place an order.
           </p>
         </div>

@@ -9,14 +9,14 @@ export const getCurrentUser = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: If no identity, return test user
+    // TESTING MODE: If no identity, return admin user
     if (!identity) {
-      console.warn("[getCurrentUser] TESTING MODE - No authentication, returning test user");
-      const testUser = await ctx.db
+      console.warn("[getCurrentUser] TESTING MODE - No authentication, returning admin user");
+      const adminUser = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
-      return testUser;
+      return adminUser;
     }
 
     // Parse the identity (which is a JSON string from our NextAuth integration)

@@ -147,8 +147,9 @@ export const isAuthorizedScanner = query({
 
     if (staffRecord) {
       // Check if staff member is authorized to scan
-      const canScan = staffRecord.role === "SCANNER" ||
-                      (staffRecord.role === "SELLER" && staffRecord.canScan === true);
+      const canScan = staffRecord.role === "STAFF" ||
+                      (staffRecord.role === "TEAM_MEMBERS" && staffRecord.canScan === true) ||
+                      (staffRecord.role === "ASSOCIATES" && staffRecord.canScan === true);
 
       return {
         isAuthorized: canScan,
@@ -224,8 +225,9 @@ export const getMyScannableEvents = query({
 
       for (const staff of staffRecords) {
         // Only include events where staff can scan
-        const canScan = staff.role === "SCANNER" ||
-                       (staff.role === "SELLER" && staff.canScan === true);
+        const canScan = staff.role === "STAFF" ||
+                       (staff.role === "TEAM_MEMBERS" && staff.canScan === true) ||
+                       (staff.role === "ASSOCIATES" && staff.canScan === true);
 
         if (canScan) {
           if (staff.eventId) {

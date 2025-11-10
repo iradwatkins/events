@@ -105,7 +105,7 @@ export default function TicketSetupPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
           <p className="text-gray-600">You don't have permission to access this page.</p>
-          <Link href="/" className="mt-4 inline-block text-blue-600 hover:underline">
+          <Link href="/" className="mt-4 inline-block text-primary hover:underline">
             Go to Homepage
           </Link>
         </div>
@@ -175,7 +175,7 @@ export default function TicketSetupPage() {
             <div className="mt-8">
               <Link
                 href={`/organizer/events/${eventId}`}
-                className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
               >
                 Go to Event Dashboard
               </Link>
@@ -290,7 +290,7 @@ export default function TicketSetupPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -319,8 +319,8 @@ export default function TicketSetupPage() {
           className="mb-8"
         >
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Ticket className="w-6 h-6 text-blue-600" />
+            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+              <Ticket className="w-6 h-6 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900">Set Up Ticket Tiers</h1>
           </div>
@@ -335,7 +335,7 @@ export default function TicketSetupPage() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-6 bg-purple-600 border-2 border-green-200 rounded-lg p-6"
+            className="mb-6 bg-primary border-2 border-green-200 rounded-lg p-6"
           >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -359,8 +359,8 @@ export default function TicketSetupPage() {
                       First {credits.creditsTotal} tickets: <strong className="text-green-700">FREE</strong>
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                      Additional tickets: <strong className="text-blue-700">$0.30 each</strong>
+                      <span className="w-2 h-2 bg-primary rounded-full"></span>
+                      Additional tickets: <strong className="text-primary">$0.30 each</strong>
                     </li>
                   </ul>
                 </div>
@@ -482,7 +482,7 @@ export default function TicketSetupPage() {
                   </div>
 
                   {/* Table Package Option */}
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                  <div className="bg-accent border border-primary rounded-lg p-4">
                     <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
@@ -493,13 +493,13 @@ export default function TicketSetupPage() {
                           newTiers[index].isTablePackage = e.target.checked;
                           setTiers(newTiers);
                         }}
-                        className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-600"
+                        className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-ring"
                       />
                       <div className="flex-1">
-                        <label htmlFor={`tablePackage-${index}`} className="font-semibold text-indigo-900 cursor-pointer">
+                        <label htmlFor={`tablePackage-${index}`} className="font-semibold text-foreground cursor-pointer">
                           Sell as Table Package
                         </label>
-                        <p className="text-sm text-indigo-800 mt-1">
+                        <p className="text-sm text-foreground mt-1">
                           Enable this to sell entire tables instead of individual seats. Customers must purchase all seats at a table together.
                         </p>
 
@@ -515,7 +515,7 @@ export default function TicketSetupPage() {
                             <select
                               value={tier.tableCapacity}
                               onChange={(e) => handleTierChange(index, "tableCapacity", e.target.value)}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent bg-white"
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-white"
                             >
                               <option value="2">2 seats</option>
                               <option value="4">4 seats</option>
@@ -524,7 +524,7 @@ export default function TicketSetupPage() {
                               <option value="10">10 seats</option>
                               <option value="12">12 seats</option>
                             </select>
-                            <p className="text-xs text-indigo-700 mt-2">
+                            <p className="text-xs text-primary mt-2">
                               <strong>Price breakdown:</strong> ${tier.price ? (parseFloat(tier.price) / parseInt(tier.tableCapacity || "4")).toFixed(2) : "0.00"} per seat
                             </p>
                           </motion.div>
@@ -538,10 +538,10 @@ export default function TicketSetupPage() {
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
-                      className="bg-purple-600 border border-blue-200 rounded-lg p-4"
+                      className="bg-primary border border-border rounded-lg p-4"
                     >
                       <div className="flex items-start gap-2">
-                        <DollarSign className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <DollarSign className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900 mb-2">
                             Cost for this tier
@@ -564,17 +564,17 @@ export default function TicketSetupPage() {
                                   </div>
                                 )}
                                 {breakdown.paidTickets > 0 && (
-                                  <div className="flex items-center justify-between text-blue-700">
+                                  <div className="flex items-center justify-between text-primary">
                                     <span className="flex items-center gap-1">
-                                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                      <span className="w-2 h-2 bg-primary rounded-full"></span>
                                       {breakdown.paidTickets} paid tickets × $0.30
                                     </span>
                                     <strong>${breakdown.cost.toFixed(2)}</strong>
                                   </div>
                                 )}
-                                <div className="border-t border-blue-300 pt-2 mt-2 flex items-center justify-between font-bold text-gray-900">
+                                <div className="border-t border-border pt-2 mt-2 flex items-center justify-between font-bold text-gray-900">
                                   <span>Total for this tier:</span>
-                                  <span className={breakdown.cost > 0 ? "text-blue-700" : "text-green-700"}>
+                                  <span className={breakdown.cost > 0 ? "text-primary" : "text-green-700"}>
                                     {breakdown.cost > 0 ? `$${breakdown.cost.toFixed(2)}` : "FREE"}
                                   </span>
                                 </div>
@@ -587,14 +587,14 @@ export default function TicketSetupPage() {
                   )}
 
                   {/* Early Bird Pricing Section */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="bg-accent border border-border rounded-lg p-4">
                     <div className="flex items-start gap-2 mb-3">
-                      <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-white text-xs">i</span>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-blue-900 mb-1">Early Bird Pricing</h4>
-                        <p className="text-sm text-blue-800">
+                        <h4 className="font-semibold text-foreground mb-1">Early Bird Pricing</h4>
+                        <p className="text-sm text-accent-foreground">
                           Set sale dates to create time-based pricing. Leave blank for always-available tiers.
                         </p>
                       </div>
@@ -630,8 +630,8 @@ export default function TicketSetupPage() {
                       </div>
                     </div>
 
-                    <div className="mt-3 p-3 bg-white border border-blue-200 rounded">
-                      <p className="text-xs text-blue-800">
+                    <div className="mt-3 p-3 bg-white border border-border rounded">
+                      <p className="text-xs text-accent-foreground">
                         <strong>Example:</strong> Create "Early Bird" tier with sale end date, then "General Admission" tier with no dates for automatic price increase!
                       </p>
                     </div>
@@ -646,7 +646,7 @@ export default function TicketSetupPage() {
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             onClick={handleAddTier}
-            className="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-600 hover:text-blue-600 transition-colors flex items-center justify-center gap-2 font-medium"
+            className="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2 font-medium"
           >
             <Plus className="w-5 h-5" />
             Add Another Tier
@@ -658,10 +658,10 @@ export default function TicketSetupPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-purple-600 border-2 border-purple-200 rounded-lg p-6 mt-6"
+            className="bg-primary border-2 border-primary rounded-lg p-6 mt-6"
           >
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Ticket className="w-5 h-5 text-purple-600" />
+              <Ticket className="w-5 h-5 text-primary" />
               Total Summary
             </h3>
             <div className="bg-white rounded-lg p-4 space-y-3">
@@ -681,11 +681,11 @@ export default function TicketSetupPage() {
               )}
               {costBreakdown.totalPaidTickets > 0 && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-blue-700 flex items-center gap-2">
+                  <span className="text-primary flex items-center gap-2">
                     <DollarSign className="w-4 h-4" />
                     Paid tickets:
                   </span>
-                  <strong className="text-blue-700">
+                  <strong className="text-primary">
                     {costBreakdown.totalPaidTickets} × $0.30 = ${costBreakdown.totalCost.toFixed(2)}
                   </strong>
                 </div>
@@ -694,7 +694,7 @@ export default function TicketSetupPage() {
               <div className="flex items-center justify-between">
                 <span className="font-bold text-gray-900">Total Cost:</span>
                 <span className={`text-2xl font-bold ${
-                  costBreakdown.totalCost > 0 ? "text-purple-700" : "text-green-700"
+                  costBreakdown.totalCost > 0 ? "text-primary" : "text-green-700"
                 }`}>
                   {costBreakdown.totalCost > 0 ? `$${costBreakdown.totalCost.toFixed(2)}` : "FREE"}
                 </span>
@@ -726,7 +726,7 @@ export default function TicketSetupPage() {
             disabled={isProcessing}
             className={`px-8 py-3 rounded-lg font-semibold transition-all ${
               !isProcessing
-                ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg"
+                ? "bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
@@ -742,7 +742,7 @@ export default function TicketSetupPage() {
         </div>
 
         {/* Help Text */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="mt-6 bg-accent border border-border rounded-lg p-4">
           <p className="text-sm text-gray-700">
             <span className="font-semibold">Tip:</span> You can create multiple ticket tiers with different prices and quantities. For example, Early Bird tickets at a lower price, General Admission, and VIP tickets with extra perks.
           </p>

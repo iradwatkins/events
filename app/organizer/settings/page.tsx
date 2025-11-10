@@ -24,7 +24,7 @@ export default function SettingsPage() {
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export default function SettingsPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
               <div className="px-4 py-3 border border-gray-200 rounded-lg bg-gray-50">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent text-accent-foreground">
                   {currentUser.role === "organizer" ? "Event Organizer" : currentUser.role || "User"}
                 </span>
               </div>
@@ -104,7 +104,7 @@ export default function SettingsPage() {
                 </p>
                 <Link
                   href="/organizer/events"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
                 >
                   Set Up Payments
                   <ExternalLink className="w-4 h-4" />
@@ -118,13 +118,13 @@ export default function SettingsPage() {
                 Your pre-purchased ticket credits for the PRE_PURCHASE payment model
               </p>
               <div className="flex items-center gap-4">
-                <div className="px-4 py-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-600">Available Credits</p>
-                  <p className="text-2xl font-bold text-blue-900">0</p>
+                <div className="px-4 py-3 bg-accent border border-border rounded-lg">
+                  <p className="text-sm text-primary">Available Credits</p>
+                  <p className="text-2xl font-bold text-foreground">0</p>
                 </div>
                 <Link
                   href="/pricing"
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-sm text-primary hover:underline"
                 >
                   Purchase Credits
                 </Link>
@@ -154,7 +154,7 @@ export default function SettingsPage() {
                   onChange={(e) => setEmailNotifications(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
               </label>
             </div>
 
@@ -170,7 +170,7 @@ export default function SettingsPage() {
                   onChange={(e) => setMarketingEmails(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
               </label>
             </div>
 

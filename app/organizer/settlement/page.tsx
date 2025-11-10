@@ -35,28 +35,24 @@ export default function SettlementDashboard() {
   if (!settlement || !organizerEvents) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
   const handleMarkPaid = async (staffId: Id<"eventStaff">) => {
-    if (confirm("Mark this settlement as paid?")) {
-      try {
-        await markPaid({ staffId });
-      } catch (error: any) {
-        alert(error.message);
-      }
+    try {
+      await markPaid({ staffId });
+    } catch (error: any) {
+      alert(error.message);
     }
   };
 
   const handleMarkPending = async (staffId: Id<"eventStaff">) => {
-    if (confirm("Mark this settlement as pending (unpaid)?")) {
-      try {
-        await markPending({ staffId });
-      } catch (error: any) {
-        alert(error.message);
-      }
+    try {
+      await markPending({ staffId });
+    } catch (error: any) {
+      alert(error.message);
     }
   };
 
@@ -130,7 +126,7 @@ export default function SettlementDashboard() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-gray-600">Active Staff</p>
-            <Users className="w-5 h-5 text-blue-600" />
+            <Users className="w-5 h-5 text-primary" />
           </div>
           <p className="text-3xl font-bold text-gray-900">
             {settlement.summary.activeStaff}
@@ -197,7 +193,7 @@ export default function SettlementDashboard() {
                         </span>
                       )}
                       {staff.hierarchyLevel && staff.hierarchyLevel > 1 && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                        <span className="px-2 py-1 bg-accent text-primary text-xs rounded-full">
                           Level {staff.hierarchyLevel} Sub-Seller
                         </span>
                       )}
@@ -231,7 +227,7 @@ export default function SettlementDashboard() {
                       </div>
                       <div>
                         <span className="text-gray-600">Cash Collected:</span>
-                        <span className="font-semibold text-blue-600 ml-2">
+                        <span className="font-semibold text-primary ml-2">
                           ${(staff.cashCollected / 100).toFixed(2)}
                         </span>
                       </div>
@@ -339,12 +335,12 @@ export default function SettlementDashboard() {
       </div>
 
       {/* Help Section */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <div className="mt-8 bg-accent border border-border rounded-lg p-6">
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-semibold text-blue-900 mb-2">How Settlement Works</h3>
-            <ul className="text-sm text-blue-800 space-y-1">
+            <h3 className="font-semibold text-foreground mb-2">How Settlement Works</h3>
+            <ul className="text-sm text-accent-foreground space-y-1">
               <li>
                 • <strong>Commission Earned:</strong> Total commission from all ticket sales (cash + credit)
               </li>

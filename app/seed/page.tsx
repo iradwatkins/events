@@ -30,9 +30,9 @@ export default function SeedPage() {
           This will create 6 sample stepping events with Unsplash images to test the platform.
         </p>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-blue-900 mb-2">Sample Events Include:</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
+        <div className="bg-accent border border-border rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-foreground mb-2">Sample Events Include:</h3>
+          <ul className="text-sm text-accent-foreground space-y-1">
             <li>• Chicago Steppers Set - Summer Edition (Ticketed)</li>
             <li>• Steppin' Workshop: Mastering the Basics (Ticketed)</li>
             <li>• Memorial Day Weekend Steppers Cruise 2025 (Save the Date)</li>

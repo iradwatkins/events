@@ -23,7 +23,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { toDate } from "date-fns-tz";
 import { format as formatDate } from "date-fns";
 
-type EventType = "TICKETED_EVENT" | "FREE_EVENT" | "SAVE_THE_DATE" | "BALLROOM_EVENT";
+type EventType = "TICKETED_EVENT" | "FREE_EVENT" | "SAVE_THE_DATE"; // | "BALLROOM_EVENT"; // Ballroom feature hidden
 
 interface TicketTier {
   id: string;
@@ -129,7 +129,7 @@ export default function CreateEventPage() {
   //     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
   //       <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
   //         <p className="text-gray-600 mb-4">Please sign in to create an event.</p>
-  //         <Link href="/login?callbackUrl=/organizer/events/create" className="text-blue-600 hover:underline font-medium">
+  //         <Link href="/login?callbackUrl=/organizer/events/create" className="text-primary hover:underline font-medium">
   //           Sign In
   //         </Link>
   //       </div>
@@ -155,8 +155,8 @@ export default function CreateEventPage() {
     if (!city) missingFields.push("City");
     if (!state) missingFields.push("State");
 
-    // Validate ticket tiers for TICKETED_EVENT and BALLROOM_EVENT
-    if (eventType === "TICKETED_EVENT" || eventType === "BALLROOM_EVENT") {
+    // Validate ticket tiers for TICKETED_EVENT
+    if (eventType === "TICKETED_EVENT") { // || eventType === "BALLROOM_EVENT" - Ballroom feature hidden
       if (ticketTiers.length === 0) {
         alert("Please add at least one ticket tier for your ticketed event.");
         return;
@@ -253,8 +253,8 @@ export default function CreateEventPage() {
         throw new Error("No event ID returned from server");
       }
 
-      // Create ticket tiers for TICKETED_EVENT and BALLROOM_EVENT
-      if ((eventType === "TICKETED_EVENT" || eventType === "BALLROOM_EVENT") && ticketTiers.length > 0) {
+      // Create ticket tiers for TICKETED_EVENT
+      if (eventType === "TICKETED_EVENT" && ticketTiers.length > 0) { // || eventType === "BALLROOM_EVENT" - Ballroom feature hidden
         console.log("[CREATE EVENT] Creating", ticketTiers.length, "ticket tiers...");
 
         for (const tier of ticketTiers) {
@@ -278,18 +278,17 @@ export default function CreateEventPage() {
       console.log("[CREATE EVENT] Event ID:", eventId);
 
       // Redirect based on event type
-      if (eventType === "BALLROOM_EVENT") {
-        console.log("[CREATE EVENT] Redirecting to seating designer for ballroom event...");
-        alert("Ballroom Event created! Redirecting to seating designer...");
-        router.push(`/organizer/events/${eventId}/seating`);
-      } else if (eventType === "TICKETED_EVENT") {
+      // Ballroom feature hidden
+      // if (eventType === "BALLROOM_EVENT") {
+      //   console.log("[CREATE EVENT] Redirecting to seating designer for ballroom event...");
+      //   router.push(`/organizer/events/${eventId}/seating`);
+      // } else
+      if (eventType === "TICKETED_EVENT") {
         console.log("[CREATE EVENT] Redirecting to payment setup for ticketed event...");
-        alert("Ticketed Event created! Redirecting to payment setup...");
         router.push(`/organizer/events/${eventId}/payment-setup`);
       } else {
         // For SAVE_THE_DATE and FREE_EVENT, go straight to dashboard
         console.log("[CREATE EVENT] Event type is", eventType, "- Redirecting to dashboard...");
-        alert(`${eventType === "FREE_EVENT" ? "Free Event" : "Save the Date"} created successfully!`);
         router.push("/organizer/events");
       }
 
@@ -327,7 +326,7 @@ export default function CreateEventPage() {
           {/* Progress Bar */}
           <div className="mt-4 h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-600 transition-all duration-300"
+              className="h-full bg-primary transition-all duration-300"
               style={{ width: `${(step / totalSteps) * 100}%` }}
             />
           </div>
@@ -377,16 +376,17 @@ export default function CreateEventPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
                     { type: "TICKETED_EVENT" as EventType, label: "Ticketed Event", desc: "Sell tickets", icon: "🎫" },
-                    { type: "BALLROOM_EVENT" as EventType, label: "Ballroom Event", desc: "Table seating & tickets", icon: "💃" },
+                    // Ballroom feature hidden
+                    // { type: "BALLROOM_EVENT" as EventType, label: "Ballroom Event", desc: "Table seating & tickets", icon: "💃" },
                     { type: "FREE_EVENT" as EventType, label: "Free Event", desc: "Free registration", icon: "🎉" },
                     { type: "SAVE_THE_DATE" as EventType, label: "Save the Date", desc: "Coming soon", icon: "📅" },
-                  ].map(({ type, label, desc, icon }) => (
+                  ].filter(Boolean).map(({ type, label, desc, icon }) => (
                     <button
                       key={type}
                       onClick={() => setEventType(type)}
                       className={`p-4 border-2 rounded-lg text-left transition-all ${
                         eventType === type
-                          ? "border-blue-600 bg-blue-50"
+                          ? "border-primary bg-accent"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -424,7 +424,7 @@ export default function CreateEventPage() {
                       onClick={() => handleCategoryToggle(category)}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                         categories.includes(category)
-                          ? "bg-blue-600 text-white"
+                          ? "bg-primary text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
@@ -476,14 +476,14 @@ export default function CreateEventPage() {
 
               {/* Auto-detected timezone */}
               {detectedTimezone && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="bg-accent border border-border rounded-lg p-4">
                   <div className="flex items-start gap-2">
-                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-blue-900">
+                      <p className="text-sm font-medium text-foreground">
                         Timezone: {detectedTimezone}
                       </p>
-                      <p className="text-xs text-blue-700 mt-1">
+                      <p className="text-xs text-primary mt-1">
                         Auto-detected from {city}, {state}
                       </p>
                     </div>
@@ -634,18 +634,19 @@ export default function CreateEventPage() {
                 </div>
               )}
 
-              {/* Ticket Tiers - For TICKETED_EVENT and BALLROOM_EVENT */}
-              {(eventType === "TICKETED_EVENT" || eventType === "BALLROOM_EVENT") && (
+              {/* Ticket Tiers - For TICKETED_EVENT */}
+              {eventType === "TICKETED_EVENT" && (
                 <div>
                   <TicketTierEditor tiers={ticketTiers} onChange={setTicketTiers} />
                   <p className="text-xs text-gray-500 mt-2">
                     * At least one ticket tier is required for ticketed events
                   </p>
-                  {eventType === "BALLROOM_EVENT" && (
-                    <p className="text-xs text-blue-600 mt-2">
+                  {/* Ballroom feature hidden */}
+                  {/* {eventType === "BALLROOM_EVENT" && (
+                    <p className="text-xs text-primary mt-2">
                       💡 You'll set up table seating layout in the next step
                     </p>
-                  )}
+                  )} */}
                 </div>
               )}
 
@@ -659,10 +660,10 @@ export default function CreateEventPage() {
                 />
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-accent border border-border rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-blue-900">
+                  <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-foreground">
                     <p className="font-semibold mb-1">Next Steps</p>
                     <p>
                       After creating your event, you'll set up payment options and create ticket tiers.
@@ -690,7 +691,7 @@ export default function CreateEventPage() {
             {step < totalSteps ? (
               <button
                 onClick={() => setStep(step + 1)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold"
               >
                 Next Step
               </button>
@@ -701,7 +702,7 @@ export default function CreateEventPage() {
                 className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
                   isSubmitting
                     ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-primary text-white hover:bg-primary/90"
                 }`}
               >
                 {isSubmitting ? "Creating Event..." : "Create Event"}

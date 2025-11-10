@@ -65,7 +65,6 @@ export default function EditTemplatePage() {
         seatingStyle,
       });
 
-      alert("Template updated successfully!");
       router.push("/organizer/templates");
     } catch (error: any) {
       console.error("Failed to update template:", error);
@@ -85,7 +84,7 @@ export default function EditTemplatePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Loading template...</p>
         </div>
       </div>
@@ -118,7 +117,7 @@ export default function EditTemplatePage() {
           </p>
           <Link
             href="/organizer/templates"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             <ArrowLeft className="w-5 h-5" />
             Back to Templates
@@ -133,7 +132,7 @@ export default function EditTemplatePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Preparing editor...</p>
         </div>
       </div>

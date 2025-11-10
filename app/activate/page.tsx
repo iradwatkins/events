@@ -62,7 +62,7 @@ export default function ActivatePage() {
 
   if (activated && ticketData) {
     return (
-      <div className="min-h-screen bg-purple-600 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-primary flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
           {/* Success Header */}
           <div className="text-center mb-6">
@@ -115,8 +115,8 @@ export default function ActivatePage() {
           </div>
 
           {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-900">
+          <div className="bg-accent border border-border rounded-lg p-4 mb-6">
+            <p className="text-sm text-foreground">
               <strong>Important:</strong> Save this QR code! You'll need it to enter the event.
               A confirmation email has been sent to <strong>{ticketData.attendeeEmail}</strong>.
             </p>
@@ -126,7 +126,7 @@ export default function ActivatePage() {
           <div className="space-y-2">
             <button
               onClick={() => window.print()}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="w-full bg-primary text-white py-3 px-4 rounded-lg font-medium hover:bg-primary/90 transition-colors"
             >
               Print Ticket
             </button>
@@ -143,12 +143,12 @@ export default function ActivatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-purple-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-primary flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <Ticket className="w-10 h-10 text-blue-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-accent rounded-full mb-4">
+            <Ticket className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Activate Your Ticket
@@ -183,7 +183,7 @@ export default function ActivatePage() {
               }}
               placeholder="0000"
               maxLength={4}
-              className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
               required
               autoFocus
             />
@@ -203,7 +203,7 @@ export default function ActivatePage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
               required
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -222,7 +222,7 @@ export default function ActivatePage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="John Doe"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
             />
           </div>
 
@@ -230,7 +230,7 @@ export default function ActivatePage() {
           <button
             type="submit"
             disabled={loading || activationCode.length !== 4 || !email}
-            className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            className="w-full bg-primary text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-primary/90 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -250,7 +250,7 @@ export default function ActivatePage() {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
             Lost your activation code?{" "}
-            <a href="/help" className="text-blue-600 hover:text-blue-700 font-medium">
+            <a href="/help" className="text-primary hover:text-primary font-medium">
               Contact Support
             </a>
           </p>

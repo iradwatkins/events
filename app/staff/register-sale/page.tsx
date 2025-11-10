@@ -36,7 +36,7 @@ export default function RegisterSalePage() {
   if (!staffPositions) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -92,7 +92,7 @@ export default function RegisterSalePage() {
 
           {/* ACTIVATION CODES - Most Important Section */}
           {successData.activationCodes && successData.activationCodes.length > 0 && (
-            <div className="bg-blue-50 border-2 border-blue-600 rounded-lg p-6 mb-6">
+            <div className="bg-accent border-2 border-primary rounded-lg p-6 mb-6">
               <div className="bg-yellow-100 border border-yellow-400 rounded-lg p-3 mb-4">
                 <div className="flex items-start">
                   <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
@@ -103,7 +103,7 @@ export default function RegisterSalePage() {
                 </div>
               </div>
 
-              <h3 className="text-lg font-bold text-blue-900 mb-3">
+              <h3 className="text-lg font-bold text-foreground mb-3">
                 Customer Activation Codes
               </h3>
               <p className="text-sm text-gray-700 mb-4">
@@ -112,11 +112,11 @@ export default function RegisterSalePage() {
 
               <div className="space-y-3">
                 {successData.activationCodes.map((code: string, index: number) => (
-                  <div key={index} className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                  <div key={index} className="bg-white rounded-lg p-4 border-2 border-border">
                     <div className="text-xs text-gray-600 mb-1">
                       Ticket {index + 1} of {successData.activationCodes.length}
                     </div>
-                    <div className="text-5xl font-bold tracking-widest text-blue-600 font-mono">
+                    <div className="text-5xl font-bold tracking-widest text-primary font-mono">
                       {code}
                     </div>
                   </div>
@@ -128,7 +128,7 @@ export default function RegisterSalePage() {
                   Instructions for Customer:
                 </p>
                 <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
-                  <li>Visit <span className="font-mono font-semibold text-blue-600">events.stepperslife.com/activate</span></li>
+                  <li>Visit <span className="font-mono font-semibold text-primary">events.stepperslife.com/activate</span></li>
                   <li>Enter your 4-digit activation code</li>
                   <li>Provide your email address</li>
                   <li>Receive your official QR code ticket via email</li>
@@ -164,7 +164,7 @@ export default function RegisterSalePage() {
           <div className="space-y-3">
             <button
               onClick={handleReset}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
             >
               Register Another Sale
             </button>
@@ -204,7 +204,7 @@ export default function RegisterSalePage() {
                   }}
                   className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
                     selectedStaffId === position._id
-                      ? "border-blue-600 bg-blue-50"
+                      ? "border-primary bg-accent"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
@@ -228,7 +228,7 @@ export default function RegisterSalePage() {
                     onClick={() => setSelectedTierId(tier._id)}
                     className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
                       selectedTierId === tier._id
-                        ? "border-blue-600 bg-blue-50"
+                        ? "border-primary bg-accent"
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
@@ -357,10 +357,10 @@ export default function RegisterSalePage() {
               </div>
 
               {/* Info Box - What Happens Next */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div className="bg-accent border border-border rounded-lg p-3 mb-4">
                 <div className="flex items-start">
-                  <AlertCircle className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" />
-                  <div className="text-sm text-blue-800">
+                  <AlertCircle className="w-5 h-5 text-primary mr-2 flex-shrink-0" />
+                  <div className="text-sm text-accent-foreground">
                     <p className="font-medium mb-1">What happens after you register this sale:</p>
                     <ol className="list-decimal list-inside space-y-0.5 text-xs">
                       <li>System generates activation codes for each ticket</li>
@@ -377,7 +377,7 @@ export default function RegisterSalePage() {
                 disabled={!buyerName}
                 className={`w-full px-6 py-4 rounded-lg font-semibold transition-all ${
                   buyerName
-                    ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg"
+                    ? "bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >

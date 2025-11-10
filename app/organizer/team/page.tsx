@@ -95,10 +95,6 @@ export default function DefaultTeamPage() {
   };
 
   const handleRemoveStaff = async (staffId: Id<"eventStaff">) => {
-    if (!confirm("Remove this staff member from your default team?")) {
-      return;
-    }
-
     try {
       await removeStaff({ staffId });
     } catch (err: any) {
@@ -109,7 +105,7 @@ export default function DefaultTeamPage() {
   if (!globalStaff) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -136,10 +132,10 @@ export default function DefaultTeamPage() {
       )}
 
       {/* Info Banner */}
-      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="mb-6 bg-accent border border-border rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
+          <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-accent-foreground">
             <p className="font-semibold mb-1">How Default Team Works:</p>
             <ul className="list-disc list-inside space-y-1">
               <li>Staff members added here are your "default roster"</li>
@@ -155,7 +151,7 @@ export default function DefaultTeamPage() {
       <div className="mb-6">
         <button
           onClick={() => setShowAddStaff(true)}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-semibold"
+          className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition flex items-center gap-2 font-semibold"
         >
           <Plus className="w-5 h-5" />
           Add Default Staff Member
@@ -219,7 +215,7 @@ export default function DefaultTeamPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
+                      <span className="px-3 py-1 text-xs font-semibold bg-accent text-primary rounded-full">
                         {staff.role}
                       </span>
                     </td>
@@ -299,7 +295,7 @@ export default function DefaultTeamPage() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="John Doe"
                   />
                 </div>
@@ -313,7 +309,7 @@ export default function DefaultTeamPage() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -324,7 +320,7 @@ export default function DefaultTeamPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
@@ -334,7 +330,7 @@ export default function DefaultTeamPage() {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as StaffRole })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                   >
                     <option value="SELLER">Seller</option>
                     <option value="SCANNER">Scanner</option>
@@ -348,7 +344,7 @@ export default function DefaultTeamPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, commissionType: e.target.value as "PERCENTAGE" | "FIXED" })
                     }
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                   >
                     <option value="PERCENTAGE">Percentage</option>
                     <option value="FIXED">Fixed Amount</option>
@@ -366,7 +362,7 @@ export default function DefaultTeamPage() {
                       required
                       value={formData.commissionValue}
                       onChange={(e) => setFormData({ ...formData, commissionValue: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder={formData.commissionType === "PERCENTAGE" ? "10" : "5.00"}
                     />
                     {formData.commissionType === "PERCENTAGE" && (
@@ -378,13 +374,13 @@ export default function DefaultTeamPage() {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="bg-accent border border-border rounded-lg p-4">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.autoAssignToNewEvents}
                       onChange={(e) => setFormData({ ...formData, autoAssignToNewEvents: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      className="w-4 h-4 text-primary rounded focus:ring-2 focus:ring-ring"
                     />
                     <div>
                       <span className="text-sm font-medium text-gray-900">
@@ -401,7 +397,7 @@ export default function DefaultTeamPage() {
               <div className="flex gap-3 mt-6">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+                  className="flex-1 bg-primary text-white py-3 rounded-lg hover:bg-primary/90 transition font-semibold"
                 >
                   Add to Default Team
                 </button>

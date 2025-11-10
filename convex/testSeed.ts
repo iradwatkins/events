@@ -13,13 +13,13 @@ export const seedTestEvents = mutation({
     // Get or create test organizer
     let testOrganizer = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+      .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
       .first();
 
     if (!testOrganizer) {
       console.log("[SEED] Creating test organizer...");
       const organizerId = await ctx.db.insert("users", {
-        email: "test@stepperslife.com",
+        email: "iradwatkins@gmail.com",
         name: "Test Organizer",
         role: "organizer",
         createdAt: Date.now(),
@@ -227,13 +227,13 @@ export const createShowcaseEvents = mutation({
     // Get or create test organizer
     let testOrganizer = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+      .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
       .first();
 
     if (!testOrganizer) {
       console.log("[SHOWCASE] Creating test organizer...");
       const organizerId = await ctx.db.insert("users", {
-        email: "test@stepperslife.com",
+        email: "iradwatkins@gmail.com",
         name: "Test Organizer",
         role: "organizer",
         createdAt: Date.now(),
@@ -600,13 +600,13 @@ export const createDollarTest = mutation({
     // Get or create test organizer
     let testOrganizer = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+      .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
       .first();
 
     if (!testOrganizer) {
       console.log("[SEED] Creating test organizer...");
       const organizerId = await ctx.db.insert("users", {
-        email: "test@stepperslife.com",
+        email: "iradwatkins@gmail.com",
         name: "Test Organizer",
         role: "organizer",
         createdAt: Date.now(),

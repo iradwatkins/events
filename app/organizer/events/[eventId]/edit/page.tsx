@@ -141,7 +141,7 @@ export default function EditEventPage() {
   if (!event || !currentUser) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -152,7 +152,7 @@ export default function EditEventPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
           <p className="text-gray-600">You don't have permission to edit this event.</p>
-          <Link href="/organizer/events" className="mt-4 inline-block text-blue-600 hover:underline">
+          <Link href="/organizer/events" className="mt-4 inline-block text-primary hover:underline">
             Back to Events
           </Link>
         </div>
@@ -173,7 +173,7 @@ export default function EditEventPage() {
         </Link>
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="bg-purple-600 p-6">
+          <div className="bg-primary p-6">
             <h1 className="text-3xl font-bold text-white">Edit Event</h1>
             <p className="text-blue-100 mt-2">Update your event details</p>
           </div>
@@ -182,7 +182,7 @@ export default function EditEventPage() {
             {/* Basic Information */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <FileText className="w-5 h-5 text-blue-600" />
+                <FileText className="w-5 h-5 text-primary" />
                 <h2 className="text-xl font-bold text-gray-900">Basic Information</h2>
               </div>
 
@@ -225,7 +225,7 @@ export default function EditEventPage() {
                         onClick={() => handleCategoryToggle(category)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                           categories.includes(category)
-                            ? "bg-blue-600 text-white"
+                            ? "bg-primary text-white"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                         }`}
                       >
@@ -240,7 +240,7 @@ export default function EditEventPage() {
             {/* Date & Time */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Calendar className="w-5 h-5 text-blue-600" />
+                <Calendar className="w-5 h-5 text-primary" />
                 <h2 className="text-xl font-bold text-gray-900">Date & Time</h2>
               </div>
 
@@ -274,7 +274,7 @@ export default function EditEventPage() {
             {/* Location */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <MapPin className="w-5 h-5 text-blue-600" />
+                <MapPin className="w-5 h-5 text-primary" />
                 <h2 className="text-xl font-bold text-gray-900">Location</h2>
               </div>
 
@@ -395,7 +395,7 @@ export default function EditEventPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>

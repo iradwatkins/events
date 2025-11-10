@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  events-stepperslife:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - PRODUCT_IMAGE_STORAGE_PATH=/app/STEPFILES/product-images
+    env_file:
+      - .env.local
+    restart: unless-stopped
+    volumes:
+      # Mount for hot reload during development
+      - ./app:/app/app
+      - ./components:/app/components
+      - ./lib:/app/lib
+      # Mount STEPFILES for product images
+      - ./STEPFILES:/app/STEPFILES

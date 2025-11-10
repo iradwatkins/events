@@ -292,7 +292,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create Bundle
@@ -302,9 +302,9 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
 
       {/* Create/Edit Form */}
       {isCreating && (
-        <form onSubmit={handleSubmit} className="bg-purple-50 border-2 border-purple-200 rounded-lg p-6">
+        <form onSubmit={handleSubmit} className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold text-purple-900">
+            <h4 className="text-lg font-semibold text-gray-900">
               {editingBundleId ? "Edit Bundle" : "Create New Bundle"}
             </h4>
             <button
@@ -327,7 +327,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., 3-Day Weekend Pass, VIP Package"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
@@ -341,7 +341,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Describe what's included in this bundle..."
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
@@ -363,7 +363,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                           <div className="text-sm text-gray-600">
                             ${((tier?.price || 0) / 100).toFixed(2)} each
                             {includedTier.eventName && (
-                              <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
+                              <span className="ml-2 px-2 py-0.5 bg-blue-100 text-primary text-xs rounded">
                                 {includedTier.eventName}
                               </span>
                             )}
@@ -409,7 +409,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                     e.target.value = "";
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
                 defaultValue=""
               >
                 <option value="">+ Add Ticket Type</option>
@@ -456,7 +456,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     placeholder="0.00"
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600"
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Your bundle price</p>
@@ -493,7 +493,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                   value={formData.totalQuantity}
                   onChange={(e) => setFormData({ ...formData, totalQuantity: e.target.value })}
                   placeholder="50"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
 
@@ -506,7 +506,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                   type="date"
                   value={formData.saleStart}
                   onChange={(e) => setFormData({ ...formData, saleStart: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
 
@@ -520,7 +520,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                   value={formData.saleEnd}
                   onChange={(e) => setFormData({ ...formData, saleEnd: e.target.value })}
                   min={formData.saleStart}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -529,7 +529,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                className="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 {editingBundleId ? "Update Bundle" : "Create Bundle"}
               </button>
@@ -559,7 +559,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Package className="w-5 h-5 text-purple-600" />
+                    <Package className="w-5 h-5 text-primary" />
                     <h5 className="font-semibold text-gray-900">{bundle.name}</h5>
                     {!bundle.isActive && (
                       <span className="text-xs px-2 py-0.5 bg-gray-200 text-gray-600 rounded">
@@ -575,7 +575,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">Price:</span>{" "}
-                      <span className="font-semibold text-purple-600">
+                      <span className="font-semibold text-primary">
                         ${(bundle.price / 100).toFixed(2)}
                       </span>
                       {bundle.regularPrice && (
@@ -604,7 +604,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                     {bundle.includedTiersDetails?.map((tier: any) => (
                       <div
                         key={tier.tierId}
-                        className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded"
+                        className="text-xs px-2 py-1 bg-blue-100 text-primary rounded"
                       >
                         {tier.quantity}x {tier.tierName}
                       </div>
@@ -660,7 +660,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create First Bundle

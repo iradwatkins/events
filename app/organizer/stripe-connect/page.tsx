@@ -135,7 +135,7 @@ function StripeConnectContent() {
       <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
         {status === 'loading' && (
           <>
-            <Loader2 className="w-16 h-16 animate-spin text-blue-600 mx-auto mb-4" />
+            <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Processing...</h1>
             <p className="text-gray-600">Please wait while we process your request.</p>
           </>
@@ -143,7 +143,7 @@ function StripeConnectContent() {
 
         {status === 'creating' && (
           <>
-            <Loader2 className="w-16 h-16 animate-spin text-blue-600 mx-auto mb-4" />
+            <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Creating Your Account</h1>
             <p className="text-gray-600">
               Setting up your Stripe Connect account...
@@ -165,7 +165,7 @@ function StripeConnectContent() {
               Redirecting to settings...
             </p>
             <div className="animate-pulse">
-              <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
+              <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
             </div>
           </>
         )}
@@ -198,7 +198,7 @@ export default function StripeConnectPage() {
       fallback={
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
-            <Loader2 className="w-16 h-16 animate-spin text-blue-600 mx-auto mb-4" />
+            <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Loading...</h1>
             <p className="text-gray-600">Please wait...</p>
           </div>

@@ -89,7 +89,7 @@ export function SearchFilters({
                 px-4 py-2 rounded-full text-sm font-medium transition-all
                 ${
                   isSelected
-                    ? "bg-blue-600 text-white shadow-md"
+                    ? "bg-primary text-white shadow-md"
                     : "bg-white text-gray-700 hover:bg-gray-100 shadow-sm"
                 }
               `}
@@ -107,7 +107,7 @@ export function SearchFilters({
               px-4 py-2 rounded-full text-sm font-medium transition-all
               ${
                 showPastEvents
-                  ? "bg-purple-600 text-white shadow-md hover:bg-purple-700"
+                  ? "bg-primary text-white shadow-md hover:bg-blue-700"
                   : "bg-white text-gray-700 hover:bg-gray-100 shadow-sm"
               }
             `}
@@ -122,12 +122,12 @@ export function SearchFilters({
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>Showing results for:</span>
           {searchQuery && (
-            <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">
+            <span className="px-2 py-1 bg-accent text-primary rounded">
               "{searchQuery}"
             </span>
           )}
           {selectedCategory && (
-            <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">
+            <span className="px-2 py-1 bg-accent text-primary rounded">
               {selectedCategory}
             </span>
           )}

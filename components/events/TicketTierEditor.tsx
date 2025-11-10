@@ -64,7 +64,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
         <button
           type="button"
           onClick={addTier}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Tier
@@ -81,7 +81,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
           <button
             type="button"
             onClick={addTier}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add First Tier
@@ -198,7 +198,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                           )
                         );
                       }}
-                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                     />
                     <span className="text-sm font-medium text-gray-700">
                       Sell as Table Package
@@ -224,7 +224,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                             )
                           )
                         }
-                        className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent text-gray-900"
+                        className="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                       >
                         <option value="2">2 Seats (Couple)</option>
                         <option value="4">4 Seats (Small Table)</option>
@@ -258,7 +258,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
         <button
           type="button"
           onClick={addTier}
-          className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-600 hover:text-blue-600 transition-colors"
+          className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary hover:text-primary transition-colors"
         >
           <Plus className="w-4 h-4 inline mr-2" />
           Add Another Tier

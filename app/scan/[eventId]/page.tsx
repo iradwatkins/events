@@ -209,7 +209,7 @@ export default function EventScanningPage() {
 
   if (stats === undefined) {
     return (
-      <div className="min-h-screen bg-purple-600 flex items-center justify-center">
+      <div className="min-h-screen bg-primary flex items-center justify-center">
         <div className="text-center text-white">
           <div className="inline-block w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-lg">Loading scanner...</p>
@@ -258,7 +258,7 @@ export default function EventScanningPage() {
           <div className="mt-3">
             <div className="h-2 bg-black/50 rounded-full overflow-hidden">
               <div
-                className="h-full bg-purple-600 transition-all duration-500"
+                className="h-full bg-primary transition-all duration-500"
                 style={{ width: `${stats.percentageScanned}%` }}
               ></div>
             </div>
@@ -270,7 +270,7 @@ export default function EventScanningPage() {
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-md mx-auto space-y-4">
           {/* Live QR Scanner */}
-          <div className="bg-purple-600 rounded-2xl p-6 shadow-2xl">
+          <div className="bg-primary rounded-2xl p-6 shadow-2xl">
             <h2 className="text-2xl font-bold text-white mb-4 text-center flex items-center justify-center gap-2">
               <QrCode className="w-7 h-7" />
               Live QR Scanner
@@ -307,11 +307,11 @@ export default function EventScanningPage() {
                 <button
                   onClick={startScanner}
                   disabled={isStarting}
-                  className="w-full px-6 py-4 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-4 bg-white text-primary rounded-xl font-bold text-lg hover:bg-accent transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isStarting ? (
                     <>
-                      <div className="w-6 h-6 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-6 h-6 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
                       Starting Camera...
                     </>
                   ) : (
@@ -350,7 +350,7 @@ export default function EventScanningPage() {
           </div>
 
           {/* Manual Entry */}
-          <div className="bg-purple-600 rounded-2xl p-6 shadow-2xl">
+          <div className="bg-primary rounded-2xl p-6 shadow-2xl">
             <h3 className="text-xl font-bold text-white mb-4 text-center">Or Enter Code Manually</h3>
             <div className="space-y-3">
               <input
@@ -365,7 +365,7 @@ export default function EventScanningPage() {
               <button
                 onClick={handleManualScan}
                 disabled={!manualTicketCode.trim() || isProcessing}
-                className="w-full px-6 py-3 bg-white text-purple-600 rounded-lg font-bold hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-white text-primary rounded-lg font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? "Checking..." : "Check In"}
               </button>
@@ -432,7 +432,7 @@ export default function EventScanningPage() {
                         <span>👤</span>
                         Sold by: {scan.soldByStaffName}
                         {scan.paymentMethod && scan.paymentMethod !== "ONLINE" && (
-                          <span className="ml-2 px-2 py-0.5 bg-blue-500/20 rounded text-xs">
+                          <span className="ml-2 px-2 py-0.5 bg-primary/20 rounded text-xs">
                             {scan.paymentMethod}
                           </span>
                         )}

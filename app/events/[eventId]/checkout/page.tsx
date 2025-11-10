@@ -21,6 +21,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const eventId = params.eventId as Id<"events">;
+  const ENABLE_SEATING = process.env.NEXT_PUBLIC_ENABLE_SEATING_CHARTS === 'true';
 
   const [selectedTierId, setSelectedTierId] = useState<Id<"ticketTiers"> | null>(null);
   const [selectedBundleId, setSelectedBundleId] = useState<Id<"ticketBundles"> | null>(null);
@@ -46,7 +47,7 @@ export default function CheckoutPage() {
 
   const eventDetails = useQuery(api.public.queries.getPublicEventDetails, { eventId });
   const currentUser = useQuery(api.users.queries.getCurrentUser);
-  const seatingChart = useQuery(api.seating.queries.getPublicSeatingChart, { eventId });
+  const seatingChart = ENABLE_SEATING ? useQuery(api.seating.queries.getPublicSeatingChart, { eventId }) : null;
   const paymentConfig = useQuery(api.events.queries.getPaymentConfig, { eventId });
   const staffMemberInfo = useQuery(
     api.staff.queries.getStaffByReferralCode,
@@ -177,13 +178,13 @@ export default function CheckoutPage() {
     setSelectedSeats(seats);
   };
 
-  // Ballroom seat selection handlers
+  // Ballroom seat handlers
   const handleBallroomSeatSelect = (seat: BallroomSeat) => {
-    setSelectedSeats([...selectedSeats, seat as any]);
+    setSelectedSeats(prev => [...prev, seat as any]);
   };
 
   const handleBallroomSeatDeselect = (seatId: string) => {
-    setSelectedSeats(selectedSeats.filter((s) => s.id !== seatId));
+    setSelectedSeats(prev => prev.filter(s => s.id !== seatId));
   };
 
   // Reset seats when tier or quantity changes
@@ -672,30 +673,18 @@ export default function CheckoutPage() {
                 )}
 
                 {/* Seat Selection - Only for individual tickets */}
-                {selectedTierId && purchaseType === 'tier' && seatingChart && seatingChart.sections.length > 0 && (
+                {ENABLE_SEATING && selectedTierId && purchaseType === 'tier' && seatingChart && seatingChart.sections.length > 0 && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      {eventDetails.eventType === "BALLROOM_EVENT" ? "💃 Select Your Seats" : "Select Your Seats"}
-                    </h3>
-
-                    {/* Ballroom Event - Interactive Visual Seating Chart */}
-                    {eventDetails.eventType === "BALLROOM_EVENT" ? (
-                      <div>
-                        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <p className="text-sm text-blue-800">
-                            🎫 Click on available seats to select them. Selected seats: <strong>{selectedSeats.length}</strong> / {quantity}
-                          </p>
-                        </div>
-                        <InteractiveSeatingChart
-                          eventId={eventId}
-                          onSeatSelect={handleBallroomSeatSelect}
-                          onSeatDeselect={handleBallroomSeatDeselect}
-                          selectedSeats={selectedSeats as any}
-                          className="min-h-[600px]"
-                        />
-                      </div>
+                    <h3 className="font-semibold text-gray-900 mb-4">Select Your Seats</h3>
+                    {seatingChart.layoutType === "TABLE_BASED" ? (
+                      <InteractiveSeatingChart
+                        eventId={eventId}
+                        onSeatSelect={handleBallroomSeatSelect}
+                        onSeatDeselect={handleBallroomSeatDeselect}
+                        selectedSeats={selectedSeats as any}
+                        className="min-h-[600px]"
+                      />
                     ) : (
-                      /* Regular Event - Traditional Row/Section Selection */
                       <SeatSelection
                         eventId={eventId}
                         ticketTierId={selectedTierId}

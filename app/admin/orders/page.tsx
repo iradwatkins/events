@@ -34,16 +34,11 @@ export default function OrdersManagementPage() {
     orderId: Id<"productOrders">,
     newStatus: FulfillmentStatus
   ) => {
-    if (!confirm(`Change order status to ${newStatus}?`)) {
-      return;
-    }
-
     try {
       await updateFulfillmentStatus({
         orderId,
         fulfillmentStatus: newStatus,
       });
-      alert("Order status updated successfully!");
     } catch (error: unknown) {
       alert(`Failed to update status: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -59,7 +54,6 @@ export default function OrdersManagementPage() {
         trackingNumber: trackingInfo.number || undefined,
         trackingUrl: trackingInfo.url || undefined,
       });
-      alert("Tracking info added and order marked as shipped!");
       setSelectedOrder(null);
       setTrackingInfo({ number: "", url: "" });
     } catch (error: unknown) {
@@ -70,7 +64,7 @@ export default function OrdersManagementPage() {
   if (!allOrders) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -97,7 +91,7 @@ export default function OrdersManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <Package className="w-5 h-5" />
             </div>
             <div>
@@ -121,7 +115,7 @@ export default function OrdersManagementPage() {
 
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <Package className="w-5 h-5" />
             </div>
             <div>
@@ -133,7 +127,7 @@ export default function OrdersManagementPage() {
 
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <Truck className="w-5 h-5" />
             </div>
             <div>
@@ -165,7 +159,7 @@ export default function OrdersManagementPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
           >
             <option value="all">All Orders</option>
             <option value="PENDING">Pending Only</option>
@@ -257,9 +251,9 @@ export default function OrdersManagementPage() {
                           order.fulfillmentStatus === "DELIVERED"
                             ? "bg-green-100 text-green-800"
                             : order.fulfillmentStatus === "SHIPPED"
-                            ? "bg-blue-100 text-blue-800"
+                            ? "bg-accent text-accent-foreground"
                             : order.fulfillmentStatus === "PROCESSING"
-                            ? "bg-purple-100 text-purple-800"
+                            ? "bg-accent text-accent-foreground"
                             : order.fulfillmentStatus === "CANCELLED"
                             ? "bg-red-100 text-red-800"
                             : "bg-yellow-100 text-yellow-800"
@@ -276,7 +270,7 @@ export default function OrdersManagementPage() {
                         {order.fulfillmentStatus === "PENDING" && (
                           <button
                             onClick={() => handleStatusChange(order._id, "PROCESSING")}
-                            className="px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 text-xs"
+                            className="px-2 py-1 bg-accent text-primary rounded hover:bg-accent/90 text-xs"
                           >
                             Process
                           </button>
@@ -284,7 +278,7 @@ export default function OrdersManagementPage() {
                         {order.fulfillmentStatus === "PROCESSING" && (
                           <button
                             onClick={() => setSelectedOrder(order._id)}
-                            className="px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs"
+                            className="px-2 py-1 bg-accent text-primary rounded hover:bg-blue-200 text-xs"
                           >
                             Ship
                           </button>
@@ -294,7 +288,7 @@ export default function OrdersManagementPage() {
                             href={order.trackingUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                            className="p-1 text-primary hover:bg-accent rounded"
                           >
                             <ExternalLink className="w-4 h-4" />
                           </a>
@@ -314,7 +308,7 @@ export default function OrdersManagementPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
             <div className="flex items-center gap-3 mb-4">
-              <Truck className="w-6 h-6 text-blue-600" />
+              <Truck className="w-6 h-6 text-primary" />
               <h3 className="text-xl font-bold text-gray-900">Add Tracking Information</h3>
             </div>
             <div className="space-y-4">
@@ -327,7 +321,7 @@ export default function OrdersManagementPage() {
                   value={trackingInfo.number}
                   onChange={(e) => setTrackingInfo({ ...trackingInfo, number: e.target.value })}
                   placeholder="1Z999AA10123456784"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                 />
               </div>
               <div>
@@ -339,14 +333,14 @@ export default function OrdersManagementPage() {
                   value={trackingInfo.url}
                   onChange={(e) => setTrackingInfo({ ...trackingInfo, url: e.target.value })}
                   placeholder="https://www.ups.com/track?..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary"
                 />
               </div>
             </div>
             <div className="flex gap-3 mt-6">
               <button
                 onClick={handleAddTracking}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
                 Mark as Shipped
               </button>

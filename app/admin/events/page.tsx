@@ -40,28 +40,16 @@ export default function EventsModerationPage() {
   const unmarkClaimable = useMutation(api.adminPanel.mutations.unmarkEventAsClaimable);
 
   const handleStatusChange = async (eventId: Id<"events">, newStatus: EventStatus) => {
-    if (!confirm(`Are you sure you want to change this event's status to ${newStatus}?`)) {
-      return;
-    }
-
     try {
       await updateEventStatus({ eventId, status: newStatus });
-      alert("Event status updated successfully");
     } catch (error: unknown) {
       alert(`Failed to update status: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
   const handleDeleteEvent = async (eventId: Id<"events">, eventName: string) => {
-    if (!confirm(`Are you sure you want to delete "${eventName}"?\n\nThis will permanently delete:\n- The event\n- ALL tickets (even if sold)\n- ALL orders and payments\n- ALL staff positions and transfers\n- All ticket tiers and bundles\n- All seating charts and reservations\n- All contact information\n- The associated flyer image from the server\n\nThis action cannot be undone!`)) {
-      return;
-    }
-
     try {
       const result = await deleteEvent({ eventId });
-      if (result.success) {
-        alert(`Event "${eventName}" deleted successfully!\n\nDeleted:\n- Event record\n- ${result.deleted.tickets} ticket(s)\n- ${result.deleted.orders} order(s)\n- ${result.deleted.orderItems} order item(s)\n- ${result.deleted.staffPositions} staff position(s)\n- ${result.deleted.transfers} ticket transfer(s)\n- ${result.deleted.seatingCharts} seating chart(s)\n- ${result.deleted.seatReservations} seat reservation(s)\n- ${result.deleted.tiers} ticket tier(s)\n- ${result.deleted.bundles} bundle(s)\n- ${result.deleted.contacts} contact(s)\n- ${result.deleted.flyer ? 'Flyer image' : 'No flyer'}`);
-      }
       // Page will auto-refresh via Convex reactivity
     } catch (error: unknown) {
       alert(`Failed to delete event: ${error instanceof Error ? error.message : String(error)}`);
@@ -76,7 +64,6 @@ export default function EventsModerationPage() {
         eventId: claimModalEventId,
         claimCode: claimCode || undefined
       });
-      alert("Event marked as claimable!");
       setClaimModalEventId(null);
       setClaimCode("");
     } catch (error: unknown) {
@@ -85,13 +72,8 @@ export default function EventsModerationPage() {
   };
 
   const handleUnmarkClaimable = async (eventId: Id<"events">) => {
-    if (!confirm("Remove this event from the claimable list?")) {
-      return;
-    }
-
     try {
       await unmarkClaimable({ eventId });
-      alert("Event removed from claimable list");
     } catch (error: unknown) {
       alert(`Failed to unmark event: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -100,7 +82,7 @@ export default function EventsModerationPage() {
   if (!allEvents) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-900 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -125,7 +107,7 @@ export default function EventsModerationPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <Calendar className="w-5 h-5" />
             </div>
             <div>
@@ -173,7 +155,7 @@ export default function EventsModerationPage() {
 
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
@@ -191,7 +173,7 @@ export default function EventsModerationPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
           >
             <option value="all">All Events</option>
             <option value="PUBLISHED">Published Only</option>
@@ -228,7 +210,7 @@ export default function EventsModerationPage() {
                       title="Click to view full-size flyer"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-purple-600 rounded-l-lg">
+                    <div className="w-full h-full flex items-center justify-center bg-primary rounded-l-lg">
                       <Calendar className="w-12 h-12 text-gray-400" />
                     </div>
                   )}
@@ -248,7 +230,7 @@ export default function EventsModerationPage() {
                               ? "bg-yellow-100 text-yellow-800"
                               : event.status === "CANCELLED"
                               ? "bg-red-100 text-red-800"
-                              : "bg-purple-100 text-purple-800"
+                              : "bg-accent text-accent-foreground"
                           }`}
                         >
                           {event.status || "DRAFT"}
@@ -260,7 +242,7 @@ export default function EventsModerationPage() {
                           </span>
                         )}
                         {event.isClaimable && event.organizerId && (
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 flex items-center gap-1">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-accent text-accent-foreground flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" />
                             Claimed
                           </span>
@@ -337,7 +319,7 @@ export default function EventsModerationPage() {
                     <button
                       onClick={() => handleStatusChange(event._id, "COMPLETED")}
                       disabled={event.status === "COMPLETED"}
-                      className="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1 text-sm bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Complete
                     </button>
@@ -365,7 +347,7 @@ export default function EventsModerationPage() {
                     )}
                     <a
                       href={`/organizer/events/${event._id}/edit`}
-                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      className="p-2 text-primary hover:bg-accent rounded-lg transition-colors"
                       title="Edit event"
                     >
                       <Edit className="w-4 h-4" />
@@ -374,7 +356,7 @@ export default function EventsModerationPage() {
                       href={`/events/${event._id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-primary hover:bg-accent rounded-lg transition-colors"
                       title="View event"
                     >
                       <Eye className="w-4 h-4" />

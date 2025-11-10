@@ -32,9 +32,10 @@ export default function StaffTransfersPage() {
   });
 
   const pendingCounts = useQuery(api.staff.transfers.getPendingTransfers, {});
-  const availableRecipients = useQuery(api.staff.transfers.getAvailableRecipients, {
-    eventId: selectedEvent!,
-  });
+  const availableRecipients = useQuery(
+    api.staff.transfers.getAvailableRecipients,
+    selectedEvent ? { eventId: selectedEvent } : "skip"
+  );
 
   // Get user's events (where they are staff)
   const myStaffEvents = useQuery(api.staff.queries.getStaffEvents, {});
@@ -172,13 +173,13 @@ export default function StaffTransfersPage() {
           </Select>
 
           {selectedEvent && myStaffRecord && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <div className="mt-4 p-4 bg-accent rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <Package className="w-5 h-5 mr-2 text-blue-600" />
+                  <Package className="w-5 h-5 mr-2 text-primary" />
                   <span className="font-medium">Your Balance:</span>
                 </div>
-                <span className="text-xl font-bold text-blue-600">{myBalance} tickets</span>
+                <span className="text-xl font-bold text-primary">{myBalance} tickets</span>
               </div>
               <div className="mt-2 text-sm text-gray-600">
                 <span>Sold: {myStaffRecord.ticketsSold || 0}</span>
@@ -358,15 +359,15 @@ export default function StaffTransfersPage() {
                 const newRecipientBalance = recipientBalance + transferQty;
 
                 return (
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm font-medium text-blue-900 mb-2">Recipient Balance Preview</div>
+                  <div className="mt-3 p-3 bg-accent rounded-lg border border-border">
+                    <div className="text-sm font-medium text-foreground mb-2">Recipient Balance Preview</div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-blue-700">Current Balance:</span>
-                      <span className="font-semibold text-blue-900">{recipientBalance} tickets</span>
+                      <span className="text-primary">Current Balance:</span>
+                      <span className="font-semibold text-foreground">{recipientBalance} tickets</span>
                     </div>
                     {transferQty > 0 && (
                       <div className="flex items-center justify-between text-sm mt-1">
-                        <span className="text-blue-700">After Transfer:</span>
+                        <span className="text-primary">After Transfer:</span>
                         <span className="font-bold text-green-600">{newRecipientBalance} tickets</span>
                       </div>
                     )}

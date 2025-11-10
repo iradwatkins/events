@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import "../styles/seating-design-system.css";
+// import "../styles/seating-design-system.css"; // Seating feature hidden
 import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { ThemeProvider } from "@/components/theme-provider";
+import { CartProvider } from "@/contexts/CartContext";
+import { ShoppingCart } from "@/components/ShoppingCart";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,10 +55,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* ServiceWorkerRegister disabled during testing */}
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {/* ServiceWorkerRegister disabled during testing */}
+          <ConvexClientProvider>
+            <CartProvider>
+              {children}
+              <ShoppingCart />
+            </CartProvider>
+          </ConvexClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

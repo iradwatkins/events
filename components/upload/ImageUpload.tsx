@@ -111,19 +111,19 @@ export function ImageUpload({
       ) : (
         <label
           htmlFor="image-upload"
-          className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100"
+          className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors cursor-pointer bg-gray-50 hover:bg-gray-100"
         >
           <div className="flex flex-col items-center justify-center py-8">
             {isUploading ? (
               <>
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
                 <p className="text-sm text-gray-600">Uploading...</p>
               </>
             ) : (
               <>
                 <ImageIcon className="w-12 h-12 text-gray-400 mb-4" />
                 <div className="flex items-center gap-2 mb-2">
-                  <Upload className="w-5 h-5 text-blue-600" />
+                  <Upload className="w-5 h-5 text-primary" />
                   <p className="text-sm font-medium text-gray-700">
                     Click to upload event image
                   </p>

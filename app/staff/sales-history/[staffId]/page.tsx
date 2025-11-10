@@ -18,7 +18,7 @@ export default function SalesHistoryPage() {
   if (!staffDetails || !staffSales) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -44,7 +44,7 @@ export default function SalesHistoryPage() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Total Sales</span>
-            <Ticket className="w-5 h-5 text-blue-600" />
+            <Ticket className="w-5 h-5 text-primary" />
           </div>
           <p className="text-3xl font-bold text-gray-900">{staffDetails.ticketsSold}</p>
           <p className="text-xs text-gray-500 mt-1">Tickets sold</p>
@@ -75,7 +75,7 @@ export default function SalesHistoryPage() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Net Payout</span>
-            <DollarSign className="w-5 h-5 text-purple-600" />
+            <DollarSign className="w-5 h-5 text-primary" />
           </div>
           <p className="text-3xl font-bold text-gray-900">
             ${(staffDetails.netPayout / 100).toFixed(2)}
@@ -88,8 +88,8 @@ export default function SalesHistoryPage() {
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Sales by Payment Method</h2>
         <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <CreditCard className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+          <div className="text-center p-4 bg-accent rounded-lg">
+            <CreditCard className="w-6 h-6 text-primary mx-auto mb-2" />
             <p className="text-2xl font-bold text-gray-900">{staffDetails.salesBreakdown.online}</p>
             <p className="text-sm text-gray-600">Online</p>
           </div>
@@ -98,8 +98,8 @@ export default function SalesHistoryPage() {
             <p className="text-2xl font-bold text-gray-900">{staffDetails.salesBreakdown.cash}</p>
             <p className="text-sm text-gray-600">Cash</p>
           </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <DollarSign className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <DollarSign className="w-6 h-6 text-primary mx-auto mb-2" />
             <p className="text-2xl font-bold text-gray-900">{staffDetails.salesBreakdown.cashApp}</p>
             <p className="text-sm text-gray-600">Cash App</p>
           </div>
@@ -152,8 +152,8 @@ export default function SalesHistoryPage() {
                           sale.paymentMethod === "CASH"
                             ? "bg-green-100 text-green-800"
                             : sale.paymentMethod === "CASH_APP"
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-blue-100 text-blue-800"
+                            ? "bg-blue-100 text-gray-800"
+                            : "bg-accent text-accent-foreground"
                         }`}
                       >
                         {sale.paymentMethod || "ONLINE"}

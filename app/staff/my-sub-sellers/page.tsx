@@ -102,7 +102,7 @@ export default function MySubSellersPage() {
   if (!staffPositions) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -148,7 +148,7 @@ export default function MySubSellersPage() {
           <select
             value={selectedEventId || ""}
             onChange={(e) => setSelectedEventId(e.target.value as Id<"events">)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
           >
             {staffPositions.map((pos) => (
               <option key={pos.eventId} value={pos.eventId}>
@@ -179,8 +179,8 @@ export default function MySubSellersPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Users className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6 text-primary" />
                 </div>
               </div>
               <p className="text-sm text-gray-600 mb-1">Total Sub-Sellers</p>
@@ -199,8 +199,8 @@ export default function MySubSellersPage() {
 
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-primary" />
                 </div>
               </div>
               <p className="text-sm text-gray-600 mb-1">Sub-Seller Sales</p>
@@ -214,7 +214,7 @@ export default function MySubSellersPage() {
           <div className="mb-6">
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-semibold"
+              className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition flex items-center gap-2 font-semibold"
             >
               <Plus className="w-5 h-5" />
               Add Sub-Seller
@@ -349,7 +349,7 @@ export default function MySubSellersPage() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="John Doe"
                   />
                 </div>
@@ -363,7 +363,7 @@ export default function MySubSellersPage() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -374,7 +374,7 @@ export default function MySubSellersPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
@@ -389,7 +389,7 @@ export default function MySubSellersPage() {
                     max={availableTickets}
                     value={formData.allocatedTickets}
                     onChange={(e) => setFormData({ ...formData, allocatedTickets: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="0"
                   />
                   <p className="text-sm text-gray-500 mt-1">
@@ -397,9 +397,9 @@ export default function MySubSellersPage() {
                   </p>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-blue-900 mb-3">Commission Split</h3>
-                  <p className="text-sm text-blue-800 mb-4">
+                <div className="bg-accent border border-border rounded-lg p-4">
+                  <h3 className="font-semibold text-foreground mb-3">Commission Split</h3>
+                  <p className="text-sm text-accent-foreground mb-4">
                     Configure how commissions are split between you and the sub-seller.
                     Your current commission: {selectedPosition?.commissionPercent || selectedPosition?.commissionValue}
                     {selectedPosition?.commissionType === "PERCENTAGE" ? "%" : " cents"}
@@ -420,7 +420,7 @@ export default function MySubSellersPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, parentCommissionPercent: e.target.value })
                         }
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         placeholder="40"
                       />
                     </div>
@@ -439,7 +439,7 @@ export default function MySubSellersPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, subSellerCommissionPercent: e.target.value })
                         }
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         placeholder="60"
                       />
                     </div>
@@ -461,7 +461,7 @@ export default function MySubSellersPage() {
               <div className="flex gap-3 mt-6">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+                  className="flex-1 bg-primary text-white py-3 rounded-lg hover:bg-primary/90 transition font-semibold"
                 >
                   Add Sub-Seller
                 </button>

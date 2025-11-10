@@ -38,8 +38,7 @@ export default defineSchema({
       v.literal("SAVE_THE_DATE"),
       v.literal("FREE_EVENT"),
       v.literal("TICKETED_EVENT"),
-      v.literal("BALLROOM_EVENT"),
-      v.literal("SEATED_EVENT") // DEPRECATED: Use BALLROOM_EVENT instead
+      v.literal("SEATED_EVENT")
     )),
 
     // Date/time - Literal Storage (NO TIMEZONE CONVERSIONS)
@@ -275,23 +274,6 @@ export default defineSchema({
       searchField: "name",
       filterFields: ["bundleType", "isActive"],
     }),
-
-  // Bundle Purchases - Track bundle sales
-  bundlePurchases: defineTable({
-    bundleId: v.id("ticketBundles"),
-    quantity: v.number(), // Number of bundles purchased
-    buyerName: v.string(),
-    buyerEmail: v.string(),
-    buyerPhone: v.optional(v.string()),
-    paymentId: v.string(), // Square/Stripe payment ID
-    paymentStatus: v.string(), // COMPLETED, PENDING, FAILED, REFUNDED
-    totalPaid: v.number(), // Amount paid in cents
-    ticketIds: v.array(v.string()), // IDs of tickets created from this purchase
-    purchaseDate: v.number(),
-    status: v.string(), // COMPLETED, CANCELLED, REFUNDED
-  })
-    .index("by_bundle", ["bundleId"])
-    .index("by_email", ["buyerEmail"]),
 
   // Order items (links orders to ticket tiers)
   orderItems: defineTable({
@@ -747,9 +729,9 @@ export default defineSchema({
             v.literal("TENT")
           ),
           status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE"), v.literal("BLOCKED")),
-          // Real-time session tracking for temporary holds
-          sessionId: v.optional(v.string()), // Session ID of user currently selecting this seat
-          sessionExpiry: v.optional(v.number()), // Timestamp when temporary hold expires
+          // Session-based temporary holds (for shopping cart)
+          sessionId: v.optional(v.string()),      // Temporary session holding this seat
+          sessionExpiry: v.optional(v.number()),  // Unix timestamp when hold expires
         })),
       }))),
 
@@ -777,12 +759,6 @@ export default defineSchema({
           startAngle: v.optional(v.number()), // Starting angle in degrees (0-360)
           arcDegrees: v.optional(v.number()), // Arc span in degrees (e.g., 180 for half circle, 135 for crescent)
         })),
-        // Dynamic pricing zone (optional)
-        pricingZone: v.optional(v.string()), // Zone ID (e.g., "front", "vip", "standard", "back")
-        // Table reservation (for organizer-reserved tables: VIP, sponsors, etc.)
-        reservationStatus: v.optional(v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE"))),
-        reservationType: v.optional(v.union(v.literal("VIP"), v.literal("SPONSOR"), v.literal("STAFF"), v.literal("CUSTOM"))),
-        reservationNotes: v.optional(v.string()),
         // Capacity and seats
         capacity: v.number(), // Max seats at this table
         seats: v.array(v.object({
@@ -799,15 +775,15 @@ export default defineSchema({
             v.literal("TENT")
           ),
           status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE"), v.literal("BLOCKED")),
-          // Real-time session tracking for temporary holds
-          sessionId: v.optional(v.string()), // Session ID of user currently selecting this seat
-          sessionExpiry: v.optional(v.number()), // Timestamp when temporary hold expires
           // Seat position relative to table (for visual rendering)
           position: v.optional(v.object({
             angle: v.optional(v.number()),     // Angle around table (0-360) for round/custom tables
             side: v.optional(v.string()),      // "top", "bottom", "left", "right" for rectangular tables
             offset: v.optional(v.number()),    // Distance from table edge
-          }))
+          })),
+          // Session-based temporary holds (for shopping cart)
+          sessionId: v.optional(v.string()),      // Temporary session holding this seat
+          sessionExpiry: v.optional(v.number()),  // Unix timestamp when hold expires
         }))
       }))),
 
@@ -866,80 +842,6 @@ export default defineSchema({
     .index("by_seat", ["seatingChartId", "sectionId", "seatId"])
     .index("by_table", ["seatingChartId", "sectionId", "tableId"])
     .index("by_status", ["status"]),
-
-  // Seating chart templates - Save and reuse seating layouts
-  seatingTemplates: defineTable({
-    // Template metadata
-    name: v.string(), // e.g., "Wedding 150", "Corporate Gala 200"
-    description: v.string(),
-    creatorId: v.id("users"), // User who created the template
-
-    // Template layout structure (same as seatingCharts sections)
-    seatingStyle: v.union(
-      v.literal("ROW_BASED"),
-      v.literal("TABLE_BASED"),
-      v.literal("MIXED")
-    ),
-
-    // Complete layout data
-    sections: v.array(v.any()), // Store complete section structure
-    totalCapacity: v.number(), // Total seats in template
-
-    // Preview/thumbnail
-    thumbnail: v.optional(v.string()), // Base64 or URL to preview image
-
-    // Sharing
-    isPublic: v.boolean(), // If true, other organizers can use this template
-    usageCount: v.number(), // Track how many times template has been applied
-
-    // Category for organization
-    category: v.optional(v.union(
-      v.literal("WEDDING"),
-      v.literal("CORPORATE"),
-      v.literal("CONCERT"),
-      v.literal("GALA"),
-      v.literal("CONFERENCE"),
-      v.literal("OTHER")
-    )),
-
-    // Tags for searchability
-    tags: v.optional(v.array(v.string())), // e.g., ["ballroom", "150-guests", "round-tables"]
-
-    // Timestamps
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  })
-    .index("by_creator", ["creatorId"])
-    .index("by_public", ["isPublic"])
-    .index("by_category", ["category"])
-    .index("by_usage", ["usageCount"]),
-
-  // Social seating - Share seat selection with friends
-  seatingShares: defineTable({
-    eventId: v.id("events"),
-    shareToken: v.string(), // Unique token for sharing (URL-safe)
-    initiatorName: v.string(), // Name of person sharing
-    initiatorEmail: v.optional(v.string()),
-
-    // Seat selection
-    sectionId: v.string(),
-    tableId: v.optional(v.string()), // For table-based seating
-    selectedSeats: v.array(v.string()), // Array of seat IDs
-
-    // Status
-    isActive: v.boolean(), // Can be deactivated
-    expiresAt: v.number(), // Expiration timestamp
-
-    // Usage tracking
-    viewCount: v.number(), // How many people viewed this share
-    joinedCount: v.number(), // How many people joined via this share
-
-    // Timestamps
-    createdAt: v.number(),
-  })
-    .index("by_token", ["shareToken"])
-    .index("by_event", ["eventId"])
-    .index("by_active", ["isActive", "expiresAt"]),
 
   // Waitlist for sold-out events
   eventWaitlist: defineTable({
@@ -1141,6 +1043,7 @@ export default defineSchema({
     // Shipping
     requiresShipping: v.boolean(),
     weight: v.optional(v.number()), // Weight in grams
+    shippingPrice: v.optional(v.number()), // Shipping cost in cents
 
     // Status
     status: v.union(

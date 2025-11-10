@@ -35,7 +35,7 @@ export function ListView({ events }: ListViewProps) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-blue-600">
+                <div className="w-full h-full flex items-center justify-center bg-primary">
                   <Calendar className="w-12 h-12 text-white opacity-50" />
                 </div>
               )}
@@ -45,12 +45,12 @@ export function ListView({ events }: ListViewProps) {
             <div className="flex-1 p-6">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 hover:text-primary transition-colors">
                     {event.name}
                   </h3>
 
                   {/* Event Type Badge */}
-                  <span className="inline-block px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
+                  <span className="inline-block px-3 py-1 text-xs font-semibold bg-accent text-primary rounded-full">
                     {event.eventType.replace("_", " ")}
                   </span>
                 </div>

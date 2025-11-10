@@ -163,3 +163,21 @@ export const bulkCreateContacts = mutation({
     return { success: true, contactIds, created: contactIds.length };
   },
 });
+
+/**
+ * Clear all CRM contacts (for resetting seed/fake data)
+ */
+export const clearAllContacts = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const contacts = await ctx.db.query("eventContacts").collect();
+    let deletedCount = 0;
+
+    for (const contact of contacts) {
+      await ctx.db.delete(contact._id);
+      deletedCount++;
+    }
+
+    return { success: true, deletedCount };
+  },
+});

@@ -157,6 +157,7 @@ export default function InteractiveSeatingChart({
       });
 
       // Add all seats to selection
+      const seatPrice = getSeatPrice(tableId);
       availableSeats.forEach(seat => {
         const seatId = `${tableId}-${seat.number}`;
         onSeatSelect({
@@ -165,12 +166,36 @@ export default function InteractiveSeatingChart({
           tableNumber,
           seatNumber: seat.number,
           seatType: seat.type,
-          price: 50, // TODO: Get from tier
+          price: seatPrice,
         });
       });
     } catch (error: any) {
       alert(error.message || "Failed to buy table. Some seats may have been taken.");
     }
+  };
+
+  // Get price for a seat based on its section's ticket tier
+  const getSeatPrice = (tableId: string): number => {
+    if (!seatingChart || !ticketTiers) return 0;
+
+    // Find the section this table belongs to
+    const section = seatingChart.sections?.find(s =>
+      s.tables?.some(t => t.id === tableId)
+    );
+
+    if (!section?.ticketTierId) {
+      console.warn(`No tier assigned to section for table ${tableId}`);
+      return 0;
+    }
+
+    // Find the tier and get its price
+    const tier = ticketTiers.find(t => t._id === section.ticketTierId);
+    if (!tier) {
+      console.warn(`Tier ${section.ticketTierId} not found`);
+      return 0;
+    }
+
+    return tier.currentPrice || tier.price || 0;
   };
 
   // Filter seats based on accessibility filters
@@ -222,7 +247,7 @@ export default function InteractiveSeatingChart({
           number: seat.number,
           status,
           type: seat.type,
-          price: 50, // TODO: Get from ticket tier
+          price: getSeatPrice(table.id),
         });
       });
 
@@ -407,7 +432,7 @@ export default function InteractiveSeatingChart({
                     tableNumber={tableNumber}
                     availableSeats={availableSeats.length}
                     totalSeats={seats.length}
-                    pricePerSeat={50}
+                    pricePerSeat={getSeatPrice(tableId)}
                     onBuyTable={() => handleBuyTable(tableId, tableNumber, table.seats.filter((s: any) => {
                       const seatId = `${tableId}-${s.number}`;
                       const renderSeat = seats.find(rs => rs.id === seatId);

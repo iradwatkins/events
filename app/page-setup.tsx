@@ -11,7 +11,7 @@ export default function Home() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <Calendar className="w-8 h-8 text-blue-600" />
+              <Calendar className="w-8 h-8 text-primary" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   SteppersLife Events
@@ -25,13 +25,13 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <Link
                 href="/login"
-                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                className="text-sm font-medium text-gray-700 hover:text-primary transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 href="/organizer/events/create"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Create Event</span>
@@ -47,7 +47,7 @@ export default function Home() {
           {/* Setup Status Card */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
             <div className="flex items-center gap-3 mb-6">
-              <Terminal className="w-8 h-8 text-blue-600" />
+              <Terminal className="w-8 h-8 text-primary" />
               <h2 className="text-2xl font-bold text-gray-900">
                 Setup Required
               </h2>
@@ -94,31 +94,31 @@ export default function Home() {
             </div>
 
             {/* Setup Instructions */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="font-semibold text-blue-900 mb-3">
+            <div className="bg-accent border border-border rounded-lg p-6">
+              <h3 className="font-semibold text-foreground mb-3">
                 Quick Setup (2 minutes)
               </h3>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-blue-900 mb-2">Step 1: Open New Terminal</p>
+                  <p className="text-sm font-medium text-foreground mb-2">Step 1: Open New Terminal</p>
                   <div className="bg-blue-900 text-blue-50 rounded p-3 font-mono text-sm">
                     cd "/Users/irawatkins/Desktop/File Cabinet/event.stepperslife.com"
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-blue-900 mb-2">Step 2: Run Convex Setup</p>
+                  <p className="text-sm font-medium text-foreground mb-2">Step 2: Run Convex Setup</p>
                   <div className="bg-blue-900 text-blue-50 rounded p-3 font-mono text-sm">
                     npx convex dev
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm text-blue-800">
+                  <p className="text-sm text-accent-foreground">
                     This will:
                   </p>
-                  <ul className="text-sm text-blue-800 list-disc list-inside ml-2 mt-2 space-y-1">
+                  <ul className="text-sm text-accent-foreground list-disc list-inside ml-2 mt-2 space-y-1">
                     <li>Connect to your Convex account</li>
                     <li>Generate API files in convex/_generated/</li>
                     <li>Push your schema and functions</li>
@@ -127,17 +127,17 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-blue-900 mb-2">Step 3: Keep Both Running</p>
-                  <p className="text-sm text-blue-800">
-                    Terminal 1: <code className="bg-blue-100 px-2 py-0.5 rounded">npm run dev</code> (already running ✓)
+                  <p className="text-sm font-medium text-foreground mb-2">Step 3: Keep Both Running</p>
+                  <p className="text-sm text-accent-foreground">
+                    Terminal 1: <code className="bg-accent px-2 py-0.5 rounded">npm run dev</code> (already running ✓)
                     <br />
-                    Terminal 2: <code className="bg-blue-100 px-2 py-0.5 rounded">npx convex dev</code> (needs to start)
+                    Terminal 2: <code className="bg-accent px-2 py-0.5 rounded">npx convex dev</code> (needs to start)
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-blue-900 mb-2">Step 4: Refresh Browser</p>
-                  <p className="text-sm text-blue-800">
+                  <p className="text-sm font-medium text-foreground mb-2">Step 4: Refresh Browser</p>
+                  <p className="text-sm text-accent-foreground">
                     Once Convex is running, refresh this page to see the full application
                   </p>
                 </div>

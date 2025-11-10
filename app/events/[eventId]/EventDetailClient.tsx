@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatEventDate, formatEventTime, formatEventDateTime } from "@/lib/date-format";
 import { SocialShareButtons } from "@/components/events/SocialShareButtons";
+import InteractiveSeatingChart from "@/components/seating/InteractiveSeatingChart";
 
 interface EventDetailClientProps {
   eventId: Id<"events">;
@@ -33,11 +34,12 @@ interface EventDetailClientProps {
 
 export default function EventDetailClient({ eventId }: EventDetailClientProps) {
   const router = useRouter();
+  const ENABLE_SEATING = process.env.NEXT_PUBLIC_ENABLE_SEATING_CHARTS === 'true';
 
   const eventDetails = useQuery(api.public.queries.getPublicEventDetails, {
     eventId,
   });
-  const seatingChart = useQuery(api.seating.queries.getPublicSeatingChart, { eventId });
+  const seatingChart = ENABLE_SEATING ? useQuery(api.seating.queries.getPublicSeatingChart, { eventId }) : null;
   const eventBundles = useQuery(api.bundles.queries.getBundlesForPublicEvent, { eventId });
 
   // Waitlist state
@@ -542,7 +544,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
               )}
 
               {/* View Seating Chart Button */}
-              {seatingChart && seatingChart.sections.length > 0 && (
+              {ENABLE_SEATING && seatingChart && seatingChart.sections.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -684,7 +686,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
 
       {/* Seating Chart Modal */}
       <AnimatePresence>
-        {showSeatingModal && seatingChart && (
+        {ENABLE_SEATING && showSeatingModal && seatingChart && (
           <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -717,9 +719,24 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                 </div>
               )}
 
-              {/* Sections */}
-              <div className="space-y-6">
-                {seatingChart.sections.map((section: any, sectionIndex: number) => (
+              {/* Interactive Ballroom Chart for TABLE_BASED layouts */}
+              {seatingChart.layoutType === "TABLE_BASED" ? (
+                <div className="mb-6">
+                  <InteractiveSeatingChart
+                    eventId={eventId}
+                    onSeatSelect={() => {}} // Read-only preview, no selection
+                    onSeatDeselect={() => {}}
+                    selectedSeats={[]}
+                    className="min-h-[500px]"
+                  />
+                  <p className="text-sm text-gray-500 mt-4 text-center">
+                    Click "Buy Tickets" below to select your seats
+                  </p>
+                </div>
+              ) : (
+                /* Traditional Row/Section view for ROW_BASED layouts */
+                <div className="space-y-6">
+                  {seatingChart.sections.map((section: any, sectionIndex: number) => (
                   <div key={section.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center gap-3 mb-4">
                       <div
@@ -791,9 +808,11 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                     )}
                   </div>
                 ))}
-              </div>
+                </div>
+              )}
 
-              {/* Legend */}
+              {/* Legend - Only show for ROW_BASED layouts */}
+              {seatingChart.layoutType !== "TABLE_BASED" && (
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <h4 className="font-semibold text-gray-900 mb-3">Legend</h4>
                 <div className="flex flex-wrap gap-4 text-sm">
@@ -811,6 +830,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                   </div>
                 </div>
               </div>
+              )}
 
               <div className="mt-6">
                 <Link

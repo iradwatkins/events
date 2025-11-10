@@ -283,3 +283,56 @@ export const deactivatePaymentConfig = mutation({
     return { success: true };
   },
 });
+
+/**
+ * Update payment methods (merchant processor and payment options)
+ */
+export const updatePaymentMethods = mutation({
+  args: {
+    eventId: v.id("events"),
+    merchantProcessor: v.union(
+      v.literal("SQUARE"),
+      v.literal("STRIPE"),
+      v.literal("PAYPAL")
+    ),
+    creditCardEnabled: v.boolean(),
+    cashAppEnabled: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    // Verify event ownership
+    const event = await ctx.db.get(args.eventId);
+    if (!event) throw new Error("Event not found");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user || event.organizerId !== user._id) {
+      throw new Error("Not authorized");
+    }
+
+    // Get payment config
+    const config = await ctx.db
+      .query("eventPaymentConfig")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .first();
+
+    if (!config) {
+      throw new Error("Payment configuration not found for this event");
+    }
+
+    // Update payment config
+    await ctx.db.patch(config._id, {
+      merchantProcessor: args.merchantProcessor,
+      creditCardEnabled: args.creditCardEnabled,
+      cashAppEnabled: args.cashAppEnabled,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});

@@ -302,7 +302,7 @@ export function SquareCardPayment({
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="bg-purple-600 border-2 border-red-200 rounded-xl p-6 shadow-lg">
+            <div className="bg-primary border-2 border-red-200 rounded-xl p-6 shadow-lg">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
@@ -319,15 +319,15 @@ export function SquareCardPayment({
                     <p className="text-sm font-semibold text-gray-900 mb-2">What you can do:</p>
                     <ul className="space-y-2 text-sm text-gray-700">
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-600 font-bold mt-0.5">→</span>
+                        <span className="text-primary font-bold mt-0.5">→</span>
                         <span>Double-check your card number, expiration date, and CVV</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-600 font-bold mt-0.5">→</span>
+                        <span className="text-primary font-bold mt-0.5">→</span>
                         <span>Try a different payment method</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-blue-600 font-bold mt-0.5">→</span>
+                        <span className="text-primary font-bold mt-0.5">→</span>
                         <span>Contact your bank if the problem continues</span>
                       </li>
                     </ul>
@@ -335,7 +335,7 @@ export function SquareCardPayment({
 
                   <div className="flex justify-center pt-2">
                     <button
-                      className="px-8 py-3 bg-purple-600 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                      className="px-8 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                       onClick={() => setError(null)}
                     >
                       Try Again
@@ -409,7 +409,7 @@ export function SquareCardPayment({
                 Back
               </Button>
               <Button
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg py-6"
+                className="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold text-lg py-6"
                 disabled={isProcessing || isInitializing || (!card && !savedPaymentMethod)}
                 onClick={handleCardPayment}
               >

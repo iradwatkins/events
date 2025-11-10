@@ -9,10 +9,8 @@ import {
   Briefcase,
   User,
   Trash2,
-  AlertCircle,
   Calendar,
   ShoppingCart,
-  ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -40,26 +38,16 @@ export default function UsersManagementPage() {
   });
 
   const handleRoleChange = async (userId: Id<"users">, newRole: "admin" | "organizer" | "user") => {
-    if (!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
-      return;
-    }
-
     try {
       await updateUserRole({ userId, role: newRole });
-      alert("User role updated successfully");
     } catch (error: unknown) {
       alert(`Failed to update role: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
   const handleDeleteUser = async (userId: Id<"users">, userName: string) => {
-    if (!confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
-      return;
-    }
-
     try {
       await deleteUser({ userId });
-      alert("User deleted successfully");
     } catch (error: unknown) {
       alert(`Failed to delete user: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -92,7 +80,7 @@ export default function UsersManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <UsersIcon className="w-5 h-5" />
             </div>
             <div>
@@ -116,7 +104,7 @@ export default function UsersManagementPage() {
 
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <Briefcase className="w-5 h-5" />
             </div>
             <div>
@@ -218,7 +206,7 @@ export default function UsersManagementPage() {
                             user.role === "admin"
                               ? "bg-red-100 text-red-600"
                               : user.role === "organizer"
-                              ? "bg-purple-100 text-purple-600"
+                              ? "bg-accent text-primary"
                               : "bg-gray-100 text-gray-600"
                           }`}
                         >
@@ -242,7 +230,7 @@ export default function UsersManagementPage() {
                           user.role === "admin"
                             ? "bg-red-100 text-red-800"
                             : user.role === "organizer"
-                            ? "bg-purple-100 text-purple-800"
+                            ? "bg-accent text-accent-foreground"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
@@ -266,36 +254,16 @@ export default function UsersManagementPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        {/* Role Change Dropdown */}
-                        <div className="relative group">
-                          <button className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1">
-                            Change Role
-                            <ChevronDown className="w-3 h-3" />
-                          </button>
-                          <div className="absolute left-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                            <button
-                              onClick={() => handleRoleChange(user._id, "admin")}
-                              disabled={user.role === "admin"}
-                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Make Admin
-                            </button>
-                            <button
-                              onClick={() => handleRoleChange(user._id, "organizer")}
-                              disabled={user.role === "organizer"}
-                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Make Organizer
-                            </button>
-                            <button
-                              onClick={() => handleRoleChange(user._id, "user")}
-                              disabled={user.role === "user" || !user.role}
-                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Make Regular User
-                            </button>
-                          </div>
-                        </div>
+                        {/* Role Change Select */}
+                        <select
+                          value={user.role || "user"}
+                          onChange={(e) => handleRoleChange(user._id, e.target.value as "admin" | "organizer" | "user")}
+                          className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent bg-white"
+                        >
+                          <option value="admin">Admin</option>
+                          <option value="organizer">Organizer</option>
+                          <option value="user">User</option>
+                        </select>
 
                         {/* Delete Button */}
                         <button
@@ -315,19 +283,6 @@ export default function UsersManagementPage() {
         )}
       </div>
 
-      {/* Help Text */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex gap-3">
-        <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-yellow-800">
-          <p className="font-medium mb-1">User Management Guidelines</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>You cannot change your own role or delete your own account</li>
-            <li>Users with existing events cannot be deleted</li>
-            <li>Organizers can create and manage events</li>
-            <li>Admins have full platform access</li>
-          </ul>
-        </div>
-      </div>
     </div>
   );
 }

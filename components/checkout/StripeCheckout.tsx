@@ -88,12 +88,12 @@ function CheckoutForm({
         <PaymentElement />
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-accent border border-border rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <Lock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <Lock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-blue-900">Secure Payment</p>
-            <p className="text-xs text-blue-700 mt-1">
+            <p className="text-sm font-semibold text-foreground">Secure Payment</p>
+            <p className="text-xs text-primary mt-1">
               Your payment information is encrypted and secure. Powered by Stripe.
             </p>
           </div>
@@ -114,7 +114,7 @@ function CheckoutForm({
         <Button
           type="submit"
           disabled={!stripe || isProcessing}
-          className="flex-1 bg-blue-600 hover:bg-blue-700"
+          className="flex-1 bg-primary hover:bg-primary/90"
         >
           {isProcessing ? (
             <>
@@ -180,7 +180,7 @@ export function StripeCheckout(props: StripeCheckoutProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
           <p className="text-sm text-gray-600">Initializing secure payment...</p>
         </div>
       </div>

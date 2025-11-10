@@ -41,7 +41,7 @@ export const createEvent = mutation({
       console.log("[createEvent] Starting event creation...");
 
       // Use fallback test user for anonymous events
-      const email = "test@stepperslife.com";
+      const email = "iradwatkins@gmail.com";
       const name = "Test Organizer";
       const image = undefined;
 
@@ -301,7 +301,7 @@ export const configurePayment = mutation({
       // Use test user
       user = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
       if (!user) throw new Error("Test user not found");
     } else {
@@ -334,12 +334,12 @@ export const configurePayment = mutation({
         .first();
 
       if (!credits) {
-        console.log("[configurePayment] Initializing 10,000 FREE ticket credits for new organizer");
+        console.log("[configurePayment] Initializing 1000 FREE ticket credits for new organizer");
         await ctx.db.insert("organizerCredits", {
           organizerId: user._id,
-          creditsTotal: 10000,
+          creditsTotal: 1000,
           creditsUsed: 0,
-          creditsRemaining: 10000,
+          creditsRemaining: 1000,
           firstEventFreeUsed: false,
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -758,7 +758,7 @@ export const bulkDeleteEvents = mutation({
       console.warn("[bulkDeleteEvents] TESTING MODE - No authentication required");
       user = await ctx.db
         .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "test@stepperslife.com"))
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
       if (!user) throw new Error("Test user not found");
     } else {

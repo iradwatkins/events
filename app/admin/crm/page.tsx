@@ -32,13 +32,8 @@ export default function CRMPage() {
   const deleteContact = useMutation(api.crm.mutations.deleteContact);
 
   const handleDelete = async (contactId: Id<"eventContacts">, name: string) => {
-    if (!confirm(`Delete contact "${name}"? This cannot be undone.`)) {
-      return;
-    }
-
     try {
       await deleteContact({ contactId });
-      alert("Contact deleted successfully");
     } catch (error) {
       alert("Failed to delete contact: " + (error instanceof Error ? error.message : "Unknown error"));
     }
@@ -103,7 +98,7 @@ export default function CRMPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <Users className="w-5 h-5" />
             </div>
             <div>
@@ -127,7 +122,7 @@ export default function CRMPage() {
 
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-accent text-primary rounded-full flex items-center justify-center">
               <User className="w-5 h-5" />
             </div>
             <div>
@@ -310,7 +305,7 @@ export default function CRMPage() {
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
                           contact.extractedFrom === "FLYER"
                             ? "bg-green-100 text-green-800"
-                            : "bg-purple-100 text-purple-800"
+                            : "bg-accent text-accent-foreground"
                         }`}
                       >
                         {contact.extractedFrom === "FLYER" ? "Flyer" : "Manual"}

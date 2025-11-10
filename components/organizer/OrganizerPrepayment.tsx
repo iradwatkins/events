@@ -143,7 +143,7 @@ export function OrganizerPrepayment({
       </div>
 
       {/* Payment Summary */}
-      <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200">
+      <Card className="bg-accent border-2 border-border">
         <CardContent className="pt-6">
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-1">Total Platform Fee</p>
@@ -155,9 +155,9 @@ export function OrganizerPrepayment({
             </p>
           </div>
 
-          <div className="mt-6 bg-white rounded-lg p-4 border border-blue-200">
+          <div className="mt-6 bg-white rounded-lg p-4 border border-border">
             <div className="flex items-start gap-3">
-              <DollarSign className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <DollarSign className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-semibold text-gray-900 mb-1">What happens after payment:</p>
                 <ul className="space-y-1 text-gray-600">
@@ -177,15 +177,15 @@ export function OrganizerPrepayment({
         {/* Square Payment */}
         <button
           onClick={() => handlePaymentMethodSelect('square')}
-          className="bg-white rounded-lg border-2 border-gray-200 p-6 text-left hover:border-blue-600 hover:shadow-lg transition-all"
+          className="bg-white rounded-lg border-2 border-gray-200 p-6 text-left hover:border-primary hover:shadow-lg transition-all"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <CreditCard className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+              <CreditCard className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-gray-900">Square</h3>
-              <p className="text-sm text-blue-600">Credit/Debit Card</p>
+              <p className="text-sm text-primary">Credit/Debit Card</p>
             </div>
           </div>
 
@@ -204,8 +204,8 @@ export function OrganizerPrepayment({
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-sm font-semibold text-blue-900">Recommended</p>
+          <div className="bg-accent rounded-lg p-3 text-center">
+            <p className="text-sm font-semibold text-foreground">Recommended</p>
           </div>
         </button>
 

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { Id } from "@/convex/_generated/dataModel";
+import { notFound } from "next/navigation";
 import EventDetailClient from "./EventDetailClient";
 
 interface PageProps {
@@ -167,6 +168,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EventDetailPage({ params }: PageProps) {
   const { eventId } = await params;
+
+  // Check if event exists - if not, return 404
+  const eventDetails = await getEventData(eventId);
+  if (!eventDetails) {
+    notFound();
+  }
+
   const typedEventId = eventId as Id<"events">;
 
   return <EventDetailClient eventId={typedEventId} />;

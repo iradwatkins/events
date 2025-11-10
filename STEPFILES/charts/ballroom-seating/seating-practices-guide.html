@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Seating Chart Practices Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section h2 {
+            font-size: 1.6em;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .practice-box {
+            background: #f9f9f9;
+            border-left: 4px solid #1a1a1a;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .practice-box h3 {
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .practice-box ul {
+            margin-left: 20px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .card {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card h4 {
+            font-size: 1.1em;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+        }
+
+        .card-visual {
+            position: relative;
+            margin: 20px auto;
+            display: inline-block;
+        }
+
+        .capacity-tag {
+            display: inline-block;
+            background: #1a1a1a;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        /* Visual Elements */
+        .table {
+            background: #4a4a4a;
+            border: 2px solid #1a1a1a;
+        }
+
+        .table.round {
+            border-radius: 50%;
+        }
+
+        .chair {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 50%;
+        }
+
+        .row-chair {
+            background: #333;
+            border-color: #1a1a1a;
+        }
+
+        .label-visual {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: 500;
+            font-size: 0.75em;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .example-box {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .example-box strong {
+            color: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Professional Seating Chart Practices</h1>
+        <p class="subtitle">Industry standards for table and chair placement in event planning</p>
+
+        <!-- Rectangle Tables -->
+        <div class="section">
+            <h2>1. Rectangle Tables - Proper Chair Distribution</h2>
+            
+            <div class="practice-box">
+                <h3>✓ CORRECT PRACTICE</h3>
+                <ul>
+                    <li><span class="highlight">1 chair at each SHORT end</span> (left and right)</li>
+                    <li><span class="highlight">Remaining chairs split EVENLY on LONG sides</span> (top and bottom)</li>
+                    <li>This ensures proper spacing and conversation flow</li>
+                    <li>Avoids overcrowding on one side</li>
+                </ul>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>Rectangle - 4 Guests</h4>
+                    <div class="capacity-tag">1 + 1 + 2</div>
+                    <div class="card-visual" style="width: 180px; height: 80px;">
+                        <div class="table" style="width: 180px; height: 80px;"></div>
+                        <div class="label-visual">Table</div>
+                        <!-- 1 left, 1 right -->
+                        <div class="chair" style="left: -10px; top: 32px;"></div>
+                        <div class="chair" style="right: -10px; top: 32px;"></div>
+                        <!-- 1 top, 1 bottom -->
+                        <div class="chair" style="left: 83px; top: -10px;"></div>
+                        <div class="chair" style="left: 83px; bottom: -10px;"></div>
+                    </div>
+                    <p class="description">1 on left end + 1 on right end + 1 on top + 1 on bottom</p>
+                </div>
+
+                <div class="card">
+                    <h4>Rectangle - 6 Guests</h4>
+                    <div class="capacity-tag">1 + 1 + 4</div>
+                    <div class="card-visual" style="width: 220px; height: 90px;">
+                        <div class="table" style="width: 220px; height: 90px;"></div>
+                        <div class="label-visual">Table</div>
+                        <!-- 1 left, 1 right -->
+                        <div class="chair" style="left: -10px; top: 38px;"></div>
+                        <div class="chair" style="right: -10px; top: 38px;"></div>
+                        <!-- 2 top, 2 bottom -->
+                        <div class="chair" style="left: 65px; top: -10px;"></div>
+                        <div class="chair" style="left: 145px; top: -10px;"></div>
+                        <div class="chair" style="left: 65px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 145px; bottom: -10px;"></div>
+                    </div>
+                    <p class="description">1 on left end + 1 on right end + 2 on top + 2 on bottom</p>
+                </div>
+
+                <div class="card">
+                    <h4>Rectangle - 8 Guests</h4>
+                    <div class="capacity-tag">1 + 1 + 6</div>
+                    <div class="card-visual" style="width: 250px; height: 90px;">
+                        <div class="table" style="width: 250px; height: 90px;"></div>
+                        <div class="label-visual">Table</div>
+                        <!-- 1 left, 1 right -->
+                        <div class="chair" style="left: -10px; top: 38px;"></div>
+                        <div class="chair" style="right: -10px; top: 38px;"></div>
+                        <!-- 3 top, 3 bottom -->
+                        <div class="chair" style="left: 54px; top: -10px;"></div>
+                        <div class="chair" style="left: 117px; top: -10px;"></div>
+                        <div class="chair" style="left: 180px; top: -10px;"></div>
+                        <div class="chair" style="left: 54px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 117px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 180px; bottom: -10px;"></div>
+                    </div>
+                    <p class="description">1 on left end + 1 on right end + 3 on top + 3 on bottom</p>
+                </div>
+
+                <div class="card">
+                    <h4>Rectangle - 10 Guests</h4>
+                    <div class="capacity-tag">1 + 1 + 8</div>
+                    <div class="card-visual" style="width: 300px; height: 90px;">
+                        <div class="table" style="width: 300px; height: 90px;"></div>
+                        <div class="label-visual">Table</div>
+                        <!-- 1 left, 1 right -->
+                        <div class="chair" style="left: -10px; top: 38px;"></div>
+                        <div class="chair" style="right: -10px; top: 38px;"></div>
+                        <!-- 4 top, 4 bottom -->
+                        <div class="chair" style="left: 52px; top: -10px;"></div>
+                        <div class="chair" style="left: 112px; top: -10px;"></div>
+                        <div class="chair" style="left: 172px; top: -10px;"></div>
+                        <div class="chair" style="left: 232px; top: -10px;"></div>
+                        <div class="chair" style="left: 52px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 112px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 172px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 232px; bottom: -10px;"></div>
+                    </div>
+                    <p class="description">1 on left end + 1 on right end + 4 on top + 4 on bottom</p>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <strong>Why this matters:</strong> Placing 1 chair at each short end ensures hosts can easily serve food and guests can converse comfortably. The even distribution on long sides prevents one side from being crowded while the other is empty.
+            </div>
+        </div>
+
+        <!-- Round Tables -->
+        <div class="section">
+            <h2>2. Round Tables - Even Distribution</h2>
+            
+            <div class="practice-box">
+                <h3>✓ CORRECT PRACTICE</h3>
+                <ul>
+                    <li><span class="highlight">Chairs evenly distributed around the perimeter</span></li>
+                    <li>Equal spacing between all chairs</li>
+                    <li>Promotes equal conversation access for all guests</li>
+                    <li>No "head" of the table - all positions equal</li>
+                </ul>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>Round - 2 Guests</h4>
+                    <div class="capacity-tag">180° apart</div>
+                    <div class="card-visual" style="width: 80px; height: 80px;">
+                        <div class="table round" style="width: 80px; height: 80px;"></div>
+                        <div class="chair" style="left: 33px; top: -8px;"></div>
+                        <div class="chair" style="left: 33px; bottom: -8px;"></div>
+                    </div>
+                    <p class="description">Intimate 2-person table</p>
+                </div>
+
+                <div class="card">
+                    <h4>Round - 4 Guests</h4>
+                    <div class="capacity-tag">90° apart</div>
+                    <div class="card-visual" style="width: 120px; height: 120px;">
+                        <div class="table round" style="width: 120px; height: 120px;"></div>
+                        <div class="chair" style="left: 53px; top: -8px;"></div>
+                        <div class="chair" style="right: -8px; top: 53px;"></div>
+                        <div class="chair" style="left: 53px; bottom: -8px;"></div>
+                        <div class="chair" style="left: -8px; top: 53px;"></div>
+                    </div>
+                    <p class="description">Small group dining</p>
+                </div>
+
+                <div class="card">
+                    <h4>Round - 6 Guests</h4>
+                    <div class="capacity-tag">60° apart</div>
+                    <div class="card-visual" style="width: 140px; height: 140px;">
+                        <div class="table round" style="width: 140px; height: 140px;"></div>
+                        <div class="chair" style="left: 63px; top: -8px;"></div>
+                        <div class="chair" style="right: 10px; top: 28px;"></div>
+                        <div class="chair" style="right: 10px; bottom: 28px;"></div>
+                        <div class="chair" style="left: 63px; bottom: -8px;"></div>
+                        <div class="chair" style="left: 10px; bottom: 28px;"></div>
+                        <div class="chair" style="left: 10px; top: 28px;"></div>
+                    </div>
+                    <p class="description">Standard round table</p>
+                </div>
+
+                <div class="card">
+                    <h4>Round - 8 Guests</h4>
+                    <div class="capacity-tag">45° apart</div>
+                    <div class="card-visual" style="width: 160px; height: 160px;">
+                        <div class="table round" style="width: 160px; height: 160px;"></div>
+                        <div class="chair" style="left: 73px; top: -8px;"></div>
+                        <div class="chair" style="right: 18px; top: 18px;"></div>
+                        <div class="chair" style="right: -8px; top: 73px;"></div>
+                        <div class="chair" style="right: 18px; bottom: 18px;"></div>
+                        <div class="chair" style="left: 73px; bottom: -8px;"></div>
+                        <div class="chair" style="left: 18px; bottom: 18px;"></div>
+                        <div class="chair" style="left: -8px; top: 73px;"></div>
+                        <div class="chair" style="left: 18px; top: 18px;"></div>
+                    </div>
+                    <p class="description">Most common size</p>
+                </div>
+
+                <div class="card">
+                    <h4>Round - 10 Guests</h4>
+                    <div class="capacity-tag">36° apart</div>
+                    <div class="card-visual" style="width: 180px; height: 180px;">
+                        <div class="table round" style="width: 180px; height: 180px;"></div>
+                        <div class="chair" style="left: 83px; top: -8px;"></div>
+                        <div class="chair" style="right: 28px; top: 8px;"></div>
+                        <div class="chair" style="right: 8px; top: 48px;"></div>
+                        <div class="chair" style="right: 8px; bottom: 48px;"></div>
+                        <div class="chair" style="right: 28px; bottom: 8px;"></div>
+                        <div class="chair" style="left: 83px; bottom: -8px;"></div>
+                        <div class="chair" style="left: 28px; bottom: 8px;"></div>
+                        <div class="chair" style="left: 8px; bottom: 48px;"></div>
+                        <div class="chair" style="left: 8px; top: 48px;"></div>
+                        <div class="chair" style="left: 28px; top: 8px;"></div>
+                    </div>
+                    <p class="description">Large round table</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Head Tables -->
+        <div class="section">
+            <h2>3. Head Tables - One-Sided Seating</h2>
+            
+            <div class="practice-box">
+                <h3>✓ CORRECT PRACTICE</h3>
+                <ul>
+                    <li><span class="highlight">ALL chairs on ONE side only</span> (front side)</li>
+                    <li>Guests face the audience/room</li>
+                    <li>Perfect for VIP, bridal party, speakers</li>
+                    <li>Allows everyone to see and be seen</li>
+                </ul>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>Head Table - 8 Guests</h4>
+                    <div class="capacity-tag">Front Only</div>
+                    <div class="card-visual" style="width: 320px; height: 90px;">
+                        <div class="table" style="width: 320px; height: 90px; background: #2c2c2c;"></div>
+                        <div class="label-visual">Head Table</div>
+                        <div class="chair" style="left: 28px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 72px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 116px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 160px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 204px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 248px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 292px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 336px; bottom: -10px;"></div>
+                    </div>
+                    <p class="description">8 VIP guests facing audience</p>
+                </div>
+
+                <div class="card">
+                    <h4>Head Table - 12 Guests</h4>
+                    <div class="capacity-tag">Front Only</div>
+                    <div class="card-visual" style="width: 480px; height: 90px;">
+                        <div class="table" style="width: 480px; height: 90px; background: #2c2c2c;"></div>
+                        <div class="label-visual">Head Table</div>
+                        <div class="chair" style="left: 28px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 72px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 116px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 160px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 204px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 248px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 292px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 336px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 380px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 424px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 468px; bottom: -10px;"></div>
+                        <div class="chair" style="left: 512px; bottom: -10px;"></div>
+                    </div>
+                    <p class="description">12 VIP guests for larger events</p>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <strong>Common uses:</strong> Wedding parties, executive panels, award ceremonies, keynote speakers. The one-sided arrangement ensures all VIPs are visible to attendees and can see the entire room.
+            </div>
+        </div>
+
+        <!-- Row Seating -->
+        <div class="section">
+            <h2>4. Row Seating - Classroom/Conference Style</h2>
+            
+            <div class="practice-box">
+                <h3>✓ CORRECT PRACTICE</h3>
+                <ul>
+                    <li><span class="highlight">Chairs in straight rows without tables</span></li>
+                    <li>All guests face the same direction (toward stage/presenter)</li>
+                    <li>Evenly spaced within each row</li>
+                    <li>Perfect for presentations, ceremonies, lectures</li>
+                </ul>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>Row - 6 Chairs</h4>
+                    <div class="capacity-tag">Classroom Style</div>
+                    <div class="card-visual" style="width: 300px; height: 50px;">
+                        <div style="width: 300px; height: 50px; border: 2px dashed #999; border-radius: 4px;"></div>
+                        <div class="chair row-chair" style="left: 35px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 85px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 135px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 185px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 235px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 285px; top: 17px;"></div>
+                    </div>
+                    <p class="description">6 guests per row</p>
+                </div>
+
+                <div class="card">
+                    <h4>Row - 8 Chairs</h4>
+                    <div class="capacity-tag">Classroom Style</div>
+                    <div class="card-visual" style="width: 400px; height: 50px;">
+                        <div style="width: 400px; height: 50px; border: 2px dashed #999; border-radius: 4px;"></div>
+                        <div class="chair row-chair" style="left: 35px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 85px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 135px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 185px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 235px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 285px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 335px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 385px; top: 17px;"></div>
+                    </div>
+                    <p class="description">8 guests per row</p>
+                </div>
+
+                <div class="card">
+                    <h4>Row - 10 Chairs</h4>
+                    <div class="capacity-tag">Classroom Style</div>
+                    <div class="card-visual" style="width: 500px; height: 50px;">
+                        <div style="width: 500px; height: 50px; border: 2px dashed #999; border-radius: 4px;"></div>
+                        <div class="chair row-chair" style="left: 38px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 88px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 138px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 188px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 238px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 288px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 338px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 388px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 438px; top: 17px;"></div>
+                        <div class="chair row-chair" style="left: 488px; top: 17px;"></div>
+                    </div>
+                    <p class="description">10 guests per row</p>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <strong>Usage:</strong> Conferences, training sessions, presentations, ceremonies. Combine multiple rows for larger audiences. Typically space rows 3-4 feet apart for comfortable seating.
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="section">
+            <h2>Quick Reference Summary</h2>
+            <div class="grid">
+                <div class="example-box">
+                    <strong>Rectangle Tables</strong><br>
+                    Format: 1 + 1 + remaining<br>
+                    • 4 guests: 1+1+2<br>
+                    • 6 guests: 1+1+4<br>
+                    • 8 guests: 1+1+6<br>
+                    • 10 guests: 1+1+8
+                </div>
+                <div class="example-box">
+                    <strong>Round Tables</strong><br>
+                    Even distribution<br>
+                    • 2, 4, 6, 8, 10 guests<br>
+                    • Equal spacing<br>
+                    • All angles available
+                </div>
+                <div class="example-box">
+                    <strong>Head Tables</strong><br>
+                    Front side only<br>
+                    • 8 or 12 guests<br>
+                    • All face audience<br>
+                    • VIP positioning
+                </div>
+                <div class="example-box">
+                    <strong>Row Seating</strong><br>
+                    No tables<br>
+                    • 6, 8, or 10 chairs<br>
+                    • Classroom style<br>
+                    • All face forward
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -52,7 +52,7 @@ export default function TransferAcceptancePage() {
   if (transfer === undefined || currentUser === undefined) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export default function TransferAcceptancePage() {
           </p>
           <Link
             href="/"
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             Browse Events
           </Link>
@@ -102,7 +102,7 @@ export default function TransferAcceptancePage() {
           <p className="text-gray-600 mb-6">{acceptanceResult.message}</p>
           <Link
             href="/my-tickets"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             View My Tickets
             <ArrowRight className="w-5 h-5" />
@@ -122,7 +122,7 @@ export default function TransferAcceptancePage() {
           <p className="text-gray-600 mb-6">{acceptanceResult.message}</p>
           <button
             onClick={() => setAcceptanceResult(null)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             Try Again
           </button>
@@ -142,12 +142,12 @@ export default function TransferAcceptancePage() {
             className="bg-white rounded-lg shadow-md overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-purple-600 p-6 text-white">
+            <div className="bg-primary p-6 text-white">
               <div className="flex items-center gap-3 mb-2">
                 <Ticket className="w-8 h-8" />
                 <h1 className="text-2xl font-bold">Ticket Transfer</h1>
               </div>
-              <p className="text-purple-100">
+              <p className="text-white/80">
                 {transfer.fromName} wants to transfer a ticket to you
               </p>
             </div>
@@ -234,12 +234,12 @@ export default function TransferAcceptancePage() {
 
               {/* Expiry Info */}
               {canAccept && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mb-6 p-4 bg-accent border border-border rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <Clock className="w-5 h-5 text-primary mt-0.5" />
                     <div>
-                      <p className="font-semibold text-blue-900">Transfer expires in</p>
-                      <p className="text-sm text-blue-700 mt-1">
+                      <p className="font-semibold text-foreground">Transfer expires in</p>
+                      <p className="text-sm text-primary mt-1">
                         {format(transfer.expiresAt, "MMM d, yyyy 'at' h:mm a")}
                       </p>
                     </div>
@@ -253,7 +253,7 @@ export default function TransferAcceptancePage() {
                   <p className="text-gray-600 mb-4">Please sign in to accept this transfer</p>
                   <Link
                     href={`/sign-in?redirect=/transfer/${transferToken}`}
-                    className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
                   >
                     Sign In
                   </Link>
@@ -288,7 +288,7 @@ export default function TransferAcceptancePage() {
                 <div className="text-center">
                   <Link
                     href="/"
-                    className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    className="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
                   >
                     Browse Events
                   </Link>

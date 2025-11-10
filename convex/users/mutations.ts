@@ -40,13 +40,13 @@ export const upsertUserFromAuth = mutation({
         updatedAt: now,
       });
 
-      // AUTO-GRANT 10,000 FREE TICKETS for new organizers!
+      // AUTO-GRANT 1000 FREE TICKETS for new organizers!
       // Initialize credit balance with first event free promotion
       await ctx.db.insert("organizerCredits", {
         organizerId: userId,
-        creditsTotal: 10000, // First 10,000 tickets FREE!
+        creditsTotal: 1000, // First 1000 tickets FREE!
         creditsUsed: 0,
-        creditsRemaining: 10000,
+        creditsRemaining: 1000,
         firstEventFreeUsed: false,
         createdAt: now,
         updatedAt: now,

@@ -291,9 +291,9 @@ function NotificationSettings() {
       <div className="space-y-4">
         <h3 className="font-semibold text-gray-900">Email Notifications</h3>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
+        <div className="bg-accent border border-border rounded-lg p-4 flex gap-3">
+          <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-accent-foreground">
             <p className="font-medium mb-1">Email System Not Configured</p>
             <p>Email notifications are currently disabled. Configure an email service provider (e.g., SendGrid, Mailgun) to enable automated emails.</p>
           </div>

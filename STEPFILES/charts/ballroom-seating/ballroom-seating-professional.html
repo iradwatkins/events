@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💃 Ballroom Seating Designer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 100%;
+            height: 100vh;
+            margin: 0 auto;
+            background: white;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .header-left p {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: calc(100vh - 80px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #fafafa;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .element-library {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .library-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            cursor: move;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .library-item:hover {
+            border-color: #1a1a1a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .library-item-title {
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            font-size: 0.9em;
+        }
+
+        .library-item-capacity {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .library-icon {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        /* Canvas Area */
+        .canvas-area {
+            background: #ffffff;
+            padding: 20px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .canvas-controls {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .canvas-controls button {
+            padding: 8px 16px;
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .canvas-controls button:hover {
+            background: #333;
+        }
+
+        .canvas-controls button.danger {
+            background: #d32f2f;
+        }
+
+        .canvas-controls button.danger:hover {
+            background: #b71c1c;
+        }
+
+        .canvas-controls label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .canvas-controls input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        #ballroomCanvas {
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 49px, #f0f0f0 49px, #f0f0f0 50px),
+                repeating-linear-gradient(90deg, transparent, transparent 49px, #f0f0f0 49px, #f0f0f0 50px);
+            background-size: 50px 50px;
+            min-height: 800px;
+            min-width: 1200px;
+            position: relative;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+
+        /* Ballroom Elements */
+        .ballroom-element {
+            position: absolute;
+            cursor: move;
+            border: 2px solid #1a1a1a;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            color: #1a1a1a;
+            user-select: none;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .ballroom-element:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+        }
+
+        .ballroom-element.selected {
+            border-color: #1a1a1a;
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+        }
+
+        .ballroom-element .delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            display: none;
+            font-weight: bold;
+            font-size: 0.85em;
+            z-index: 10;
+            line-height: 20px;
+        }
+
+        .ballroom-element:hover .delete-btn {
+            display: block;
+        }
+
+        .ballroom-element .label {
+            font-size: 0.85em;
+            position: relative;
+            z-index: 5;
+            font-weight: 500;
+        }
+
+        /* Chair indicators */
+        .chair {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 50%;
+            z-index: 3;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .round-table-2 .chair,
+        .round-table-4 .chair,
+        .round-table-6 .chair,
+        .round-table-8 .chair,
+        .round-table-10 .chair,
+        .cocktail-table .chair {
+            background: white;
+            border-color: #333;
+        }
+
+        .rectangle-table-4 .chair,
+        .rectangle-table-6 .chair,
+        .rectangle-table-8 .chair,
+        .rectangle-table-10 .chair,
+        .head-table-8 .chair,
+        .head-table-12 .chair {
+            background: white;
+            border-color: #333;
+        }
+
+        /* Row seating chairs - darker for visibility */
+        .row-seating-6 .chair,
+        .row-seating-8 .chair,
+        .row-seating-10 .chair {
+            background: #333;
+            border-color: #1a1a1a;
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Table Types - Round */
+        .round-table-2 {
+            width: 80px;
+            height: 80px;
+            background: #4a4a4a;
+            border-radius: 50%;
+        }
+
+        .round-table-4 {
+            width: 120px;
+            height: 120px;
+            background: #4a4a4a;
+            border-radius: 50%;
+        }
+
+        .round-table-6 {
+            width: 140px;
+            height: 140px;
+            background: #4a4a4a;
+            border-radius: 50%;
+        }
+
+        .round-table-8 {
+            width: 160px;
+            height: 160px;
+            background: #4a4a4a;
+            border-radius: 50%;
+        }
+
+        .round-table-10 {
+            width: 180px;
+            height: 180px;
+            background: #4a4a4a;
+            border-radius: 50%;
+        }
+
+        /* Table Types - Rectangle */
+        .rectangle-table-4 {
+            width: 180px;
+            height: 80px;
+            background: #4a4a4a;
+        }
+
+        .rectangle-table-6 {
+            width: 220px;
+            height: 90px;
+            background: #4a4a4a;
+        }
+
+        .rectangle-table-8 {
+            width: 250px;
+            height: 90px;
+            background: #4a4a4a;
+        }
+
+        .rectangle-table-10 {
+            width: 300px;
+            height: 90px;
+            background: #4a4a4a;
+        }
+
+        /* Head Tables */
+        .head-table-8 {
+            width: 320px;
+            height: 90px;
+            background: #2c2c2c;
+        }
+
+        .head-table-12 {
+            width: 480px;
+            height: 90px;
+            background: #2c2c2c;
+        }
+
+        .cocktail-table {
+            width: 80px;
+            height: 80px;
+            background: #666;
+            border-radius: 50%;
+        }
+
+        /* Row Seating */
+        .row-seating-6 {
+            width: 300px;
+            height: 50px;
+            background: transparent;
+            border: 2px dashed #999;
+        }
+
+        .row-seating-8 {
+            width: 400px;
+            height: 50px;
+            background: transparent;
+            border: 2px dashed #999;
+        }
+
+        .row-seating-10 {
+            width: 500px;
+            height: 50px;
+            background: transparent;
+            border: 2px dashed #999;
+        }
+
+        .row-seating-6 .label,
+        .row-seating-8 .label,
+        .row-seating-10 .label {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        /* Special Areas */
+        .dance-floor {
+            width: 300px;
+            height: 300px;
+            background: #f5f5f5;
+            border: 3px solid #1a1a1a;
+        }
+
+        .dance-floor .label {
+            color: #1a1a1a;
+            font-size: 1.1em;
+        }
+
+        .stage {
+            width: 400px;
+            height: 150px;
+            background: #2c2c2c;
+            border: 2px solid #1a1a1a;
+        }
+
+        .stage .label {
+            color: white;
+        }
+
+        .bar-area {
+            width: 200px;
+            height: 100px;
+            background: #333;
+        }
+
+        .bar-area .label {
+            color: white;
+        }
+
+        .buffet-table {
+            width: 300px;
+            height: 100px;
+            background: #555;
+        }
+
+        .buffet-table .label {
+            color: white;
+        }
+
+        .entrance {
+            width: 150px;
+            height: 100px;
+            background: white;
+            border: 2px dashed #666;
+        }
+
+        .entrance .label {
+            color: #1a1a1a;
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stats-panel h4 {
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: 500;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .stat-value {
+            color: #1a1a1a;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                max-height: 300px;
+                border-right: none;
+                border-bottom: 2px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>Ballroom Seating Designer</h1>
+                <p>Professional event layout planning</p>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <h3>Layout Statistics</h3>
+                <div class="stats-panel">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Guests:</span>
+                        <span class="stat-value" id="totalGuests">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Tables:</span>
+                        <span class="stat-value" id="totalTables">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Elements:</span>
+                        <span class="stat-value" id="totalElements">0</span>
+                    </div>
+                </div>
+
+                <h3>Round Tables</h3>
+                <div class="element-library">
+                    <div class="library-item" draggable="true" data-type="round-table-2">
+                        <div class="library-item-title">Round Table</div>
+                        <div class="library-item-capacity">2 Guests</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="round-table-4">
+                        <div class="library-item-title">Round Table</div>
+                        <div class="library-item-capacity">4 Guests</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="round-table-6">
+                        <div class="library-item-title">Round Table</div>
+                        <div class="library-item-capacity">6 Guests</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="round-table-8">
+                        <div class="library-item-title">Round Table</div>
+                        <div class="library-item-capacity">8 Guests</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="round-table-10">
+                        <div class="library-item-title">Round Table</div>
+                        <div class="library-item-capacity">10 Guests</div>
+                    </div>
+                </div>
+
+                <h3>Rectangle Tables</h3>
+                <div class="element-library">
+                    <div class="library-item" draggable="true" data-type="rectangle-table-4">
+                        <div class="library-item-title">Rectangle Table</div>
+                        <div class="library-item-capacity">4 Guests (1+1+2)</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="rectangle-table-6">
+                        <div class="library-item-title">Rectangle Table</div>
+                        <div class="library-item-capacity">6 Guests (1+1+4)</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="rectangle-table-8">
+                        <div class="library-item-title">Rectangle Table</div>
+                        <div class="library-item-capacity">8 Guests (1+1+6)</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="rectangle-table-10">
+                        <div class="library-item-title">Rectangle Table</div>
+                        <div class="library-item-capacity">10 Guests (1+1+8)</div>
+                    </div>
+                </div>
+
+                <h3>Special Tables</h3>
+                <div class="element-library">
+                    <div class="library-item" draggable="true" data-type="head-table-8">
+                        <div class="library-item-title">Head Table</div>
+                        <div class="library-item-capacity">8 Guests</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="head-table-12">
+                        <div class="library-item-title">Head Table</div>
+                        <div class="library-item-capacity">12 Guests</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="cocktail-table">
+                        <div class="library-item-title">Cocktail Table</div>
+                        <div class="library-item-capacity">4 Guests</div>
+                    </div>
+                </div>
+
+                <h3>Row Seating</h3>
+                <div class="element-library">
+                    <div class="library-item" draggable="true" data-type="row-seating-6">
+                        <div class="library-item-title">Row - 6 Chairs</div>
+                        <div class="library-item-capacity">Classroom Style</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="row-seating-8">
+                        <div class="library-item-title">Row - 8 Chairs</div>
+                        <div class="library-item-capacity">Classroom Style</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="row-seating-10">
+                        <div class="library-item-title">Row - 10 Chairs</div>
+                        <div class="library-item-capacity">Classroom Style</div>
+                    </div>
+                </div>
+
+                <h3>Special Areas</h3>
+                <div class="element-library">
+                    <div class="library-item" draggable="true" data-type="dance-floor">
+                        <div class="library-item-title">Dance Floor</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="stage">
+                        <div class="library-item-title">Stage</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="bar-area">
+                        <div class="library-item-title">Bar</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="buffet-table">
+                        <div class="library-item-title">Buffet Table</div>
+                    </div>
+
+                    <div class="library-item" draggable="true" data-type="entrance">
+                        <div class="library-item-title">Entrance</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="canvas-area">
+                <div class="canvas-controls">
+                    <button onclick="clearCanvas()">Clear All</button>
+                    <button onclick="exportLayout()">Export Layout</button>
+                    <button onclick="saveTemplate()">Save Template</button>
+                    <button onclick="generateReport()">Guest Report</button>
+                    <label>
+                        <input type="checkbox" id="snapToGrid" checked>
+                        Snap to Grid
+                    </label>
+                    <label>
+                        <input type="checkbox" id="showLabels" checked>
+                        Show Labels
+                    </label>
+                </div>
+
+                <div id="ballroomCanvas"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /*
+         * PROFESSIONAL SEATING CHART PRACTICES
+         * 
+         * Rectangle Tables: 
+         *   - 1 chair at each SHORT end (left/right)
+         *   - Remaining chairs split EVENLY on LONG sides (top/bottom)
+         *   - Example 8-person: 1 left + 1 right + 3 top + 3 bottom
+         * 
+         * Round Tables:
+         *   - Chairs evenly distributed around perimeter
+         *   - Spacing based on capacity (2, 4, 6, 8, 10 guests)
+         * 
+         * Head Tables:
+         *   - ALL chairs on ONE side (front) facing audience
+         *   - VIP/bridal party arrangement
+         * 
+         * Row Seating:
+         *   - Classroom/conference style
+         *   - Chairs in straight line, no table
+         *   - 6, 8, or 10 chairs per row
+         */
+
+        // Configuration
+        const ELEMENT_CONFIGS = {
+            // Round tables
+            'round-table-2': { capacity: 2, label: 'Table', icon: '' },
+            'round-table-4': { capacity: 4, label: 'Table', icon: '' },
+            'round-table-6': { capacity: 6, label: 'Table', icon: '' },
+            'round-table-8': { capacity: 8, label: 'Table', icon: '' },
+            'round-table-10': { capacity: 10, label: 'Table', icon: '' },
+            // Rectangle tables
+            'rectangle-table-4': { capacity: 4, label: 'Table', icon: '' },
+            'rectangle-table-6': { capacity: 6, label: 'Table', icon: '' },
+            'rectangle-table-8': { capacity: 8, label: 'Table', icon: '' },
+            'rectangle-table-10': { capacity: 10, label: 'Table', icon: '' },
+            // Head tables
+            'head-table-8': { capacity: 8, label: 'Head Table', icon: '' },
+            'head-table-12': { capacity: 12, label: 'Head Table', icon: '' },
+            // Cocktail
+            'cocktail-table': { capacity: 4, label: 'Cocktail', icon: '' },
+            // Row seating
+            'row-seating-6': { capacity: 6, label: 'Row', icon: '' },
+            'row-seating-8': { capacity: 8, label: 'Row', icon: '' },
+            'row-seating-10': { capacity: 10, label: 'Row', icon: '' },
+            // Special areas
+            'dance-floor': { capacity: 0, label: 'Dance Floor', icon: '' },
+            'stage': { capacity: 0, label: 'Stage', icon: '' },
+            'bar-area': { capacity: 0, label: 'Bar', icon: '' },
+            'buffet-table': { capacity: 0, label: 'Buffet', icon: '' },
+            'entrance': { capacity: 0, label: 'Entrance', icon: '' }
+        };
+
+        let elements = [];
+        let tableCounter = 1;
+        let selectedElement = null;
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        const canvas = document.getElementById('ballroomCanvas');
+
+        // Drag from library
+        document.querySelectorAll('.library-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('elementType', item.dataset.type);
+            });
+        });
+
+        canvas.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('elementType');
+            if (type) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                addElement(type, x, y);
+            }
+        });
+
+        // Add element to canvas
+        function addElement(type, x, y) {
+            const config = ELEMENT_CONFIGS[type];
+            const element = document.createElement('div');
+            element.className = `ballroom-element ${type}`;
+            
+            // Snap to grid if enabled
+            if (document.getElementById('snapToGrid').checked) {
+                x = Math.round(x / 50) * 50;
+                y = Math.round(y / 50) * 50;
+            }
+            
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+            
+            // Add label
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'label';
+            
+            if (config.capacity > 0) {
+                const tableNum = tableCounter++;
+                labelSpan.textContent = `${config.label} ${tableNum}`;
+                element.dataset.tableNumber = tableNum;
+            } else {
+                labelSpan.textContent = config.label;
+            }
+            
+            element.appendChild(labelSpan);
+            
+            // Add chairs around table
+            if (config.capacity > 0) {
+                addChairs(element, type, config.capacity);
+            }
+            
+            // Add delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.textContent = '×';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                element.remove();
+                updateStats();
+            };
+            element.appendChild(deleteBtn);
+            
+            // Store element data
+            element.dataset.type = type;
+            element.dataset.capacity = config.capacity;
+            
+            // Make draggable
+            makeElementDraggable(element);
+            
+            canvas.appendChild(element);
+            updateStats();
+        }
+
+        // Add chairs around table
+        function addChairs(element, tableType, capacity) {
+            const chairPositions = getChairPositions(tableType, capacity);
+            
+            chairPositions.forEach(pos => {
+                const chair = document.createElement('div');
+                chair.className = 'chair';
+                chair.style.left = pos.x + 'px';
+                chair.style.top = pos.y + 'px';
+                element.appendChild(chair);
+            });
+        }
+
+        // Calculate chair positions based on table type - FOLLOWING PROPER SEATING PRACTICES
+        function getChairPositions(tableType, capacity) {
+            const positions = [];
+            
+            // ROUND TABLES - evenly distributed around perimeter
+            if (tableType === 'round-table-2') {
+                const radius = 40;
+                const chairRadius = 48;
+                for (let i = 0; i < 2; i++) {
+                    const angle = (i * 180) * (Math.PI / 180);
+                    positions.push({
+                        x: radius + Math.cos(angle) * chairRadius - 8,
+                        y: radius + Math.sin(angle) * chairRadius - 8
+                    });
+                }
+            } else if (tableType === 'round-table-4') {
+                const radius = 60;
+                const chairRadius = 68;
+                for (let i = 0; i < 4; i++) {
+                    const angle = (i * 90) * (Math.PI / 180);
+                    positions.push({
+                        x: radius + Math.cos(angle) * chairRadius - 8,
+                        y: radius + Math.sin(angle) * chairRadius - 8
+                    });
+                }
+            } else if (tableType === 'round-table-6') {
+                const radius = 70;
+                const chairRadius = 78;
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i * 60) * (Math.PI / 180);
+                    positions.push({
+                        x: radius + Math.cos(angle) * chairRadius - 8,
+                        y: radius + Math.sin(angle) * chairRadius - 8
+                    });
+                }
+            } else if (tableType === 'round-table-8') {
+                const radius = 80;
+                const chairRadius = 88;
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * 45) * (Math.PI / 180);
+                    positions.push({
+                        x: radius + Math.cos(angle) * chairRadius - 8,
+                        y: radius + Math.sin(angle) * chairRadius - 8
+                    });
+                }
+            } else if (tableType === 'round-table-10') {
+                const radius = 90;
+                const chairRadius = 98;
+                for (let i = 0; i < 10; i++) {
+                    const angle = (i * 36) * (Math.PI / 180);
+                    positions.push({
+                        x: radius + Math.cos(angle) * chairRadius - 8,
+                        y: radius + Math.sin(angle) * chairRadius - 8
+                    });
+                }
+            }
+            
+            // RECTANGLE TABLES - 1 on each end, rest on long sides
+            // PROPER PRACTICE: 1 chair at each short end (left/right), remaining chairs split evenly on long sides (top/bottom)
+            else if (tableType === 'rectangle-table-4') {
+                // 4 guests: 1 left + 1 right + 1 top + 1 bottom
+                const width = 180;
+                const height = 80;
+                positions.push({ x: -12, y: height/2 - 8 }); // Left end
+                positions.push({ x: width + 4, y: height/2 - 8 }); // Right end
+                positions.push({ x: width/2 - 8, y: -12 }); // Top center
+                positions.push({ x: width/2 - 8, y: height + 4 }); // Bottom center
+            } else if (tableType === 'rectangle-table-6') {
+                // 6 guests: 1 left + 1 right + 2 top + 2 bottom
+                const width = 220;
+                const height = 90;
+                positions.push({ x: -12, y: height/2 - 8 }); // Left end
+                positions.push({ x: width + 4, y: height/2 - 8 }); // Right end
+                // 2 on top
+                positions.push({ x: width * 0.33 - 8, y: -12 });
+                positions.push({ x: width * 0.67 - 8, y: -12 });
+                // 2 on bottom
+                positions.push({ x: width * 0.33 - 8, y: height + 4 });
+                positions.push({ x: width * 0.67 - 8, y: height + 4 });
+            } else if (tableType === 'rectangle-table-8') {
+                // 8 guests: 1 left + 1 right + 3 top + 3 bottom
+                const width = 250;
+                const height = 90;
+                positions.push({ x: -12, y: height/2 - 8 }); // Left end
+                positions.push({ x: width + 4, y: height/2 - 8 }); // Right end
+                // 3 on top
+                positions.push({ x: width * 0.25 - 8, y: -12 });
+                positions.push({ x: width * 0.5 - 8, y: -12 });
+                positions.push({ x: width * 0.75 - 8, y: -12 });
+                // 3 on bottom
+                positions.push({ x: width * 0.25 - 8, y: height + 4 });
+                positions.push({ x: width * 0.5 - 8, y: height + 4 });
+                positions.push({ x: width * 0.75 - 8, y: height + 4 });
+            } else if (tableType === 'rectangle-table-10') {
+                // 10 guests: 1 left + 1 right + 4 top + 4 bottom
+                const width = 300;
+                const height = 90;
+                positions.push({ x: -12, y: height/2 - 8 }); // Left end
+                positions.push({ x: width + 4, y: height/2 - 8 }); // Right end
+                // 4 on top
+                positions.push({ x: width * 0.2 - 8, y: -12 });
+                positions.push({ x: width * 0.4 - 8, y: -12 });
+                positions.push({ x: width * 0.6 - 8, y: -12 });
+                positions.push({ x: width * 0.8 - 8, y: -12 });
+                // 4 on bottom
+                positions.push({ x: width * 0.2 - 8, y: height + 4 });
+                positions.push({ x: width * 0.4 - 8, y: height + 4 });
+                positions.push({ x: width * 0.6 - 8, y: height + 4 });
+                positions.push({ x: width * 0.8 - 8, y: height + 4 });
+            }
+            
+            // HEAD TABLES - all chairs on front side only (guests face audience)
+            else if (tableType === 'head-table-8') {
+                const width = 320;
+                const height = 90;
+                for (let i = 0; i < 8; i++) {
+                    positions.push({
+                        x: (width / 9) * (i + 1) - 8,
+                        y: height + 4
+                    });
+                }
+            } else if (tableType === 'head-table-12') {
+                const width = 480;
+                const height = 90;
+                for (let i = 0; i < 12; i++) {
+                    positions.push({
+                        x: (width / 13) * (i + 1) - 8,
+                        y: height + 4
+                    });
+                }
+            }
+            
+            // COCKTAIL TABLE
+            else if (tableType === 'cocktail-table') {
+                const radius = 40;
+                const chairRadius = 48;
+                for (let i = 0; i < 4; i++) {
+                    const angle = (i * 90) * (Math.PI / 180);
+                    positions.push({
+                        x: radius + Math.cos(angle) * chairRadius - 8,
+                        y: radius + Math.sin(angle) * chairRadius - 8
+                    });
+                }
+            }
+            
+            // ROW SEATING - chairs in a row (classroom style)
+            else if (tableType === 'row-seating-6') {
+                const width = 300;
+                const height = 50;
+                for (let i = 0; i < 6; i++) {
+                    positions.push({
+                        x: (width / 7) * (i + 1) - 8,
+                        y: height/2 - 8
+                    });
+                }
+            } else if (tableType === 'row-seating-8') {
+                const width = 400;
+                const height = 50;
+                for (let i = 0; i < 8; i++) {
+                    positions.push({
+                        x: (width / 9) * (i + 1) - 8,
+                        y: height/2 - 8
+                    });
+                }
+            } else if (tableType === 'row-seating-10') {
+                const width = 500;
+                const height = 50;
+                for (let i = 0; i < 10; i++) {
+                    positions.push({
+                        x: (width / 11) * (i + 1) - 8,
+                        y: height/2 - 8
+                    });
+                }
+            }
+            
+            return positions;
+        }
+
+        // Make element draggable
+        function makeElementDraggable(element) {
+            element.addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('delete-btn')) return;
+                
+                isDragging = true;
+                selectedElement = element;
+                
+                // Highlight selected
+                document.querySelectorAll('.ballroom-element').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                element.classList.add('selected');
+                
+                const rect = element.getBoundingClientRect();
+                const canvasRect = canvas.getBoundingClientRect();
+                
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+                
+                element.style.zIndex = 1000;
+            });
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || !selectedElement) return;
+            
+            const canvasRect = canvas.getBoundingClientRect();
+            let x = e.clientX - canvasRect.left - dragOffset.x;
+            let y = e.clientY - canvasRect.top - dragOffset.y;
+            
+            // Snap to grid
+            if (document.getElementById('snapToGrid').checked) {
+                x = Math.round(x / 50) * 50;
+                y = Math.round(y / 50) * 50;
+            }
+            
+            // Keep within bounds
+            x = Math.max(0, Math.min(x, canvas.offsetWidth - selectedElement.offsetWidth));
+            y = Math.max(0, Math.min(y, canvas.offsetHeight - selectedElement.offsetHeight));
+            
+            selectedElement.style.left = x + 'px';
+            selectedElement.style.top = y + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (selectedElement) {
+                selectedElement.style.zIndex = 1;
+            }
+            isDragging = false;
+            selectedElement = null;
+        });
+
+        // Update statistics
+        function updateStats() {
+            const allElements = canvas.querySelectorAll('.ballroom-element');
+            let totalGuests = 0;
+            let totalTables = 0;
+            
+            allElements.forEach(el => {
+                const capacity = parseInt(el.dataset.capacity) || 0;
+                totalGuests += capacity;
+                if (capacity > 0) totalTables++;
+            });
+            
+            document.getElementById('totalGuests').textContent = totalGuests;
+            document.getElementById('totalTables').textContent = totalTables;
+            document.getElementById('totalElements').textContent = allElements.length;
+        }
+
+        // Clear canvas
+        function clearCanvas() {
+            if (confirm('Are you sure you want to clear all elements?')) {
+                canvas.innerHTML = '';
+                tableCounter = 1;
+                updateStats();
+            }
+        }
+
+        // Export layout
+        function exportLayout() {
+            const allElements = canvas.querySelectorAll('.ballroom-element');
+            const layout = [];
+            
+            allElements.forEach(el => {
+                layout.push({
+                    type: el.dataset.type,
+                    tableNumber: el.dataset.tableNumber || null,
+                    capacity: parseInt(el.dataset.capacity) || 0,
+                    x: parseInt(el.style.left),
+                    y: parseInt(el.style.top)
+                });
+            });
+            
+            const data = {
+                layout: layout,
+                stats: {
+                    totalGuests: document.getElementById('totalGuests').textContent,
+                    totalTables: document.getElementById('totalTables').textContent,
+                    totalElements: allElements.length
+                },
+                timestamp: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ballroom-layout.json';
+            a.click();
+            
+            alert('Layout exported successfully!');
+        }
+
+        // Save template
+        function saveTemplate() {
+            const name = prompt('Enter template name:');
+            if (!name) return;
+            
+            const allElements = canvas.querySelectorAll('.ballroom-element');
+            const template = {
+                name: name,
+                elements: []
+            };
+            
+            allElements.forEach(el => {
+                template.elements.push({
+                    type: el.dataset.type,
+                    x: parseInt(el.style.left),
+                    y: parseInt(el.style.top)
+                });
+            });
+            
+            localStorage.setItem(`ballroom_template_${name}`, JSON.stringify(template));
+            alert(`Template "${name}" saved!`);
+        }
+
+        // Generate report
+        function generateReport() {
+            const allElements = canvas.querySelectorAll('.ballroom-element');
+            const tables = [];
+            
+            allElements.forEach(el => {
+                const capacity = parseInt(el.dataset.capacity);
+                if (capacity > 0) {
+                    tables.push({
+                        number: el.dataset.tableNumber || 'N/A',
+                        type: ELEMENT_CONFIGS[el.dataset.type].label,
+                        capacity: capacity
+                    });
+                }
+            });
+            
+            if (tables.length === 0) {
+                alert('No tables in layout!');
+                return;
+            }
+            
+            let report = 'BALLROOM SEATING REPORT\n';
+            report += '='.repeat(50) + '\n\n';
+            report += `Total Tables: ${tables.length}\n`;
+            report += `Total Capacity: ${tables.reduce((sum, t) => sum + t.capacity, 0)} guests\n\n`;
+            report += 'TABLE ASSIGNMENTS:\n';
+            report += '-'.repeat(50) + '\n';
+            
+            tables.sort((a, b) => parseInt(a.number) - parseInt(b.number));
+            
+            tables.forEach(table => {
+                report += `Table ${table.number}: ${table.capacity} guests (${table.type})\n`;
+            });
+            
+            console.log(report);
+            alert('Guest report generated! Check console for details.');
+        }
+
+        // Toggle labels
+        document.getElementById('showLabels').addEventListener('change', (e) => {
+            document.querySelectorAll('.ballroom-element .label').forEach(label => {
+                label.style.display = e.target.checked ? 'block' : 'none';
+            });
+        });
+
+        // Initialize
+        updateStats();
+    </script>
+</body>
+</html>

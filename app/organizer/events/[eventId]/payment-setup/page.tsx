@@ -39,7 +39,7 @@ export default function PaymentSetupPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
           <p className="text-gray-600">You don't have permission to access this page.</p>
-          <Link href="/" className="mt-4 inline-block text-blue-600 hover:underline">
+          <Link href="/" className="mt-4 inline-block text-primary hover:underline">
             Go to Homepage
           </Link>
         </div>
@@ -106,7 +106,7 @@ export default function PaymentSetupPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -134,9 +134,9 @@ export default function PaymentSetupPage() {
               Your payment model is already set up for this event.
             </p>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-accent border border-border rounded-lg p-4">
               <p className="font-semibold text-gray-900">Current Model:</p>
-              <p className="text-lg text-blue-600 font-bold mt-1">
+              <p className="text-lg text-primary font-bold mt-1">
                 {paymentConfig.paymentModel === "PRE_PURCHASE" ? "Pre-Purchase Credits" : "Pay-As-You-Sell"}
               </p>
 
@@ -223,25 +223,25 @@ export default function PaymentSetupPage() {
             onClick={() => handleModelSelection("PRE_PURCHASE")}
             className={`relative bg-white rounded-lg border-2 p-6 text-left transition-all hover:shadow-lg ${
               selectedModel === "PRE_PURCHASE"
-                ? "border-blue-600 shadow-lg"
+                ? "border-primary shadow-lg"
                 : "border-gray-200"
             }`}
           >
             {selectedModel === "PRE_PURCHASE" && (
               <div className="absolute top-4 right-4">
-                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                   <Check className="w-4 h-4 text-white" />
                 </div>
               </div>
             )}
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Pre-Purchase</h3>
-                <p className="text-sm text-blue-600 font-semibold">Lowest Cost</p>
+                <p className="text-sm text-primary font-semibold">Lowest Cost</p>
               </div>
             </div>
 
@@ -277,10 +277,10 @@ export default function PaymentSetupPage() {
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <div className="bg-accent border border-border rounded-lg p-3 mb-4">
               <div className="flex items-start gap-2">
-                <DollarSign className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-blue-800">
+                <DollarSign className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-accent-foreground">
                   <span className="font-semibold">How it works:</span> Pay platform fee upfront, then collect 100% of ticket sales
                 </p>
               </div>
@@ -305,25 +305,25 @@ export default function PaymentSetupPage() {
               !hasStripeConnected
                 ? "opacity-60 cursor-not-allowed border-gray-200"
                 : selectedModel === "PAY_AS_SELL"
-                ? "border-purple-600 shadow-lg hover:shadow-lg"
+                ? "border-primary shadow-lg hover:shadow-lg"
                 : "border-gray-200 hover:shadow-lg"
             }`}
           >
             {selectedModel === "PAY_AS_SELL" && (
               <div className="absolute top-4 right-4">
-                <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                   <Check className="w-4 h-4 text-white" />
                 </div>
               </div>
             )}
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Zap className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                <Zap className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Pay-As-You-Sell</h3>
-                <p className="text-sm text-purple-600 font-semibold">No Upfront Cost</p>
+                <p className="text-sm text-primary font-semibold">No Upfront Cost</p>
               </div>
             </div>
 
@@ -370,10 +370,10 @@ export default function PaymentSetupPage() {
               </div>
             </div>
 
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+            <div className="bg-primary border border-primary rounded-lg p-3 mb-4">
               <div className="flex items-start gap-2">
-                <Info className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-purple-800">
+                <Info className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-primary">
                   <span className="font-semibold">Requires Stripe Connect:</span> {hasStripeConnected ? 'Your Stripe account is connected and ready!' : 'You\'ll be guided to connect your Stripe account'}
                 </p>
               </div>
@@ -402,9 +402,9 @@ export default function PaymentSetupPage() {
         </div>
 
         {/* Info Box */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="bg-accent border border-border rounded-lg p-4 mb-6">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm text-gray-700">
                 <span className="font-semibold">Need help deciding?</span> Pre-Purchase is best for established events expecting high sales. Pay-As-You-Sell is perfect for new events or when you want to test the platform with no upfront cost.
@@ -445,7 +445,7 @@ export default function PaymentSetupPage() {
             disabled={!selectedModel || isProcessing}
             className={`px-8 py-3 rounded-lg font-semibold transition-all ${
               selectedModel && !isProcessing
-                ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg"
+                ? "bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >

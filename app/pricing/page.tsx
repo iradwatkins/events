@@ -118,9 +118,9 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-purple-600">
+    <div className="min-h-screen bg-primary">
       {/* Hero Section with Background Image */}
-      <div className="relative bg-purple-600 text-white py-20 overflow-hidden">
+      <div className="relative bg-primary text-white py-20 overflow-hidden">
         {/* Background Image Overlay */}
         <div className="absolute inset-0">
           <Image
@@ -193,7 +193,7 @@ export default function PricingPage() {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-purple-600 flex items-end">
+              <div className="absolute inset-0 bg-primary flex items-end">
                 <div className="p-6 text-white">
                   <Package className="w-12 h-12 mb-3" />
                   <h3 className="text-2xl font-bold mb-2">PREPAY</h3>
@@ -269,7 +269,7 @@ export default function PricingPage() {
           </div>
 
           {/* CREDIT_CARD Model */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-blue-200 relative">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-border relative">
             {/* Model Image */}
             <div className="h-48 relative">
               <Image
@@ -278,7 +278,7 @@ export default function PricingPage() {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-purple-600 flex items-end">
+              <div className="absolute inset-0 bg-primary flex items-end">
                 <div className="p-6 text-white">
                   <CreditCard className="w-12 h-12 mb-3" />
                   <h3 className="text-2xl font-bold mb-2">CREDIT CARD</h3>
@@ -344,7 +344,7 @@ export default function PricingPage() {
           </div>
 
           {/* CONSIGNMENT Model */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-purple-200 relative">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-blue-200 relative">
             {/* Model Image */}
             <div className="h-48 relative">
               <Image
@@ -353,11 +353,11 @@ export default function PricingPage() {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-purple-600 flex items-end">
+              <div className="absolute inset-0 bg-primary flex items-end">
                 <div className="p-6 text-white">
                   <Users className="w-12 h-12 mb-3" />
                   <h3 className="text-2xl font-bold mb-2">CONSIGNMENT</h3>
-                  <p className="text-purple-100">Sell First, Settle Later</p>
+                  <p className="text-blue-100">Sell First, Settle Later</p>
                 </div>
               </div>
             </div>
@@ -387,9 +387,9 @@ export default function PricingPage() {
               </div>
 
               <div className="mb-6">
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <Clock className="w-4 h-4 text-purple-600" />
+                    <Clock className="w-4 h-4 text-primary" />
                     <span className="font-semibold text-sm">Settlement Timeline</span>
                   </div>
                   <p className="text-xs text-gray-600">
@@ -507,8 +507,8 @@ export default function PricingPage() {
               </div>
 
               {/* CREDIT_CARD Results */}
-              <div className="bg-blue-50 rounded-lg p-6">
-                <h3 className="font-bold text-lg mb-4 text-blue-700">CREDIT CARD</h3>
+              <div className="bg-accent rounded-lg p-6">
+                <h3 className="font-bold text-lg mb-4 text-primary">CREDIT CARD</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Upfront Cost:</span>
@@ -525,7 +525,7 @@ export default function PricingPage() {
                   <div className="border-t pt-3 mt-3">
                     <div className="flex justify-between">
                       <span className="font-semibold">Your Revenue:</span>
-                      <span className="font-bold text-blue-600">
+                      <span className="font-bold text-primary">
                         ${fees.creditCard.net.toFixed(2)}
                       </span>
                     </div>
@@ -534,8 +534,8 @@ export default function PricingPage() {
               </div>
 
               {/* CONSIGNMENT Results */}
-              <div className="bg-purple-50 rounded-lg p-6">
-                <h3 className="font-bold text-lg mb-4 text-purple-700">CONSIGNMENT</h3>
+              <div className="bg-blue-50 rounded-lg p-6">
+                <h3 className="font-bold text-lg mb-4 text-primary">CONSIGNMENT</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Upfront Cost:</span>
@@ -552,7 +552,7 @@ export default function PricingPage() {
                   <div className="border-t pt-3 mt-3">
                     <div className="flex justify-between">
                       <span className="font-semibold">Your Revenue:</span>
-                      <span className="font-bold text-purple-600">
+                      <span className="font-bold text-primary">
                         ${fees.consignment.net.toFixed(2)}
                       </span>
                     </div>
@@ -677,7 +677,7 @@ export default function PricingPage() {
       </div>
 
       {/* CTA Section with Background */}
-      <div className="relative bg-purple-600 text-white py-16 overflow-hidden">
+      <div className="relative bg-primary text-white py-16 overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2940&auto=format&fit=crop"

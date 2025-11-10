@@ -52,7 +52,7 @@ export function OrganizerPrepayment({
         <SquareCardPayment
           applicationId={process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID || ''}
           locationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID || ''}
-          total={totalAmountCents}
+          total={totalAmount}
           environment={process.env.NEXT_PUBLIC_SQUARE_ENVIRONMENT as 'sandbox' | 'production' || 'sandbox'}
           onPaymentSuccess={handleSquarePaymentSuccess}
           onPaymentError={handleSquarePaymentError}

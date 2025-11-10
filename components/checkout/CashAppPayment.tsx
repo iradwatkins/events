@@ -282,15 +282,15 @@ export function CashAppQRPayment({
           </Alert>
         )}
 
-        {isInitializing ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
-            <p className="text-sm text-muted-foreground">Loading Cash App Pay...</p>
-          </div>
-        ) : (
-          <>
-            {/* Cash App Pay Button Container */}
-            <div className="space-y-4">
+        {/* Cash App Pay Button Container */}
+        <div className="space-y-4">
+          {isInitializing ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
+              <p className="text-sm text-muted-foreground">Loading Cash App Pay...</p>
+            </div>
+          ) : (
+            <>
               <div className="text-center">
                 <h3 className="font-semibold text-lg mb-2">Pay ${total.toFixed(2)}</h3>
                 <p className="text-sm text-muted-foreground mb-4">
@@ -307,7 +307,12 @@ export function CashAppQRPayment({
                   <span className="text-sm font-medium">Processing payment...</span>
                 </div>
               )}
-            </div>
+            </>
+          )}
+        </div>
+
+        {!isInitializing && (
+          <>
 
             {/* Instructions */}
             <div className="bg-muted/50 rounded-lg p-4 space-y-3">

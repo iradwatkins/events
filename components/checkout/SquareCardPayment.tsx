@@ -365,16 +365,20 @@ export function SquareCardPayment({
           ) : (
             <div>
               <label className="block text-sm font-medium mb-2">Card Details</label>
-              <div
-                className="min-h-[60px] p-3 border rounded-md bg-background relative"
-                id="square-card-container"
-              >
+              <div className="relative">
+                <div
+                  className="min-h-[60px] p-3 border rounded-md bg-background"
+                  id="square-card-container"
+                  style={{ display: isInitializing ? 'none' : 'block' }}
+                />
                 {isInitializing && (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                    <span className="ml-3 text-sm text-muted-foreground">
-                      Loading payment form...
-                    </span>
+                  <div className="min-h-[60px] p-3 border rounded-md bg-background">
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      <span className="ml-3 text-sm text-muted-foreground">
+                        Loading payment form...
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>

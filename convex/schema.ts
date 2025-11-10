@@ -15,6 +15,8 @@ export default defineSchema({
     stripeCustomerId: v.optional(v.string()),
     stripeConnectedAccountId: v.optional(v.string()),
     stripeAccountSetupComplete: v.optional(v.boolean()),
+    // Onboarding
+    welcomePopupShown: v.optional(v.boolean()), // Track if user has seen the 1000 free tickets welcome popup
     // Timestamps
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),

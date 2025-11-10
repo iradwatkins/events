@@ -111,6 +111,42 @@ export const createEvent = mutation({
 
       console.log("[createEvent] Event created successfully:", eventId);
 
+      // CHECK IF THIS IS USER'S FIRST EVENT - GRANT 1000 FREE CREDITS
+      const existingEvents = await ctx.db
+        .query("events")
+        .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
+        .collect();
+
+      const isFirstEvent = existingEvents.length === 1; // Just created their first event
+
+      if (isFirstEvent) {
+        console.log("[createEvent] First event detected! Checking credit status...");
+
+        // Check if credits already exist
+        const existingCredits = await ctx.db
+          .query("organizerCredits")
+          .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
+          .first();
+
+        if (!existingCredits) {
+          // Grant 1000 FREE credits for first-time organizer
+          const now = Date.now();
+          await ctx.db.insert("organizerCredits", {
+            organizerId: user._id,
+            creditsTotal: 1000,
+            creditsUsed: 0,
+            creditsRemaining: 1000,
+            firstEventFreeUsed: false,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          console.log("[createEvent] ✅ Granted 1000 FREE credits to new organizer!");
+        } else {
+          console.log("[createEvent] Credits already exist, skipping initialization");
+        }
+      }
+
       // AUTO-ASSIGN GLOBAL STAFF: Find all global staff (eventId=null) with autoAssignToNewEvents=true
       const globalStaff = await ctx.db
         .query("eventStaff")

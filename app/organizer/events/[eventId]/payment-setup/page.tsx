@@ -51,15 +51,40 @@ export default function PaymentSetupPage() {
     setSelectedModel(model);
   };
 
+  const handleUseCredits = async () => {
+    setIsProcessing(true);
+    try {
+      // Configure PREPAY model using free credits (no payment required)
+      await configurePayment({
+        eventId,
+        model: "PREPAY",
+        ticketPrice: 0.30,
+      });
+
+      alert("Payment configured successfully using your free credits!");
+      router.push(`/organizer/events/${eventId}`);
+    } catch (error) {
+      console.error("Payment configuration error:", error);
+      alert("Failed to configure payment. Please try again.");
+      setIsProcessing(false);
+    }
+  };
+
   const handleConfirm = async () => {
     if (!selectedModel) return;
 
     setIsProcessing(true);
     try {
       if (selectedModel === "PRE_PURCHASE") {
-        // Show prepayment flow
-        setShowPrepayment(true);
-        setIsProcessing(false);
+        // Check if user has enough free credits
+        if (creditBalance && creditBalance.creditsRemaining >= 100) {
+          // Use free credits automatically
+          await handleUseCredits();
+        } else {
+          // Show prepayment flow if no credits
+          setShowPrepayment(true);
+          setIsProcessing(false);
+        }
       } else {
         // Configure pay-as-sell model
         await configurePayment({
@@ -214,6 +239,15 @@ export default function PaymentSetupPage() {
           <p className="text-gray-600">
             Select how you want to handle ticket sales for "{event.name}"
           </p>
+
+          {creditBalance && creditBalance.creditsRemaining > 0 && (
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+              <Check className="w-5 h-5 text-green-600" />
+              <span className="text-sm font-semibold text-green-900">
+                You have {creditBalance.creditsRemaining.toLocaleString()} free tickets available!
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Payment Model Cards */}
@@ -254,7 +288,7 @@ export default function PaymentSetupPage() {
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-700">
-                  <span className="font-semibold">200 free tickets</span> for your first event
+                  <span className="font-semibold">1000 free tickets</span> for new organizers
                 </p>
               </div>
               <div className="flex items-start gap-2">

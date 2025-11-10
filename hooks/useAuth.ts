@@ -41,6 +41,8 @@ export function useAuth() {
           isAuthenticated: true,
         });
       } else {
+        // Don't log expected 401 errors to console
+        // This endpoint is supplementary - Convex auth is primary
         setAuthState({
           user: null,
           isLoading: false,
@@ -48,7 +50,10 @@ export function useAuth() {
         });
       }
     } catch (error) {
-      console.error("Auth check failed:", error);
+      // Only log unexpected errors (not 401/403)
+      if (error instanceof Error && !error.message.includes("401") && !error.message.includes("403")) {
+        console.error("Auth check failed:", error);
+      }
       setAuthState({
         user: null,
         isLoading: false,

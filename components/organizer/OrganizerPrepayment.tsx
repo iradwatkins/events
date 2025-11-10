@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DollarSign, CreditCard, Smartphone, AlertCircle, CheckCircle } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { DollarSign, CreditCard, Smartphone, CheckCircle, AlertCircle } from 'lucide-react'
 import { SquareCardPayment } from '@/components/checkout/SquareCardPayment'
+import { CashAppQRPayment } from '@/components/checkout/CashAppPayment'
 
 interface OrganizerPrepaymentProps {
   eventId: string
@@ -46,6 +46,17 @@ export function OrganizerPrepayment({
     alert(`Payment failed: ${error}`)
   }
 
+  const handleCashAppPaymentSuccess = async (result: Record<string, unknown>) => {
+    console.log('[Prepayment] CashApp payment successful:', result)
+    // TODO: Call Convex mutation to update payment config
+    onPaymentSuccess()
+  }
+
+  const handleCashAppPaymentError = (error: string) => {
+    console.error('[Prepayment] CashApp payment error:', error)
+    alert(`Payment failed: ${error}`)
+  }
+
   if (showPayment && selectedMethod === 'square') {
     return (
       <div className="max-w-2xl mx-auto">
@@ -67,67 +78,17 @@ export function OrganizerPrepayment({
 
   if (showPayment && selectedMethod === 'cashapp') {
     return (
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Smartphone className="w-6 h-6 text-green-600" />
-            Pay with CashApp
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Alert>
-            <AlertCircle className="w-4 h-4" />
-            <AlertDescription>
-              CashApp payment integration coming soon. Please use Square payment for now.
-            </AlertDescription>
-          </Alert>
-
-          <div className="bg-gray-50 rounded-lg p-6 text-center">
-            <p className="text-lg font-semibold text-gray-900 mb-2">
-              Total Amount: ${totalAmount.toFixed(2)}
-            </p>
-            <p className="text-sm text-gray-600">
-              {estimatedTickets} tickets × ${pricePerTicket.toFixed(2)} each
-            </p>
-          </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-sm text-green-800 mb-2">
-              <strong>Send CashApp payment to:</strong>
-            </p>
-            <p className="text-xl font-bold text-green-900">$SteppersLife</p>
-            <p className="text-sm text-green-700 mt-2">
-              Include event ID in note: <strong>{eventId}</strong>
-            </p>
-          </div>
-
-          <Alert>
-            <CheckCircle className="w-4 h-4" />
-            <AlertDescription>
-              After sending payment, our team will verify and activate your event within 24 hours.
-            </AlertDescription>
-          </Alert>
-
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowPayment(false)
-                setSelectedMethod(null)
-              }}
-              className="flex-1"
-            >
-              Back
-            </Button>
-            <Button
-              onClick={onPaymentSuccess}
-              className="flex-1 bg-green-600 hover:bg-green-700"
-            >
-              I've Sent Payment
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="max-w-2xl mx-auto">
+        <CashAppQRPayment
+          total={totalAmount}
+          onPaymentSuccess={handleCashAppPaymentSuccess}
+          onPaymentError={handleCashAppPaymentError}
+          onBack={() => {
+            setShowPayment(false)
+            setSelectedMethod(null)
+          }}
+        />
+      </div>
     )
   }
 

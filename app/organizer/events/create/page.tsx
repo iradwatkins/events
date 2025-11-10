@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { ImageUpload } from "@/components/upload/ImageUpload";
 import { TicketTierEditor } from "@/components/events/TicketTierEditor";
+import { WelcomePopup } from "@/components/organizer/WelcomePopup";
 import { getTimezoneFromLocation, getTimezoneName } from "@/lib/timezone";
 import { Id } from "@/convex/_generated/dataModel";
 import { toDate } from "date-fns-tz";
@@ -85,6 +86,36 @@ export default function CreateEventPage() {
   const [ticketTiers, setTicketTiers] = useState<TicketTier[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+
+  // Queries for welcome popup logic
+  const myEvents = useQuery(api.events.queries.getMyEvents);
+  const creditBalance = useQuery(api.payments.queries.getCreditBalance);
+  const markWelcomePopupShown = useMutation(api.users.mutations.markWelcomePopupShown);
+
+  // Show welcome popup if this is their first event and they haven't seen it
+  useEffect(() => {
+    if (currentUser && myEvents !== undefined && creditBalance !== undefined) {
+      const isFirstEvent = myEvents.length === 0;
+      const hasNoCredits = !creditBalance || creditBalance.creditsRemaining === 0;
+      const hasntSeenPopup = !currentUser.welcomePopupShown;
+
+      if (isFirstEvent && hasNoCredits && hasntSeenPopup) {
+        console.log("[CreateEvent] First-time organizer detected - showing welcome popup");
+        setShowWelcomePopup(true);
+      }
+    }
+  }, [currentUser, myEvents, creditBalance]);
+
+  const handleWelcomePopupClose = async () => {
+    setShowWelcomePopup(false);
+    try {
+      await markWelcomePopupShown();
+      console.log("[CreateEvent] Welcome popup marked as shown");
+    } catch (error) {
+      console.error("[CreateEvent] Failed to mark welcome popup as shown:", error);
+    }
+  };
 
   // Auto-detect timezone when city or state changes
   useEffect(() => {
@@ -277,15 +308,24 @@ export default function CreateEventPage() {
       console.log("[CREATE EVENT] Event type selected:", eventType);
       console.log("[CREATE EVENT] Event ID:", eventId);
 
-      // Redirect based on event type
+      // Redirect based on event type and credit balance
       // Ballroom feature hidden
       // if (eventType === "BALLROOM_EVENT") {
       //   console.log("[CREATE EVENT] Redirecting to seating designer for ballroom event...");
       //   router.push(`/organizer/events/${eventId}/seating`);
       // } else
       if (eventType === "TICKETED_EVENT") {
-        console.log("[CREATE EVENT] Redirecting to payment setup for ticketed event...");
-        router.push(`/organizer/events/${eventId}/payment-setup`);
+        // Check if user has credits - if yes, go to dashboard; if no, go to payment setup
+        // Note: Credits should have just been granted if this was first event
+        const hasCredits = creditBalance && creditBalance.creditsRemaining > 0;
+
+        if (hasCredits) {
+          console.log("[CREATE EVENT] User has credits - Redirecting to dashboard...");
+          router.push("/organizer/events");
+        } else {
+          console.log("[CREATE EVENT] No credits - Redirecting to payment setup...");
+          router.push(`/organizer/events/${eventId}/payment-setup`);
+        }
       } else {
         // For SAVE_THE_DATE and FREE_EVENT, go straight to dashboard
         console.log("[CREATE EVENT] Event type is", eventType, "- Redirecting to dashboard...");
@@ -711,6 +751,15 @@ export default function CreateEventPage() {
           </div>
         </div>
       </main>
+
+      {/* Welcome Popup for first-time organizers */}
+      {creditBalance && (
+        <WelcomePopup
+          open={showWelcomePopup}
+          onClose={handleWelcomePopupClose}
+          creditsRemaining={1000}
+        />
+      )}
     </div>
   );
 }

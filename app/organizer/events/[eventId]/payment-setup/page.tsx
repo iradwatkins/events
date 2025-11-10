@@ -9,7 +9,7 @@ import { Check, Info, CreditCard, Zap, ArrowLeft, DollarSign, AlertCircle } from
 import Link from "next/link";
 import { OrganizerPrepayment } from "@/components/organizer/OrganizerPrepayment";
 
-type PaymentModel = "PRE_PURCHASE" | "PAY_AS_SELL";
+type PaymentModel = "PREPAY" | "CREDIT_CARD";
 
 export default function PaymentSetupPage() {
   const params = useParams();
@@ -75,7 +75,7 @@ export default function PaymentSetupPage() {
 
     setIsProcessing(true);
     try {
-      if (selectedModel === "PRE_PURCHASE") {
+      if (selectedModel === "PREPAY") {
         // Check if user has enough free credits
         if (creditBalance && creditBalance.creditsRemaining >= 100) {
           // Use free credits automatically
@@ -86,10 +86,10 @@ export default function PaymentSetupPage() {
           setIsProcessing(false);
         }
       } else {
-        // Configure pay-as-sell model
+        // Configure credit card model (formerly PAY_AS_SELL)
         await configurePayment({
           eventId,
-          model: "PAY_AS_SELL",
+          model: "CREDIT_CARD",
           platformFeePercent: 3.7,
           platformFeeFixed: 1.79,
           stripeFeePercent: 2.9,
@@ -162,16 +162,16 @@ export default function PaymentSetupPage() {
             <div className="bg-accent border border-border rounded-lg p-4">
               <p className="font-semibold text-gray-900">Current Model:</p>
               <p className="text-lg text-primary font-bold mt-1">
-                {paymentConfig.paymentModel === "PRE_PURCHASE" ? "Pre-Purchase Credits" : "Pay-As-You-Sell"}
+                {paymentConfig.paymentModel === "PREPAY" ? "Pre-Purchase Credits" : paymentConfig.paymentModel === "CREDIT_CARD" ? "Credit Card (Pay-As-You-Sell)" : "Consignment"}
               </p>
 
-              {paymentConfig.paymentModel === "PRE_PURCHASE" && (
+              {paymentConfig.paymentModel === "PREPAY" && (
                 <p className="text-sm text-gray-600 mt-2">
                   Cost: $0.30 per ticket
                 </p>
               )}
 
-              {paymentConfig.paymentModel === "PAY_AS_SELL" && (
+              {paymentConfig.paymentModel === "CREDIT_CARD" && (
                 <p className="text-sm text-gray-600 mt-2">
                   Platform Fee: 3.7% + $1.79 + Stripe processing (2.9% + $0.30)
                 </p>
@@ -254,14 +254,14 @@ export default function PaymentSetupPage() {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Pre-Purchase Model */}
           <button
-            onClick={() => handleModelSelection("PRE_PURCHASE")}
+            onClick={() => handleModelSelection("PREPAY")}
             className={`relative bg-white rounded-lg border-2 p-6 text-left transition-all hover:shadow-lg ${
-              selectedModel === "PRE_PURCHASE"
+              selectedModel === "PREPAY"
                 ? "border-primary shadow-lg"
                 : "border-gray-200"
             }`}
           >
-            {selectedModel === "PRE_PURCHASE" && (
+            {selectedModel === "PREPAY" && (
               <div className="absolute top-4 right-4">
                 <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                   <Check className="w-4 h-4 text-white" />
@@ -333,17 +333,17 @@ export default function PaymentSetupPage() {
 
           {/* Pay-As-Sell Model */}
           <button
-            onClick={() => handleModelSelection("PAY_AS_SELL")}
+            onClick={() => handleModelSelection("CREDIT_CARD")}
             disabled={!hasStripeConnected}
             className={`relative bg-white rounded-lg border-2 p-6 text-left transition-all ${
               !hasStripeConnected
                 ? "opacity-60 cursor-not-allowed border-gray-200"
-                : selectedModel === "PAY_AS_SELL"
+                : selectedModel === "CREDIT_CARD"
                 ? "border-primary shadow-lg hover:shadow-lg"
                 : "border-gray-200 hover:shadow-lg"
             }`}
           >
-            {selectedModel === "PAY_AS_SELL" && (
+            {selectedModel === "CREDIT_CARD" && (
               <div className="absolute top-4 right-4">
                 <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                   <Check className="w-4 h-4 text-white" />
@@ -448,7 +448,7 @@ export default function PaymentSetupPage() {
         </div>
 
         {/* Current Credit Balance (if Pre-Purchase selected) */}
-        {selectedModel === "PRE_PURCHASE" && creditBalance !== undefined && (
+        {selectedModel === "PREPAY" && creditBalance !== undefined && (
           <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
             <div className="flex items-center justify-between">
               <div>

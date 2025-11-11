@@ -116,14 +116,14 @@ export default function CreditsPage() {
               </div>
 
               {/* Free Credits Badge */}
-              {credits.creditsTotal === 1000 && credits.creditsUsed === 0 && (
+              {credits.creditsTotal === 300 && credits.creditsUsed === 0 && (
                 <div className="mt-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4">
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="w-5 h-5" />
                     <span className="font-semibold">Welcome Bonus Active!</span>
                   </div>
                   <p className="text-sm text-white/90 mt-1">
-                    You have 1,000 free tickets to get started. No payment required until you use them all!
+                    You have 300 free tickets to get started. No payment required until you use them all!
                   </p>
                 </div>
               )}

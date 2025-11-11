@@ -106,7 +106,7 @@ export default function OrganizerDashboardPage() {
                   <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
                     <p className="text-sm font-medium">$0.30 per ticket</p>
                   </div>
-                  {credits.creditsTotal === 1000 && credits.creditsUsed === 0 && (
+                  {credits.creditsTotal === 300 && credits.creditsUsed === 0 && (
                     <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2">
                       <div className="flex items-center gap-2 text-sm">
                         <Check className="w-4 h-4" />

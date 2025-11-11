@@ -57,42 +57,65 @@ export const createTicketTier = mutation({
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
 
-    // CHECK CREDIT BALANCE - 100 FREE TICKETS SYSTEM
+    // CHECK PER-EVENT TICKET ALLOCATION
+    // Each event has its own ticket allocation (first event gets 1,000 free, subsequent events must prepay)
     if (organizerId) {
-      // Get organizer's credit balance
-      const credits = await ctx.db
-        .query("organizerCredits")
-        .withIndex("by_organizer", (q) => q.eq("organizerId", organizerId))
+      // Get event's payment config (contains ticket allocation)
+      const paymentConfig = await ctx.db
+        .query("eventPaymentConfig")
+        .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
         .first();
 
-      if (!credits) {
-        throw new Error("Credit balance not found. Please contact support.");
+      if (!paymentConfig || !paymentConfig.ticketsAllocated) {
+        // Check if this is organizer's first event
+        const allOrganizerEvents = await ctx.db
+          .query("events")
+          .withIndex("by_organizer", (q) => q.eq("organizerId", organizerId))
+          .collect();
+
+        const isFirstEvent = allOrganizerEvents.length === 1 && allOrganizerEvents[0]._id === args.eventId;
+
+        if (isFirstEvent) {
+          throw new Error(
+            `This is your first event! You get 300 FREE tickets (risk-free trial). ` +
+            `However, you need to set up your event's ticket allocation first. ` +
+            `Please contact support or use the event setup wizard.`
+          );
+        } else {
+          throw new Error(
+            `No ticket allocation found for this event. ` +
+            `You must prepay for tickets at $0.30 each. ` +
+            `Please visit the Credits page to purchase tickets for this event.`
+          );
+        }
       }
 
-      const creditsNeeded = args.quantity;
-      const creditsAvailable = credits.creditsRemaining;
+      // Calculate tickets already used for this event
+      const existingTiers = await ctx.db
+        .query("ticketTiers")
+        .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+        .collect();
 
-      // Check if enough credits
-      if (creditsAvailable < creditsNeeded) {
-        const shortfall = creditsNeeded - creditsAvailable;
+      const ticketsUsed = existingTiers.reduce((sum, tier) => sum + tier.quantity, 0);
+      const ticketsRemaining = paymentConfig.ticketsAllocated - ticketsUsed;
+
+      // Check if enough tickets allocated for this event
+      if (ticketsRemaining < args.quantity) {
+        const shortfall = args.quantity - ticketsRemaining;
         const costPerTicket = 0.30; // $0.30 per ticket
         const totalCost = (shortfall * costPerTicket).toFixed(2);
 
         throw new Error(
-          `Insufficient ticket credits! You need ${creditsNeeded} tickets but only have ${creditsAvailable} remaining. ` +
+          `Insufficient tickets for this event! ` +
+          `This event has ${paymentConfig.ticketsAllocated} tickets allocated. ` +
+          `You've used ${ticketsUsed} tickets and have ${ticketsRemaining} remaining. ` +
+          `You need ${args.quantity} tickets but only have ${ticketsRemaining} available. ` +
           `You need ${shortfall} more tickets ($${totalCost} at $0.30 each). ` +
-          `Please purchase additional credits before creating this tier.`
+          `Please purchase additional tickets for this event.`
         );
       }
 
-      // Deduct credits
-      await ctx.db.patch(credits._id, {
-        creditsUsed: credits.creditsUsed + creditsNeeded,
-        creditsRemaining: credits.creditsRemaining - creditsNeeded,
-        updatedAt: Date.now(),
-      });
-
-      console.log(`[createTicketTier] Deducted ${creditsNeeded} credits. Remaining: ${credits.creditsRemaining - creditsNeeded}`);
+      console.log(`[createTicketTier] Event ${args.eventId}: Using ${args.quantity} of ${ticketsRemaining} remaining tickets`);
     }
 
     // Create ticket tier
@@ -134,6 +157,7 @@ export const deleteTicketTier = mutation({
     // Get event and verify ownership
     const event = await ctx.db.get(tier.eventId);
     if (!event) throw new Error("Event not found");
+    if (!event.organizerId) throw new Error("Event has no organizer");
 
     let organizerId: Id<"users"> = event.organizerId;
 
@@ -172,31 +196,16 @@ export const deleteTicketTier = mutation({
       );
     }
 
-    // REFUND CREDITS - Return the full quantity as credits
-    const creditsToRefund = tier.quantity;
-
-    if (creditsToRefund > 0) {
-      const credits = await ctx.db
-        .query("organizerCredits")
-        .withIndex("by_organizer", (q) => q.eq("organizerId", organizerId))
-        .first();
-
-      if (credits) {
-        await ctx.db.patch(credits._id, {
-          creditsRemaining: credits.creditsRemaining + creditsToRefund,
-          creditsUsed: credits.creditsUsed - creditsToRefund,
-          updatedAt: now,
-        });
-
-        console.log(`[deleteTicketTier] Refunded ${creditsToRefund} credits to organizer ${organizerId}`);
-      }
-    }
+    // NO CREDIT REFUND - Tickets are per-event and don't transfer
+    // Deleting a tier simply frees up allocation for THIS event only
+    // The tickets remain allocated to this event and can be used for other tiers
+    console.log(`[deleteTicketTier] Deleted tier with ${tier.quantity} tickets. These tickets remain allocated to event ${tier.eventId} and can be used for other tiers.`);
 
     await ctx.db.delete(args.tierId);
 
     return {
       success: true,
-      creditsRefunded: creditsToRefund,
+      ticketsFreed: tier.quantity,
     };
   },
 });
@@ -226,6 +235,7 @@ export const updateTicketTier = mutation({
     // Get event and verify ownership
     const event = await ctx.db.get(tier.eventId);
     if (!event) throw new Error("Event not found");
+    if (!event.organizerId) throw new Error("Event has no organizer");
 
     let organizerId: Id<"users"> = event.organizerId;
 
@@ -265,56 +275,59 @@ export const updateTicketTier = mutation({
       );
     }
 
-    // CREDIT REFUND LOGIC: If reducing quantity, refund credits
-    let creditsRefunded = 0;
-    if (args.quantity !== undefined && args.quantity < tier.quantity) {
-      creditsRefunded = tier.quantity - args.quantity;
+    // PER-EVENT ALLOCATION CHECK: Verify event has enough tickets allocated
+    let ticketsFreed = 0;
+    let ticketsNeeded = 0;
 
-      // Get organizer's credit record
-      const credits = await ctx.db
-        .query("organizerCredits")
-        .withIndex("by_organizer", (q) => q.eq("organizerId", organizerId))
+    if (args.quantity !== undefined && args.quantity !== tier.quantity) {
+      // Get event's payment config
+      const paymentConfig = await ctx.db
+        .query("eventPaymentConfig")
+        .withIndex("by_event", (q) => q.eq("eventId", tier.eventId))
         .first();
 
-      if (credits) {
-        // Refund credits back to organizer
-        await ctx.db.patch(credits._id, {
-          creditsRemaining: credits.creditsRemaining + creditsRefunded,
-          creditsUsed: credits.creditsUsed - creditsRefunded,
-          updatedAt: now,
-        });
-
-        console.log(`[updateTicketTier] Refunded ${creditsRefunded} credits to organizer ${organizerId}`);
-      }
-    }
-
-    // CREDIT DEDUCTION LOGIC: If increasing quantity, deduct credits
-    let creditsDeducted = 0;
-    if (args.quantity !== undefined && args.quantity > tier.quantity) {
-      creditsDeducted = args.quantity - tier.quantity;
-
-      // Get organizer's credit record
-      const credits = await ctx.db
-        .query("organizerCredits")
-        .withIndex("by_organizer", (q) => q.eq("organizerId", organizerId))
-        .first();
-
-      if (!credits || credits.creditsRemaining < creditsDeducted) {
-        throw new Error(
-          `Insufficient credits. You need ${creditsDeducted} credits to increase quantity, ` +
-          `but only have ${credits?.creditsRemaining || 0} credits remaining. ` +
-          `Please purchase more credits to continue.`
-        );
+      if (!paymentConfig || !paymentConfig.ticketsAllocated) {
+        throw new Error("No ticket allocation found for this event");
       }
 
-      // Deduct credits from organizer
-      await ctx.db.patch(credits._id, {
-        creditsRemaining: credits.creditsRemaining - creditsDeducted,
-        creditsUsed: credits.creditsUsed + creditsDeducted,
-        updatedAt: now,
-      });
+      // Calculate current usage (excluding this tier we're updating)
+      const existingTiers = await ctx.db
+        .query("ticketTiers")
+        .withIndex("by_event", (q) => q.eq("eventId", tier.eventId))
+        .collect();
 
-      console.log(`[updateTicketTier] Deducted ${creditsDeducted} credits from organizer ${organizerId}`);
+      const otherTiersUsage = existingTiers
+        .filter(t => t._id !== args.tierId)
+        .reduce((sum, t) => sum + t.quantity, 0);
+
+      const availableForThisTier = paymentConfig.ticketsAllocated - otherTiersUsage;
+
+      // Increasing quantity
+      if (args.quantity > tier.quantity) {
+        ticketsNeeded = args.quantity - tier.quantity;
+
+        if (args.quantity > availableForThisTier) {
+          const shortfall = args.quantity - availableForThisTier;
+          const costPerTicket = 0.30;
+          const totalCost = (shortfall * costPerTicket).toFixed(2);
+
+          throw new Error(
+            `Insufficient tickets for this event! ` +
+            `This event has ${paymentConfig.ticketsAllocated} tickets allocated total. ` +
+            `Other tiers are using ${otherTiersUsage} tickets. ` +
+            `You can allocate up to ${availableForThisTier} tickets to this tier, but you requested ${args.quantity}. ` +
+            `You need ${shortfall} more tickets ($${totalCost} at $0.30 each). ` +
+            `Please purchase additional tickets for this event.`
+          );
+        }
+
+        console.log(`[updateTicketTier] Event ${tier.eventId}: Increasing tier from ${tier.quantity} to ${args.quantity} tickets`);
+      }
+      // Reducing quantity
+      else if (args.quantity < tier.quantity) {
+        ticketsFreed = tier.quantity - args.quantity;
+        console.log(`[updateTicketTier] Event ${tier.eventId}: Reducing tier from ${tier.quantity} to ${args.quantity}. ${ticketsFreed} tickets freed for other tiers in this event.`);
+      }
     }
 
     // Build update object with only provided fields
@@ -335,8 +348,8 @@ export const updateTicketTier = mutation({
 
     return {
       success: true,
-      creditsRefunded,
-      creditsDeducted,
+      ticketsFreed,
+      ticketsNeeded,
     };
   },
 });

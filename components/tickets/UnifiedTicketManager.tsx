@@ -49,6 +49,12 @@ export function UnifiedTicketManager({ eventId }: UnifiedTicketManagerProps) {
     price: 0,
     quantity: 0,
   });
+  const [editFormData, setEditFormData] = useState<TicketTierFormData>({
+    name: "",
+    description: "",
+    price: 0,
+    quantity: 0,
+  });
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
   const ticketTiersData = useQuery(api.public.queries.getPublicEventDetails, { eventId });
@@ -310,6 +316,99 @@ export function UnifiedTicketManager({ eventId }: UnifiedTicketManagerProps) {
                 />
               </div>
 
+              {/* Table Package Option */}
+              <div className="bg-accent border border-primary rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="newTierTablePackage"
+                    checked={newTierData.isTablePackage || false}
+                    onChange={(e) => setNewTierData({ ...newTierData, isTablePackage: e.target.checked })}
+                    className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-ring"
+                  />
+                  <div className="flex-1">
+                    <label htmlFor="newTierTablePackage" className="font-semibold text-foreground cursor-pointer">
+                      Sell as Table Package
+                    </label>
+                    <p className="text-sm text-foreground mt-1">
+                      Group multiple seats together. Customers must purchase all seats at once.
+                    </p>
+
+                    {newTierData.isTablePackage && (
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Seats per Table *
+                        </label>
+                        <select
+                          value={newTierData.tableCapacity || 4}
+                          onChange={(e) => setNewTierData({ ...newTierData, tableCapacity: parseInt(e.target.value) })}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                        >
+                          <option value="2">2 seats</option>
+                          <option value="4">4 seats</option>
+                          <option value="6">6 seats</option>
+                          <option value="8">8 seats</option>
+                          <option value="10">10 seats</option>
+                          <option value="12">12 seats</option>
+                        </select>
+                        {newTierData.price > 0 && newTierData.tableCapacity && (
+                          <p className="text-xs text-primary mt-2">
+                            <strong>Price per seat:</strong> ${((newTierData.price / 100) / (newTierData.tableCapacity || 1)).toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Early Bird Pricing */}
+              <div className="bg-accent border border-border rounded-lg p-4">
+                <div className="flex items-start gap-2 mb-3">
+                  <Calendar className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Early Bird Pricing (Optional)</h4>
+                    <p className="text-sm text-accent-foreground">
+                      Set sale dates to create time-based availability. Leave blank for always-available tiers.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Sale Start Date
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={newTierData.saleStart ? new Date(newTierData.saleStart).toISOString().slice(0, 16) : ""}
+                      onChange={(e) => setNewTierData({ ...newTierData, saleStart: e.target.value ? new Date(e.target.value).getTime() : undefined })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">When this tier becomes available</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Sale End Date
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={newTierData.saleEnd ? new Date(newTierData.saleEnd).toISOString().slice(0, 16) : ""}
+                      onChange={(e) => setNewTierData({ ...newTierData, saleEnd: e.target.value ? new Date(e.target.value).getTime() : undefined })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">When this tier stops being available</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 p-3 bg-white border border-border rounded">
+                  <p className="text-xs text-accent-foreground">
+                    <strong>Example:</strong> Create "Early Bird" tier at $20 with end date, then "General Admission" at $30 with no dates - automatic price increase!
+                  </p>
+                </div>
+              </div>
+
               <div className="flex items-center justify-end gap-3 pt-4 border-t">
                 <button
                   onClick={() => setIsCreating(false)}
@@ -489,7 +588,19 @@ export function UnifiedTicketManager({ eventId }: UnifiedTicketManagerProps) {
 
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => setEditingTier(tier._id)}
+                            onClick={() => {
+                              setEditFormData({
+                                name: tier.name,
+                                description: tier.description || "",
+                                price: tier.price,
+                                quantity: tier.quantity,
+                                saleStart: tier.saleStart,
+                                saleEnd: tier.saleEnd,
+                                isTablePackage: tier.isTablePackage,
+                                tableCapacity: tier.tableCapacity,
+                              });
+                              setEditingTier(tier._id);
+                            }}
                             className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -502,6 +613,184 @@ export function UnifiedTicketManager({ eventId }: UnifiedTicketManagerProps) {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Edit Modal */}
+        {editingTier && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">Edit Ticket Tier</h3>
+                <button
+                  onClick={() => setEditingTier(null)}
+                  className="p-2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tier Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.name}
+                      onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Price (USD) *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editFormData.price / 100}
+                        onChange={(e) => setEditFormData({ ...editFormData, price: Math.round(parseFloat(e.target.value) * 100) })}
+                        className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Quantity *
+                  </label>
+                  <input
+                    type="number"
+                    value={editFormData.quantity}
+                    onChange={(e) => setEditFormData({ ...editFormData, quantity: parseInt(e.target.value) || 0 })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editFormData.description}
+                    onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                    rows={2}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+
+                {/* Table Package Option */}
+                <div className="bg-accent border border-primary rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      id="editTierTablePackage"
+                      checked={editFormData.isTablePackage || false}
+                      onChange={(e) => setEditFormData({ ...editFormData, isTablePackage: e.target.checked })}
+                      className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="editTierTablePackage" className="font-semibold text-foreground cursor-pointer">
+                        Sell as Table Package
+                      </label>
+                      <p className="text-sm text-foreground mt-1">
+                        Group multiple seats together. Customers must purchase all seats at once.
+                      </p>
+
+                      {editFormData.isTablePackage && (
+                        <div className="mt-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Seats per Table *
+                          </label>
+                          <select
+                            value={editFormData.tableCapacity || 4}
+                            onChange={(e) => setEditFormData({ ...editFormData, tableCapacity: parseInt(e.target.value) })}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                          >
+                            <option value="2">2 seats</option>
+                            <option value="4">4 seats</option>
+                            <option value="6">6 seats</option>
+                            <option value="8">8 seats</option>
+                            <option value="10">10 seats</option>
+                            <option value="12">12 seats</option>
+                          </select>
+                          {editFormData.price > 0 && editFormData.tableCapacity && (
+                            <p className="text-xs text-primary mt-2">
+                              <strong>Price per seat:</strong> ${((editFormData.price / 100) / (editFormData.tableCapacity || 1)).toFixed(2)}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Early Bird Pricing */}
+                <div className="bg-accent border border-border rounded-lg p-4">
+                  <div className="flex items-start gap-2 mb-3">
+                    <Calendar className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-1">Early Bird Pricing (Optional)</h4>
+                      <p className="text-sm text-accent-foreground">
+                        Set sale dates to create time-based availability. Leave blank for always-available tiers.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sale Start Date
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={editFormData.saleStart ? new Date(editFormData.saleStart).toISOString().slice(0, 16) : ""}
+                        onChange={(e) => setEditFormData({ ...editFormData, saleStart: e.target.value ? new Date(e.target.value).getTime() : undefined })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">When this tier becomes available</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sale End Date
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={editFormData.saleEnd ? new Date(editFormData.saleEnd).toISOString().slice(0, 16) : ""}
+                        onChange={(e) => setEditFormData({ ...editFormData, saleEnd: e.target.value ? new Date(e.target.value).getTime() : undefined })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">When this tier stops being available</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-4 border-t">
+                  <button
+                    onClick={() => setEditingTier(null)}
+                    className="px-6 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!editingTier) return;
+                      await handleUpdateTier(editingTier as Id<"ticketTiers">, editFormData);
+                    }}
+                    className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

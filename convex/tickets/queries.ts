@@ -611,18 +611,23 @@ export const getTicketTierForEdit = query({
       }
     }
 
-    // Calculate if tier is "live" (24 hours after first sale)
+    // Calculate if event has started - tickets lock when event begins
     const now = Date.now();
-    const HOURS_24 = 24 * 60 * 60 * 1000;
-    const isLive = tier.firstSaleAt && (now - tier.firstSaleAt) > HOURS_24;
+    const eventHasStarted = event.startDate && now >= event.startDate;
+    const canEdit = !eventHasStarted;
+
+    // Calculate time until event starts
+    let hoursUntilLock = null;
+    if (event.startDate && !eventHasStarted) {
+      hoursUntilLock = Math.ceil((event.startDate - now) / (60 * 60 * 1000));
+    }
 
     return {
       ...tier,
-      isLive,
-      canEdit: !isLive,
-      hoursUntilLive: tier.firstSaleAt && !isLive
-        ? Math.ceil((HOURS_24 - (now - tier.firstSaleAt)) / (60 * 60 * 1000))
-        : null,
+      isLive: eventHasStarted,
+      canEdit,
+      hoursUntilLock,
+      eventStartDate: event.startDate,
     };
   },
 });

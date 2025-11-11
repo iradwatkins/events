@@ -854,7 +854,8 @@ export default function TicketSetupPage() {
                     <ul className="space-y-1 list-disc list-inside">
                       <li>Increasing quantity will deduct additional credits</li>
                       <li>Decreasing quantity will refund credits to your account</li>
-                      <li>Tickets lock 24 hours after first sale</li>
+                      <li>Tickets lock when the event starts</li>
+                      <li>You can edit freely until your event begins</li>
                     </ul>
                   </div>
                 </div>

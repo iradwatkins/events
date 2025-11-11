@@ -164,8 +164,17 @@ export default function TicketTiersPage() {
   };
 
   const handleDeleteTier = async (tierId: Id<"ticketTiers">) => {
+    if (!confirm("Are you sure you want to delete this ticket tier? Credits will be refunded to your account.")) {
+      return;
+    }
+
     try {
-      await deleteTier({ tierId });
+      const result = await deleteTier({ tierId });
+      if (result.creditsRefunded > 0) {
+        alert(`Ticket tier deleted successfully! ${result.creditsRefunded} credits have been refunded to your account.`);
+      } else {
+        alert("Ticket tier deleted successfully!");
+      }
     } catch (error: any) {
       console.error("Delete tier error:", error);
       alert(error.message || "Failed to delete ticket tier");
@@ -480,7 +489,8 @@ export default function TicketTiersPage() {
                     <ul className="space-y-1 list-disc list-inside">
                       <li>Increasing quantity will deduct additional credits</li>
                       <li>Decreasing quantity will refund credits to your account</li>
-                      <li>Tickets lock 24 hours after first sale</li>
+                      <li>Tickets lock when the event starts</li>
+                      <li>You can edit freely until your event begins</li>
                     </ul>
                   </div>
                 </div>

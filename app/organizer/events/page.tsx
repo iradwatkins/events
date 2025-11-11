@@ -145,8 +145,8 @@ export default function OrganizerEventsPage() {
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <h1 className="text-3xl font-bold text-gray-900">Organizer Dashboard</h1>
-              <p className="text-gray-600 mt-1">Manage your events, tickets, and credits</p>
+              <h1 className="text-3xl font-bold text-gray-900">My Events</h1>
+              <p className="text-gray-600 mt-1">Manage your events and ticket sales</p>
             </motion.div>
             <motion.div
               initial={{ x: 20, opacity: 0 }}

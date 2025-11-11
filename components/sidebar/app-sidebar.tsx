@@ -32,7 +32,7 @@ import {
 const navItems = [
   {
     title: 'Dashboard',
-    url: '/organizer/events',
+    url: '/organizer/dashboard',
     icon: LayoutDashboard,
   },
   {

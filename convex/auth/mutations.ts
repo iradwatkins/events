@@ -36,13 +36,13 @@ export const createUserWithPassword = mutation({
       updatedAt: now,
     });
 
-    // Initialize credit balance for organizers - 1000 FREE tickets!
+    // Initialize credit balance for organizers - 300 FREE tickets!
     if (args.role === "organizer" || args.role === "admin") {
       await ctx.db.insert("organizerCredits", {
         organizerId: userId,
-        creditsTotal: 1000,
+        creditsTotal: 300,
         creditsUsed: 0,
-        creditsRemaining: 1000,
+        creditsRemaining: 300,
         firstEventFreeUsed: false,
         createdAt: now,
         updatedAt: now,

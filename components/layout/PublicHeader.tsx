@@ -56,7 +56,7 @@ export function PublicHeader({
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center">
             <motion.div
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.3 }}
@@ -64,18 +64,11 @@ export function PublicHeader({
             >
               <Image
                 src="/logos/stepperslife-logo-dark.svg"
-                alt="SteppersLife Events Logo"
+                alt="SteppersLife Events"
                 fill
                 className="object-contain"
               />
             </motion.div>
-            <div className="hidden md:block">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">SteppersLife Events</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Discover amazing stepping events</p>
-            </div>
-            <div className="md:hidden">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">SteppersLife</h1>
-            </div>
           </Link>
 
           {/* Desktop Navigation */}

@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ImageUpload } from "@/components/upload/ImageUpload";
-import { TicketTierEditor } from "@/components/events/TicketTierEditor";
+import { CapacityAwareTicketEditor } from "@/components/events/CapacityAwareTicketEditor";
 import { WelcomePopup } from "@/components/organizer/WelcomePopup";
 import { getTimezoneFromLocation, getTimezoneName } from "@/lib/timezone";
 import { Id } from "@/convex/_generated/dataModel";
@@ -193,6 +193,15 @@ export default function CreateEventPage() {
         return;
       }
 
+      // Validate capacity is set
+      if (!capacity || parseInt(capacity) <= 0) {
+        alert("Please set an event capacity for ticketed events");
+        return;
+      }
+
+      // Calculate total allocated tickets
+      let totalAllocated = 0;
+
       // Validate each tier
       for (let i = 0; i < ticketTiers.length; i++) {
         const tier = ticketTiers[i];
@@ -208,6 +217,17 @@ export default function CreateEventPage() {
           alert(`Ticket Tier ${i + 1}: Please enter a valid quantity greater than 0`);
           return;
         }
+        totalAllocated += parseInt(tier.quantity);
+      }
+
+      // Validate total tickets don't exceed capacity
+      const eventCapacity = parseInt(capacity);
+      if (totalAllocated > eventCapacity) {
+        alert(
+          `Total ticket allocation (${totalAllocated.toLocaleString()}) exceeds event capacity (${eventCapacity.toLocaleString()}).\n\n` +
+          `Please reduce your ticket quantities by ${(totalAllocated - eventCapacity).toLocaleString()} tickets or increase your event capacity.`
+        );
+        return;
       }
     }
 
@@ -298,6 +318,14 @@ export default function CreateEventPage() {
             description: tier.description || undefined,
             price: priceCents,
             quantity,
+            // Mixed Allocation Support
+            allocationMode: tier.allocationMode,
+            tableQuantity: tier.tableQuantity,
+            individualQuantity: tier.individualQuantity,
+            tableGroups: tier.tableGroups,
+            // Legacy table package support
+            isTablePackage: tier.isTablePackage,
+            tableCapacity: tier.tableCapacity,
           });
         }
 
@@ -405,7 +433,7 @@ export default function CreateEventPage() {
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
                   placeholder="e.g., Chicago Summer Steppers Set 2025"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -449,7 +477,7 @@ export default function CreateEventPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your event, what attendees can expect, special guests, etc..."
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -497,7 +525,7 @@ export default function CreateEventPage() {
                     type="datetime-local"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -509,7 +537,7 @@ export default function CreateEventPage() {
                     type="datetime-local"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   />
                 </div>
               </div>
@@ -554,7 +582,7 @@ export default function CreateEventPage() {
                   value={venueName}
                   onChange={(e) => setVenueName(e.target.value)}
                   placeholder="e.g., The Grand Ballroom"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -567,7 +595,7 @@ export default function CreateEventPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="123 Main Street"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -581,7 +609,7 @@ export default function CreateEventPage() {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="Chicago"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -594,7 +622,7 @@ export default function CreateEventPage() {
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     placeholder="IL"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -607,7 +635,7 @@ export default function CreateEventPage() {
                     value={zipCode}
                     onChange={(e) => setZipCode(e.target.value)}
                     placeholder="60601"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -620,7 +648,7 @@ export default function CreateEventPage() {
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
                     placeholder="USA"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   />
                 </div>
               </div>
@@ -641,17 +669,22 @@ export default function CreateEventPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Capacity (Optional)
+                  Event Capacity {eventType === "TICKETED_EVENT" && <span className="text-red-500">*</span>}
+                  {eventType !== "TICKETED_EVENT" && "(Optional)"}
                 </label>
                 <input
                   type="number"
                   value={capacity}
                   onChange={(e) => setCapacity(e.target.value)}
-                  placeholder="500"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                  placeholder="e.g., 500"
+                  min="1"
+                  required={eventType === "TICKETED_EVENT"}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Maximum number of attendees
+                  {eventType === "TICKETED_EVENT"
+                    ? "Maximum number of tickets available (required for ticket setup)"
+                    : "Maximum number of attendees"}
                 </p>
               </div>
 
@@ -666,7 +699,7 @@ export default function CreateEventPage() {
                     value={doorPrice}
                     onChange={(e) => setDoorPrice(e.target.value)}
                     placeholder="e.g., $20 at the door, Free, Donation"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Price information for attendees (e.g., "$20 at the door" or "Free admission")
@@ -677,16 +710,28 @@ export default function CreateEventPage() {
               {/* Ticket Tiers - For TICKETED_EVENT */}
               {eventType === "TICKETED_EVENT" && (
                 <div>
-                  <TicketTierEditor tiers={ticketTiers} onChange={setTicketTiers} />
-                  <p className="text-xs text-gray-500 mt-2">
-                    * At least one ticket tier is required for ticketed events
-                  </p>
-                  {/* Ballroom feature hidden */}
-                  {/* {eventType === "BALLROOM_EVENT" && (
-                    <p className="text-xs text-primary mt-2">
-                      💡 You'll set up table seating layout in the next step
-                    </p>
-                  )} */}
+                  {!capacity || parseInt(capacity) <= 0 ? (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm text-yellow-800">
+                        <strong>Set your event capacity first</strong> to start creating tickets.
+                      </p>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        Enter the maximum number of attendees above to continue.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <CapacityAwareTicketEditor
+                        capacity={parseInt(capacity)}
+                        tiers={ticketTiers}
+                        onChange={setTicketTiers}
+                        showPresets={true}
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        * At least one ticket tier is required for ticketed events
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
 

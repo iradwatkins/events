@@ -8,6 +8,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Plus, Trash2, ArrowLeft, Check, Ticket, Gift, DollarSign, Edit, Info } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { CapacityProgressBar } from "@/components/events/CapacityProgressBar";
 
 type TicketTierForm = {
   name: string;
@@ -149,6 +150,23 @@ export default function TicketSetupPage() {
               Your ticket tiers are set up for this event.
             </p>
 
+            {/* Capacity Progress Bar */}
+            {event.capacity && event.capacity > 0 && (
+              <div className="mb-6">
+                <CapacityProgressBar
+                  capacity={event.capacity}
+                  allocated={existingTiers.reduce((sum, tier) => sum + tier.quantity, 0)}
+                  sold={existingTiers.reduce((sum, tier) => sum + tier.sold, 0)}
+                  showBreakdown={true}
+                  breakdown={existingTiers.map((tier, index) => ({
+                    name: tier.name,
+                    quantity: tier.quantity,
+                    color: ["#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#6366F1"][index % 6],
+                  }))}
+                />
+              </div>
+            )}
+
             <div className="space-y-4">
               {existingTiers.map((tier) => (
                 <div
@@ -181,7 +199,7 @@ export default function TicketSetupPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEditExistingTier(tier)}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-primary hover:bg-accent rounded-lg transition-colors"
                         title="Edit tier"
                       >
                         <Edit className="w-5 h-5" />
@@ -312,6 +330,7 @@ export default function TicketSetupPage() {
   const validateTiers = (): boolean => {
     const newErrors: Record<number, Record<string, string>> = {};
     let isValid = true;
+    let totalAllocated = 0;
 
     tiers.forEach((tier, index) => {
       const tierErrors: Record<string, string> = {};
@@ -326,15 +345,46 @@ export default function TicketSetupPage() {
         isValid = false;
       }
 
-      if (!tier.quantity || parseInt(tier.quantity) <= 0) {
-        tierErrors.quantity = "Quantity must be greater than 0";
-        isValid = false;
+      // Validate quantity based on allocation mode
+      if (tier.allocationMode === "mixed") {
+        const tables = (tier.tableQuantity || 0) * (tier.tableCapacity || 0);
+        const individuals = tier.individualQuantity || 0;
+        if (tables + individuals <= 0) {
+          tierErrors.quantity = "Must allocate at least some tables or individual tickets";
+          isValid = false;
+        } else {
+          totalAllocated += tables + individuals;
+        }
+      } else if (tier.allocationMode === "table") {
+        if (!tier.tableQuantity || tier.tableQuantity <= 0) {
+          tierErrors.quantity = "Number of tables must be greater than 0";
+          isValid = false;
+        } else {
+          totalAllocated += tier.tableQuantity * (tier.tableCapacity || 0);
+        }
+      } else {
+        // Individual mode or legacy
+        if (!tier.quantity || parseInt(tier.quantity) <= 0) {
+          tierErrors.quantity = "Quantity must be greater than 0";
+          isValid = false;
+        } else {
+          totalAllocated += tier.individualQuantity || parseInt(tier.quantity) || 0;
+        }
       }
 
       if (Object.keys(tierErrors).length > 0) {
         newErrors[index] = tierErrors;
       }
     });
+
+    // Validate total doesn't exceed capacity
+    if (event.capacity && event.capacity > 0 && totalAllocated > event.capacity) {
+      alert(
+        `Total ticket allocation (${totalAllocated.toLocaleString()}) exceeds event capacity (${event.capacity.toLocaleString()}).\n\n` +
+        `Please reduce your ticket quantities by ${(totalAllocated - event.capacity).toLocaleString()} tickets.`
+      );
+      isValid = false;
+    }
 
     setErrors(newErrors);
     return isValid;
@@ -357,6 +407,12 @@ export default function TicketSetupPage() {
           quantity: parseInt(tier.quantity),
           saleStart: tier.saleStart ? new Date(tier.saleStart).getTime() : undefined,
           saleEnd: tier.saleEnd ? new Date(tier.saleEnd).getTime() : undefined,
+          // Mixed Allocation Support
+          allocationMode: tier.allocationMode,
+          tableQuantity: tier.tableQuantity,
+          individualQuantity: tier.individualQuantity,
+          tableGroups: tier.tableGroups,
+          // Legacy table package support
           isTablePackage: tier.isTablePackage,
           tableCapacity: tier.isTablePackage ? parseInt(tier.tableCapacity) : undefined,
         });
@@ -453,6 +509,35 @@ export default function TicketSetupPage() {
           </motion.div>
         )}
 
+        {/* Capacity Progress Bar */}
+        {event.capacity && event.capacity > 0 && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-6 bg-white border border-gray-200 rounded-lg p-6"
+          >
+            <CapacityProgressBar
+              capacity={event.capacity}
+              allocated={tiers.reduce((sum, tier) => {
+                // Calculate capacity based on allocation mode
+                if (tier.allocationMode === "mixed") {
+                  const tables = (tier.tableQuantity || 0) * (tier.tableCapacity || 0);
+                  const individuals = tier.individualQuantity || 0;
+                  return sum + tables + individuals;
+                } else if (tier.allocationMode === "table" || tier.isTablePackage) {
+                  const qty = tier.tableQuantity || parseInt(tier.quantity) || 0;
+                  return sum + (qty * (tier.tableCapacity || 0));
+                } else {
+                  return sum + (tier.individualQuantity || parseInt(tier.quantity) || 0);
+                }
+              }, 0)}
+              sold={0}
+              showBreakdown={false}
+            />
+          </motion.div>
+        )}
+
         <div className="space-y-6">
           <AnimatePresence mode="popLayout">
             {tiers.map((tier, index) => (
@@ -489,7 +574,7 @@ export default function TicketSetupPage() {
                       value={tier.name}
                       onChange={(e) => handleTierChange(index, "name", e.target.value)}
                       placeholder="e.g., General Admission, VIP, Early Bird"
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
                         errors[index]?.name ? "border-red-500" : "border-gray-300"
                       }`}
                     />
@@ -508,7 +593,7 @@ export default function TicketSetupPage() {
                       onChange={(e) => handleTierChange(index, "description", e.target.value)}
                       placeholder="Optional description of what's included..."
                       rows={2}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
 
@@ -529,7 +614,7 @@ export default function TicketSetupPage() {
                           value={tier.price}
                           onChange={(e) => handleTierChange(index, "price", e.target.value)}
                           placeholder="0.00"
-                          className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
+                          className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
                             errors[index]?.price ? "border-red-500" : "border-gray-300"
                           }`}
                         />
@@ -550,7 +635,7 @@ export default function TicketSetupPage() {
                         value={tier.quantity}
                         onChange={(e) => handleTierChange(index, "quantity", e.target.value)}
                         placeholder={tier.isTablePackage ? "4" : "100"}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
                           errors[index]?.quantity ? "border-red-500" : "border-gray-300"
                         }`}
                       />
@@ -694,7 +779,7 @@ export default function TicketSetupPage() {
                           type="datetime-local"
                           value={tier.saleStart}
                           onChange={(e) => handleTierChange(index, "saleStart", e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                         <p className="text-xs text-gray-500 mt-1">When this tier becomes available</p>
                       </div>
@@ -708,7 +793,7 @@ export default function TicketSetupPage() {
                         type="datetime-local"
                         value={tier.saleEnd}
                         onChange={(e) => handleTierChange(index, "saleEnd", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                         <p className="text-xs text-gray-500 mt-1">When this tier stops being available</p>
                       </div>
@@ -846,10 +931,10 @@ export default function TicketSetupPage() {
 
             <div className="p-6 space-y-6">
               {/* Warning Banner */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-accent border border-primary/30 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-blue-900">
+                  <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-foreground">
                     <p className="font-semibold mb-1">Credit Adjustments:</p>
                     <ul className="space-y-1 list-disc list-inside">
                       <li>Increasing quantity will deduct additional credits</li>
@@ -872,7 +957,7 @@ export default function TicketSetupPage() {
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                     placeholder="e.g., General Admission, VIP, Early Bird"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
 
@@ -885,7 +970,7 @@ export default function TicketSetupPage() {
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                     placeholder="Describe what's included with this ticket..."
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
 
@@ -901,7 +986,7 @@ export default function TicketSetupPage() {
                       value={editForm.price}
                       onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
                       placeholder="0.00"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
 
@@ -915,7 +1000,7 @@ export default function TicketSetupPage() {
                       value={editForm.quantity}
                       onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
                       placeholder="100"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -946,7 +1031,7 @@ export default function TicketSetupPage() {
                         value={editForm.tableCapacity}
                         onChange={(e) => setEditForm({ ...editForm, tableCapacity: e.target.value })}
                         placeholder="4, 6, 8, 10..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         Price above will be for the entire table
@@ -969,7 +1054,7 @@ export default function TicketSetupPage() {
                         type="datetime-local"
                         value={editForm.saleStart}
                         onChange={(e) => setEditForm({ ...editForm, saleStart: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
 
@@ -981,7 +1066,7 @@ export default function TicketSetupPage() {
                         type="datetime-local"
                         value={editForm.saleEnd}
                         onChange={(e) => setEditForm({ ...editForm, saleEnd: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                   </div>

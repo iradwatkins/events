@@ -131,22 +131,22 @@ export default function OrganizerEventsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - Mobile Optimized */}
       <motion.header
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
         className="bg-white shadow-sm border-b"
       >
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 md:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <motion.div
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <h1 className="text-3xl font-bold text-gray-900">My Events</h1>
-              <p className="text-gray-600 mt-1">Manage your events and ticket sales</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Events</h1>
+              <p className="text-sm md:text-base text-gray-600 mt-1">Manage your events and ticket sales</p>
             </motion.div>
             <motion.div
               initial={{ x: 20, opacity: 0 }}
@@ -154,10 +154,11 @@ export default function OrganizerEventsPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              className="w-full sm:w-auto"
             >
               <Link
                 href="/organizer/events/create"
-                className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 md:px-6 md:py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5" />
                 Create Event
@@ -167,109 +168,109 @@ export default function OrganizerEventsPage() {
         </div>
       </motion.header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Welcome Banner for New Organizers */}
+      {/* Main Content - Mobile Optimized */}
+      <main className="container mx-auto px-4 py-4 md:py-8">
+        {/* Welcome Banner for New Organizers - Mobile Optimized */}
         {credits && credits.creditsRemaining === 300 && credits.creditsUsed === 0 && showWelcomeBanner && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-6"
+            className="mb-4 md:mb-6"
           >
-            <div className="bg-accent border-2 border-primary rounded-lg p-6 shadow-lg">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="w-14 h-14 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-8 h-8 text-white" />
+            <div className="bg-accent border-2 border-primary rounded-lg p-4 md:p-6 shadow-lg">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5 md:w-8 md:h-8 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                      Welcome to SteppersLife!
-                      <span className="text-2xl">🎉</span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg md:text-2xl font-bold text-gray-900 mb-1 md:mb-2 flex items-center gap-1 md:gap-2">
+                      <span className="truncate">Welcome to SteppersLife!</span>
+                      <span className="text-lg md:text-2xl">🎉</span>
                     </h3>
-                    <p className="text-lg text-gray-700 mb-3">
-                      You've received <span className="font-bold text-primary">300 FREE tickets</span> to get you started!
+                    <p className="text-sm md:text-lg text-gray-700 mb-2 md:mb-3">
+                      You've received <span className="font-bold text-primary">300 FREE tickets</span> to get started!
                     </p>
-                    <div className="bg-white/70 rounded-lg p-4 border border-primary/20">
-                      <p className="text-sm text-gray-600 mb-2">
+                    <div className="bg-white/70 rounded-lg p-3 md:p-4 border border-primary/20">
+                      <p className="text-xs md:text-sm text-gray-600 mb-1.5 md:mb-2">
                         <strong>Here's what you can do:</strong>
                       </p>
-                      <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                        <li>Create your first event and start selling tickets</li>
-                        <li>Use your 300 free tickets - no charges!</li>
-                        <li>After free tickets: Just $0.30 per ticket</li>
+                      <ul className="text-xs md:text-sm text-gray-700 space-y-0.5 md:space-y-1 list-disc list-inside">
+                        <li>Create your first event</li>
+                        <li>Use 300 free tickets - no charges!</li>
+                        <li>After free tickets: $0.30 per ticket</li>
                       </ul>
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowWelcomeBanner(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                  className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 p-1"
                   aria-label="Close welcome banner"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Credit Dashboard */}
+        {/* Credit Dashboard - Mobile Optimized */}
         {credits && (
-          <div className="mb-8 space-y-6">
+          <div className="mb-4 md:mb-8 space-y-3 md:space-y-6">
             {/* Main Credit Balance Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="bg-primary rounded-lg shadow-lg p-8 text-white">
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Gift className="w-6 h-6" />
-                      <h2 className="text-2xl font-bold">Available Credits</h2>
+              <div className="bg-primary rounded-lg shadow-lg p-4 md:p-8 text-white">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 md:gap-6">
+                  <div className="flex-1 w-full">
+                    <div className="flex items-center gap-2 mb-1 md:mb-2">
+                      <Gift className="w-5 h-5 md:w-6 md:h-6" />
+                      <h2 className="text-lg md:text-2xl font-bold">Available Credits</h2>
                     </div>
-                    <p className="text-white/90 mb-4">Ready to use for ticket creation</p>
+                    <p className="text-sm md:text-base text-white/90 mb-3 md:mb-4">Ready to use for ticket creation</p>
 
-                    <div className="mb-6">
-                      <div className="text-5xl lg:text-6xl font-bold mb-2">
+                    <div className="mb-4 md:mb-6">
+                      <div className="text-3xl md:text-5xl lg:text-6xl font-bold mb-1 md:mb-2">
                         {credits.creditsRemaining.toLocaleString()}
                       </div>
-                      <p className="text-xl text-white/90">tickets available</p>
+                      <p className="text-base md:text-xl text-white/90">tickets available</p>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
+                    <div className="space-y-1.5 md:space-y-2">
+                      <div className="flex items-center justify-between text-xs md:text-sm">
                         <span>Usage: {credits.creditsUsed.toLocaleString()} / {credits.creditsTotal.toLocaleString()}</span>
                         <span>{percentageUsed.toFixed(1)}% used</span>
                       </div>
-                      <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-3">
+                      <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-2 md:h-3">
                         <div
-                          className="bg-white rounded-full h-3 transition-all duration-500"
+                          className="bg-white rounded-full h-2 md:h-3 transition-all duration-500"
                           style={{ width: `${Math.min(percentageUsed, 100)}%` }}
                         ></div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                      <p className="text-sm font-medium">$0.30 per ticket</p>
+                  <div className="flex flex-row lg:flex-col gap-2 md:gap-3 w-full lg:w-auto">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 md:px-4 md:py-2 flex-1 lg:flex-none">
+                      <p className="text-xs md:text-sm font-medium text-center">$0.30 per ticket</p>
                     </div>
                     {credits.creditsTotal === 300 && credits.creditsUsed === 0 && (
-                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Check className="w-4 h-4" />
+                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-1.5 md:px-4 md:py-2 flex-1 lg:flex-none">
+                        <div className="flex items-center justify-center gap-1.5 md:gap-2 text-xs md:text-sm">
+                          <Check className="w-3 h-3 md:w-4 md:h-4" />
                           <span className="font-semibold">Welcome Bonus!</span>
                         </div>
                       </div>
                     )}
                     {credits.creditsRemaining <= 100 && credits.creditsRemaining > 0 && (
-                      <div className="bg-orange-500 rounded-lg px-4 py-2">
-                        <p className="text-sm font-semibold">Running low!</p>
+                      <div className="bg-orange-500 rounded-lg px-3 py-1.5 md:px-4 md:py-2 flex-1 lg:flex-none">
+                        <p className="text-xs md:text-sm font-semibold text-center">Running low!</p>
                       </div>
                     )}
                   </div>
@@ -277,47 +278,47 @@ export default function OrganizerEventsPage() {
               </div>
             </motion.div>
 
-            {/* Statistics Cards */}
+            {/* Statistics Cards - Mobile Optimized */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4"
+              className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4"
             >
-              <div className="bg-white rounded-lg shadow-sm border p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Ticket className="w-6 h-6 text-blue-600" />
+              <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
+                <div className="flex items-center gap-2.5 md:gap-3 mb-2 md:mb-4">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Ticket className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Total Allocated</p>
-                    <p className="text-2xl font-bold text-gray-900">{totalTicketsAllocated.toLocaleString()}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs md:text-sm text-gray-600">Total Allocated</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900">{totalTicketsAllocated.toLocaleString()}</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">Tickets created across all events</p>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm border p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-green-600" />
+              <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
+                <div className="flex items-center gap-2.5 md:gap-3 mb-2 md:mb-4">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Tickets Sold</p>
-                    <p className="text-2xl font-bold text-gray-900">{totalTicketsSold.toLocaleString()}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs md:text-sm text-gray-600">Tickets Sold</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900">{totalTicketsSold.toLocaleString()}</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">Successful ticket sales</p>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm border p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-purple-600" />
+              <div className="bg-white rounded-lg shadow-sm border p-4 md:p-6">
+                <div className="flex items-center gap-2.5 md:gap-3 mb-2 md:mb-4">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Active Events</p>
-                    <p className="text-2xl font-bold text-gray-900">{events?.length || 0}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs md:text-sm text-gray-600">Active Events</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900">{events?.length || 0}</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">Events with ticket tiers</p>
@@ -371,17 +372,17 @@ export default function OrganizerEventsPage() {
           </motion.div>
         )}
 
-        {/* My Events Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">My Events</h2>
+        {/* My Events Section - Mobile Optimized */}
+        <div className="mb-4 md:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 md:mb-4">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">My Events</h2>
             {selectedEvents.size > 0 && (
               <motion.button
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isDeleting}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm w-full sm:w-auto"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete Selected ({selectedEvents.size})
@@ -389,36 +390,36 @@ export default function OrganizerEventsPage() {
             )}
           </div>
 
-          {/* Quick Select Buttons */}
+          {/* Quick Select Buttons - Mobile Optimized */}
           {events.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 mb-4 p-4 bg-white rounded-lg border border-gray-200">
-              <span className="text-sm font-medium text-gray-700">Quick Select:</span>
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-3 md:mb-4 p-3 md:p-4 bg-white rounded-lg border border-gray-200">
+              <span className="text-xs md:text-sm font-medium text-gray-700 w-full sm:w-auto mb-1 sm:mb-0">Quick Select:</span>
               <button
                 onClick={selectAllEvents}
-                className="px-3 py-1.5 text-sm bg-accent text-primary rounded-md hover:bg-blue-200 transition-colors"
+                className="px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm bg-accent text-primary rounded-md hover:bg-primary/20 transition-colors"
               >
-                All Events ({events.length})
+                All ({events.length})
               </button>
               <button
                 onClick={selectEventsWithTickets}
-                className="px-3 py-1.5 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                className="px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
               >
-                Events With Tickets ({events.filter((e) => hasTicketsSold(e)).length})
+                With Tickets ({events.filter((e) => hasTicketsSold(e)).length})
               </button>
               <button
                 onClick={selectEventsWithoutTickets}
-                className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                className="px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
               >
-                Events Without Tickets ({events.filter((e) => !hasTicketsSold(e)).length})
+                No Tickets ({events.filter((e) => !hasTicketsSold(e)).length})
               </button>
               <button
                 onClick={() => setSelectedEvents(new Set())}
-                className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                className="px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
               >
-                Clear Selection
+                Clear
               </button>
               {selectedEvents.size > 0 && (
-                <span className="ml-auto text-sm font-medium text-gray-900">
+                <span className="ml-auto text-xs md:text-sm font-medium text-gray-900">
                   {selectedEvents.size} selected
                 </span>
               )}
@@ -465,18 +466,18 @@ export default function OrganizerEventsPage() {
                 >
                   <div className="flex flex-col sm:flex-row">
                     {/* Selection Checkbox */}
-                    <div className="absolute top-4 left-4 z-10">
+                    <div className="absolute top-3 left-3 md:top-4 md:left-4 z-10">
                       <input
                         type="checkbox"
                         checked={selectedEvents.has(event._id)}
                         onChange={() => toggleEventSelection(event._id)}
-                        className="w-5 h-5 text-primary bg-white border-2 border-gray-300 rounded focus:ring-2 focus:ring-ring cursor-pointer"
+                        className="w-4 h-4 md:w-5 md:h-5 text-primary bg-white border-2 border-gray-300 rounded focus:ring-2 focus:ring-ring cursor-pointer"
                         onClick={(e) => e.stopPropagation()}
                       />
                     </div>
 
                     {/* Event Image */}
-                    <div className="sm:w-48 h-32 sm:h-auto bg-gray-200 flex-shrink-0">
+                    <div className="sm:w-48 h-28 sm:h-auto bg-gray-200 flex-shrink-0">
                       {event.imageUrl ? (
                         <img
                           src={event.imageUrl}
@@ -485,115 +486,117 @@ export default function OrganizerEventsPage() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-primary">
-                          <Calendar className="w-12 h-12 text-white opacity-50" />
+                          <Calendar className="w-10 h-10 md:w-12 md:h-12 text-white opacity-50" />
                         </div>
                       )}
                     </div>
 
                     {/* Event Details */}
-                    <div className="flex-1 p-6">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="text-xl font-bold text-gray-900 mb-2">
-                            {event.name}
-                          </h3>
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
-                            {event.startDate && (
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                {formatEventDate(event.startDate, event.timezone)}
-                              </span>
-                            )}
-                            {event.eventType && (
-                              <span className="px-2 py-1 text-xs font-semibold bg-gray-100 rounded-full">
-                                {event.eventType.replace("_", " ")}
-                              </span>
-                            )}
-                            {isPast && (
-                              <span className="px-2 py-1 text-xs font-semibold bg-gray-200 text-gray-600 rounded-full">
-                                Ended
-                              </span>
-                            )}
-                            {isUpcoming && (
-                              <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">
-                                Upcoming
-                              </span>
-                            )}
-                          </div>
+                    <div className="flex-1 p-4 md:p-6">
+                      <div className="mb-2 md:mb-3">
+                        <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1.5 md:mb-2 pr-6">
+                          {event.name}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-gray-600">
+                          {event.startDate && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                              <span className="text-xs md:text-sm">{formatEventDate(event.startDate, event.timezone)}</span>
+                            </span>
+                          )}
+                          {event.eventType && (
+                            <span className="px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-semibold bg-gray-100 rounded-full">
+                              {event.eventType.replace("_", " ")}
+                            </span>
+                          )}
+                          {isPast && (
+                            <span className="px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-semibold bg-gray-200 text-gray-600 rounded-full">
+                              Ended
+                            </span>
+                          )}
+                          {isUpcoming && (
+                            <span className="px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">
+                              Upcoming
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="flex flex-wrap gap-3 mt-4">
-                        <Link
-                          href={`/events/${event._id}`}
-                          className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <Calendar className="w-4 h-4" />
-                          View Public Page
-                        </Link>
-
+                      {/* Action Buttons - Mobile Optimized */}
+                      <div className="flex flex-wrap gap-2 md:gap-3 mt-3 md:mt-4">
+                        {/* Primary Actions - Always Visible */}
                         <Link
                           href={`/organizer/events/${event._id}/edit`}
-                          className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                          className="flex items-center justify-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex-1 sm:flex-none"
                         >
-                          <Edit className="w-4 h-4" />
-                          Edit Event
+                          <Edit className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                          <span>Edit</span>
                         </Link>
 
-                        {/* Manage Tickets - Always visible for all events */}
                         <Link
-                          href={`/organizer/events/${event._id}/tickets/new`}
-                          className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                          href={`/organizer/events/${event._id}/tickets`}
+                          className="flex items-center justify-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex-1 sm:flex-none"
                         >
-                          <TicketCheck className="w-4 h-4" />
-                          Manage Tickets
+                          <TicketCheck className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                          <span>Tickets</span>
                           {event.ticketTierCount !== undefined && event.ticketTierCount > 0 && (
-                            <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-semibold">
+                            <span className="ml-0.5 md:ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-xs font-semibold">
                               {event.ticketTierCount}
                             </span>
                           )}
                         </Link>
 
+                        {/* View Public - Desktop Only */}
+                        <Link
+                          href={`/events/${event._id}`}
+                          className="hidden md:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <Calendar className="w-4 h-4" />
+                          View Public
+                        </Link>
+
+                        {/* Setup Payment - Prominent if needed */}
                         {!event.paymentModelSelected && event.eventType === "TICKETED_EVENT" && (
                           <Link
                             href={`/organizer/events/${event._id}/payment-setup`}
-                            className="flex items-center gap-2 px-4 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                            className="flex items-center justify-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex-1 sm:flex-none"
                           >
-                            <Settings className="w-4 h-4" />
-                            Setup Payment
+                            <Settings className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            <span className="hidden sm:inline">Setup Payment</span>
+                            <span className="sm:hidden">Payment</span>
                           </Link>
                         )}
 
+                        {/* Secondary Actions - Desktop Only */}
                         {event.paymentModelSelected && (
                           <>
                             <Link
                               href={`/organizer/events/${event._id}/staff`}
-                              className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                              className="hidden lg:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                             >
                               <Users className="w-4 h-4" />
-                              Manage Staff
+                              Staff
                             </Link>
                             <Link
                               href={`/organizer/events/${event._id}/seating`}
-                              className="flex items-center gap-2 px-4 py-2 text-sm border border-primary bg-accent text-primary rounded-lg hover:bg-blue-100 transition-colors"
+                              className="hidden lg:flex items-center gap-2 px-4 py-2 text-sm border border-primary bg-accent text-primary rounded-lg hover:bg-accent transition-colors"
                             >
                               <Armchair className="w-4 h-4" />
-                              Manage Seating
+                              Seating
                             </Link>
                             <Link
                               href={`/organizer/events/${event._id}#bundles`}
-                              className="flex items-center gap-2 px-4 py-2 text-sm border border-emerald-300 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
+                              className="hidden lg:flex items-center gap-2 px-4 py-2 text-sm border border-emerald-300 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
                             >
                               <Package className="w-4 h-4" />
-                              Manage Bundles
+                              Bundles
                             </Link>
                             <Link
                               href={`/organizer/events/${event._id}/sales`}
-                              className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                              className="hidden md:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                             >
                               <Settings className="w-4 h-4" />
-                              View Sales
+                              Sales
                             </Link>
                           </>
                         )}

@@ -89,7 +89,7 @@ export default function CreateEventPage() {
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
 
   // Queries for welcome popup logic
-  const myEvents = useQuery(api.events.queries.getMyEvents);
+  const myEvents = useQuery(api.events.queries.getOrganizerEvents);
   const creditBalance = useQuery(api.payments.queries.getCreditBalance);
   const markWelcomePopupShown = useMutation(api.users.mutations.markWelcomePopupShown);
 

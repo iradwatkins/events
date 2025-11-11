@@ -478,7 +478,7 @@ export function CapacityAwareTicketEditor({
                           {tierPrice > 0 && (
                             <div className="flex items-center gap-1">
                               <DollarSign className="w-4 h-4" />
-                              <span>${(tierPrice / 100).toFixed(2)}</span>
+                              <span>${tierPrice.toFixed(2)}</span>
                             </div>
                           )}
                         </div>

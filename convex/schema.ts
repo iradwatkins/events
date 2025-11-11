@@ -225,6 +225,9 @@ export default defineSchema({
     tableCapacity: v.optional(v.number()), // Number of seats per table (4, 6, 8, 10, etc.)
     // When isTablePackage=true, price is for entire table, not per seat
 
+    // First sale tracking - used to determine when tickets go "live"
+    firstSaleAt: v.optional(v.number()), // Timestamp of first ticket sale for this tier
+
     createdAt: v.number(),
     updatedAt: v.number(),
   })

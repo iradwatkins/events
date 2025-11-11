@@ -311,6 +311,54 @@ export const purchaseEventTickets = mutation({
 });
 
 /**
+ * Create event payment config directly (for admin/migration use)
+ * INTERNAL USE ONLY - No auth check for migration scripts
+ */
+export const createEventPaymentConfig = mutation({
+  args: {
+    eventId: v.id("events"),
+    organizerId: v.id("users"),
+    ticketsAllocated: v.number(),
+    paymentModel: v.union(v.literal("PREPAY"), v.literal("PERCENTAGE")),
+  },
+  handler: async (ctx, args) => {
+    // Check if config already exists
+    const existing = await ctx.db
+      .query("eventPaymentConfig")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .first();
+
+    if (existing) {
+      // Update existing config
+      await ctx.db.patch(existing._id, {
+        ticketsAllocated: args.ticketsAllocated,
+        updatedAt: Date.now(),
+      });
+      return { success: true, configId: existing._id, action: "updated" };
+    }
+
+    // Create new config
+    const configId = await ctx.db.insert("eventPaymentConfig", {
+      eventId: args.eventId,
+      organizerId: args.organizerId,
+      paymentModel: args.paymentModel,
+      ticketsAllocated: args.ticketsAllocated,
+      isActive: true,
+      activatedAt: Date.now(),
+      platformFeePercent: 0,
+      platformFeeFixed: 0,
+      processingFeePercent: 0,
+      charityDiscount: false,
+      lowPriceDiscount: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    return { success: true, configId, action: "created" };
+  },
+});
+
+/**
  * Confirm prepaid ticket purchase after Stripe payment succeeds
  * Allocates purchased tickets to the specific event
  */

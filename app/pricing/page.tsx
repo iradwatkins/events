@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 type PaymentModel = "PREPAY" | "CREDIT_CARD" | "CONSIGNMENT";
 type PackageSize = 100 | 250 | 500 | 1000 | 2500;
@@ -710,6 +711,7 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+        <PublicFooter />
       </div>
     </>
   );

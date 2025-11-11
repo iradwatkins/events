@@ -31,6 +31,7 @@ import { useState } from "react";
 import { formatEventLocation } from "@/lib/location-format";
 import toast from "react-hot-toast";
 import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 export default function MyTicketsPage() {
   const tickets = useQuery(api.tickets.queries.getMyTickets);
@@ -811,7 +812,8 @@ export default function MyTicketsPage() {
           </motion.div>
         </div>
       )}
-      </div>
-    </>
-  );
-}
+        </div>
+        <PublicFooter />
+      </>
+    );
+  }

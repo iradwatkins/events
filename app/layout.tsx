@@ -7,6 +7,7 @@ import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CartProvider } from "@/contexts/CartContext";
 import { ShoppingCart } from "@/components/ShoppingCart";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,6 +69,7 @@ export default function RootLayout({
             <CartProvider>
               {children}
               <ShoppingCart />
+              <MobileBottomNav />
             </CartProvider>
           </ConvexClientProvider>
         </ThemeProvider>

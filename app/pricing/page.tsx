@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 
 type PaymentModel = "PREPAY" | "CREDIT_CARD" | "CONSIGNMENT";
 type PackageSize = 100 | 250 | 500 | 1000 | 2500;
@@ -118,8 +119,10 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-primary">
-      {/* Hero Section with Background Image */}
+    <>
+      <PublicHeader />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Hero Section with Background Image */}
       <div className="relative bg-primary text-white py-20 overflow-hidden">
         {/* Background Image Overlay */}
         <div className="absolute inset-0">
@@ -707,6 +710,7 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -361,7 +361,7 @@ function OptionCard({
                       )}
                       <span className="text-sm text-gray-900">{choice.label}</span>
                       {choice.default && (
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                        <span className="px-2 py-0.5 bg-accent text-primary text-xs rounded-full">
                           Default
                         </span>
                       )}

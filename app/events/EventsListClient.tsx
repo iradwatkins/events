@@ -43,11 +43,11 @@ export default function EventsListClient() {
 
   if (events === undefined) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            <p className="mt-4 text-gray-600">Loading events...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading events...</p>
           </div>
         </div>
       </div>
@@ -55,40 +55,40 @@ export default function EventsListClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">All Events</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">All Events</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
             Discover amazing stepping events, workshops, and socials
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search events by name, description, or location..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
 
             {/* Category Filter */}
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
               <select
                 value={selectedCategory || ""}
                 onChange={(e) => setSelectedCategory(e.target.value || undefined)}
-                className="pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-white"
+                className="pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">All Categories</option>
                 {categories?.map((cat) => (
@@ -100,38 +100,38 @@ export default function EventsListClient() {
             </div>
 
             {/* Past Events Toggle */}
-            <label className="flex items-center gap-2 cursor-pointer px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            <label className="flex items-center gap-2 cursor-pointer px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
               <input
                 type="checkbox"
                 checked={showPastEvents}
                 onChange={(e) => setShowPastEvents(e.target.checked)}
-                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                className="w-4 h-4 text-primary border-gray-300 dark:border-gray-600 rounded focus:ring-primary"
               />
-              <span className="text-sm font-medium text-gray-700">Show past events</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Show past events</span>
             </label>
           </div>
 
           {/* Active Filters Display */}
           {(searchTerm || selectedCategory) && (
             <div className="mt-3 flex items-center gap-2">
-              <span className="text-sm text-gray-600">Active filters:</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
               {searchTerm && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-accent text-accent-foreground">
                   Search: {searchTerm}
                   <button
                     onClick={() => setSearchTerm("")}
-                    className="ml-2 text-blue-600 hover:text-blue-800"
+                    className="ml-2 text-primary hover:text-primary/80"
                   >
                     ×
                   </button>
                 </span>
               )}
               {selectedCategory && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-accent text-accent-foreground">
                   Category: {selectedCategory}
                   <button
                     onClick={() => setSelectedCategory(undefined)}
-                    className="ml-2 text-blue-600 hover:text-blue-800"
+                    className="ml-2 text-primary hover:text-primary/80"
                   >
                     ×
                   </button>
@@ -147,8 +147,8 @@ export default function EventsListClient() {
         {events.length === 0 ? (
           <div className="text-center py-12">
             <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No events found</h3>
-            <p className="text-gray-600">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No events found</h3>
+            <p className="text-gray-600 dark:text-gray-400">
               {searchTerm || selectedCategory
                 ? "Try adjusting your filters to find more events"
                 : "Check back soon for upcoming events!"}
@@ -157,7 +157,7 @@ export default function EventsListClient() {
         ) : (
           <>
             <div className="mb-6">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Showing {events.length} {events.length === 1 ? "event" : "events"}
               </p>
             </div>
@@ -170,10 +170,10 @@ export default function EventsListClient() {
                   <Link
                     key={event._id}
                     href={`/events/${event._id}`}
-                    className="group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                    className="group bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
                   >
                     {/* Event Image */}
-                    <div className="relative h-48 bg-gradient-to-br from-primary to-blue-700 overflow-hidden">
+                    <div className="relative h-48 bg-gradient-to-br from-primary to-primary/80 overflow-hidden">
                       {event.imageUrl ? (
                         <img
                           src={event.imageUrl}
@@ -194,26 +194,26 @@ export default function EventsListClient() {
 
                     {/* Event Details */}
                     <div className="p-5">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary transition-colors line-clamp-2">
                         {event.name}
                       </h3>
 
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">{event.description}</p>
 
                       {/* Date & Time */}
-                      <div className="flex items-start gap-2 mb-2 text-sm text-gray-700">
+                      <div className="flex items-start gap-2 mb-2 text-sm text-gray-700 dark:text-gray-300">
                         <Calendar className="w-4 h-4 mt-0.5 shrink-0 text-primary" />
                         <div>
                           <div className="font-medium">{formatEventDate(event.startDate, event.timezone)}</div>
                           {event.eventTimeLiteral && (
-                            <div className="text-gray-600">{event.eventTimeLiteral}</div>
+                            <div className="text-gray-600 dark:text-gray-400">{event.eventTimeLiteral}</div>
                           )}
                         </div>
                       </div>
 
                       {/* Location */}
                       {event.location && (
-                        <div className="flex items-center gap-2 mb-3 text-sm text-gray-700">
+                        <div className="flex items-center gap-2 mb-3 text-sm text-gray-700 dark:text-gray-300">
                           <MapPin className="w-4 h-4 shrink-0 text-primary" />
                           <span>
                             {event.location.venueName && `${event.location.venueName}, `}
@@ -228,14 +228,14 @@ export default function EventsListClient() {
                           {event.categories.slice(0, 3).map((category, idx) => (
                             <span
                               key={idx}
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-accent text-accent-foreground"
                             >
                               <Tag className="w-3 h-3" />
                               {category}
                             </span>
                           ))}
                           {event.categories.length > 3 && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
                               +{event.categories.length - 3} more
                             </span>
                           )}
@@ -244,9 +244,9 @@ export default function EventsListClient() {
                     </div>
 
                     {/* Footer */}
-                    <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
+                    <div className="px-5 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">
+                        <span className="text-gray-600 dark:text-gray-400">
                           by {event.organizerName || "SteppersLife"}
                         </span>
                         <span className="text-primary font-medium group-hover:underline">

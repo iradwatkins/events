@@ -119,6 +119,7 @@ export const createTicketTier = mutation({
 
 /**
  * Delete a ticket tier
+ * Refunds credits for unsold ticket allocations
  */
 export const deleteTicketTier = mutation({
   args: {
@@ -130,19 +131,17 @@ export const deleteTicketTier = mutation({
     const tier = await ctx.db.get(args.tierId);
     if (!tier) throw new Error("Ticket tier not found");
 
-    // Check if any tickets have been sold
-    if (tier.sold > 0) {
-      throw new Error("Cannot delete ticket tier with sold tickets");
-    }
+    // Get event and verify ownership
+    const event = await ctx.db.get(tier.eventId);
+    if (!event) throw new Error("Event not found");
+
+    let organizerId: Id<"users"> = event.organizerId;
 
     // TESTING MODE: Skip authentication check
     if (!identity) {
       console.warn("[deleteTicketTier] TESTING MODE - No authentication required");
     } else {
       // Production mode: Verify event ownership
-      const event = await ctx.db.get(tier.eventId);
-      if (!event) throw new Error("Event not found");
-
       const user = await ctx.db
         .query("users")
         .withIndex("by_email", (q) => q.eq("email", identity.email!))
@@ -151,11 +150,54 @@ export const deleteTicketTier = mutation({
       if (!user || event.organizerId !== user._id) {
         throw new Error("Not authorized");
       }
+      organizerId = user._id;
+    }
+
+    // Check if event has started
+    const now = Date.now();
+    const eventHasStarted = event.startDate && now >= event.startDate;
+
+    if (eventHasStarted) {
+      throw new Error(
+        "Cannot delete tickets after the event has started. " +
+        "The event began and ticket configurations are now locked."
+      );
+    }
+
+    // Check if any tickets have been sold
+    if (tier.sold > 0) {
+      throw new Error(
+        `Cannot delete ticket tier with sold tickets. ${tier.sold} ticket${tier.sold === 1 ? ' has' : 's have'} already been sold. ` +
+        `You can reduce the quantity instead of deleting.`
+      );
+    }
+
+    // REFUND CREDITS - Return the full quantity as credits
+    const creditsToRefund = tier.quantity;
+
+    if (creditsToRefund > 0) {
+      const credits = await ctx.db
+        .query("organizerCredits")
+        .withIndex("by_organizer", (q) => q.eq("organizerId", organizerId))
+        .first();
+
+      if (credits) {
+        await ctx.db.patch(credits._id, {
+          creditsRemaining: credits.creditsRemaining + creditsToRefund,
+          creditsUsed: credits.creditsUsed - creditsToRefund,
+          updatedAt: now,
+        });
+
+        console.log(`[deleteTicketTier] Refunded ${creditsToRefund} credits to organizer ${organizerId}`);
+      }
     }
 
     await ctx.db.delete(args.tierId);
 
-    return { success: true };
+    return {
+      success: true,
+      creditsRefunded: creditsToRefund,
+    };
   },
 });
 
@@ -203,16 +245,15 @@ export const updateTicketTier = mutation({
       organizerId = user._id;
     }
 
-    // CHECK IF TICKETS ARE "LIVE" (24 hours after first sale)
+    // CHECK IF EVENT HAS STARTED - Can edit tickets until event begins
     const now = Date.now();
-    const HOURS_24 = 24 * 60 * 60 * 1000;
-    const isLive = tier.firstSaleAt && (now - tier.firstSaleAt) > HOURS_24;
+    const eventHasStarted = event.startDate && now >= event.startDate;
 
-    if (isLive) {
+    if (eventHasStarted) {
       throw new Error(
-        "Cannot edit tickets that are live. " +
-        "Tickets become locked 24 hours after the first sale. " +
-        "Please create a new ticket tier if you need different options."
+        "Cannot edit tickets after the event has started. " +
+        "The event began and ticket configurations are now locked. " +
+        "Please contact support if you need assistance."
       );
     }
 

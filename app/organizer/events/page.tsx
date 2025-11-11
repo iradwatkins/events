@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2, Gift, Sparkles, X } from "lucide-react";
+import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2, Gift, Sparkles, X, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { formatEventDate } from "@/lib/date-format";
@@ -482,10 +482,32 @@ export default function OrganizerEventsPage() {
                           View Public Page
                         </Link>
 
+                        <Link
+                          href={`/organizer/events/${event._id}/edit`}
+                          className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit Event
+                        </Link>
+
+                        {/* Manage Tickets - Always visible for all events */}
+                        <Link
+                          href={`/organizer/events/${event._id}/tickets/new`}
+                          className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                        >
+                          <TicketCheck className="w-4 h-4" />
+                          Manage Tickets
+                          {event.ticketTierCount !== undefined && event.ticketTierCount > 0 && (
+                            <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-semibold">
+                              {event.ticketTierCount}
+                            </span>
+                          )}
+                        </Link>
+
                         {!event.paymentModelSelected && event.eventType === "TICKETED_EVENT" && (
                           <Link
                             href={`/organizer/events/${event._id}/payment-setup`}
-                            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                           >
                             <Settings className="w-4 h-4" />
                             Setup Payment
@@ -494,13 +516,6 @@ export default function OrganizerEventsPage() {
 
                         {event.paymentModelSelected && (
                           <>
-                            <Link
-                              href={`/organizer/events/${event._id}/tickets`}
-                              className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                              <TicketCheck className="w-4 h-4" />
-                              Manage Tickets
-                            </Link>
                             <Link
                               href={`/organizer/events/${event._id}/staff`}
                               className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

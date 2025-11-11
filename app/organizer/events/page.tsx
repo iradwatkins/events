@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2, Gift, Sparkles, X, Edit } from "lucide-react";
+import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2, Gift, Sparkles, X, Edit, TrendingUp, Check } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { formatEventDate } from "@/lib/date-format";
@@ -31,6 +31,11 @@ export default function OrganizerEventsPage() {
   } | null>(null);
 
   const isLoading = events === undefined || credits === undefined;
+
+  // Calculate totals for dashboard
+  const totalTicketsAllocated = events?.reduce((sum, event) => sum + (event.totalTickets || 0), 0) || 0;
+  const totalTicketsSold = events?.reduce((sum, event) => sum + (event.ticketsSold || 0), 0) || 0;
+  const percentageUsed = credits ? (credits.creditsUsed / credits.creditsTotal) * 100 : 0;
 
   // Helper: Check if event has tickets sold
   const hasTicketsSold = (event: any) => {
@@ -140,8 +145,8 @@ export default function OrganizerEventsPage() {
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <h1 className="text-3xl font-bold text-gray-900">My Events</h1>
-              <p className="text-gray-600 mt-1">Manage your events and ticket sales</p>
+              <h1 className="text-3xl font-bold text-gray-900">Organizer Dashboard</h1>
+              <p className="text-gray-600 mt-1">Manage your events, tickets, and credits</p>
             </motion.div>
             <motion.div
               initial={{ x: 20, opacity: 0 }}
@@ -165,7 +170,7 @@ export default function OrganizerEventsPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Banner for New Organizers */}
-        {credits && credits.creditsRemaining === 250 && credits.creditsUsed === 0 && showWelcomeBanner && (
+        {credits && credits.creditsRemaining === 1000 && credits.creditsUsed === 0 && showWelcomeBanner && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -184,7 +189,7 @@ export default function OrganizerEventsPage() {
                       <span className="text-2xl">🎉</span>
                     </h3>
                     <p className="text-lg text-gray-700 mb-3">
-                      You've received <span className="font-bold text-primary">250 FREE tickets</span> to get you started!
+                      You've received <span className="font-bold text-primary">1,000 FREE tickets</span> to get you started!
                     </p>
                     <div className="bg-white/70 rounded-lg p-4 border border-primary/20">
                       <p className="text-sm text-gray-600 mb-2">
@@ -192,7 +197,7 @@ export default function OrganizerEventsPage() {
                       </p>
                       <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
                         <li>Create your first event and start selling tickets</li>
-                        <li>Use your 250 free tickets - no charges!</li>
+                        <li>Use your 1,000 free tickets - no charges!</li>
                         <li>After free tickets: Just $0.30 per ticket</li>
                       </ul>
                     </div>
@@ -210,69 +215,115 @@ export default function OrganizerEventsPage() {
           </motion.div>
         )}
 
-        {/* Credit Balance Widget */}
+        {/* Credit Dashboard */}
         {credits && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
-          >
-            <div className="bg-white border-2 border-green-200 rounded-lg p-6 shadow-md">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Ticket className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
-                      Your Free Ticket Credits
-                      <span className="text-xs font-normal bg-green-100 text-green-700 px-2 py-1 rounded">250 FREE!</span>
-                    </h3>
-                    <p className="text-sm text-gray-700 mb-2">
-                      {credits.creditsRemaining > 0 ? (
-                        <>You have <span className="font-bold text-green-700">{credits.creditsRemaining}</span> free tickets remaining out of 250</>
-                      ) : (
-                        <>You've used all your free tickets! Additional tickets cost $0.30 each.</>
-                      )}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Gift className="w-3 h-3" />
-                        {credits.creditsUsed} used
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Ticket className="w-3 h-3" />
-                        {credits.creditsTotal} total
-                      </span>
+          <div className="mb-8 space-y-6">
+            {/* Main Credit Balance Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="bg-primary rounded-lg shadow-lg p-8 text-white">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Gift className="w-6 h-6" />
+                      <h2 className="text-2xl font-bold">Available Credits</h2>
+                    </div>
+                    <p className="text-white/90 mb-4">Ready to use for ticket creation</p>
+
+                    <div className="mb-6">
+                      <div className="text-5xl lg:text-6xl font-bold mb-2">
+                        {credits.creditsRemaining.toLocaleString()}
+                      </div>
+                      <p className="text-xl text-white/90">tickets available</p>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Usage: {credits.creditsUsed.toLocaleString()} / {credits.creditsTotal.toLocaleString()}</span>
+                        <span>{percentageUsed.toFixed(1)}% used</span>
+                      </div>
+                      <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-3">
+                        <div
+                          className="bg-white rounded-full h-3 transition-all duration-500"
+                          style={{ width: `${Math.min(percentageUsed, 100)}%` }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex flex-col gap-2 sm:items-end">
-                  <div className="bg-white rounded-lg px-4 py-2 border border-green-200">
-                    <p className="text-xs text-gray-600 mb-1">After free tickets:</p>
-                    <p className="text-sm font-bold text-gray-900">
-                      <span className="text-primary">$0.30</span> per ticket
-                    </p>
+
+                  <div className="flex flex-col gap-3">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                      <p className="text-sm font-medium">$0.30 per ticket</p>
+                    </div>
+                    {credits.creditsTotal === 1000 && credits.creditsUsed === 0 && (
+                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Check className="w-4 h-4" />
+                          <span className="font-semibold">Welcome Bonus!</span>
+                        </div>
+                      </div>
+                    )}
+                    {credits.creditsRemaining <= 100 && credits.creditsRemaining > 0 && (
+                      <div className="bg-orange-500 rounded-lg px-4 py-2">
+                        <p className="text-sm font-semibold">Running low!</p>
+                      </div>
+                    )}
                   </div>
-                  {credits.creditsRemaining <= 20 && credits.creditsRemaining > 0 && (
-                    <div className="bg-yellow-50 border border-yellow-300 rounded px-3 py-1">
-                      <p className="text-xs font-semibold text-yellow-800">
-                        Running low!
-                      </p>
-                    </div>
-                  )}
-                  {credits.creditsRemaining === 0 && (
-                    <div className="bg-red-50 border border-red-300 rounded px-3 py-1">
-                      <p className="text-xs font-semibold text-red-800">
-                        No free tickets left
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* Statistics Cards */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-4"
+            >
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Ticket className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Total Allocated</p>
+                    <p className="text-2xl font-bold text-gray-900">{totalTicketsAllocated.toLocaleString()}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">Tickets created across all events</p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Tickets Sold</p>
+                    <p className="text-2xl font-bold text-gray-900">{totalTicketsSold.toLocaleString()}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">Successful ticket sales</p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Active Events</p>
+                    <p className="text-2xl font-bold text-gray-900">{events?.length || 0}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">Events with ticket tiers</p>
+              </div>
+            </motion.div>
+          </div>
         )}
 
 

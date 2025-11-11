@@ -78,17 +78,17 @@ export default function CreditsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="lg:col-span-2"
           >
-            <div className="bg-gradient-to-br from-green-500 to-blue-600 rounded-lg shadow-lg p-8 text-white">
+            <div className="bg-primary rounded-lg shadow-lg p-8 text-white">
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Gift className="w-6 h-6" />
                     <h2 className="text-2xl font-bold">Available Credits</h2>
                   </div>
-                  <p className="text-white/80">Ready to use for ticket creation</p>
+                  <p className="text-white/90">Ready to use for ticket creation</p>
                 </div>
-                <div className="bg-white/20 rounded-lg px-4 py-2">
-                  <p className="text-sm text-white/80">$0.30 per ticket</p>
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <p className="text-sm font-medium">$0.30 per ticket</p>
                 </div>
               </div>
 
@@ -107,7 +107,7 @@ export default function CreditsPage() {
                   <span>Usage: {credits.creditsUsed.toLocaleString()} / {credits.creditsTotal.toLocaleString()}</span>
                   <span>{percentageUsed.toFixed(1)}% used</span>
                 </div>
-                <div className="w-full bg-white/20 rounded-full h-3">
+                <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-3">
                   <div
                     className="bg-white rounded-full h-3 transition-all duration-500"
                     style={{ width: `${Math.min(percentageUsed, 100)}%` }}
@@ -117,12 +117,12 @@ export default function CreditsPage() {
 
               {/* Free Credits Badge */}
               {credits.creditsTotal === 1000 && credits.creditsUsed === 0 && (
-                <div className="mt-6 bg-white/10 border border-white/20 rounded-lg p-4">
+                <div className="mt-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4">
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="w-5 h-5" />
                     <span className="font-semibold">Welcome Bonus Active!</span>
                   </div>
-                  <p className="text-sm text-white/80 mt-1">
+                  <p className="text-sm text-white/90 mt-1">
                     You have 1,000 free tickets to get started. No payment required until you use them all!
                   </p>
                 </div>
@@ -324,7 +324,7 @@ export default function CreditsPage() {
             transition={{ delay: 0.4 }}
             className="mt-8"
           >
-            <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-lg shadow-lg p-8 text-white">
+            <div className="bg-orange-600 rounded-lg shadow-lg p-8 text-white">
               <div className="flex items-start gap-4">
                 <AlertCircle className="w-8 h-8 flex-shrink-0" />
                 <div className="flex-1">
@@ -334,7 +334,7 @@ export default function CreditsPage() {
                   </p>
                   <button
                     onClick={() => setShowPurchaseModal(true)}
-                    className="px-6 py-3 bg-white text-orange-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                    className="px-6 py-3 bg-white text-orange-600 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
                   >
                     Buy Credits Now
                   </button>

@@ -57,9 +57,12 @@ export const createTicketTier = mutation({
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
 
-    // CHECK PER-EVENT TICKET ALLOCATION
-    // Each event has its own ticket allocation (first event gets 1,000 free, subsequent events must prepay)
-    if (organizerId) {
+    // SKIP ALLOCATION CHECK FOR DRAFT EVENTS - Allow organizers to set up tickets before allocating credits
+    const isDraft = event.status === "DRAFT";
+
+    // CHECK PER-EVENT TICKET ALLOCATION (skip for drafts)
+    // Each event has its own ticket allocation (first event gets 300 free, subsequent events must prepay)
+    if (organizerId && !isDraft) {
       // Get event's payment config (contains ticket allocation)
       const paymentConfig = await ctx.db
         .query("eventPaymentConfig")

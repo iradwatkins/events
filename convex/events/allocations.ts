@@ -54,13 +54,33 @@ export const allocateEventTickets = mutation({
       );
     }
 
-    // First event: FREE 1,000 tickets
+    // Get organizer credits
+    const credits = await ctx.db
+      .query("organizerCredits")
+      .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
+      .first();
+
+    if (!credits) {
+      throw new Error(
+        `No credit balance found. Please contact support to initialize your account.`
+      );
+    }
+
+    // Check if organizer has enough credits
+    if (credits.creditsRemaining < args.ticketQuantity) {
+      throw new Error(
+        `Insufficient credits! You have ${credits.creditsRemaining} credits remaining, but you need ${args.ticketQuantity}. ` +
+        `You need ${args.ticketQuantity - credits.creditsRemaining} more credits ($${((args.ticketQuantity - credits.creditsRemaining) * PRICE_PER_TICKET_CENTS / 100).toFixed(2)} at $0.30 each). ` +
+        `Please visit the Credits page to purchase additional tickets.`
+      );
+    }
+
+    // First event: Use FREE credits
     if (isFirstEvent) {
       if (args.ticketQuantity > FIRST_EVENT_FREE_TICKETS) {
         throw new Error(
           `Your first event gets ${FIRST_EVENT_FREE_TICKETS} FREE tickets (risk-free trial). ` +
-          `You requested ${args.ticketQuantity} tickets. Please reduce your quantity or ` +
-          `purchase additional tickets at $${(PRICE_PER_TICKET_CENTS / 100).toFixed(2)} each.`
+          `You requested ${args.ticketQuantity} tickets. Please reduce your quantity to ${FIRST_EVENT_FREE_TICKETS} or less.`
         );
       }
 
@@ -74,11 +94,11 @@ export const allocateEventTickets = mutation({
         await ctx.db.insert("eventPaymentConfig", {
           eventId: args.eventId,
           organizerId: user._id,
-          paymentModel: "PREPAY", // First event uses prepay model
+          paymentModel: "PREPAY",
           ticketsAllocated: args.ticketQuantity,
           isActive: true,
           activatedAt: Date.now(),
-          platformFeePercent: 0, // Free for first event
+          platformFeePercent: 0,
           platformFeeFixed: 0,
           processingFeePercent: 0,
           charityDiscount: false,
@@ -88,44 +108,64 @@ export const allocateEventTickets = mutation({
         });
       }
 
-      // Update organizer credits to mark first event as used
-      const credits = await ctx.db
-        .query("organizerCredits")
-        .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
-        .first();
-
-      if (credits) {
-        await ctx.db.patch(credits._id, {
-          firstEventFreeUsed: true,
-          updatedAt: Date.now(),
-        });
-      } else {
-        // Create credit record
-        await ctx.db.insert("organizerCredits", {
-          organizerId: user._id,
-          creditsTotal: FIRST_EVENT_FREE_TICKETS,
-          creditsUsed: 0,
-          creditsRemaining: FIRST_EVENT_FREE_TICKETS,
-          firstEventFreeUsed: true,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        });
-      }
+      // Subtract tickets from global credit balance
+      await ctx.db.patch(credits._id, {
+        creditsUsed: credits.creditsUsed + args.ticketQuantity,
+        creditsRemaining: credits.creditsRemaining - args.ticketQuantity,
+        firstEventFreeUsed: true,
+        updatedAt: Date.now(),
+      });
 
       return {
         success: true,
         allocated: args.ticketQuantity,
         isFree: true,
         isFirstEvent: true,
-        message: `Congratulations! Your first event received ${args.ticketQuantity} FREE tickets. Try our service risk-free!`,
+        remainingCredits: credits.creditsRemaining - args.ticketQuantity,
+        message: `Congratulations! Allocated ${args.ticketQuantity} FREE tickets to your first event. You have ${credits.creditsRemaining - args.ticketQuantity} credits remaining.`,
       };
     }
 
-    // Subsequent events: MUST prepay
-    throw new Error(
-      `This is not your first event. You must prepay for tickets at $${(PRICE_PER_TICKET_CENTS / 100).toFixed(2)} each. ` +
-      `Please visit the Credits page to purchase tickets for this event.`
-    );
+    // Subsequent events: Use remaining credits (must be prepurchased)
+    // Create or update payment config
+    if (existingConfig) {
+      await ctx.db.patch(existingConfig._id, {
+        ticketsAllocated: args.ticketQuantity,
+        updatedAt: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("eventPaymentConfig", {
+        eventId: args.eventId,
+        organizerId: user._id,
+        paymentModel: "PREPAY",
+        ticketsAllocated: args.ticketQuantity,
+        isActive: true,
+        activatedAt: Date.now(),
+        platformFeePercent: 0,
+        platformFeeFixed: 0,
+        processingFeePercent: 0,
+        charityDiscount: false,
+        lowPriceDiscount: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+    }
+
+    // Subtract tickets from global credit balance
+    await ctx.db.patch(credits._id, {
+      creditsUsed: credits.creditsUsed + args.ticketQuantity,
+      creditsRemaining: credits.creditsRemaining - args.ticketQuantity,
+      updatedAt: Date.now(),
+    });
+
+    return {
+      success: true,
+      allocated: args.ticketQuantity,
+      isFree: false,
+      isFirstEvent: false,
+      remainingCredits: credits.creditsRemaining - args.ticketQuantity,
+      message: `Allocated ${args.ticketQuantity} tickets to your event. You have ${credits.creditsRemaining - args.ticketQuantity} credits remaining.`,
+    };
   },
 });
 

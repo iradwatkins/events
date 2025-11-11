@@ -129,19 +129,19 @@ export const createEvent = mutation({
           .first();
 
         if (!existingCredits) {
-          // Grant 1000 FREE credits for first-time organizer
+          // Grant 300 FREE credits for first-time organizer
           const now = Date.now();
           await ctx.db.insert("organizerCredits", {
             organizerId: user._id,
-            creditsTotal: 1000,
+            creditsTotal: 300,
             creditsUsed: 0,
-            creditsRemaining: 1000,
+            creditsRemaining: 300,
             firstEventFreeUsed: false,
             createdAt: now,
             updatedAt: now,
           });
 
-          console.log("[createEvent] ✅ Granted 1000 FREE credits to new organizer!");
+          console.log("[createEvent] ✅ Granted 300 FREE credits to new organizer!");
         } else {
           console.log("[createEvent] Credits already exist, skipping initialization");
         }

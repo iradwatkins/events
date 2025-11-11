@@ -577,3 +577,52 @@ export const getTiersFromMultipleEvents = query({
     return tiersWithEventInfo;
   },
 });
+
+/**
+ * Get a single ticket tier for editing
+ * Includes sold count and live status check
+ */
+export const getTicketTierForEdit = query({
+  args: {
+    tierId: v.id("ticketTiers"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    const tier = await ctx.db.get(args.tierId);
+    if (!tier) return null;
+
+    // Verify ownership
+    const event = await ctx.db.get(tier.eventId);
+    if (!event) return null;
+
+    // TESTING MODE: Skip authentication check
+    if (!identity) {
+      console.warn("[getTicketTierForEdit] TESTING MODE - No authentication required");
+    } else {
+      // Production mode: Verify event ownership
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+
+      if (!user || event.organizerId !== user._id) {
+        return null; // Not authorized
+      }
+    }
+
+    // Calculate if tier is "live" (24 hours after first sale)
+    const now = Date.now();
+    const HOURS_24 = 24 * 60 * 60 * 1000;
+    const isLive = tier.firstSaleAt && (now - tier.firstSaleAt) > HOURS_24;
+
+    return {
+      ...tier,
+      isLive,
+      canEdit: !isLive,
+      hoursUntilLive: tier.firstSaleAt && !isLive
+        ? Math.ceil((HOURS_24 - (now - tier.firstSaleAt)) / (60 * 60 * 1000))
+        : null,
+    };
+  },
+});

@@ -172,6 +172,8 @@ export const updateTicketTier = mutation({
     quantity: v.optional(v.number()),
     saleStart: v.optional(v.number()),
     saleEnd: v.optional(v.number()),
+    isTablePackage: v.optional(v.boolean()),
+    tableCapacity: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -179,14 +181,17 @@ export const updateTicketTier = mutation({
     const tier = await ctx.db.get(args.tierId);
     if (!tier) throw new Error("Ticket tier not found");
 
+    // Get event and verify ownership
+    const event = await ctx.db.get(tier.eventId);
+    if (!event) throw new Error("Event not found");
+
+    let organizerId: Id<"users"> = event.organizerId;
+
     // TESTING MODE: Skip authentication check
     if (!identity) {
       console.warn("[updateTicketTier] TESTING MODE - No authentication required");
     } else {
       // Production mode: Verify event ownership
-      const event = await ctx.db.get(tier.eventId);
-      if (!event) throw new Error("Event not found");
-
       const user = await ctx.db
         .query("users")
         .withIndex("by_email", (q) => q.eq("email", identity.email!))
@@ -195,31 +200,85 @@ export const updateTicketTier = mutation({
       if (!user || event.organizerId !== user._id) {
         throw new Error("Not authorized");
       }
+      organizerId = user._id;
     }
 
-    // SAFEGUARD: Check if tickets have been sold
-    if (tier.sold > 0) {
-      // RESTRICTION: Cannot change price after tickets sold
-      if (args.price !== undefined && args.price !== tier.price) {
+    // CHECK IF TICKETS ARE "LIVE" (24 hours after first sale)
+    const now = Date.now();
+    const HOURS_24 = 24 * 60 * 60 * 1000;
+    const isLive = tier.firstSaleAt && (now - tier.firstSaleAt) > HOURS_24;
+
+    if (isLive) {
+      throw new Error(
+        "Cannot edit tickets that are live. " +
+        "Tickets become locked 24 hours after the first sale. " +
+        "Please create a new ticket tier if you need different options."
+      );
+    }
+
+    // SAFEGUARD: Cannot reduce quantity below sold count
+    if (args.quantity !== undefined && args.quantity < tier.sold) {
+      throw new Error(
+        `Cannot reduce quantity to ${args.quantity} because ${tier.sold} ticket${tier.sold === 1 ? ' has' : 's have'} already been sold. ` +
+        `Quantity must be at least ${tier.sold}.`
+      );
+    }
+
+    // CREDIT REFUND LOGIC: If reducing quantity, refund credits
+    let creditsRefunded = 0;
+    if (args.quantity !== undefined && args.quantity < tier.quantity) {
+      creditsRefunded = tier.quantity - args.quantity;
+
+      // Get organizer's credit record
+      const credits = await ctx.db
+        .query("organizerCredits")
+        .withIndex("by_organizer", (q) => q.eq("organizerId", organizerId))
+        .first();
+
+      if (credits) {
+        // Refund credits back to organizer
+        await ctx.db.patch(credits._id, {
+          creditsRemaining: credits.creditsRemaining + creditsRefunded,
+          creditsUsed: credits.creditsUsed - creditsRefunded,
+          updatedAt: now,
+        });
+
+        console.log(`[updateTicketTier] Refunded ${creditsRefunded} credits to organizer ${organizerId}`);
+      }
+    }
+
+    // CREDIT DEDUCTION LOGIC: If increasing quantity, deduct credits
+    let creditsDeducted = 0;
+    if (args.quantity !== undefined && args.quantity > tier.quantity) {
+      creditsDeducted = args.quantity - tier.quantity;
+
+      // Get organizer's credit record
+      const credits = await ctx.db
+        .query("organizerCredits")
+        .withIndex("by_organizer", (q) => q.eq("organizerId", organizerId))
+        .first();
+
+      if (!credits || credits.creditsRemaining < creditsDeducted) {
         throw new Error(
-          `Cannot change ticket price after ${tier.sold} ticket${tier.sold === 1 ? ' has' : 's have'} been sold. ` +
-          `This would create pricing inconsistency for customers who already purchased at $${(tier.price / 100).toFixed(2)}. ` +
-          `If you need different pricing, please create a new ticket tier.`
+          `Insufficient credits. You need ${creditsDeducted} credits to increase quantity, ` +
+          `but only have ${credits?.creditsRemaining || 0} credits remaining. ` +
+          `Please purchase more credits to continue.`
         );
       }
 
-      // RESTRICTION: Cannot reduce quantity below sold count
-      if (args.quantity !== undefined && args.quantity < tier.sold) {
-        throw new Error(
-          `Cannot reduce quantity to ${args.quantity} because ${tier.sold} ticket${tier.sold === 1 ? ' has' : 's have'} already been sold. ` +
-          `Quantity must be at least ${tier.sold}.`
-        );
-      }
+      // Deduct credits from organizer
+      await ctx.db.patch(credits._id, {
+        creditsRemaining: credits.creditsRemaining - creditsDeducted,
+        creditsUsed: credits.creditsUsed + creditsDeducted,
+        updatedAt: now,
+      });
+
+      console.log(`[updateTicketTier] Deducted ${creditsDeducted} credits from organizer ${organizerId}`);
     }
 
     // Build update object with only provided fields
     const updates: Record<string, unknown> = {
-      updatedAt: Date.now(),
+      updatedAt: now,
     };
 
     if (args.name !== undefined) updates.name = args.name;
@@ -228,10 +287,16 @@ export const updateTicketTier = mutation({
     if (args.quantity !== undefined) updates.quantity = args.quantity;
     if (args.saleStart !== undefined) updates.saleStart = args.saleStart;
     if (args.saleEnd !== undefined) updates.saleEnd = args.saleEnd;
+    if (args.isTablePackage !== undefined) updates.isTablePackage = args.isTablePackage;
+    if (args.tableCapacity !== undefined) updates.tableCapacity = args.tableCapacity;
 
     await ctx.db.patch(args.tierId, updates);
 
-    return { success: true };
+    return {
+      success: true,
+      creditsRefunded,
+      creditsDeducted,
+    };
   },
 });
 
@@ -558,14 +623,23 @@ export const completeOrder = mutation({
       });
     }
 
-    // Update sold count for each tier
+    // Update sold count for each tier and set firstSaleAt if this is first sale
+    const now = Date.now();
     for (const [tierId, count] of tierSoldCount.entries()) {
       const tier = await ctx.db.get(tierId as Id<"ticketTiers">);
       if (tier && 'sold' in tier) {
-        await ctx.db.patch(tierId as Id<"ticketTiers">, {
+        const updates: Record<string, unknown> = {
           sold: tier.sold + count,
-          updatedAt: Date.now(),
-        });
+          updatedAt: now,
+        };
+
+        // Set firstSaleAt if this is the first sale for this tier
+        if (tier.sold === 0 && !tier.firstSaleAt) {
+          updates.firstSaleAt = now;
+          console.log(`[completeOrder] First sale detected for tier ${tierId} - setting firstSaleAt`);
+        }
+
+        await ctx.db.patch(tierId as Id<"ticketTiers">, updates);
       }
     }
 

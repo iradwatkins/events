@@ -26,6 +26,7 @@ export default function TicketTiersPage() {
 
   const [showAddTier, setShowAddTier] = useState(false);
   const [editingTier, setEditingTier] = useState<Id<"ticketTiers"> | null>(null);
+  const [showEditTier, setShowEditTier] = useState(false);
 
   // Form state
   const [tierName, setTierName] = useState("");
@@ -34,12 +35,15 @@ export default function TicketTiersPage() {
   const [tierQuantity, setTierQuantity] = useState("");
   const [tierSaleStart, setTierSaleStart] = useState("");
   const [tierSaleEnd, setTierSaleEnd] = useState("");
+  const [isTablePackage, setIsTablePackage] = useState(false);
+  const [tableCapacity, setTableCapacity] = useState("");
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
   const currentUser = useQuery(api.users.queries.getCurrentUser);
   const ticketTiers = useQuery(api.public.queries.getPublicEventDetails, { eventId });
 
   const createTier = useMutation(api.tickets.mutations.createTicketTier);
+  const updateTier = useMutation(api.tickets.mutations.updateTicketTier);
   const deleteTier = useMutation(api.tickets.mutations.deleteTicketTier);
 
   const isLoading = !event || !currentUser;
@@ -97,6 +101,65 @@ export default function TicketTiersPage() {
     } catch (error: any) {
       console.error("Create tier error:", error);
       alert(error.message || "Failed to create ticket tier");
+    }
+  };
+
+  const handleEditTier = (tier: any) => {
+    setEditingTier(tier._id);
+    setTierName(tier.name);
+    setTierDescription(tier.description || "");
+    setTierPrice((tier.price / 100).toString());
+    setTierQuantity(tier.quantity.toString());
+    setTierSaleStart(tier.saleStart ? new Date(tier.saleStart).toISOString().slice(0, 16) : "");
+    setTierSaleEnd(tier.saleEnd ? new Date(tier.saleEnd).toISOString().slice(0, 16) : "");
+    setIsTablePackage(tier.isTablePackage || false);
+    setTableCapacity(tier.tableCapacity ? tier.tableCapacity.toString() : "");
+    setShowEditTier(true);
+  };
+
+  const handleUpdateTier = async () => {
+    if (!editingTier || !tierName || !tierPrice || !tierQuantity) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    const priceCents = Math.round(parseFloat(tierPrice) * 100);
+    const quantity = parseInt(tierQuantity);
+
+    try {
+      const result = await updateTier({
+        tierId: editingTier,
+        name: tierName,
+        description: tierDescription || undefined,
+        price: priceCents,
+        quantity,
+        saleStart: tierSaleStart ? new Date(tierSaleStart).getTime() : undefined,
+        saleEnd: tierSaleEnd ? new Date(tierSaleEnd).getTime() : undefined,
+        isTablePackage: isTablePackage || undefined,
+        tableCapacity: isTablePackage && tableCapacity ? parseInt(tableCapacity) : undefined,
+      });
+
+      // Show credit refund/deduction message
+      if (result.creditsRefunded > 0) {
+        alert(`Success! ${result.creditsRefunded} credits have been refunded to your account.`);
+      } else if (result.creditsDeducted > 0) {
+        alert(`Success! ${result.creditsDeducted} credits have been deducted from your account.`);
+      }
+
+      // Reset form
+      setTierName("");
+      setTierDescription("");
+      setTierPrice("");
+      setTierQuantity("");
+      setTierSaleStart("");
+      setTierSaleEnd("");
+      setIsTablePackage(false);
+      setTableCapacity("");
+      setEditingTier(null);
+      setShowEditTier(false);
+    } catch (error: any) {
+      console.error("Update tier error:", error);
+      alert(error.message || "Failed to update ticket tier");
     }
   };
 
@@ -245,6 +308,13 @@ export default function TicketTiersPage() {
 
                     <div className="flex items-center gap-2 ml-4">
                       <button
+                        onClick={() => handleEditTier(tier)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit tier"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <button
                         onClick={() => handleDeleteTier(tier._id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete tier"
@@ -383,6 +453,183 @@ export default function TicketTiersPage() {
                 className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold"
               >
                 Create Ticket Tier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Ticket Tier Modal */}
+      {showEditTier && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Ticket Tier</h2>
+              <p className="text-gray-600 mt-1">
+                Update ticket details (credits will be adjusted automatically)
+              </p>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Warning Banner */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-900">
+                    <p className="font-semibold mb-1">Credit Adjustments:</p>
+                    <ul className="space-y-1 list-disc list-inside">
+                      <li>Increasing quantity will deduct additional credits</li>
+                      <li>Decreasing quantity will refund credits to your account</li>
+                      <li>Tickets lock 24 hours after first sale</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tier Information */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ticket Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={tierName}
+                    onChange={(e) => setTierName(e.target.value)}
+                    placeholder="e.g., General Admission, VIP, Early Bird"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    value={tierDescription}
+                    onChange={(e) => setTierDescription(e.target.value)}
+                    placeholder="Describe what's included with this ticket..."
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Price (USD) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={tierPrice}
+                      onChange={(e) => setTierPrice(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Quantity *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={tierQuantity}
+                      onChange={(e) => setTierQuantity(e.target.value)}
+                      placeholder="100"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Table Package Options */}
+                <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="isTablePackage"
+                      checked={isTablePackage}
+                      onChange={(e) => setIsTablePackage(e.target.checked)}
+                      className="w-5 h-5 text-primary focus:ring-2 focus:ring-primary rounded"
+                    />
+                    <label htmlFor="isTablePackage" className="text-sm font-medium text-gray-900">
+                      Sell as Table Package (bundle multiple seats)
+                    </label>
+                  </div>
+
+                  {isTablePackage && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Seats per Table *
+                      </label>
+                      <input
+                        type="number"
+                        min="2"
+                        value={tableCapacity}
+                        onChange={(e) => setTableCapacity(e.target.value)}
+                        placeholder="4, 6, 8, 10..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Price above will be for the entire table
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sale Timing */}
+                <div className="border-t pt-4">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                    Sale Timing (Optional)
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sale Start Date
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={tierSaleStart}
+                        onChange={(e) => setTierSaleStart(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sale End Date
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={tierSaleEnd}
+                        onChange={(e) => setTierSaleEnd(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t bg-gray-50 flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditTier(false);
+                  setEditingTier(null);
+                }}
+                className="px-6 py-3 text-gray-700 hover:text-gray-900 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateTier}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold"
+              >
+                Update Ticket Tier
               </button>
             </div>
           </div>

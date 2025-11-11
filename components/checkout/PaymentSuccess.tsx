@@ -109,7 +109,7 @@ export function PaymentSuccess({
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Confirmation</h2>
 
         {/* Order Number */}
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-4 p-3 bg-accent/50 border border-border rounded-lg">
           <div className="text-sm text-blue-900 mb-1">Order Number</div>
           <div className="text-xl font-bold text-blue-900 font-mono">{orderNumber}</div>
         </div>
@@ -177,28 +177,28 @@ export function PaymentSuccess({
       </div>
 
       {/* Next Steps */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+      <div className="bg-accent/50 border border-border rounded-lg p-6 mb-6">
         <h3 className="font-semibold text-blue-900 mb-3">What's Next?</h3>
-        <ul className="space-y-2 text-sm text-blue-800">
+        <ul className="space-y-2 text-sm text-accent-foreground">
           {isCashOrder ? (
             <>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold shrink-0">1.</span>
+                <span className="text-primary font-bold shrink-0">1.</span>
                 <span>Staff has been notified of your cash order</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold shrink-0">2.</span>
+                <span className="text-primary font-bold shrink-0">2.</span>
                 <span>Complete payment with cash before the hold expires</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold shrink-0">3.</span>
+                <span className="text-primary font-bold shrink-0">3.</span>
                 <span>Staff will activate your tickets once payment is received</span>
               </li>
             </>
           ) : isTicketOrder ? (
             <>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold shrink-0">1.</span>
+                <span className="text-primary font-bold shrink-0">1.</span>
                 <span>
                   {confirmationDetails.email
                     ? 'Check your email for your ticket QR codes'
@@ -206,26 +206,26 @@ export function PaymentSuccess({
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold shrink-0">2.</span>
+                <span className="text-primary font-bold shrink-0">2.</span>
                 <span>Save your tickets to your phone or print them</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold shrink-0">3.</span>
+                <span className="text-primary font-bold shrink-0">3.</span>
                 <span>Present your QR code at the event entrance</span>
               </li>
             </>
           ) : (
             <>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold shrink-0">1.</span>
+                <span className="text-primary font-bold shrink-0">1.</span>
                 <span>You'll receive an order confirmation email</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold shrink-0">2.</span>
+                <span className="text-primary font-bold shrink-0">2.</span>
                 <span>Your order will be prepared for pickup/delivery</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold shrink-0">3.</span>
+                <span className="text-primary font-bold shrink-0">3.</span>
                 <span>You'll be notified when your order is ready</span>
               </li>
             </>

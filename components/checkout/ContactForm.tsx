@@ -205,7 +205,7 @@ export function ContactForm({
       </div>
 
       {/* Privacy Notice */}
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mt-4 p-3 bg-accent/50 border border-border rounded-lg">
         <p className="text-xs text-blue-900">
           <strong>Privacy:</strong> Your information is securely stored and will only be used for
           this order. We will never share your contact details with third parties.

@@ -116,7 +116,7 @@ export default function StaffDashboardPage() {
 
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
               </div>
             </div>
@@ -203,8 +203,8 @@ export default function StaffDashboardPage() {
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-6 border-b bg-gray-50">
-                    <div className="bg-blue-50 rounded-lg p-3">
-                      <p className="text-xs text-blue-600 mb-1 font-medium">Allocated</p>
+                    <div className="bg-accent/50 rounded-lg p-3">
+                      <p className="text-xs text-primary mb-1 font-medium">Allocated</p>
                       <p className="text-2xl font-bold text-blue-900">{position.allocatedTickets || 0}</p>
                     </div>
                     <div className="bg-green-50 rounded-lg p-3">
@@ -215,15 +215,15 @@ export default function StaffDashboardPage() {
                       <p className="text-xs text-orange-600 mb-1 font-medium">Remaining</p>
                       <p className="text-2xl font-bold text-orange-900">{position.ticketsRemaining}</p>
                     </div>
-                    <div className="bg-purple-50 rounded-lg p-3">
-                      <p className="text-xs text-purple-600 mb-1 font-medium">Commission</p>
+                    <div className="bg-accent/50 rounded-lg p-3">
+                      <p className="text-xs text-primary mb-1 font-medium">Commission</p>
                       <p className="text-2xl font-bold text-purple-900">
                         ${(position.commissionEarned / 100).toFixed(2)}
                       </p>
                     </div>
                     <div className="bg-indigo-50 rounded-lg p-3">
-                      <p className="text-xs text-indigo-600 mb-1 font-medium">Cash Collected</p>
-                      <p className="text-2xl font-bold text-indigo-900">
+                      <p className="text-xs text-primary mb-1 font-medium">Cash Collected</p>
+                      <p className="text-2xl font-bold text-foreground">
                         ${(position.cashCollected / 100).toFixed(2)}
                       </p>
                     </div>

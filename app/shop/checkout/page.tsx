@@ -223,12 +223,12 @@ export default function CheckoutPage() {
             <p className="text-lg font-bold text-primary font-mono">{orderNumber}</p>
           </div>
           {shippingMethod === "PICKUP" ? (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="bg-accent/50 border border-border rounded-lg p-4 mb-6">
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div className="text-left">
                   <h3 className="font-semibold text-blue-900 mb-1">Pickup Location</h3>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-sm text-primary">
                     {formData.pickupLocation.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} - Details will be sent via email
                   </p>
                 </div>
@@ -398,8 +398,8 @@ export default function CheckoutPage() {
                       <MapPin className="w-5 h-5 text-primary" />
                       Pickup Location
                     </h2>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                      <p className="text-sm text-blue-700">
+                    <div className="bg-accent/50 border border-border rounded-lg p-4 mb-4">
+                      <p className="text-sm text-primary">
                         All orders are available for pickup in Chicago. Select your preferred pickup location below.
                       </p>
                     </div>

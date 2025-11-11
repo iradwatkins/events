@@ -30,6 +30,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import { formatEventLocation } from "@/lib/location-format";
 import toast from "react-hot-toast";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 
 export default function MyTicketsPage() {
   const tickets = useQuery(api.tickets.queries.getMyTickets);
@@ -229,27 +230,33 @@ export default function MyTicketsPage() {
 
   if (!tickets) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
+      <>
+        <PublicHeader showCreateButton={false} />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+      </>
     );
   }
 
   if (tickets.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <Ticket className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">No tickets yet</h2>
-          <p className="text-gray-600 mb-4">Your purchased tickets will appear here</p>
-          <Link
-            href="/events"
-            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90"
-          >
-            Browse Events
-          </Link>
+      <>
+        <PublicHeader showCreateButton={false} />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+          <div className="text-center">
+            <Ticket className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-2 dark:text-white">No tickets yet</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">Your purchased tickets will appear here</p>
+            <Link
+              href="/"
+              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90"
+            >
+              Browse Events
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -265,19 +272,15 @@ export default function MyTicketsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Link
-              href="/events"
-              className="flex items-center text-sm text-gray-600 hover:text-gray-900 mb-2"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back to Events
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900">My Tickets</h1>
-          </div>
+    <>
+      <PublicHeader showCreateButton={false} />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Tickets</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">View and manage your event tickets</p>
+            </div>
 
           {/* Bundle Actions */}
           {selectedTickets.length > 0 && (
@@ -808,6 +811,7 @@ export default function MyTicketsPage() {
           </motion.div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -124,7 +124,7 @@ export function PaymentMethodSelector({
                 disabled:opacity-50 disabled:cursor-not-allowed
                 ${
                   isSelected
-                    ? 'border-primary bg-blue-50'
+                    ? 'border-primary bg-accent/50'
                     : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                 }
               `}
@@ -162,7 +162,7 @@ export function PaymentMethodSelector({
 
                   {/* Cash-specific warnings */}
                   {method === 'cash' && (
-                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-900">
+                    <div className="mt-2 p-2 bg-accent/50 border border-border rounded text-xs text-blue-900">
                       <strong>Note:</strong> Your order will be held for 30 minutes.
                       Staff must approve your payment within this time.
                     </div>

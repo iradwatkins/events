@@ -170,7 +170,7 @@ export default function OrganizerEventsPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Banner for New Organizers */}
-        {credits && credits.creditsRemaining === 1000 && credits.creditsUsed === 0 && showWelcomeBanner && (
+        {credits && credits.creditsRemaining === 300 && credits.creditsUsed === 0 && showWelcomeBanner && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -189,7 +189,7 @@ export default function OrganizerEventsPage() {
                       <span className="text-2xl">🎉</span>
                     </h3>
                     <p className="text-lg text-gray-700 mb-3">
-                      You've received <span className="font-bold text-primary">1,000 FREE tickets</span> to get you started!
+                      You've received <span className="font-bold text-primary">300 FREE tickets</span> to get you started!
                     </p>
                     <div className="bg-white/70 rounded-lg p-4 border border-primary/20">
                       <p className="text-sm text-gray-600 mb-2">
@@ -197,7 +197,7 @@ export default function OrganizerEventsPage() {
                       </p>
                       <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
                         <li>Create your first event and start selling tickets</li>
-                        <li>Use your 1,000 free tickets - no charges!</li>
+                        <li>Use your 300 free tickets - no charges!</li>
                         <li>After free tickets: Just $0.30 per ticket</li>
                       </ul>
                     </div>
@@ -259,7 +259,7 @@ export default function OrganizerEventsPage() {
                     <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
                       <p className="text-sm font-medium">$0.30 per ticket</p>
                     </div>
-                    {credits.creditsTotal === 1000 && credits.creditsUsed === 0 && (
+                    {credits.creditsTotal === 300 && credits.creditsUsed === 0 && (
                       <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2">
                         <div className="flex items-center gap-2 text-sm">
                           <Check className="w-4 h-4" />

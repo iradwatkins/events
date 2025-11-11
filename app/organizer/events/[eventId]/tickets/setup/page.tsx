@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Plus, Trash2, ArrowLeft, Check, Ticket, Gift, DollarSign } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Check, Ticket, Gift, DollarSign, Edit, Info } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -39,6 +39,18 @@ export default function TicketSetupPage() {
   ]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
+  const [editingTierId, setEditingTierId] = useState<Id<"ticketTiers"> | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState<TicketTierForm>({
+    name: "",
+    description: "",
+    price: "",
+    quantity: "",
+    saleStart: "",
+    saleEnd: "",
+    isTablePackage: false,
+    tableCapacity: "",
+  });
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
   const currentUser = useQuery(api.users.queries.getCurrentUser);
@@ -46,6 +58,7 @@ export default function TicketSetupPage() {
   const credits = useQuery(api.credits.queries.getMyCredits);
 
   const createTicketTier = useMutation(api.tickets.mutations.createTicketTier);
+  const updateTicketTier = useMutation(api.tickets.mutations.updateTicketTier);
 
   const isLoading = !event || !currentUser || credits === undefined;
 
@@ -142,7 +155,7 @@ export default function TicketSetupPage() {
                   key={tier._id}
                   className="border border-gray-200 rounded-lg p-4"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{tier.name}</h3>
                       {tier.description && (
@@ -158,14 +171,28 @@ export default function TicketSetupPage() {
                         <span className="text-gray-700">
                           <span className="font-medium">Sold:</span> {tier.sold}
                         </span>
+                        {tier.isTablePackage && (
+                          <span className="text-gray-700">
+                            <span className="font-medium">Table:</span> {tier.tableCapacity} seats
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      tier.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}>
-                      {tier.isActive ? "Active" : "Inactive"}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditExistingTier(tier)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit tier"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        tier.isActive
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}>
+                        {tier.isActive ? "Active" : "Inactive"}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -185,6 +212,63 @@ export default function TicketSetupPage() {
       </div>
     );
   }
+
+  const handleEditExistingTier = (tier: any) => {
+    setEditingTierId(tier._id);
+    setEditForm({
+      name: tier.name,
+      description: tier.description || "",
+      price: (tier.price / 100).toString(),
+      quantity: tier.quantity.toString(),
+      saleStart: tier.saleStart ? new Date(tier.saleStart).toISOString().slice(0, 16) : "",
+      saleEnd: tier.saleEnd ? new Date(tier.saleEnd).toISOString().slice(0, 16) : "",
+      isTablePackage: tier.isTablePackage || false,
+      tableCapacity: tier.tableCapacity ? tier.tableCapacity.toString() : "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateExistingTier = async () => {
+    if (!editingTierId || !editForm.name || !editForm.price || !editForm.quantity) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    const priceCents = Math.round(parseFloat(editForm.price) * 100);
+    const quantity = parseInt(editForm.quantity);
+
+    setIsProcessing(true);
+    try {
+      const result = await updateTicketTier({
+        tierId: editingTierId,
+        name: editForm.name,
+        description: editForm.description || undefined,
+        price: priceCents,
+        quantity,
+        saleStart: editForm.saleStart ? new Date(editForm.saleStart).getTime() : undefined,
+        saleEnd: editForm.saleEnd ? new Date(editForm.saleEnd).getTime() : undefined,
+        isTablePackage: editForm.isTablePackage || undefined,
+        tableCapacity: editForm.isTablePackage && editForm.tableCapacity ? parseInt(editForm.tableCapacity) : undefined,
+      });
+
+      // Show credit refund/deduction message
+      if (result.creditsRefunded > 0) {
+        alert(`Success! ${result.creditsRefunded} credits have been refunded to your account.`);
+      } else if (result.creditsDeducted > 0) {
+        alert(`Success! ${result.creditsDeducted} credits have been deducted from your account.`);
+      } else {
+        alert("Ticket tier updated successfully!");
+      }
+
+      setShowEditModal(false);
+      setEditingTierId(null);
+    } catch (error: any) {
+      console.error("Update tier error:", error);
+      alert(error.message || "Failed to update ticket tier");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleAddTier = () => {
     setTiers([
@@ -748,6 +832,185 @@ export default function TicketSetupPage() {
           </p>
         </div>
       </div>
+
+      {/* Edit Ticket Tier Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Ticket Tier</h2>
+              <p className="text-gray-600 mt-1">
+                Update ticket details (credits will be adjusted automatically)
+              </p>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Warning Banner */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-900">
+                    <p className="font-semibold mb-1">Credit Adjustments:</p>
+                    <ul className="space-y-1 list-disc list-inside">
+                      <li>Increasing quantity will deduct additional credits</li>
+                      <li>Decreasing quantity will refund credits to your account</li>
+                      <li>Tickets lock 24 hours after first sale</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tier Information */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ticket Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    placeholder="e.g., General Admission, VIP, Early Bird"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    placeholder="Describe what's included with this ticket..."
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Price (USD) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={editForm.price}
+                      onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                      placeholder="0.00"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Quantity *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editForm.quantity}
+                      onChange={(e) => setEditForm({ ...editForm, quantity: e.target.value })}
+                      placeholder="100"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Table Package Options */}
+                <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="editIsTablePackage"
+                      checked={editForm.isTablePackage}
+                      onChange={(e) => setEditForm({ ...editForm, isTablePackage: e.target.checked })}
+                      className="w-5 h-5 text-primary focus:ring-2 focus:ring-primary rounded"
+                    />
+                    <label htmlFor="editIsTablePackage" className="text-sm font-medium text-gray-900">
+                      Sell as Table Package (bundle multiple seats)
+                    </label>
+                  </div>
+
+                  {editForm.isTablePackage && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Seats per Table *
+                      </label>
+                      <input
+                        type="number"
+                        min="2"
+                        value={editForm.tableCapacity}
+                        onChange={(e) => setEditForm({ ...editForm, tableCapacity: e.target.value })}
+                        placeholder="4, 6, 8, 10..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Price above will be for the entire table
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sale Timing */}
+                <div className="border-t pt-4">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4">
+                    Sale Timing (Optional)
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sale Start Date
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={editForm.saleStart}
+                        onChange={(e) => setEditForm({ ...editForm, saleStart: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sale End Date
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={editForm.saleEnd}
+                        onChange={(e) => setEditForm({ ...editForm, saleEnd: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t bg-gray-50 flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingTierId(null);
+                }}
+                disabled={isProcessing}
+                className="px-6 py-3 text-gray-700 hover:text-gray-900 font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateExistingTier}
+                disabled={isProcessing}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold disabled:opacity-50"
+              >
+                {isProcessing ? "Updating..." : "Update Ticket Tier"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

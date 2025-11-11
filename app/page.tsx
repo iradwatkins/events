@@ -9,6 +9,7 @@ import { GridView } from "@/components/events/GridView";
 import { ListView } from "@/components/events/ListView";
 import { SearchFilters } from "@/components/events/SearchFilters";
 import { ViewToggle } from "@/components/events/ViewToggle";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 import Link from "next/link";
 import { Plus, LogOut, User, Ticket, Calendar, LogIn, Sun, Moon, ShoppingBag } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -411,57 +412,7 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="font-semibold mb-3">About</h3>
-              <p className="text-sm text-gray-600">
-                SteppersLife Events is your premier platform for discovering and attending stepping
-                events.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-3">For Organizers</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <Link href="/organizer/events/create" className="hover:text-primary">
-                    Create Event
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/pricing" className="hover:text-primary">
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/help" className="hover:text-primary">
-                    Help Center
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-3">Legal</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>
-                  <Link href="/privacy" className="hover:text-primary">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className="hover:text-primary">
-                    Terms of Service
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t text-center text-sm text-gray-500">
-            <p>&copy; 2025 SteppersLife Events. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

@@ -34,6 +34,7 @@ import type * as crons from "../crons.js";
 import type * as debug from "../debug.js";
 import type * as discounts_mutations from "../discounts/mutations.js";
 import type * as discounts_queries from "../discounts/queries.js";
+import type * as events_allocations from "../events/allocations.js";
 import type * as events_mutations from "../events/mutations.js";
 import type * as events_queries from "../events/queries.js";
 import type * as files_mutations from "../files/mutations.js";
@@ -133,6 +134,7 @@ declare const fullApi: ApiFromModules<{
   debug: typeof debug;
   "discounts/mutations": typeof discounts_mutations;
   "discounts/queries": typeof discounts_queries;
+  "events/allocations": typeof events_allocations;
   "events/mutations": typeof events_mutations;
   "events/queries": typeof events_queries;
   "files/mutations": typeof files_mutations;

@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { Package, ShoppingCart, DollarSign } from "lucide-react";
 import Link from "next/link";
 import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 export default function ShopPage() {
   const products = useQuery(api.products.queries.getActiveProducts, {});
@@ -136,6 +137,7 @@ export default function ShopPage() {
             </p>
           </div>
         </footer>
+        <PublicFooter />
       </div>
     </>
   );

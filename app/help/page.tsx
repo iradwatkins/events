@@ -1,6 +1,7 @@
 "use client";
 
 import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 export default function HelpPage() {
   return (
@@ -17,6 +18,7 @@ export default function HelpPage() {
           </p>
         </div>
       </div>
+      <PublicFooter />
     </>
   );
 }

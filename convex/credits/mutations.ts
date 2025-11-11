@@ -195,3 +195,33 @@ export const markFirstEventUsed = mutation({
     return { success: true };
   },
 });
+
+/**
+ * Reset organizer credits to 300 (for fixing accounts created with wrong initial value)
+ */
+export const resetToFreeCredits = mutation({
+  args: {
+    organizerId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const credits = await ctx.db
+      .query("organizerCredits")
+      .withIndex("by_organizer", (q) => q.eq("organizerId", args.organizerId))
+      .first();
+
+    if (!credits) {
+      throw new Error("No credit balance found");
+    }
+
+    // Reset to 300 free credits
+    await ctx.db.patch(credits._id, {
+      creditsTotal: FIRST_EVENT_FREE_TICKETS,
+      creditsUsed: 0,
+      creditsRemaining: FIRST_EVENT_FREE_TICKETS,
+      firstEventFreeUsed: false,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true, credits: FIRST_EVENT_FREE_TICKETS };
+  },
+});

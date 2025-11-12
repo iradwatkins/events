@@ -11,7 +11,10 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     const isDevelopment = process.env.NODE_ENV === 'development';
+    const isProduction = process.env.NODE_ENV === 'production';
+
     return [
+      // Security headers for all routes
       {
         source: '/(.*)',
         headers: [
@@ -52,9 +55,45 @@ const nextConfig: NextConfig = {
           ] : []),
         ],
       },
+      // Cache Next.js static files (JS, CSS) aggressively in production
+      ...(isProduction ? [
+        {
+          source: '/_next/static/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        },
+        // Cache static assets (fonts, images)
+        {
+          source: '/:all*(svg|jpg|jpeg|png|webp|avif|gif|ico|woff|woff2|ttf|otf)',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=86400, must-revalidate',
+            },
+          ],
+        },
+        // No cache for API routes
+        {
+          source: '/api/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'no-store, no-cache, must-revalidate',
+            },
+          ],
+        },
+      ] : []),
     ];
   },
   images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: "https",

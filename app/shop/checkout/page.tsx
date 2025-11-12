@@ -16,6 +16,9 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import Script from "next/script";
+import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
+import toast from "react-hot-toast";
 
 declare global {
   interface Window {
@@ -98,7 +101,7 @@ export default function CheckoutPage() {
     } catch (e) {
       console.error('Failed to initialize Square payment form:', e);
       // Show user-friendly error
-      alert('Payment form initialization failed. Please contact support.');
+      toast.error('Payment form initialization failed. Please contact support.');
     }
   };
 
@@ -113,7 +116,7 @@ export default function CheckoutPage() {
     e.preventDefault();
 
     if (items.length === 0) {
-      alert('Your cart is empty');
+      toast.error('Your cart is empty');
       return;
     }
 
@@ -126,7 +129,7 @@ export default function CheckoutPage() {
     const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
 
     if (missingFields.length > 0) {
-      alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
       return;
     }
 
@@ -181,7 +184,7 @@ export default function CheckoutPage() {
       setOrderComplete(true);
     } catch (error) {
       console.error("Order creation error:", error);
-      alert(`Failed to create order: ${error instanceof Error ? error.message : "Unknown error"}`);
+      toast.error(`Failed to create order: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setIsProcessing(false);
     }
@@ -189,28 +192,34 @@ export default function CheckoutPage() {
 
   if (items.length === 0 && !orderComplete) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
-          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
-          <p className="text-gray-600 mb-6">
-            Add some products to your cart before checking out.
-          </p>
-          <Link
-            href="/shop"
-            className="block w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            Browse Products
-          </Link>
+      <>
+        <PublicHeader />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Your cart is empty</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Add some products to your cart before checking out.
+            </p>
+            <Link
+              href="/shop"
+              className="block w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Browse Products
+            </Link>
+          </div>
         </div>
-      </div>
+        <PublicFooter />
+      </>
     );
   }
 
   if (orderComplete) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+      <>
+        <PublicHeader />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-10 h-10 text-green-600" />
           </div>
@@ -227,7 +236,7 @@ export default function CheckoutPage() {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div className="text-left">
-                  <h3 className="font-semibold text-blue-900 mb-1">Pickup Location</h3>
+                  <h3 className="font-semibold text-foreground mb-1">Pickup Location</h3>
                   <p className="text-sm text-primary">
                     {formData.pickupLocation.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} - Details will be sent via email
                   </p>
@@ -256,13 +265,15 @@ export default function CheckoutPage() {
             </Link>
             <Link
               href="/"
-              className="block w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="block w-full px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Back to Home
             </Link>
           </div>
         </div>
-      </div>
+        </div>
+        <PublicFooter />
+      </>
     );
   }
 
@@ -274,22 +285,24 @@ export default function CheckoutPage() {
           ? "https://web.squarecdn.com/v1/square.js"
           : "https://sandbox.web.squarecdn.com/v1/square.js"
         }
+        strategy="lazyOnload"
         onLoad={() => setSquareLoaded(true)}
       />
 
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow-sm">
+      <PublicHeader />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Back Link */}
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               Back to Shop
             </Link>
           </div>
-        </header>
+        </div>
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -600,6 +613,7 @@ export default function CheckoutPage() {
           </div>
         </main>
       </div>
+      <PublicFooter />
     </>
   );
 }

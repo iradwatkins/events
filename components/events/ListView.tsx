@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Calendar, MapPin, Ticket, ChevronRight } from "lucide-react";
 import { formatEventDateTime } from "@/lib/date-format";
 
@@ -27,15 +28,18 @@ export function ListView({ events }: ListViewProps) {
         >
           <div className="flex flex-col sm:flex-row">
             {/* Event Image */}
-            <div className="sm:w-64 h-48 sm:h-auto bg-gray-200 flex-shrink-0">
+            <div className="relative sm:w-64 h-48 sm:h-auto bg-gray-200 flex-shrink-0">
               {event.imageUrl ? (
-                <img
+                <Image
                   src={event.imageUrl}
                   alt={event.name}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 640px) 100vw, 256px"
+                  className="object-cover"
+                  loading="lazy"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-primary">
+                <div className="absolute inset-0 flex items-center justify-center bg-primary">
                   <Calendar className="w-12 h-12 text-white opacity-50" />
                 </div>
               )}

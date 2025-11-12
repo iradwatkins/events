@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Calendar, Ticket } from "lucide-react";
 import { formatEventDate, formatEventTime } from "@/lib/date-format";
 import { motion } from "framer-motion";
@@ -34,13 +35,18 @@ export function MasonryEventCard({ event }: MasonryEventCardProps) {
         className="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"
       >
         {/* Full-height Event Image with natural aspect ratio */}
-        <motion.img
-          src={imageUrl}
-          alt={event.name}
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.3 }}
-          className="h-auto max-w-full rounded-lg w-full"
-        />
+        <div className="relative w-full aspect-[3/4] overflow-hidden rounded-lg">
+          <Image
+            src={imageUrl}
+            alt={event.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover transition-transform duration-300 hover:scale-105"
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2UzZTNlMyIvPjwvc3ZnPg=="
+          />
+        </div>
 
         {/* Gradient overlay for better badge visibility */}
         <div className="absolute inset-0 bg-black/20 pointer-events-none rounded-lg" />

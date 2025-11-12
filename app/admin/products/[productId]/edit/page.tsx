@@ -10,7 +10,13 @@ import Link from "next/link";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import VariantsManager from "@/components/admin/VariantsManager";
-import ProductOptionsManager from "@/components/admin/ProductOptionsManager";
+import dynamic from "next/dynamic";
+
+// Dynamic import for heavy ProductOptionsManager (only loaded when needed)
+const ProductOptionsManager = dynamic(() => import("@/components/admin/ProductOptionsManager"), {
+  loading: () => <div className="flex items-center justify-center h-32"><div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full"></div></div>,
+  ssr: false
+});
 
 export default function EditProductPage() {
   const params = useParams();
@@ -483,7 +489,7 @@ export default function EditProductPage() {
                   {...primaryDropzone.getRootProps()}
                   className={`w-full h-64 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
                     primaryDropzone.isDragActive
-                      ? "border-primary bg-blue-50"
+                      ? "border-primary bg-accent"
                       : "border-gray-300 hover:border-primary hover:bg-gray-50"
                   } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
@@ -553,7 +559,7 @@ export default function EditProductPage() {
                 {...additionalDropzone.getRootProps()}
                 className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
                   additionalDropzone.isDragActive
-                    ? "border-primary bg-blue-50"
+                    ? "border-primary bg-accent"
                     : "border-gray-300 hover:border-primary hover:bg-gray-50"
                 } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
               >

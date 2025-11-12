@@ -8,13 +8,29 @@ import { Id } from "@/convex/_generated/dataModel";
 import { SquareCardPayment } from "@/components/checkout/SquareCardPayment";
 import { CashAppQRPayment } from "@/components/checkout/CashAppPayment";
 import { StripeCheckout } from "@/components/checkout/StripeCheckout";
-import SeatSelection, { SelectedSeat } from "@/components/checkout/SeatSelection";
-import InteractiveSeatingChart, { SelectedSeat as BallroomSeat } from "@/components/seating/InteractiveSeatingChart";
+import { PayPalPayment } from "@/components/checkout/PayPalPayment";
+import type { SelectedSeat } from "@/components/checkout/SeatSelection";
+import type { SelectedSeat as BallroomSeat } from "@/components/seating/InteractiveSeatingChart";
+import dynamic from "next/dynamic";
+
+// Dynamic imports for heavy seating components (only loaded when needed)
+const SeatSelection = dynamic(() => import("@/components/checkout/SeatSelection"), {
+  loading: () => <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div></div>,
+  ssr: false
+});
+
+const InteractiveSeatingChart = dynamic(() => import("@/components/seating/InteractiveSeatingChart"), {
+  loading: () => <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div></div>,
+  ssr: false
+});
 import { TierCountdown, TierAvailabilityBadge } from "@/components/events/TierCountdown";
 import { ArrowLeft, CheckCircle2, Ticket, UserCheck, Tag, X, Package, Zap, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
+import toast from "react-hot-toast";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -30,7 +46,7 @@ export default function CheckoutPage() {
   const [buyerEmail, setBuyerEmail] = useState("");
   const [buyerName, setBuyerName] = useState("");
   const [showPayment, setShowPayment] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cashapp'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cashapp' | 'paypal'>('card');
   const [orderId, setOrderId] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -76,9 +92,13 @@ export default function CheckoutPage() {
 
   if (isLoading || !eventDetails) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-      </div>
+      <>
+        <PublicHeader />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+        <PublicFooter />
+      </>
     );
   }
 
@@ -86,8 +106,8 @@ export default function CheckoutPage() {
   const selectedBundle = eventDetails.bundles?.find((bundle: any) => bundle._id === selectedBundleId);
 
   // Determine payment processor based on event payment model
-  const paymentModel = paymentConfig?.paymentModel || 'PRE_PURCHASE';
-  const useStripePayment = paymentModel === 'PAY_AS_SELL' || paymentModel === 'CREDIT_CARD';
+  const paymentModel = paymentConfig?.paymentModel || 'PREPAY';
+  const useStripePayment = paymentModel === 'CREDIT_CARD';
 
   const subtotal = purchaseType === 'bundle' && selectedBundle
     ? selectedBundle.price * quantity
@@ -101,12 +121,12 @@ export default function CheckoutPage() {
   let platformFee = 0;
   let processingFee = 0;
 
-  if (paymentModel === 'PRE_PURCHASE' || paymentModel === 'PREPAY') {
+  if (paymentModel === 'PREPAY') {
     // Organizer already paid platform fee upfront - no additional fees for customer
     platformFee = 0;
     processingFee = 0;
   } else {
-    // PAY_AS_SELL / CREDIT_CARD - fees added to customer's purchase
+    // CREDIT_CARD - fees added to customer's purchase
     platformFee = Math.round((subtotalAfterDiscount * 3.7) / 100) + 179; // 3.7% + $1.79
     processingFee = Math.round(((subtotalAfterDiscount + platformFee) * 2.9) / 100) + 30; // 2.9% + $0.30
   }
@@ -194,14 +214,14 @@ export default function CheckoutPage() {
 
   const handleContinueToPayment = async () => {
     if ((!selectedTierId && !selectedBundleId) || !buyerEmail || !buyerName) {
-      alert("Please fill in all fields");
+      toast.error("Please fill in all fields");
       return;
     }
 
     // Check if seating chart exists and seats are required (only for individual tickets)
     const requiresSeats = purchaseType === 'tier' && seatingChart && seatingChart.sections.length > 0;
     if (requiresSeats && selectedSeats.length !== quantity) {
-      alert(`Please select ${quantity} seat${quantity > 1 ? 's' : ''} before proceeding`);
+      toast.error(`Please select ${quantity} seat${quantity > 1 ? 's' : ''} before proceeding`);
       return;
     }
 
@@ -249,7 +269,7 @@ export default function CheckoutPage() {
       setShowPayment(true);
     } catch (error: any) {
       console.error("Order creation error:", error);
-      alert(error.message || "Failed to create order. Please try again.");
+      toast.error(error.message || "Failed to create order. Please try again.");
     }
   };
 
@@ -305,12 +325,12 @@ export default function CheckoutPage() {
       }, 2000);
     } catch (error) {
       console.error("Order completion error:", error);
-      alert("Payment successful but order completion failed. Please contact support.");
+      toast.error("Payment successful but order completion failed. Please contact support.");
     }
   };
 
   const handlePaymentError = (error: string) => {
-    alert(`Payment failed: ${error}`);
+    toast.error(`Payment failed: ${error}`);
     setShowPayment(false);
     setOrderId(null);
   };
@@ -318,13 +338,15 @@ export default function CheckoutPage() {
   // Success screen
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, type: "spring" }}
-          className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center"
-        >
+      <>
+        <PublicHeader />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, type: "spring" }}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md text-center"
+          >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -357,25 +379,29 @@ export default function CheckoutPage() {
           >
             <Link
               href="/my-tickets"
-              className="block w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="block w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
             >
               View My Tickets
             </Link>
             <Link
               href={`/events/${eventId}`}
-              className="block w-full px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="block w-full px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Back to Event
             </Link>
           </motion.div>
         </motion.div>
-      </div>
+        </div>
+        <PublicFooter />
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <>
+      <PublicHeader />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <motion.div
           initial={{ x: -20, opacity: 0 }}
@@ -423,17 +449,17 @@ export default function CheckoutPage() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.3 }}
-                className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6"
+                className="bg-accent border-2 border-primary/30 rounded-lg p-4 mb-6"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <UserCheck className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
+                    <UserCheck className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-blue-900 mb-1">
+                    <h4 className="font-semibold text-foreground mb-1">
                       Referred by {staffMemberInfo.name}
                     </h4>
-                    <p className="text-sm text-blue-700">
+                    <p className="text-sm text-primary">
                       Your purchase will be credited to this staff member
                     </p>
                   </div>
@@ -457,7 +483,7 @@ export default function CheckoutPage() {
                         }}
                         className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
                           purchaseType === 'tier'
-                            ? 'bg-white text-blue-600 shadow-sm'
+                            ? 'bg-white text-primary shadow-sm'
                             : 'text-gray-600 hover:text-gray-900'
                         }`}
                       >
@@ -471,7 +497,7 @@ export default function CheckoutPage() {
                         }}
                         className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
                           purchaseType === 'bundle'
-                            ? 'bg-white text-purple-600 shadow-sm'
+                            ? 'bg-white text-primary shadow-sm'
                             : 'text-gray-600 hover:text-gray-900'
                         }`}
                       >
@@ -509,7 +535,7 @@ export default function CheckoutPage() {
                                 selectedTierId === tier._id
                                   ? showEarlyBird
                                     ? "border-amber-500 bg-amber-50"
-                                    : "border-blue-600 bg-blue-50"
+                                    : "border-primary bg-accent"
                                   : isSoldOut
                                   ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
                                   : "border-gray-200 hover:border-gray-300"
@@ -594,7 +620,7 @@ export default function CheckoutPage() {
                           onClick={() => setSelectedBundleId(bundle._id)}
                           className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
                             selectedBundleId === bundle._id
-                              ? "border-purple-600 bg-purple-50"
+                              ? "border-primary bg-accent"
                               : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
@@ -613,14 +639,14 @@ export default function CheckoutPage() {
                                 )}
                                 <div className="flex flex-wrap gap-1 mt-2">
                                   {bundle.includedTiers.map((includedTier: any) => (
-                                    <span key={includedTier.tierId} className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
+                                    <span key={includedTier.tierId} className="text-xs px-2 py-0.5 bg-accent text-primary rounded">
                                       {includedTier.quantity}x {includedTier.tierName}
                                     </span>
                                   ))}
                                 </div>
                               </div>
                               <div className="text-right ml-4">
-                                <p className="text-lg font-bold text-purple-600">
+                                <p className="text-lg font-bold text-primary">
                                   ${(bundle.price / 100).toFixed(2)}
                                 </p>
                                 {bundle.regularPrice && (
@@ -667,7 +693,7 @@ export default function CheckoutPage() {
                       max="10"
                       value={quantity}
                       onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                     />
                   </div>
                 )}
@@ -709,7 +735,7 @@ export default function CheckoutPage() {
                           value={buyerName}
                           onChange={(e) => setBuyerName(e.target.value)}
                           placeholder="John Doe"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 placeholder:text-gray-400"
                         />
                       </div>
                       <div>
@@ -721,7 +747,7 @@ export default function CheckoutPage() {
                           value={buyerEmail}
                           onChange={(e) => setBuyerEmail(e.target.value)}
                           placeholder="john@example.com"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900 placeholder:text-gray-400"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 placeholder:text-gray-400"
                         />
                       </div>
                     </div>
@@ -777,11 +803,11 @@ export default function CheckoutPage() {
                               }
                             }}
                             placeholder="Enter code"
-                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900 placeholder:text-gray-400 uppercase"
+                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 placeholder:text-gray-400 uppercase"
                           />
                           <button
                             onClick={handleApplyDiscount}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
+                            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium whitespace-nowrap"
                           >
                             Apply
                           </button>
@@ -807,7 +833,7 @@ export default function CheckoutPage() {
                 <h3 className="font-semibold text-gray-900 mb-4">Payment Method</h3>
 
                 {/* Payment Model Info */}
-                {paymentModel === 'PRE_PURCHASE' || paymentModel === 'PREPAY' ? (
+                {paymentModel === 'PREPAY' ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                     <div className="flex items-start gap-2">
                       <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -821,14 +847,14 @@ export default function CheckoutPage() {
                   </div>
                 ) : null}
 
-                {/* Payment Method Selector - Only show for Square/CashApp (prepaid events) */}
+                {/* Payment Method Selector - Only show for Square/CashApp/PayPal (prepaid events) */}
                 {!useStripePayment && (
-                  <div className="flex gap-3 mb-6">
+                  <div className="grid grid-cols-3 gap-3 mb-6">
                     <button
                       onClick={() => setPaymentMethod('card')}
-                      className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
                         paymentMethod === 'card'
-                          ? 'border-blue-600 bg-blue-50 text-blue-900 font-semibold'
+                          ? 'border-primary bg-accent text-foreground font-semibold'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
@@ -836,7 +862,7 @@ export default function CheckoutPage() {
                     </button>
                     <button
                       onClick={() => setPaymentMethod('cashapp')}
-                      className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
                         paymentMethod === 'cashapp'
                           ? 'border-green-600 bg-green-50 text-green-900 font-semibold'
                           : 'border-gray-200 hover:border-gray-300'
@@ -844,12 +870,22 @@ export default function CheckoutPage() {
                     >
                       Cash App Pay
                     </button>
+                    <button
+                      onClick={() => setPaymentMethod('paypal')}
+                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                        paymentMethod === 'paypal'
+                          ? 'border-blue-600 bg-blue-50 text-blue-900 font-semibold'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      PayPal
+                    </button>
                   </div>
                 )}
 
                 {/* Payment Form */}
                 {useStripePayment ? (
-                  // Stripe payment for PAY_AS_SELL events
+                  // Stripe payment for CREDIT_CARD events
                   <StripeCheckout
                     total={total / 100}
                     connectedAccountId={paymentConfig?.stripeConnectAccountId || ''}
@@ -881,6 +917,25 @@ export default function CheckoutPage() {
                     onPaymentError={handlePaymentError}
                     onBack={() => setShowPayment(false)}
                   />
+                ) : paymentMethod === 'paypal' ? (
+                  // PayPal payment for PREPAID events
+                  <div>
+                    <PayPalPayment
+                      amount={total}
+                      orderId={orderId || undefined}
+                      description={`${eventDetails.name} - ${purchaseType === 'bundle' ? selectedBundle?.name : selectedTier?.name} x ${quantity}`}
+                      onSuccess={async (paypalOrderId) => {
+                        await handlePaymentSuccess({ paymentId: paypalOrderId });
+                      }}
+                      onError={handlePaymentError}
+                    />
+                    <button
+                      onClick={() => setShowPayment(false)}
+                      className="w-full mt-4 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Back to Order Details
+                    </button>
+                  </div>
                 ) : (
                   // CashApp payment
                   <CashAppQRPayment
@@ -920,7 +975,7 @@ export default function CheckoutPage() {
                           <span className="text-gray-900 font-medium">{selectedBundle.name}</span>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {selectedBundle.includedTiers.map((includedTier: any) => (
-                              <span key={includedTier.tierId} className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                              <span key={includedTier.tierId} className="text-xs px-1.5 py-0.5 bg-accent text-primary rounded">
                                 {includedTier.quantity}x {includedTier.tierName}
                               </span>
                             ))}
@@ -976,7 +1031,7 @@ export default function CheckoutPage() {
                       disabled={!buyerEmail || !buyerName}
                       className={`w-full px-6 py-4 rounded-lg font-semibold transition-all ${
                         buyerEmail && buyerName
-                          ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg"
+                          ? "bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                     >
@@ -990,7 +1045,9 @@ export default function CheckoutPage() {
             </motion.div>
           </motion.div>
         </div>
+        </div>
       </div>
-    </div>
+      <PublicFooter />
+    </>
   );
 }

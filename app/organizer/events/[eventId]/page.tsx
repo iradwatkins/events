@@ -35,7 +35,13 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { convertToCSV, downloadCSV, generateAttendeeExportFilename } from "@/lib/csv";
-import { BundleEditor } from "@/components/events/BundleEditor";
+import dynamic from "next/dynamic";
+
+// Dynamic import for heavy BundleEditor (only loaded when viewing bundles tab)
+const BundleEditor = dynamic(() => import("@/components/events/BundleEditor").then(mod => ({ default: mod.BundleEditor })), {
+  loading: () => <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div></div>,
+  ssr: false
+});
 
 type TabType = "overview" | "orders" | "attendees" | "staff" | "discounts" | "bundles" | "waitlist";
 

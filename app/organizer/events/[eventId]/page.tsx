@@ -60,7 +60,6 @@ export default function EventDashboardPage() {
     applicableToTierIds: [] as Id<"ticketTiers">[],
   });
 
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
   const event = useQuery(api.events.queries.getEventById, { eventId });
   const publishEvent = useMutation(api.events.mutations.publishEvent);
   const statistics = useQuery(

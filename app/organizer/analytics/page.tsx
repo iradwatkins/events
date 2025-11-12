@@ -15,10 +15,10 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function AnalyticsPage() {
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
   const userEvents = useQuery(api.events.queries.getOrganizerEvents);
 
-  if (!currentUser || !userEvents) {
+  // Check if still loading
+  if (userEvents === undefined) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>

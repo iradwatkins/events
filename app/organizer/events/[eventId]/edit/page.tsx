@@ -35,7 +35,6 @@ export default function EditEventPage() {
   const eventId = params.eventId as Id<"events">;
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
 
   // Form state
   const [eventName, setEventName] = useState("");
@@ -139,7 +138,7 @@ export default function EditEventPage() {
     }
   };
 
-  if (!event || !currentUser) {
+  if (event === undefined) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
@@ -19,15 +19,33 @@ import {
 import Link from "next/link";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { PurchaseCreditsModal } from "@/components/credits/PurchaseCreditsModal";
 
 export default function CreditsPage() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
-  const credits = useQuery(api.credits.queries.getMyCredits);
   const events = useQuery(api.events.queries.getOrganizerEvents);
+  const credits = useQuery(
+    api.credits.queries.getCreditBalance,
+    userId ? { organizerId: userId as any } : "skip"
+  );
 
-  if (!currentUser || !credits) {
+  // Fetch current user ID
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'same-origin' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user && data.user._id) {
+          setUserId(data.user._id);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to fetch user:", err);
+      });
+  }, []);
+
+  if (!userId || credits === undefined) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -345,61 +363,15 @@ export default function CreditsPage() {
         )}
       </main>
 
-      {/* Purchase Modal - Placeholder */}
+      {/* Purchase Modal */}
       {showPurchaseModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8"
-          >
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShoppingCart className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Purchase More Credits</h2>
-              <p className="text-gray-600">Choose the package that fits your needs</p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
-              <button className="border-2 border-gray-200 rounded-lg p-6 hover:border-primary hover:shadow-lg transition-all text-center">
-                <p className="text-3xl font-bold text-gray-900 mb-2">500</p>
-                <p className="text-sm text-gray-600 mb-3">tickets</p>
-                <p className="text-2xl font-bold text-primary mb-2">$150</p>
-                <p className="text-xs text-gray-500">$0.30 per ticket</p>
-              </button>
-
-              <button className="border-2 border-primary bg-accent rounded-lg p-6 hover:shadow-lg transition-all text-center relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-white text-xs font-semibold rounded-full">
-                  POPULAR
-                </div>
-                <p className="text-3xl font-bold text-gray-900 mb-2">1,000</p>
-                <p className="text-sm text-gray-600 mb-3">tickets</p>
-                <p className="text-2xl font-bold text-primary mb-2">$300</p>
-                <p className="text-xs text-gray-500">$0.30 per ticket</p>
-              </button>
-
-              <button className="border-2 border-gray-200 rounded-lg p-6 hover:border-primary hover:shadow-lg transition-all text-center">
-                <p className="text-3xl font-bold text-gray-900 mb-2">2,500</p>
-                <p className="text-sm text-gray-600 mb-3">tickets</p>
-                <p className="text-2xl font-bold text-primary mb-2">$750</p>
-                <p className="text-xs text-gray-500">$0.30 per ticket</p>
-              </button>
-            </div>
-
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowPurchaseModal(false)}
-                className="px-6 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-                Continue to Payment
-              </button>
-            </div>
-          </motion.div>
-        </div>
+        <PurchaseCreditsModal
+          onClose={() => setShowPurchaseModal(false)}
+          onSuccess={() => {
+            // Refresh credits data
+            window.location.reload();
+          }}
+        />
       )}
     </div>
   );

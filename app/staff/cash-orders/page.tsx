@@ -170,12 +170,12 @@ export default function CashOrdersPage() {
         )}
 
         {/* Info Banner */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-accent border border-primary/30 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-900">
+            <AlertCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-foreground">
               <p className="font-semibold mb-1">How Cash Orders Work:</p>
-              <ul className="list-disc list-inside space-y-1 text-blue-800">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>Customers reserve tickets with a 30-minute hold</li>
                 <li><strong>Instant Approval:</strong> Tap "Approve Order" after receiving cash</li>
                 <li><strong>Activation Code:</strong> Generate a 4-digit code for the customer to activate later</li>
@@ -313,7 +313,7 @@ export default function CashOrdersPage() {
                       <button
                         onClick={() => handleGenerateCode(order.orderId, selectedStaffId)}
                         disabled={activatingOrderId === order.orderId || isGeneratedCode}
-                        className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition font-semibold"
                       >
                         <Key className="w-5 h-5" />
                         {isGeneratedCode ? "Code Generated" : "Generate Code"}

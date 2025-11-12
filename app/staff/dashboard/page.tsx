@@ -205,7 +205,7 @@ export default function StaffDashboardPage() {
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-6 border-b bg-gray-50">
                     <div className="bg-accent/50 rounded-lg p-3">
                       <p className="text-xs text-primary mb-1 font-medium">Allocated</p>
-                      <p className="text-2xl font-bold text-blue-900">{position.allocatedTickets || 0}</p>
+                      <p className="text-2xl font-bold text-foreground">{position.allocatedTickets || 0}</p>
                     </div>
                     <div className="bg-green-50 rounded-lg p-3">
                       <p className="text-xs text-green-600 mb-1 font-medium">Sold</p>
@@ -217,11 +217,11 @@ export default function StaffDashboardPage() {
                     </div>
                     <div className="bg-accent/50 rounded-lg p-3">
                       <p className="text-xs text-primary mb-1 font-medium">Commission</p>
-                      <p className="text-2xl font-bold text-purple-900">
+                      <p className="text-2xl font-bold text-foreground">
                         ${(position.commissionEarned / 100).toFixed(2)}
                       </p>
                     </div>
-                    <div className="bg-indigo-50 rounded-lg p-3">
+                    <div className="bg-accent rounded-lg p-3">
                       <p className="text-xs text-primary mb-1 font-medium">Cash Collected</p>
                       <p className="text-2xl font-bold text-foreground">
                         ${(position.cashCollected / 100).toFixed(2)}

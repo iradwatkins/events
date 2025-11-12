@@ -162,7 +162,7 @@ export function PaymentMethodSelector({
 
                   {/* Cash-specific warnings */}
                   {method === 'cash' && (
-                    <div className="mt-2 p-2 bg-accent/50 border border-border rounded text-xs text-blue-900">
+                    <div className="mt-2 p-2 bg-accent/50 border border-border rounded text-xs text-foreground">
                       <strong>Note:</strong> Your order will be held for 30 minutes.
                       Staff must approve your payment within this time.
                     </div>

@@ -118,7 +118,7 @@ export default function ToolPalette({
             relative w-12 h-12 rounded-lg flex items-center justify-center transition-all
             ${
               isActive
-                ? "bg-blue-50 border-2 border-blue-500 text-blue-700 shadow-sm"
+                ? "bg-accent border-2 border-primary text-primary shadow-sm"
                 : "bg-white hover:bg-gray-50 border border-gray-200 text-gray-700"
             }
           `}
@@ -130,7 +130,7 @@ export default function ToolPalette({
           {isActive && (
             <motion.div
               layoutId="active-tool-indicator"
-              className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full border-2 border-white"
+              className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-white"
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             />
           )}

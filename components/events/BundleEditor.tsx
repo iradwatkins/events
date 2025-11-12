@@ -292,7 +292,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create Bundle
@@ -302,7 +302,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
 
       {/* Create/Edit Form */}
       {isCreating && (
-        <form onSubmit={handleSubmit} className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+        <form onSubmit={handleSubmit} className="bg-accent border-2 border-primary/30 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-semibold text-gray-900">
               {editingBundleId ? "Edit Bundle" : "Create New Bundle"}
@@ -363,7 +363,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                           <div className="text-sm text-gray-600">
                             ${((tier?.price || 0) / 100).toFixed(2)} each
                             {includedTier.eventName && (
-                              <span className="ml-2 px-2 py-0.5 bg-blue-100 text-primary text-xs rounded">
+                              <span className="ml-2 px-2 py-0.5 bg-accent text-primary text-xs rounded">
                                 {includedTier.eventName}
                               </span>
                             )}
@@ -529,7 +529,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90 transition-colors font-medium"
               >
                 {editingBundleId ? "Update Bundle" : "Create Bundle"}
               </button>
@@ -604,7 +604,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                     {bundle.includedTiersDetails?.map((tier: any) => (
                       <div
                         key={tier.tierId}
-                        className="text-xs px-2 py-1 bg-blue-100 text-primary rounded"
+                        className="text-xs px-2 py-1 bg-accent text-primary rounded"
                       >
                         {tier.quantity}x {tier.tierName}
                       </div>
@@ -660,7 +660,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create First Bundle

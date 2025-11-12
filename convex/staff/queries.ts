@@ -383,14 +383,20 @@ export const getHierarchyTree = query({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE
+    // Get event first
+    const event = await ctx.db.get(args.eventId);
+    if (!event) {
+      return [];
+    }
+
+    // TESTING MODE or Authentication
     let currentUser;
-    if (!identity) {
-      console.warn("[getHierarchyTree] TESTING MODE - Using test user");
-      currentUser = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
+    const isTestingMode = !identity;
+
+    if (isTestingMode) {
+      console.warn("[getHierarchyTree] TESTING MODE - Skipping auth checks");
+      // In testing mode, just get the event organizer
+      currentUser = await ctx.db.get(event.organizerId);
     } else {
       currentUser = await ctx.db
         .query("users")
@@ -402,13 +408,8 @@ export const getHierarchyTree = query({
       throw new Error("User not found");
     }
 
-    // Verify user is organizer or admin
-    const event = await ctx.db.get(args.eventId);
-    if (!event) {
-      throw new Error("Event not found");
-    }
-
-    if (event.organizerId !== currentUser._id && currentUser.role !== "admin") {
+    // Verify user is organizer or admin (skip in testing mode)
+    if (!isTestingMode && event.organizerId !== currentUser._id && currentUser.role !== "admin") {
       throw new Error("Only the event organizer can view the hierarchy tree");
     }
 
@@ -733,5 +734,150 @@ export const getStaffMember = query({
   handler: async (ctx, args) => {
     const staffMember = await ctx.db.get(args.staffId);
     return staffMember;
+  },
+});
+
+/**
+ * Get all events by organizer (for copy roster dropdown)
+ */
+export const getOrganizerEventsForCopy = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[getOrganizerEventsForCopy] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      return [];
+    }
+
+    // Get all events by this organizer
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_organizer", (q) => q.eq("organizerId", currentUser._id))
+      .order("desc")
+      .collect();
+
+    // Return just basic info needed for dropdown
+    return events.map((event) => ({
+      _id: event._id,
+      name: event.name,
+      startDate: event.startDate,
+      eventType: event.eventType,
+    }));
+  },
+});
+
+/**
+ * Get global staff with aggregated performance across all events
+ * Returns each global staff member with their total performance metrics
+ */
+export const getGlobalStaffWithPerformance = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // TESTING MODE
+    let currentUser;
+    if (!identity) {
+      console.warn("[getGlobalStaffWithPerformance] TESTING MODE - Using test user");
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
+        .first();
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      return [];
+    }
+
+    // Get all global staff (eventId = undefined/null)
+    const globalStaff = await ctx.db
+      .query("eventStaff")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("organizerId"), currentUser._id),
+          q.eq(q.field("eventId"), undefined)
+        )
+      )
+      .collect();
+
+    // For each global staff, aggregate their performance across ALL events
+    const staffWithPerformance = await Promise.all(
+      globalStaff.map(async (staff) => {
+        // Find all event-specific instances of this staff (same staffUserId, but with eventId set)
+        const eventInstances = await ctx.db
+          .query("eventStaff")
+          .withIndex("by_user", (q) => q.eq("staffUserId", staff.staffUserId))
+          .filter((q) =>
+            q.and(
+              q.neq(q.field("eventId"), undefined), // Only event-specific instances
+              q.eq(q.field("organizerId"), currentUser._id) // Same organizer
+            )
+          )
+          .collect();
+
+        // Aggregate performance metrics
+        const totalTicketsSold = eventInstances.reduce(
+          (sum, instance) => sum + instance.ticketsSold,
+          0
+        );
+        const totalCommissionEarned = eventInstances.reduce(
+          (sum, instance) => sum + instance.commissionEarned,
+          0
+        );
+        const totalCashCollected = eventInstances.reduce(
+          (sum, instance) => sum + (instance.cashCollected || 0),
+          0
+        );
+        const activeEventCount = eventInstances.filter(
+          (instance) => instance.isActive
+        ).length;
+
+        // Get unique event IDs
+        const eventIds = [...new Set(eventInstances.map((i) => i.eventId).filter(Boolean))];
+
+        // Calculate average performance
+        const avgTicketsPerEvent =
+          activeEventCount > 0 ? totalTicketsSold / activeEventCount : 0;
+
+        return {
+          ...staff,
+          performance: {
+            totalTicketsSold,
+            totalCommissionEarned,
+            totalCashCollected,
+            activeEventCount,
+            totalEventCount: eventIds.length,
+            avgTicketsPerEvent: Math.round(avgTicketsPerEvent * 10) / 10,
+            netPayout: totalCommissionEarned - totalCashCollected,
+          },
+          eventIds, // Array of event IDs this staff is in
+        };
+      })
+    );
+
+    // Sort by total tickets sold (top performers first)
+    return staffWithPerformance.sort(
+      (a, b) => b.performance.totalTicketsSold - a.performance.totalTicketsSold
+    );
   },
 });

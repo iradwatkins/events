@@ -102,7 +102,7 @@ export default function SettlementDashboard() {
         <select
           value={selectedEventId || "all"}
           onChange={(e) => setSelectedEventId(e.target.value === "all" ? undefined : e.target.value as Id<"events">)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
         >
           <option value="all">All Events</option>
           {organizerEvents.map((event) => (

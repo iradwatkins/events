@@ -278,7 +278,7 @@ export default function OrdersManagementPage() {
                         {order.fulfillmentStatus === "PROCESSING" && (
                           <button
                             onClick={() => setSelectedOrder(order._id)}
-                            className="px-2 py-1 bg-accent text-primary rounded hover:bg-blue-200 text-xs"
+                            className="px-2 py-1 bg-accent text-primary rounded hover:bg-primary/20 text-xs"
                           >
                             Ship
                           </button>

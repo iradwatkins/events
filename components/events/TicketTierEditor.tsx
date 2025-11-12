@@ -118,7 +118,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                     value={tier.name}
                     onChange={(e) => updateTier(tier.id, "name", e.target.value)}
                     placeholder="e.g., General Admission, VIP, Early Bird"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -136,7 +136,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                       placeholder={tier.isTablePackage ? "500.00" : "25.00"}
                       step="0.01"
                       min="0"
-                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                     />
                   </div>
                   {tier.isTablePackage && tier.tableCapacity && (
@@ -159,7 +159,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                       onChange={(e) => updateTier(tier.id, "quantity", e.target.value)}
                       placeholder="100"
                       min="1"
-                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                     />
                   </div>
                 </div>
@@ -174,7 +174,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                     onChange={(e) => updateTier(tier.id, "description", e.target.value)}
                     placeholder="Benefits included with this tier..."
                     rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900"
                   />
                 </div>
 

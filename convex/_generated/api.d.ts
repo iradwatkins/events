@@ -10,8 +10,10 @@
 
 import type * as activateAllTickets from "../activateAllTickets.js";
 import type * as addCredits from "../addCredits.js";
+import type * as admin_cleanup from "../admin/cleanup.js";
 import type * as admin_completeSystemReset from "../admin/completeSystemReset.js";
 import type * as admin_queries from "../admin/queries.js";
+import type * as admin_resetData from "../admin/resetData.js";
 import type * as admin_systemReset from "../admin/systemReset.js";
 import type * as admin from "../admin.js";
 import type * as adminPanel_actions from "../adminPanel/actions.js";
@@ -82,6 +84,7 @@ import type * as testEvents from "../testEvents.js";
 import type * as testHelpers from "../testHelpers.js";
 import type * as testMultiEventBundlePurchase from "../testMultiEventBundlePurchase.js";
 import type * as testSeed from "../testSeed.js";
+import type * as testing_helpers from "../testing/helpers.js";
 import type * as tickets_mutations from "../tickets/mutations.js";
 import type * as tickets_queries from "../tickets/queries.js";
 import type * as transfers_mutations from "../transfers/mutations.js";
@@ -110,8 +113,10 @@ import type {
 declare const fullApi: ApiFromModules<{
   activateAllTickets: typeof activateAllTickets;
   addCredits: typeof addCredits;
+  "admin/cleanup": typeof admin_cleanup;
   "admin/completeSystemReset": typeof admin_completeSystemReset;
   "admin/queries": typeof admin_queries;
+  "admin/resetData": typeof admin_resetData;
   "admin/systemReset": typeof admin_systemReset;
   admin: typeof admin;
   "adminPanel/actions": typeof adminPanel_actions;
@@ -182,6 +187,7 @@ declare const fullApi: ApiFromModules<{
   testHelpers: typeof testHelpers;
   testMultiEventBundlePurchase: typeof testMultiEventBundlePurchase;
   testSeed: typeof testSeed;
+  "testing/helpers": typeof testing_helpers;
   "tickets/mutations": typeof tickets_mutations;
   "tickets/queries": typeof tickets_queries;
   "transfers/mutations": typeof transfers_mutations;

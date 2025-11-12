@@ -319,8 +319,8 @@ export default function CreateProductPage() {
           </div>
 
           {formData.hasVariants && (
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-4 bg-accent border border-primary/30 rounded-lg">
+              <p className="text-sm text-foreground">
                 <strong>Note:</strong> After creating this product, you'll be able to generate and manage variants (color/size combinations) on the edit page.
               </p>
             </div>
@@ -395,7 +395,7 @@ export default function CreateProductPage() {
                   {...primaryDropzone.getRootProps()}
                   className={`w-full h-64 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
                     primaryDropzone.isDragActive
-                      ? "border-primary bg-blue-50"
+                      ? "border-primary bg-accent"
                       : "border-gray-300 hover:border-primary hover:bg-gray-50"
                   } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
@@ -466,7 +466,7 @@ export default function CreateProductPage() {
                 {...additionalDropzone.getRootProps()}
                 className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-colors ${
                   additionalDropzone.isDragActive
-                    ? "border-primary bg-blue-50"
+                    ? "border-primary bg-accent"
                     : "border-gray-300 hover:border-primary hover:bg-gray-50"
                 } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
               >

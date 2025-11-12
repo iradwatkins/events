@@ -60,6 +60,21 @@ const SidebarProvider = React.forwardRef<
     const [openMobile, setOpenMobile] = React.useState(false)
     const [_open, _setOpen] = React.useState(defaultOpen)
     const open = openProp ?? _open
+
+    // Detect mobile screen size
+    const [isMobile, setIsMobile] = React.useState(false)
+
+    React.useEffect(() => {
+      const checkMobile = () => {
+        setIsMobile(window.innerWidth < 768)
+      }
+
+      checkMobile()
+      window.addEventListener('resize', checkMobile)
+
+      return () => window.removeEventListener('resize', checkMobile)
+    }, [])
+
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
         const openState = typeof value === "function" ? value(open) : value
@@ -73,10 +88,8 @@ const SidebarProvider = React.forwardRef<
     )
 
     const toggleSidebar = React.useCallback(() => {
-      return setOpen((open) => !open)
-    }, [setOpen])
-
-    const isMobile = false // Simplified - you can add proper mobile detection
+      return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
+    }, [isMobile, setOpen, setOpenMobile])
 
     const state = open ? "expanded" : "collapsed"
 
@@ -101,6 +114,7 @@ const SidebarProvider = React.forwardRef<
               {
                 "--sidebar-width": SIDEBAR_WIDTH,
                 "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+                "--sidebar-width-mobile": SIDEBAR_WIDTH_MOBILE,
                 ...style,
               } as React.CSSProperties
             }
@@ -108,6 +122,7 @@ const SidebarProvider = React.forwardRef<
               "group/sidebar-wrapper flex min-h-screen w-full",
               className
             )}
+            data-state={state}
             ref={ref}
             {...props}
           >
@@ -139,7 +154,34 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { state } = useSidebar()
+    const { state, isMobile, openMobile, setOpenMobile } = useSidebar()
+
+    if (isMobile) {
+      return (
+        <>
+          {/* Mobile overlay */}
+          {openMobile && (
+            <div
+              className="fixed inset-0 z-50 bg-black/50 md:hidden"
+              onClick={() => setOpenMobile(false)}
+            />
+          )}
+          {/* Mobile sidebar */}
+          <div
+            ref={ref}
+            className={cn(
+              "fixed inset-y-0 z-50 flex h-full w-[--sidebar-width-mobile] flex-col border-r bg-sidebar text-sidebar-foreground transition-transform duration-200 ease-in-out md:hidden",
+              side === "left" ? "left-0" : "right-0",
+              openMobile ? "translate-x-0" : side === "left" ? "-translate-x-full" : "translate-x-full",
+              className
+            )}
+            {...props}
+          >
+            {children}
+          </div>
+        </>
+      )
+    }
 
     return (
       <div

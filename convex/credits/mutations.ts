@@ -39,43 +39,48 @@ export const initializeCredits = mutation({
 });
 
 /**
- * Purchase additional ticket credits
+ * Purchase additional ticket credits with Square
  */
 export const purchaseCredits = mutation({
   args: {
-    organizerId: v.id("users"),
-    ticketQuantity: v.number(),
-    stripePaymentIntentId: v.string(),
+    userId: v.id("users"),
+    credits: v.number(),
+    amountPaid: v.number(),
+    squarePaymentId: v.optional(v.string()),
+    paypalOrderId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
-    // Verify user matches organizer
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+    // Get user's current credit balance
+    const userCredits = await ctx.db
+      .query("credits")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .first();
 
-    if (!user || user._id !== args.organizerId) {
-      throw new Error("Not authorized");
+    if (!userCredits) {
+      throw new Error("User credits not found");
     }
-
-    // Calculate amount
-    const amountPaid = args.ticketQuantity * PRICE_PER_TICKET_CENTS;
 
     // Create transaction record
     const transactionId = await ctx.db.insert("creditTransactions", {
-      organizerId: args.organizerId,
-      ticketsPurchased: args.ticketQuantity,
-      amountPaid,
+      organizerId: args.userId,
+      ticketsPurchased: args.credits,
+      amountPaid: args.amountPaid,
       pricePerTicket: PRICE_PER_TICKET_CENTS,
-      stripePaymentIntentId: args.stripePaymentIntentId,
-      status: "PENDING",
+      squarePaymentId: args.squarePaymentId,
+      paypalOrderId: args.paypalOrderId,
+      status: "COMPLETED",
       purchasedAt: Date.now(),
     });
 
-    return { transactionId, amountPaid };
+    // Add credits to user balance
+    await ctx.db.patch(userCredits._id, {
+      creditsTotal: userCredits.creditsTotal + args.credits,
+    });
+
+    return {
+      transactionId,
+      newBalance: userCredits.creditsTotal + args.credits
+    };
   },
 });
 

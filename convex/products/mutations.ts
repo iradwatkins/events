@@ -32,7 +32,7 @@ export const createProduct = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
       .unique();
 
     if (!user) {

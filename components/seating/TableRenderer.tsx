@@ -45,9 +45,8 @@ export default function TableRenderer({
 }: TableRenderProps) {
   const renderTableShape = () => {
     const commonProps = {
-      className: `transition-all ${isSelected ? "stroke-[3]" : "stroke-2"}`,
-      fill: "rgba(255, 255, 255, 0.95)",
-      stroke: "#000000",
+      className: `transition-all ${isSelected ? "stroke-[3]" : "stroke-2"} fill-white stroke-foreground`,
+      fillOpacity: 0.95,
     };
 
     switch (table.shape) {
@@ -225,9 +224,8 @@ export default function TableRenderer({
             width={60}
             height={24}
             rx={4}
-            fill="white"
+            className="fill-white stroke-foreground"
             fillOpacity={0.95}
-            stroke="#000000"
             strokeWidth={isSelected ? 2 : 1}
           />
           <text
@@ -254,7 +252,7 @@ export default function TableRenderer({
           height={table.height + 8}
           rx={12}
           fill="none"
-          stroke="#000000"
+          className="stroke-foreground"
           strokeWidth={2}
           strokeDasharray="6 3"
         />

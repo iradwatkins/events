@@ -62,9 +62,9 @@ export function WelcomePopup({ open, onClose, creditsRemaining }: WelcomePopupPr
           </div>
 
           {/* How Credits Work */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <div className="bg-accent rounded-lg p-4 border border-primary/30">
             <h4 className="font-semibold text-gray-900 flex items-center gap-2 mb-2">
-              <DollarSign className="w-5 h-5 text-blue-600" />
+              <DollarSign className="w-5 h-5 text-primary" />
               How Free Tickets Work:
             </h4>
             <p className="text-sm text-gray-700 leading-relaxed">

@@ -372,7 +372,7 @@ export default function VariantsManager({
                           <>
                             <button
                               onClick={() => startEditing(variant)}
-                              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                              className="px-2 py-1 text-xs bg-accent text-primary rounded hover:bg-primary/20 transition-colors"
                             >
                               Edit
                             </button>

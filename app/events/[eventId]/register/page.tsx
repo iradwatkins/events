@@ -307,7 +307,7 @@ export default function FreeEventRegisterPage() {
                   type="text"
                   value={attendeeName}
                   onChange={(e) => setAttendeeName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="John Doe"
                   required
                 />
@@ -324,7 +324,7 @@ export default function FreeEventRegisterPage() {
                   type="email"
                   value={attendeeEmail}
                   onChange={(e) => setAttendeeEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="john@example.com"
                   required
                 />

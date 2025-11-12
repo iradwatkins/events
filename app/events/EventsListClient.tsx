@@ -5,6 +5,8 @@ import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { Calendar, MapPin, Tag, Clock, Search, Filter } from "lucide-react";
 import { useState } from "react";
+import { PublicHeader } from "@/components/layout/PublicHeader";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 export default function EventsListClient() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,28 +45,34 @@ export default function EventsListClient() {
 
   if (events === undefined) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading events...</p>
+      <>
+        <PublicHeader />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <div className="container mx-auto px-4 py-12">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading events...</p>
+            </div>
           </div>
         </div>
-      </div>
+        <PublicFooter />
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">All Events</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Discover amazing stepping events, workshops, and socials
-          </p>
+    <>
+      <PublicHeader />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Page Title */}
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="container mx-auto px-4 py-8">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">All Events</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Discover amazing stepping events, workshops, and socials
+            </p>
+          </div>
         </div>
-      </div>
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
@@ -261,6 +269,8 @@ export default function EventsListClient() {
           </>
         )}
       </div>
-    </div>
+      </div>
+      <PublicFooter />
+    </>
   );
 }

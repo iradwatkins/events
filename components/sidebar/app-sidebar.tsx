@@ -69,11 +69,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       {/* Header with Logo */}
       <SidebarHeader>
-        <Link href="/organizer/events" className="flex items-center gap-2 px-2 py-1.5">
+        <Link href="/" className="flex items-center gap-2 px-2 py-1.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
             <Ticket className="h-5 w-5" />
           </div>
-          <span className="font-semibold text-lg">SteppersLife</span>
+          <span className="font-semibold text-lg group-data-[state=collapsed]/sidebar-wrapper:hidden">SteppersLife</span>
         </Link>
       </SidebarHeader>
 
@@ -106,7 +106,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-primary">
                 <Users className="h-4 w-4" />
               </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="grid flex-1 text-left text-sm leading-tight group-data-[state=collapsed]/sidebar-wrapper:hidden">
                 <span className="truncate font-semibold">Test Organizer</span>
                 <span className="truncate text-xs">test@stepperslife.com</span>
               </div>

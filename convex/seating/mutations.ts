@@ -103,7 +103,7 @@ export const createSeatingChart = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
       .first();
 
     if (!user) {
@@ -257,7 +257,7 @@ export const updateSeatingChart = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
       .first();
 
     if (!user) {
@@ -332,7 +332,7 @@ export const deleteSeatingChart = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
       .first();
 
     if (!user) {

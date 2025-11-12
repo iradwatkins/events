@@ -410,7 +410,7 @@ export default function ProductDetailPage() {
                           if (variant) {
                             return (
                               <div className="bg-accent/50 border border-border rounded-lg p-3">
-                                <p className="text-sm text-blue-900">
+                                <p className="text-sm text-foreground">
                                   <strong>{variant.name}</strong>
                                   {variant.inventoryQuantity > 0 ? (
                                     <span className="text-green-600 ml-2">

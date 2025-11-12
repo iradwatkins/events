@@ -253,6 +253,19 @@ export class PermissionChecker {
   }
 
   /**
+   * Check if user can create ticketed events
+   * (Some organizers are restricted to only Save The Date and Free events)
+   */
+  static canCreateTicketedEvents(user: Doc<"users"> | null | undefined): boolean {
+    if (!user) return false;
+    // Admins can always create ticketed events
+    if (this.isAdmin(user)) return true;
+    // If the flag is explicitly set to false, user cannot create ticketed events
+    // If the flag is undefined or true, user can create ticketed events
+    return user.canCreateTicketedEvents !== false;
+  }
+
+  /**
    * Check if action should be allowed in production
    * (Used to prevent testing mode in production)
    */

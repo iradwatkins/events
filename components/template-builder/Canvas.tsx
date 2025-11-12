@@ -187,8 +187,8 @@ export default function Canvas({
         className="relative w-full h-full overflow-auto"
         style={{
           backgroundImage: showGrid
-            ? `repeating-linear-gradient(0deg, #e5e7eb 0, #e5e7eb 1px, transparent 1px, transparent ${gridSize * zoom}px),
-               repeating-linear-gradient(90deg, #e5e7eb 0, #e5e7eb 1px, transparent 1px, transparent ${gridSize * zoom}px)`
+            ? `repeating-linear-gradient(0deg, oklch(0.92 0.002 264.05) 0, oklch(0.92 0.002 264.05) 1px, transparent 1px, transparent ${gridSize * zoom}px),
+               repeating-linear-gradient(90deg, oklch(0.92 0.002 264.05) 0, oklch(0.92 0.002 264.05) 1px, transparent 1px, transparent ${gridSize * zoom}px)`
             : undefined,
           backgroundSize: showGrid ? `${gridSize * zoom}px ${gridSize * zoom}px` : undefined,
         }}
@@ -294,67 +294,67 @@ function TableRenderer({ table, isSelected, isDragging, onDragStart }: TableRend
 
   // Create realistic table surface with wood grain texture
   const getTableStyle = () => {
-    const baseColor = color || "#3B82F6";
+    const baseColor = color || "oklch(0.6185 0.1569 258.3380)"; // blue-600 equivalent
 
     // Wood grain pattern overlay
-    const woodGrain = `repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px)`;
+    const woodGrain = `repeating-linear-gradient(90deg, transparent, transparent 2px, oklch(0 0 0 / 0.03) 2px, oklch(0 0 0 / 0.03) 4px)`;
 
     if (shape === "ROUND") {
       return {
         backgroundColor: baseColor,
         backgroundImage: `
-          radial-gradient(ellipse at 50% 20%, ${baseColor}ee, transparent 60%),
-          radial-gradient(circle at 30% 30%, ${baseColor}dd, ${baseColor} 70%),
+          radial-gradient(ellipse at 50% 20%, color-mix(in oklch, ${baseColor}, transparent 7%), transparent 60%),
+          radial-gradient(circle at 30% 30%, color-mix(in oklch, ${baseColor}, transparent 13%), ${baseColor} 70%),
           ${woodGrain}
         `,
         borderRadius: "50%",
-        border: `3px solid ${baseColor}aa`,
+        border: `3px solid color-mix(in oklch, ${baseColor}, transparent 33%)`,
         boxShadow: `
-          inset 0 2px 4px rgba(255,255,255,0.3),
-          inset 0 -2px 4px rgba(0,0,0,0.1),
-          0 4px 8px rgba(0,0,0,0.15)
+          inset 0 2px 4px oklch(1 0 0 / 0.3),
+          inset 0 -2px 4px oklch(0 0 0 / 0.1),
+          0 4px 8px oklch(0 0 0 / 0.15)
         `,
       };
     } else if (shape === "RECTANGULAR") {
       return {
         backgroundColor: baseColor,
         backgroundImage: `
-          linear-gradient(180deg, ${baseColor}ee 0%, ${baseColor} 50%, ${baseColor}dd 100%),
+          linear-gradient(180deg, color-mix(in oklch, ${baseColor}, transparent 7%) 0%, ${baseColor} 50%, color-mix(in oklch, ${baseColor}, transparent 13%) 100%),
           ${woodGrain}
         `,
         borderRadius: "8px",
-        border: `3px solid ${baseColor}aa`,
+        border: `3px solid color-mix(in oklch, ${baseColor}, transparent 33%)`,
         boxShadow: `
-          inset 0 2px 4px rgba(255,255,255,0.3),
-          inset 0 -2px 4px rgba(0,0,0,0.1),
-          0 4px 8px rgba(0,0,0,0.15)
+          inset 0 2px 4px oklch(1 0 0 / 0.3),
+          inset 0 -2px 4px oklch(0 0 0 / 0.1),
+          0 4px 8px oklch(0 0 0 / 0.15)
         `,
       };
     } else if (shape === "SQUARE") {
       return {
         backgroundColor: baseColor,
         backgroundImage: `
-          linear-gradient(135deg, ${baseColor}ee 0%, ${baseColor} 50%, ${baseColor}dd 100%),
+          linear-gradient(135deg, color-mix(in oklch, ${baseColor}, transparent 7%) 0%, ${baseColor} 50%, color-mix(in oklch, ${baseColor}, transparent 13%) 100%),
           ${woodGrain}
         `,
         borderRadius: "6px",
-        border: `3px solid ${baseColor}aa`,
+        border: `3px solid color-mix(in oklch, ${baseColor}, transparent 33%)`,
         boxShadow: `
-          inset 0 2px 4px rgba(255,255,255,0.3),
-          inset 0 -2px 4px rgba(0,0,0,0.1),
-          0 4px 8px rgba(0,0,0,0.15)
+          inset 0 2px 4px oklch(1 0 0 / 0.3),
+          inset 0 -2px 4px oklch(0 0 0 / 0.1),
+          0 4px 8px oklch(0 0 0 / 0.15)
         `,
       };
     } else {
       return {
         backgroundColor: baseColor,
-        backgroundImage: `linear-gradient(135deg, ${baseColor}dd 0%, ${baseColor} 50%, ${baseColor}dd 100%), ${woodGrain}`,
+        backgroundImage: `linear-gradient(135deg, color-mix(in oklch, ${baseColor}, transparent 13%) 0%, ${baseColor} 50%, color-mix(in oklch, ${baseColor}, transparent 13%) 100%), ${woodGrain}`,
         borderRadius: "8px",
-        border: `3px solid ${baseColor}aa`,
+        border: `3px solid color-mix(in oklch, ${baseColor}, transparent 33%)`,
         boxShadow: `
-          inset 0 2px 4px rgba(255,255,255,0.3),
-          inset 0 -2px 4px rgba(0,0,0,0.1),
-          0 4px 8px rgba(0,0,0,0.15)
+          inset 0 2px 4px oklch(1 0 0 / 0.3),
+          inset 0 -2px 4px oklch(0 0 0 / 0.1),
+          0 4px 8px oklch(0 0 0 / 0.15)
         `,
       };
     }
@@ -377,14 +377,14 @@ function TableRenderer({ table, isSelected, isDragging, onDragStart }: TableRend
           chair={chair}
           isSelected={isSelected}
           showSeatNumber={isSelected}
-          chairColor={isSelected ? "#FEF3C7" : "#E5E7EB"}
+          chairColor={isSelected ? "oklch(0.9549 0.0466 99.6837)" : "oklch(0.9217 0.0020 264.0520)"}
         />
       ))}
 
       {/* Table shape */}
       <div
         className={`w-full h-full flex items-center justify-center text-white font-semibold shadow-lg hover:shadow-xl transition-all cursor-move ${
-          isSelected ? "ring-4 ring-blue-500 ring-opacity-50" : ""
+          isSelected ? "ring-4 ring-primary ring-opacity-50" : ""
         }`}
         style={getTableStyle()}
         onMouseDown={onDragStart}
@@ -426,9 +426,9 @@ function RowSectionRenderer({ rowSection, isSelected, isDragging, onDragStart }:
   const rowGap = 8;
 
   // Theater color scheme
-  const theaterColor = color || "#DC2626"; // Rich red
-  const seatColor = isSelected ? "#F59E0B" : "#B91C1C"; // Amber when selected, dark red default
-  const seatColorLight = isSelected ? "#FCD34D" : "#DC2626";
+  const theaterColor = color || "oklch(0.5777 0.2216 25.3381)"; // Rich red - red-600
+  const seatColor = isSelected ? "oklch(0.7533 0.1538 69.6831)" : "oklch(0.4595 0.2095 26.8401)"; // Amber when selected, dark red default
+  const seatColorLight = isSelected ? "oklch(0.8760 0.1254 85.8740)" : "oklch(0.6324 0.2573 29.2339)";
 
   return (
     <div
@@ -612,12 +612,12 @@ function StageRenderer({ stage, isSelected, isDragging, onDragStart }: StageRend
       <div
         className="w-full h-full rounded-lg shadow-xl hover:shadow-2xl transition-all flex flex-col items-center justify-center"
         style={{
-          background: `linear-gradient(135deg, ${color || "#EF4444"} 0%, ${color || "#EF4444"}dd 100%)`,
-          border: isSelected ? `3px solid ${color || "#EF4444"}` : "3px solid transparent",
+          background: `linear-gradient(135deg, ${color || "oklch(0.6279 0.2578 27.3251)"} 0%, color-mix(in oklch, ${color || "oklch(0.6279 0.2578 27.3251)"}, transparent 13%) 100%)`,
+          border: isSelected ? `3px solid ${color || "oklch(0.6279 0.2578 27.3251)"}` : "3px solid transparent",
           boxShadow: `
-            inset 0 2px 4px rgba(255,255,255,0.3),
-            inset 0 -2px 4px rgba(0,0,0,0.2),
-            0 8px 16px rgba(0,0,0,0.2)
+            inset 0 2px 4px oklch(1 0 0 / 0.3),
+            inset 0 -2px 4px oklch(0 0 0 / 0.2),
+            0 8px 16px oklch(0 0 0 / 0.2)
           `,
         }}
       >
@@ -635,7 +635,7 @@ function StageRenderer({ stage, isSelected, isDragging, onDragStart }: StageRend
         <div
           className="absolute bottom-0 left-0 right-0 h-2"
           style={{
-            background: `linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%)`,
+            background: `linear-gradient(180deg, transparent 0%, oklch(0 0 0 / 0.3) 100%)`,
             borderBottomLeftRadius: "8px",
             borderBottomRightRadius: "8px",
           }}
@@ -678,7 +678,7 @@ function DanceFloorRenderer({ danceFloor, isSelected, isDragging, onDragStart }:
       <div
         className="w-full h-full rounded-lg shadow-lg hover:shadow-xl transition-all overflow-hidden relative"
         style={{
-          border: isSelected ? `3px solid ${color || "#EC4899"}` : "3px solid transparent",
+          border: isSelected ? `3px solid ${color || "oklch(0.6714 0.2144 343.6716)"}` : "3px solid transparent",
         }}
       >
         {/* Checkered pattern */}
@@ -686,14 +686,14 @@ function DanceFloorRenderer({ danceFloor, isSelected, isDragging, onDragStart }:
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(45deg, ${color || "#EC4899"}33 25%, transparent 25%),
-              linear-gradient(-45deg, ${color || "#EC4899"}33 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, ${color || "#EC4899"}33 75%),
-              linear-gradient(-45deg, transparent 75%, ${color || "#EC4899"}33 75%)
+              linear-gradient(45deg, color-mix(in oklch, ${color || "oklch(0.6714 0.2144 343.6716)"}, transparent 80%) 25%, transparent 25%),
+              linear-gradient(-45deg, color-mix(in oklch, ${color || "oklch(0.6714 0.2144 343.6716)"}, transparent 80%) 25%, transparent 25%),
+              linear-gradient(45deg, transparent 75%, color-mix(in oklch, ${color || "oklch(0.6714 0.2144 343.6716)"}, transparent 80%) 75%),
+              linear-gradient(-45deg, transparent 75%, color-mix(in oklch, ${color || "oklch(0.6714 0.2144 343.6716)"}, transparent 80%) 75%)
             `,
             backgroundSize: '40px 40px',
             backgroundPosition: '0 0, 0 20px, 20px -20px, -20px 0px',
-            backgroundColor: color ? `${color}11` : "#EC489911",
+            backgroundColor: color ? `color-mix(in oklch, ${color}, transparent 93%)` : "color-mix(in oklch, oklch(0.6714 0.2144 343.6716), transparent 93%)",
           }}
         />
 
@@ -701,7 +701,7 @@ function DanceFloorRenderer({ danceFloor, isSelected, isDragging, onDragStart }:
         <div
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 60%)`,
+            background: `radial-gradient(ellipse at 50% 50%, oklch(1 0 0 / 0.2) 0%, transparent 60%)`,
           }}
         />
 
@@ -712,10 +712,9 @@ function DanceFloorRenderer({ danceFloor, isSelected, isDragging, onDragStart }:
               💃
             </div>
             <div
-              className="text-sm font-bold uppercase tracking-wider drop-shadow-md px-3 py-1 rounded"
+              className="text-sm font-bold uppercase tracking-wider drop-shadow-md px-3 py-1 rounded bg-white/90"
               style={{
-                color: color || "#EC4899",
-                backgroundColor: "rgba(255,255,255,0.9)",
+                color: color || "oklch(0.6714 0.2144 343.6716)",
               }}
             >
               {label || "Dance Floor"}

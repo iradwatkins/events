@@ -19,7 +19,7 @@ export const createStripeConnectAccount = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
       .first();
 
     if (!user) {
@@ -65,7 +65,7 @@ export const saveStripeConnectAccount = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
       .first();
 
     if (!user) {

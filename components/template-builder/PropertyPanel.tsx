@@ -226,7 +226,7 @@ function RowSectionProperties({ rowSection, onUpdate }: RowSectionPropertiesProp
   return (
     <div className="space-y-4">
       {/* Row section type indicator */}
-      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="p-3 bg-accent border border-primary/30 rounded-lg">
         <p className="text-sm font-semibold text-gray-900">Row Section</p>
         <p className="text-xs text-primary mt-1">
           Total: {rowSection.rowCount * rowSection.seatsPerRow} seats

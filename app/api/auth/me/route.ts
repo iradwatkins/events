@@ -7,12 +7,12 @@ import { Id } from "@/convex/_generated/dataModel";
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "your-secret-key-change-this-in-production"
+  process.env.AUTH_SECRET || process.env.JWT_SECRET || "your-secret-key-change-this-in-production"
 );
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get("auth-token")?.value;
+    const token = request.cookies.get("session_token")?.value || request.cookies.get("auth-token")?.value;
 
     if (!token) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

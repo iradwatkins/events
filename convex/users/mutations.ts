@@ -106,7 +106,7 @@ export const createUser = mutation({
       email: args.email,
       name: args.name,
       passwordHash: args.passwordHash, // Store pre-hashed password
-      role: args.role || "organizer",
+      role: (args.role || "organizer") as "admin" | "organizer" | "user",
       emailVerified: false,
       welcomePopupShown: false,
       createdAt: now,
@@ -291,7 +291,7 @@ export const updatePasswordHash = mutation({
     // Verify admin privileges
     const adminUser = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
       .first();
 
     if (!adminUser || adminUser.role !== "admin") {
@@ -330,7 +330,7 @@ export const updateUserRole = mutation({
     // Verify admin privileges
     const adminUser = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
       .first();
 
     if (!adminUser || adminUser.role !== "admin") {
@@ -385,7 +385,7 @@ export const updateUserPermissions = mutation({
     // Verify admin privileges
     const adminUser = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
       .first();
 
     if (!adminUser || adminUser.role !== "admin") {

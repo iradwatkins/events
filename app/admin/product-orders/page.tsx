@@ -65,7 +65,7 @@ export default function AdminProductOrdersPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING": return "bg-yellow-100 text-yellow-800";
-      case "PROCESSING": return "bg-blue-100 text-blue-800";
+      case "PROCESSING": return "bg-accent text-foreground";
       case "SHIPPED": return "bg-accent text-foreground";
       case "DELIVERED": return "bg-green-100 text-green-800";
       case "CANCELLED": return "bg-red-100 text-red-800";
@@ -223,15 +223,15 @@ export default function AdminProductOrdersPage() {
 
               {/* Tracking Info */}
               {order.trackingNumber && (
-                <div className="border-t border-gray-200 mt-4 pt-4 bg-blue-50 rounded-lg p-3">
-                  <p className="text-sm font-semibold text-blue-900 mb-1">Tracking Number</p>
-                  <p className="font-mono text-blue-700">{order.trackingNumber}</p>
+                <div className="border-t border-gray-200 mt-4 pt-4 bg-accent rounded-lg p-3">
+                  <p className="text-sm font-semibold text-foreground mb-1">Tracking Number</p>
+                  <p className="font-mono text-primary">{order.trackingNumber}</p>
                   {order.trackingUrl && (
                     <a
                       href={order.trackingUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline mt-1 inline-block"
+                      className="text-sm text-primary hover:underline mt-1 inline-block"
                     >
                       Track Package →
                     </a>

@@ -110,8 +110,8 @@ export function PaymentSuccess({
 
         {/* Order Number */}
         <div className="mb-4 p-3 bg-accent/50 border border-border rounded-lg">
-          <div className="text-sm text-blue-900 mb-1">Order Number</div>
-          <div className="text-xl font-bold text-blue-900 font-mono">{orderNumber}</div>
+          <div className="text-sm text-foreground mb-1">Order Number</div>
+          <div className="text-xl font-bold text-foreground font-mono">{orderNumber}</div>
         </div>
 
         {/* Cash Order - Hold Expiration Warning */}
@@ -178,7 +178,7 @@ export function PaymentSuccess({
 
       {/* Next Steps */}
       <div className="bg-accent/50 border border-border rounded-lg p-6 mb-6">
-        <h3 className="font-semibold text-blue-900 mb-3">What's Next?</h3>
+        <h3 className="font-semibold text-foreground mb-3">What's Next?</h3>
         <ul className="space-y-2 text-sm text-accent-foreground">
           {isCashOrder ? (
             <>
@@ -248,7 +248,7 @@ export function PaymentSuccess({
                 flex items-center justify-center gap-2
                 ${
                   action.primary
-                    ? 'bg-primary text-white hover:bg-blue-700'
+                    ? 'bg-primary text-white hover:bg-primary/90'
                     : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400'
                 }
               `}

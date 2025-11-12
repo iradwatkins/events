@@ -1,0 +1,105 @@
+╔══════════════════════════════════════════════════════════════════╗
+║         EVENTS STEPPERSLIFE - WEBHOOK QUICK REFERENCE            ║
+╔══════════════════════════════════════════════════════════════════╗
+
+📍 WEBHOOK ENDPOINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Square Webhook:
+  https://events.stepperslife.com/api/webhooks/square
+
+PayPal Webhook:
+  https://events.stepperslife.com/api/webhooks/paypal
+
+
+🔑 PAYMENT API ENDPOINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PayPal Order Creation:
+  https://events.stepperslife.com/api/paypal/create-order
+
+PayPal Order Capture:
+  https://events.stepperslife.com/api/paypal/capture-order
+
+Square Credit Purchase:
+  https://events.stepperslife.com/api/credits/purchase-with-square
+
+PayPal Credit Purchase:
+  https://events.stepperslife.com/api/credits/purchase-with-paypal
+
+
+💳 SQUARE CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dashboard: https://developer.squareup.com/apps
+App ID: sq0idp-XG8irNWHf98C62-iqowH6Q
+Location ID: L0Q2YC1SPBGD8
+Environment: production
+
+Required Webhook Events:
+  ✓ payment.created
+  ✓ payment.updated
+  ✓ refund.created
+  ✓ refund.updated
+
+
+💰 PAYPAL CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dashboard: https://developer.paypal.com/dashboard/
+Webhook ID: 5NK114525U789563D
+Environment: production
+
+Required Webhook Events:
+  ✓ PAYMENT.SALE.COMPLETED
+  ✓ PAYMENT.SALE.DENIED
+  ✓ PAYMENT.SALE.REFUNDED
+  ✓ CUSTOMER.DISPUTE.CREATED
+
+
+📝 TEST CARDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Square Test Card:
+  Number: 4111 1111 1111 1111
+  Expiry: 12/26
+  CVV: 111
+  ZIP: 12345
+
+
+🔧 QUICK COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+View Logs:
+  pm2 logs events.stepperslife.com
+
+Restart Service:
+  pm2 restart events.stepperslife.com
+
+Test Webhook (PayPal):
+  curl -X POST https://events.stepperslife.com/api/webhooks/paypal \
+    -H "Content-Type: application/json" \
+    -d '{"event_type":"TEST"}'
+
+Test Webhook (Square):
+  curl -X POST https://events.stepperslife.com/api/webhooks/square \
+    -H "Content-Type: application/json" \
+    -d '{"type":"TEST"}'
+
+
+✅ VERIFICATION CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ ] PayPal webhook URL updated in dashboard
+  [ ] Square webhook registered with events
+  [ ] SQUARE_WEBHOOK_SIGNATURE_KEY added to .env.local
+  [ ] PM2 restarted after env update
+  [ ] Test credit purchase (Square)
+  [ ] Test credit purchase (PayPal)
+  [ ] Test ticket purchase (all 3 methods)
+  [ ] Verify webhook 200 responses
+  [ ] Check email confirmations sent
+  [ ] Verify QR codes generated
+
+
+Last Updated: November 11, 2025

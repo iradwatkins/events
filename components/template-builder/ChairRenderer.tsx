@@ -18,7 +18,7 @@ export default function ChairRenderer({
   chair,
   isSelected = false,
   showSeatNumber = false,
-  chairColor = "#E5E7EB", // gray-200
+  chairColor,
 }: ChairRendererProps) {
   return (
     <div
@@ -35,14 +35,12 @@ export default function ChairRenderer({
       {/* Chair seat */}
       <div
         className={`w-full h-full rounded border-2 transition-all ${
-          isSelected ? "ring-2 ring-yellow-400" : ""
-        }`}
+          isSelected
+            ? "ring-2 ring-yellow-400 border-yellow-400 shadow-lg"
+            : "border-gray-400 shadow-sm"
+        } ${chairColor ? '' : 'bg-gray-200'}`}
         style={{
           backgroundColor: chairColor,
-          borderColor: isSelected ? "#FCD34D" : "#9CA3AF", // gray-400
-          boxShadow: isSelected
-            ? "0 3px 6px rgba(252, 211, 77, 0.4)"
-            : "0 2px 3px rgba(0, 0, 0, 0.15)",
         }}
       />
 

@@ -1423,13 +1423,13 @@ export default function SeatingTemplates({
   onClose,
 }: SeatingTemplatesProps) {
   const categories = [
-    { id: "theater", name: "Theater", color: "bg-blue-100 text-blue-700" },
-    { id: "stadium", name: "Stadium", color: "bg-purple-100 text-purple-700" },
+    { id: "theater", name: "Theater", color: "bg-accent text-primary" },
+    { id: "stadium", name: "Stadium", color: "bg-accent text-primary" },
     { id: "concert", name: "Concert", color: "bg-pink-100 text-pink-700" },
     { id: "conference", name: "Conference", color: "bg-red-100 text-red-700" },
     { id: "outdoor", name: "Outdoor", color: "bg-green-100 text-green-700" },
     { id: "wedding", name: "Wedding", color: "bg-pink-100 text-pink-700" },
-    { id: "gala", name: "Gala", color: "bg-purple-100 text-purple-700" },
+    { id: "gala", name: "Gala", color: "bg-accent text-primary" },
     { id: "banquet", name: "Banquet", color: "bg-orange-100 text-orange-700" },
     { id: "custom", name: "Custom", color: "bg-gray-100 text-gray-700" },
   ];
@@ -1442,7 +1442,7 @@ export default function SeatingTemplates({
         className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="bg-purple-600 px-8 py-6 text-white">
+        <div className="bg-primary px-8 py-6 text-white">
           <h2 className="text-2xl font-bold mb-2">Choose a Seating Template</h2>
           <p className="text-blue-100">
             Start with a pre-built layout or create your own from scratch
@@ -1464,10 +1464,10 @@ export default function SeatingTemplates({
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-white border-2 border-gray-200 rounded-lg p-6 text-left hover:border-blue-500 hover:shadow-lg transition-all group"
+                  className="bg-white border-2 border-gray-200 rounded-lg p-6 text-left hover:border-primary hover:shadow-lg transition-all group"
                 >
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="p-3 bg-blue-100 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <div className="p-3 bg-accent rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                       {template.icon}
                     </div>
                     <div className="flex-1">
@@ -1486,7 +1486,7 @@ export default function SeatingTemplates({
                     <div className="text-gray-500">
                       <span className="font-semibold">{template.sections.length}</span> sections
                     </div>
-                    <div className="text-blue-600 font-semibold">
+                    <div className="text-primary font-semibold">
                       ~{template.estimatedCapacity} capacity
                     </div>
                   </div>

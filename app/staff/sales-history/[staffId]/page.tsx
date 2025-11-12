@@ -98,7 +98,7 @@ export default function SalesHistoryPage() {
             <p className="text-2xl font-bold text-gray-900">{staffDetails.salesBreakdown.cash}</p>
             <p className="text-sm text-gray-600">Cash</p>
           </div>
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
+          <div className="text-center p-4 bg-accent rounded-lg">
             <DollarSign className="w-6 h-6 text-primary mx-auto mb-2" />
             <p className="text-2xl font-bold text-gray-900">{staffDetails.salesBreakdown.cashApp}</p>
             <p className="text-sm text-gray-600">Cash App</p>
@@ -152,7 +152,7 @@ export default function SalesHistoryPage() {
                           sale.paymentMethod === "CASH"
                             ? "bg-green-100 text-green-800"
                             : sale.paymentMethod === "CASH_APP"
-                            ? "bg-blue-100 text-gray-800"
+                            ? "bg-accent text-gray-800"
                             : "bg-accent text-accent-foreground"
                         }`}
                       >

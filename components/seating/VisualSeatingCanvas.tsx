@@ -341,8 +341,7 @@ export default function VisualSeatingCanvas({
               }`}
             >
               <div
-                className="w-3 h-3 border-2 flex-shrink-0"
-                style={{ borderColor: "#000000" }}
+                className="w-3 h-3 border-2 flex-shrink-0 border-foreground"
               />
               <span className="font-medium truncate">{section.name}</span>
               <span className={`ml-auto ${selectedSectionId === section.id ? "text-gray-300" : "text-gray-500"}`}>{getTotalSeats(section)}</span>
@@ -392,10 +391,10 @@ export default function VisualSeatingCanvas({
             >
               <div
                 ref={canvasRef}
-                className="relative w-full h-full"
+                className={`relative w-full h-full ${venueImageUrl ? '' : 'bg-gray-50'}`}
                 style={{
                   backgroundImage: venueImageUrl ? `url(${venueImageUrl})` : 'none',
-                  backgroundColor: venueImageUrl ? 'transparent' : '#f9fafb',
+                  backgroundColor: venueImageUrl ? 'transparent' : undefined,
                   backgroundSize: "contain",
                   backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
@@ -407,8 +406,8 @@ export default function VisualSeatingCanvas({
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       backgroundImage: `
-                        linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-                        linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)
+                        linear-gradient(to right, oklch(0 0 0 / 0.05) 1px, transparent 1px),
+                        linear-gradient(to bottom, oklch(0 0 0 / 0.05) 1px, transparent 1px)
                       `,
                       backgroundSize: "50px 50px",
                     }}
@@ -429,8 +428,8 @@ export default function VisualSeatingCanvas({
                           : "No venue image needed! You can design your seating layout on this blank canvas."
                         }
                       </p>
-                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-left">
-                        <p className="text-xs font-semibold text-purple-900 mb-2">📍 Next Steps:</p>
+                      <div className="bg-accent border border-purple-200 rounded-lg p-3 text-left">
+                        <p className="text-xs font-semibold text-foreground mb-2">📍 Next Steps:</p>
                         <ol className="text-xs text-purple-800 space-y-1 list-decimal list-inside">
                           <li>Scroll down to click "Add Section to Canvas"</li>
                           <li>Sections will appear here - drag to position</li>
@@ -462,10 +461,10 @@ export default function VisualSeatingCanvas({
                         width: sectionWidth,
                         height: sectionHeight,
                         backgroundColor: "transparent",
-                        border: isSelected ? "2px solid #000000" : "2px dashed #9E9E9E",
                         borderRadius: "4px",
                         transform: `rotate(${sectionRotation}deg)`,
                       }}
+                      className={isSelected ? "border-2 border-solid border-foreground" : "border-2 border-dashed border-gray-400"}
                       onMouseDown={(e) => handleSectionDragStart(e, section)}
                       whileHover={{ scale: isDragging ? 1 : 1.01 }}
                     >

@@ -365,7 +365,7 @@ export default function EventScanningPage() {
               <button
                 onClick={handleManualScan}
                 disabled={!manualTicketCode.trim() || isProcessing}
-                className="w-full px-6 py-3 bg-white text-primary rounded-lg font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-white text-primary rounded-lg font-bold hover:bg-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? "Checking..." : "Check In"}
               </button>
@@ -428,7 +428,7 @@ export default function EventScanningPage() {
                       {scan.tierName}
                     </div>
                     {scan.soldByStaffName && (
-                      <div className="text-blue-400 text-xs mt-1 flex items-center gap-1">
+                      <div className="text-primary/80 text-xs mt-1 flex items-center gap-1">
                         <span>👤</span>
                         Sold by: {scan.soldByStaffName}
                         {scan.paymentMethod && scan.paymentMethod !== "ONLINE" && (

@@ -110,7 +110,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
         className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl border-l border-gray-200 overflow-y-auto z-50"
       >
         {/* Header */}
-        <div className="bg-purple-600 px-6 py-4 text-white sticky top-0 z-10">
+        <div className="bg-primary px-6 py-4 text-white sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Edit Table</h2>
             <button
@@ -218,7 +218,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
           {/* Auto-Arrange Button */}
           <button
             onClick={handleAutoArrange}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
           >
             <Wand2 className="w-4 h-4" />
             Auto-Arrange Seats
@@ -312,9 +312,9 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
           </div>
 
           {/* Table Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">Table Info</h3>
-            <div className="space-y-1 text-xs text-blue-800">
+          <div className="bg-accent border border-primary/30 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-foreground mb-2">Table Info</h3>
+            <div className="space-y-1 text-xs text-foreground">
               <div className="flex items-center justify-between">
                 <span>Shape:</span>
                 <span className="font-medium">{table.shape}</span>

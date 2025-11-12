@@ -6,8 +6,9 @@ export async function POST() {
     { status: 200 }
   );
 
-  // Clear the auth cookie
+  // Clear both auth cookies (old and new names)
   response.cookies.delete("auth-token");
+  response.cookies.delete("session_token");
 
   return response;
 }

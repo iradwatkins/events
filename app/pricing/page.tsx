@@ -348,7 +348,7 @@ export default function PricingPage() {
           </div>
 
           {/* CONSIGNMENT Model */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-blue-200 relative">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-primary/30 relative">
             {/* Model Image */}
             <div className="h-48 relative">
               <Image
@@ -391,7 +391,7 @@ export default function PricingPage() {
               </div>
 
               <div className="mb-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="bg-accent border border-primary/30 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1">
                     <Clock className="w-4 h-4 text-primary" />
                     <span className="font-semibold text-sm">Settlement Timeline</span>
@@ -538,7 +538,7 @@ export default function PricingPage() {
               </div>
 
               {/* CONSIGNMENT Results */}
-              <div className="bg-blue-50 rounded-lg p-6">
+              <div className="bg-accent rounded-lg p-6">
                 <h3 className="font-bold text-lg mb-4 text-primary">CONSIGNMENT</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">

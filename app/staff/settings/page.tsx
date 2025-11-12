@@ -140,8 +140,8 @@ export default function StaffSettingsPage() {
               <p className="text-sm text-gray-600">
                 Enable this to receive and approve cash payment requests from customers. You'll be notified when a customer wants to pay cash.
               </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
-                <p className="text-xs text-blue-900">
+              <div className="bg-accent border border-primary/30 rounded-lg p-3 mt-3">
+                <p className="text-xs text-foreground">
                   <strong>How it works:</strong> Customers can reserve tickets with a 30-minute hold. You'll receive a notification and can approve the order instantly or generate a 4-digit activation code for the customer.
                 </p>
               </div>
@@ -166,8 +166,8 @@ export default function StaffSettingsPage() {
           <h2 className="text-xl font-bold text-gray-900">Push Notifications</h2>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <p className="text-sm text-blue-900">
+        <div className="bg-accent border border-primary/30 rounded-lg p-4 mb-4">
+          <p className="text-sm text-foreground">
             <strong>Enable browser notifications</strong> to receive real-time alerts when customers make purchases or cash payment requests. You'll need to grant permission when prompted.
           </p>
         </div>

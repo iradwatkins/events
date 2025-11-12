@@ -17,7 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-type StaffRole = "SELLER" | "SCANNER";
+type StaffRole = "TEAM_MEMBERS" | "STAFF";
 
 export default function DefaultTeamPage() {
   const [showAddStaff, setShowAddStaff] = useState(false);
@@ -25,7 +25,7 @@ export default function DefaultTeamPage() {
     name: "",
     email: "",
     phone: "",
-    role: "SELLER" as StaffRole,
+    role: "TEAM_MEMBERS" as StaffRole,
     commissionType: "PERCENTAGE" as "PERCENTAGE" | "FIXED",
     commissionValue: "",
     autoAssignToNewEvents: true,
@@ -33,7 +33,7 @@ export default function DefaultTeamPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const globalStaff = useQuery(api.staff.queries.getGlobalStaff);
+  const globalStaffWithPerformance = useQuery(api.staff.queries.getGlobalStaffWithPerformance);
   const addGlobalStaff = useMutation(api.staff.mutations.addGlobalStaff);
   const toggleAutoAssign = useMutation(api.staff.mutations.toggleStaffAutoAssign);
   const removeStaff = useMutation(api.staff.mutations.removeStaffMember);
@@ -59,7 +59,7 @@ export default function DefaultTeamPage() {
         email: formData.email,
         phone: formData.phone || undefined,
         role: formData.role,
-        canScan: formData.role === "SCANNER",
+        canScan: formData.role === "STAFF",
         commissionType: formData.commissionType,
         commissionValue: commissionAmount,
         autoAssignToNewEvents: formData.autoAssignToNewEvents,
@@ -71,7 +71,7 @@ export default function DefaultTeamPage() {
         name: "",
         email: "",
         phone: "",
-        role: "SELLER",
+        role: "TEAM_MEMBERS",
         commissionType: "PERCENTAGE",
         commissionValue: "",
         autoAssignToNewEvents: true,
@@ -102,13 +102,15 @@ export default function DefaultTeamPage() {
     }
   };
 
-  if (!globalStaff) {
+  if (!globalStaffWithPerformance) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
       </div>
     );
   }
+
+  const globalStaff = globalStaffWithPerformance;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -186,6 +188,15 @@ export default function DefaultTeamPage() {
                     Commission
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Events
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Sales
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Earned
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Auto-Assign
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -232,6 +243,34 @@ export default function DefaultTeamPage() {
                             ${((staff.commissionValue || 0) / 100).toFixed(2)}
                           </>
                         )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        <div className="font-semibold text-gray-900">
+                          {staff.performance?.activeEventCount || 0} active
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {staff.performance?.totalEventCount || 0} total
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        <div className="font-semibold text-gray-900">
+                          {staff.performance?.totalTicketsSold || 0} tickets
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Avg: {staff.performance?.avgTicketsPerEvent || 0}/event
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-green-600">
+                        ${((staff.performance?.totalCommissionEarned || 0) / 100).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Net: ${((staff.performance?.netPayout || 0) / 100).toFixed(2)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -332,9 +371,12 @@ export default function DefaultTeamPage() {
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as StaffRole })}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                   >
-                    <option value="SELLER">Seller</option>
-                    <option value="SCANNER">Scanner</option>
+                    <option value="TEAM_MEMBERS">Team Member (Seller)</option>
+                    <option value="STAFF">Door Staff (Scanner)</option>
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Team Members sell tickets with commission. Door Staff scan tickets at entry.
+                  </p>
                 </div>
 
                 <div>

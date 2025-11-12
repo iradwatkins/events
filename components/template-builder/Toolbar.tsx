@@ -116,7 +116,7 @@ export default function Toolbar({ className = "" }: ToolbarProps) {
                   color: "#8B5CF6",
                 })
               }
-              className="flex flex-col p-3 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-move hover:bg-accent/50 hover:border-blue-300 transition-all group"
+              className="flex flex-col p-3 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-move hover:bg-accent/50 hover:border-primary/40 transition-all group"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-gray-700 group-hover:text-primary">

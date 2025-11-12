@@ -171,14 +171,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               fill: white;
             }
             .cta-bg {
-              fill: rgba(255, 255, 255, 0.2);
+              fill: oklch(1 0 0 / 0.2);
               rx: 8;
             }
             .branding-text {
               font-family: Arial, sans-serif;
               font-size: 14px;
               font-weight: 500;
-              fill: rgba(255, 255, 255, 0.5);
+              fill: oklch(1 0 0 / 0.5);
             }
           </style>
         </defs>

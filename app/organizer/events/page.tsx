@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2, Gift, Sparkles, X, Edit, TrendingUp, Check } from "lucide-react";
+import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2, Gift, Sparkles, X, Edit, TrendingUp, Check, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { formatEventDate } from "@/lib/date-format";
@@ -19,6 +19,11 @@ export default function OrganizerEventsPage() {
   const events = useQuery(api.events.queries.getOrganizerEvents);
   const credits = useQuery(api.credits.queries.getMyCredits);
   const bulkDeleteEvents = useMutation(api.events.mutations.bulkDeleteEvents);
+
+  // Helper: Check if event needs tickets
+  const needsTickets = (event: any) => {
+    return event.eventType === "TICKETED_EVENT" && (!event.ticketTierCount || event.ticketTierCount === 0);
+  };
 
   const [selectedEvents, setSelectedEvents] = useState<Set<Id<"events">>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
@@ -535,15 +540,23 @@ export default function OrganizerEventsPage() {
 
                         <Link
                           href={`/organizer/events/${event._id}/tickets`}
-                          className="flex items-center justify-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex-1 sm:flex-none"
+                          className={`flex items-center justify-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm rounded-lg transition-all flex-1 sm:flex-none relative ${
+                            needsTickets(event)
+                              ? "bg-orange-600 hover:bg-orange-700 text-white shadow-lg animate-pulse-glow"
+                              : "bg-primary hover:bg-primary/90 text-white"
+                          }`}
                         >
                           <TicketCheck className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           <span>Tickets</span>
-                          {event.ticketTierCount !== undefined && event.ticketTierCount > 0 && (
+                          {needsTickets(event) ? (
+                            <span className="ml-0.5 md:ml-1 px-1.5 py-0.5 bg-red-500 text-white rounded-full text-xs font-semibold">
+                              Required
+                            </span>
+                          ) : event.ticketTierCount !== undefined && event.ticketTierCount > 0 ? (
                             <span className="ml-0.5 md:ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-xs font-semibold">
                               {event.ticketTierCount}
                             </span>
-                          )}
+                          ) : null}
                         </Link>
 
                         {/* View Public - Desktop Only */}
@@ -592,11 +605,11 @@ export default function OrganizerEventsPage() {
                               Bundles
                             </Link>
                             <Link
-                              href={`/organizer/events/${event._id}/sales`}
+                              href={`/organizer/events/${event._id}`}
                               className="hidden md:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                             >
-                              <Settings className="w-4 h-4" />
-                              Sales
+                              <BarChart3 className="w-4 h-4" />
+                              Dashboard
                             </Link>
                           </>
                         )}

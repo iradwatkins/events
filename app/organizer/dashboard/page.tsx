@@ -134,8 +134,8 @@ export default function OrganizerDashboardPage() {
         >
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Events</p>
@@ -149,8 +149,8 @@ export default function OrganizerDashboardPage() {
 
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Ticket className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                <Ticket className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Allocated</p>
@@ -327,8 +327,8 @@ export default function OrganizerDashboardPage() {
               href="/organizer/events"
               className="flex items-center gap-3 p-6 bg-white border rounded-lg hover:shadow-md transition-shadow"
             >
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">Manage Events</h3>
@@ -340,8 +340,8 @@ export default function OrganizerDashboardPage() {
               href="/organizer/analytics"
               className="flex items-center gap-3 p-6 bg-white border rounded-lg hover:shadow-md transition-shadow"
             >
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">View Analytics</h3>

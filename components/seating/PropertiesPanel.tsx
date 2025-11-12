@@ -175,7 +175,7 @@ export default function PropertiesPanel({
         className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl border-l border-gray-200 overflow-y-auto z-40"
       >
         {/* Header */}
-        <div className="bg-purple-600 px-6 py-4 text-white sticky top-0 z-10">
+        <div className="bg-primary px-6 py-4 text-white sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">
               {isTable ? `Edit Table` : `Edit Section`}
@@ -404,7 +404,7 @@ export default function PropertiesPanel({
               <div className="mt-4">
                 <button
                   onClick={handleAutoArrange}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all text-sm font-medium"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all text-sm font-medium"
                 >
                   <Wand2 className="w-4 h-4" />
                   Auto-Arrange Seats
@@ -415,9 +415,9 @@ export default function PropertiesPanel({
 
           {/* Table Info */}
           {isTable && (
-            <div className="px-6 py-4 bg-blue-50 border-y border-blue-200">
-              <h3 className="text-xs font-semibold text-blue-900 mb-2">Table Info</h3>
-              <div className="space-y-1 text-xs text-blue-800">
+            <div className="px-6 py-4 bg-accent border-y border-primary/30">
+              <h3 className="text-xs font-semibold text-foreground mb-2">Table Info</h3>
+              <div className="space-y-1 text-xs text-foreground">
                 <div className="flex items-center justify-between">
                   <span>Shape:</span>
                   <span className="font-medium">{(data as Table).shape}</span>

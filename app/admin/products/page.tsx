@@ -240,7 +240,7 @@ export default function ProductsManagementPage() {
                     </Link>
                     <Link
                       href={`/admin/products/${product._id}/edit`}
-                      className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-accent text-primary rounded-lg hover:bg-blue-200 transition-colors text-xs"
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-accent text-primary rounded-lg hover:bg-primary/20 transition-colors text-xs"
                     >
                       <Edit className="w-3.5 h-3.5" />
                       Edit
@@ -249,7 +249,7 @@ export default function ProductsManagementPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleDuplicateProduct(product._id, product.name)}
-                      className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-accent text-primary rounded-lg hover:bg-blue-200 transition-colors text-xs"
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-accent text-primary rounded-lg hover:bg-primary/20 transition-colors text-xs"
                     >
                       <Copy className="w-3.5 h-3.5" />
                       Duplicate

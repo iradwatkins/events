@@ -44,7 +44,7 @@ export default function TemplatesPage() {
         </p>
         <Link
           href="/organizer/events"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Events
@@ -344,13 +344,13 @@ export default function TemplatesPage() {
               <span className="text-sm font-medium text-gray-700">Quick Select:</span>
               <button
                 onClick={selectAllTemplates}
-                className="px-3 py-1.5 text-sm bg-accent text-primary rounded-md hover:bg-blue-200 transition-colors"
+                className="px-3 py-1.5 text-sm bg-accent text-primary rounded-md hover:bg-primary/20 transition-colors"
               >
                 All Custom ({allTemplates.filter((t: any) => t.isCustom).length})
               </button>
               <button
                 onClick={selectFloorPlanTemplates}
-                className="px-3 py-1.5 text-sm bg-accent text-primary rounded-md hover:bg-blue-200 transition-colors"
+                className="px-3 py-1.5 text-sm bg-accent text-primary rounded-md hover:bg-primary/20 transition-colors"
               >
                 Floor Plans ({allTemplates.filter((t: any) => t.isFloorPlan && t.isCustom).length})
               </button>
@@ -467,7 +467,7 @@ export default function TemplatesPage() {
                 onClick={() => setCategoryFilter(category.id as CategoryFilter)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   categoryFilter === category.id
-                    ? "ring-2 ring-blue-500 " + category.color
+                    ? "ring-2 ring-primary " + category.color
                     : category.color + " hover:opacity-80"
                 }`}
               >

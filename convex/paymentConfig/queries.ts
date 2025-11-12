@@ -73,7 +73,7 @@ export const getOrganizerPaymentConfigs = query({
 export const calculateFeePreview = query({
   args: {
     ticketPrice: v.number(), // in cents
-    paymentModel: v.union(v.literal("PRE_PURCHASE"), v.literal("PAY_AS_SELL")),
+    paymentModel: v.union(v.literal("PREPAY"), v.literal("CREDIT_CARD")),
     charityDiscount: v.optional(v.boolean()),
     lowPriceDiscount: v.optional(v.boolean()),
   },
@@ -85,7 +85,7 @@ export const calculateFeePreview = query({
     let platformFee = 0;
     let processingFee = 0;
 
-    if (args.paymentModel === "PAY_AS_SELL") {
+    if (args.paymentModel === "CREDIT_CARD") {
       // Apply discounts
       let platformFeePercent = DEFAULT_PLATFORM_FEE_PERCENT;
       let platformFeeFixed = DEFAULT_PLATFORM_FEE_FIXED_CENTS;

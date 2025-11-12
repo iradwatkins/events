@@ -64,7 +64,7 @@ export function CheckoutLayout({
                     {crumb.href ? (
                       <a
                         href={crumb.href}
-                        className="text-primary hover:text-blue-700 transition-colors"
+                        className="text-primary hover:text-primary transition-colors"
                       >
                         {crumb.label}
                       </a>
@@ -164,7 +164,7 @@ export function CheckoutLayout({
                 <span>Secure Checkout</span>
               </div>
               <div className="flex items-center gap-2">
-                <Lock className="w-5 h-5 text-blue-600" />
+                <Lock className="w-5 h-5 text-primary" />
                 <span>256-bit SSL Encryption</span>
               </div>
               <div className="flex items-center gap-2">

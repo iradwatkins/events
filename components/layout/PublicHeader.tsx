@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { Plus, LogOut, User, Ticket, Calendar, LogIn, Sun, Moon, Menu, X, ShoppingBag } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 
@@ -47,28 +46,26 @@ export function PublicHeader({
   ];
 
   return (
-    <motion.header
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50"
-    >
-      <div className="container mx-auto px-4 py-4">
+    <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50 animate-fade-in">
+      <div className="container mx-auto px-4 py-2">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-              className="relative w-12 h-12"
+            <div
+              className="relative w-auto h-20 sm:h-24 md:h-28 lg:h-32"
+              style={{ aspectRatio: '3/1' }}
             >
-              <Image
-                src="/logos/stepperslife-logo-dark.svg"
-                alt="SteppersLife Events"
-                fill
-                className="object-contain"
-              />
-            </motion.div>
+              {mounted && (
+                <Image
+                  key={theme}
+                  src={theme === "dark" ? "/logos/stepperslife-logo-dark.svg" : "/logos/stepperslife-logo-light.svg"}
+                  alt="SteppersLife Events"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              )}
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -88,13 +85,11 @@ export function PublicHeader({
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-3">
-            {/* Theme Toggle Button */}
+            {/* Theme Toggle Button - Hidden on mobile (forced light theme) */}
             {mounted && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="hidden md:block p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               >
                 {theme === "dark" ? (
@@ -102,14 +97,15 @@ export function PublicHeader({
                 ) : (
                   <Moon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                 )}
-              </motion.button>
+              </button>
             )}
 
-            {/* Shop Cart Icon (optional - can be enhanced later) */}
+            {/* Shop Cart Icon (visible on all devices) */}
             <Link
               href="/shop"
-              className="hidden sm:flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center min-h-[48px] min-w-[48px]"
               title="Shop"
+              aria-label="Shop"
             >
               <ShoppingBag className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             </Link>
@@ -137,13 +133,9 @@ export function PublicHeader({
                     )}
                   </button>
 
-                  <AnimatePresence>
+                  <React.Fragment>
                     {isProfileOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
+                      <div
                         className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50"
                       >
                         {/* User Info */}
@@ -193,16 +185,14 @@ export function PublicHeader({
                           <LogOut className="w-4 h-4" />
                           Sign Out
                         </button>
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
+                  </React.Fragment>
                 </div>
 
                 {/* Create Event Button */}
                 {showCreateButton && (
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  <div
                     className="hidden sm:block"
                   >
                     <Link
@@ -212,40 +202,34 @@ export function PublicHeader({
                       <Plus className="w-4 h-4" />
                       <span className="hidden md:inline">Create Event</span>
                     </Link>
-                  </motion.div>
+                  </div>
                 )}
               </>
             ) : (
               <>
                 {/* Logged out navigation */}
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <div
                   className="hidden sm:block"
                 >
                   <Link
                     href="/login"
-                    className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors font-medium"
                   >
                     <LogIn className="w-4 h-4" />
                     <span className="hidden md:inline">Sign In</span>
                   </Link>
-                </motion.div>
-                {showCreateButton && (
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="hidden sm:block"
+                </div>
+                <div
+                  className="hidden sm:block"
+                >
+                  <Link
+                    href="/register"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
                   >
-                    <Link
-                      href="/organizer/events/create"
-                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span className="hidden md:inline">Create Event</span>
-                    </Link>
-                  </motion.div>
-                )}
+                    <User className="w-4 h-4" />
+                    <span className="hidden md:inline">Sign Up</span>
+                  </Link>
+                </div>
               </>
             )}
 
@@ -265,13 +249,9 @@ export function PublicHeader({
         </div>
 
         {/* Mobile Menu */}
-        <AnimatePresence>
+        <React.Fragment>
           {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
+            <div
               className="sm:hidden border-t border-gray-200 dark:border-gray-700 mt-4 pt-4 space-y-2"
             >
               {/* Navigation Links */}
@@ -285,6 +265,26 @@ export function PublicHeader({
                   {link.label}
                 </Link>
               ))}
+
+              {/* Theme Toggle for Mobile */}
+              {mounted && (
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors min-h-[48px]"
+                >
+                  {theme === "dark" ? (
+                    <>
+                      <Sun className="w-5 h-5" />
+                      Light Mode
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="w-5 h-5" />
+                      Dark Mode
+                    </>
+                  )}
+                </button>
+              )}
 
               {isAuthenticated ? (
                 <>
@@ -349,27 +349,25 @@ export function PublicHeader({
                   <Link
                     href="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors min-h-[48px]"
                   >
-                    <LogIn className="w-4 h-4" />
+                    <LogIn className="w-5 h-5" />
                     Sign In
                   </Link>
-                  {showCreateButton && (
-                    <Link
-                      href="/organizer/events/create"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Create Event
-                    </Link>
-                  )}
+                  <Link
+                    href="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors font-medium min-h-[48px]"
+                  >
+                    <User className="w-5 h-5" />
+                    Sign Up
+                  </Link>
                 </>
               )}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </React.Fragment>
       </div>
-    </motion.header>
+    </header>
   );
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Calendar, Ticket } from "lucide-react";
 import { formatEventDate, formatEventTime } from "@/lib/date-format";
-import { motion } from "framer-motion";
+
 
 interface MasonryEventCardProps {
   event: {
@@ -27,11 +27,7 @@ export function MasonryEventCard({ event }: MasonryEventCardProps) {
 
   return (
     <Link href={`/events/${event._id}`} className="group block cursor-pointer">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -8 }}
-        transition={{ duration: 0.3 }}
+      <div
         className="relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"
       >
         {/* Full-height Event Image with natural aspect ratio */}
@@ -52,37 +48,28 @@ export function MasonryEventCard({ event }: MasonryEventCardProps) {
         <div className="absolute inset-0 bg-black/20 pointer-events-none rounded-lg" />
 
         {/* Event Type Badge - Top Left */}
-        <motion.div
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+        <div
           className="absolute top-3 left-3"
         >
           <span className="px-3 py-1 text-xs font-semibold bg-white/90 backdrop-blur-sm rounded-full shadow-sm">
             {event.eventType.replace("_", " ")}
           </span>
-        </motion.div>
+        </div>
 
         {/* Tickets Available Badge - Top Right */}
         {event.ticketsVisible && (
-          <motion.div
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
+          <div
             className="absolute top-3 right-3"
           >
             <div className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white text-xs font-semibold rounded-full shadow-sm">
               <Ticket className="w-3 h-3" />
               <span>Available</span>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Date Badge - Bottom Left */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
+        <div
           className="absolute bottom-3 left-3"
         >
           <div className="flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm">
@@ -91,8 +78,8 @@ export function MasonryEventCard({ event }: MasonryEventCardProps) {
               {formatEventDate(event.startDate, event.timezone)}
             </span>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </Link>
   );
 }

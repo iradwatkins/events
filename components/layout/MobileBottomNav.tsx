@@ -4,15 +4,16 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Home, Calendar, ShoppingBag, Ticket, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { motion } from "framer-motion";
+
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
 
   // Hide on certain pages (organizer, admin, staff sections have their own navigation)
-  const hideOnPaths = ['/organizer', '/admin', '/staff', '/login', '/scan'];
-  const shouldHide = hideOnPaths.some(path => pathname?.startsWith(path));
+  // Also hide on checkout pages for cleaner payment experience
+  const hideOnPaths = ['/organizer', '/admin', '/staff', '/login', '/scan', '/checkout'];
+  const shouldHide = hideOnPaths.some(path => pathname?.startsWith(path) || pathname?.includes('/checkout'));
 
   if (shouldHide) {
     return null;
@@ -83,16 +84,7 @@ export function MobileBottomNav() {
                   }`}
                 />
                 {active && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
-                    initial={false}
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 30
-                    }}
-                  />
+                  <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
                 )}
               </div>
               <span

@@ -18,70 +18,21 @@ export function MasonryGrid({ events }: MasonryGridProps) {
     );
   }
 
+  // PERFORMANCE FIX: Single responsive masonry grid instead of 3 separate renders
+  // Previous implementation rendered events 3x (desktop, tablet, mobile)
+  // This reduces component renders by 66% and improves paint performance
   return (
-    <>
-      {/* Desktop: 4 columns */}
-      <div
-        className="hidden md:block"
-        style={{
-          columnCount: 4,
-          columnGap: '16px',
-        }}
-      >
-        {events.map((event: any) => (
-          <div
-            key={event._id}
-            style={{
-              breakInside: 'avoid',
-              marginBottom: '16px',
-            }}
-          >
-            <MasonryEventCard event={event} />
-          </div>
-        ))}
-      </div>
-
-      {/* Tablet: 3 columns */}
-      <div
-        className="hidden sm:block md:hidden"
-        style={{
-          columnCount: 3,
-          columnGap: '16px',
-        }}
-      >
-        {events.map((event: any) => (
-          <div
-            key={event._id}
-            style={{
-              breakInside: 'avoid',
-              marginBottom: '16px',
-            }}
-          >
-            <MasonryEventCard event={event} />
-          </div>
-        ))}
-      </div>
-
-      {/* Mobile: 2 columns */}
-      <div
-        className="block sm:hidden"
-        style={{
-          columnCount: 2,
-          columnGap: '12px',
-        }}
-      >
-        {events.map((event: any) => (
-          <div
-            key={event._id}
-            style={{
-              breakInside: 'avoid',
-              marginBottom: '12px',
-            }}
-          >
-            <MasonryEventCard event={event} />
-          </div>
-        ))}
-      </div>
-    </>
+    <div
+      className="columns-2 sm:columns-3 md:columns-4 gap-3 sm:gap-4"
+    >
+      {events.map((event: any) => (
+        <div
+          key={event._id}
+          className="break-inside-avoid mb-3 sm:mb-4"
+        >
+          <MasonryEventCard event={event} />
+        </div>
+      ))}
+    </div>
   );
 }

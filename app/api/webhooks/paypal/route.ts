@@ -15,7 +15,7 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID || "5NK114525U789563D";
 
-// Verify PayPal webhook signature
+// PRODUCTION: Verify PayPal webhook signature with cryptographic verification
 async function verifyPayPalSignature(
   headers: Headers,
   body: string
@@ -32,33 +32,99 @@ async function verifyPayPalSignature(
       return false;
     }
 
-    // For production, implement full signature verification
-    // For now, we'll verify the webhook ID matches
-    const event = JSON.parse(body);
+    // SECURITY: Validate cert URL is from PayPal
+    const allowedCertDomains = [
+      "paypal.com",
+      "paypalobjects.com"
+    ];
 
-    // Basic verification - check if event is from our webhook
-    if (event.id) {
-      return true; // Simplified for initial implementation
+    let certDomain;
+    try {
+      const certUrlObj = new URL(certUrl);
+      certDomain = certUrlObj.hostname;
+    } catch (e) {
+      console.error("[PayPal Webhook] Invalid cert URL");
+      return false;
     }
 
-    return false;
+    const isValidDomain = allowedCertDomains.some(domain =>
+      certDomain.endsWith(domain)
+    );
+
+    if (!isValidDomain) {
+      console.error("[PayPal Webhook] Cert URL from untrusted domain:", certDomain);
+      return false;
+    }
+
+    // Fetch PayPal's public certificate
+    const certResponse = await fetch(certUrl);
+    if (!certResponse.ok) {
+      console.error("[PayPal Webhook] Failed to fetch certificate");
+      return false;
+    }
+
+    const cert = await certResponse.text();
+
+    // Compute CRC32 of the body (PayPal's requirement)
+    const crc32 = computeCrc32(body);
+
+    // Build the expected message for signature verification
+    // Format: transmission_id|transmission_time|webhook_id|crc32(body)
+    const message = `${transmissionId}|${transmissionTime}|${PAYPAL_WEBHOOK_ID}|${crc32}`;
+
+    // Verify signature using PayPal's certificate
+    const verifier = crypto.createVerify(authAlgo || "sha256WithRSAEncryption");
+    verifier.update(message);
+
+    const isValid = verifier.verify(cert, transmissionSig, "base64");
+
+    if (!isValid) {
+      console.error("[PayPal Webhook] Signature verification failed");
+      return false;
+    }
+
+    console.log("[PayPal Webhook] Signature verified successfully");
+    return true;
   } catch (error) {
     console.error("[PayPal Webhook] Signature verification error:", error);
     return false;
   }
 }
 
+// CRC32 implementation for PayPal webhook verification
+function computeCrc32(str: string): number {
+  const crcTable = makeCrcTable();
+  let crc = 0 ^ (-1);
+
+  for (let i = 0; i < str.length; i++) {
+    crc = (crc >>> 8) ^ crcTable[(crc ^ str.charCodeAt(i)) & 0xFF];
+  }
+
+  return (crc ^ (-1)) >>> 0;
+}
+
+function makeCrcTable(): number[] {
+  let c;
+  const crcTable: number[] = [];
+  for (let n = 0; n < 256; n++) {
+    c = n;
+    for (let k = 0; k < 8; k++) {
+      c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+    }
+    crcTable[n] = c;
+  }
+  return crcTable;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
 
-    // Verify webhook signature (production recommended)
-    if (process.env.PAYPAL_ENVIRONMENT === "production") {
-      const isValid = await verifyPayPalSignature(request.headers, rawBody);
-      if (!isValid) {
-        console.error("[PayPal Webhook] Invalid signature");
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-      }
+    // PRODUCTION: Always verify webhook signature for security
+    const isValid = await verifyPayPalSignature(request.headers, rawBody);
+    if (!isValid) {
+      console.error("[PayPal Webhook] Invalid signature - potential attack attempt");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     const event = JSON.parse(rawBody);

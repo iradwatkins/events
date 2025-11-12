@@ -212,23 +212,26 @@ export const updateTicketTier = mutation({
     if (!event) throw new Error("Event not found");
     if (!event.organizerId) throw new Error("Event has no organizer");
 
-    let organizerId: Id<"users"> = event.organizerId;
-
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[updateTicketTier] TESTING MODE - No authentication required");
-    } else {
-      // Production mode: Verify event ownership
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
-      organizerId = user._id;
+    // PRODUCTION: Require authentication for updating ticket tiers
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to update ticket tiers.");
     }
+
+    // Verify event ownership
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
+    if (!user) {
+      throw new Error("User account not found. Please contact support.");
+    }
+
+    if (event.organizerId !== user._id) {
+      throw new Error("Not authorized. You can only update ticket tiers for your own events.");
+    }
+
+    const organizerId: Id<"users"> = user._id;
 
     // CHECK IF EVENT HAS STARTED - Can edit tickets until event begins
     const now = Date.now();
@@ -946,14 +949,21 @@ export const cancelTicket = mutation({
       }
     }
 
-    // Decrement sold count for tier
+    // PRODUCTION: Decrement sold count with optimistic locking
     if (ticket.ticketTierId) {
       const tier = await ctx.db.get(ticket.ticketTierId);
       if (tier) {
+        const currentVersion = tier.version || 0;
+        const newSold = Math.max(0, tier.sold - 1);
+
+        // Atomic update with version increment
         await ctx.db.patch(ticket.ticketTierId, {
-          sold: Math.max(0, tier.sold - 1),
+          sold: newSold,
+          version: currentVersion + 1,
           updatedAt: Date.now(),
         });
+
+        console.log(`[cancelTicket] Decremented sold count for tier ${tier.name} (v${currentVersion} → v${currentVersion + 1})`);
       }
     }
 
@@ -1143,11 +1153,26 @@ export const completeBundleOrder = mutation({
         generatedTickets.push(ticketId);
       }
 
-      // Increment sold count for this tier
+      // PRODUCTION: Increment sold count with optimistic locking
+      const currentVersion = tier.version || 0;
+      const newSold = tier.sold + includedTier.quantity;
+
+      // CRITICAL: Validate availability BEFORE updating
+      if (newSold > tier.quantity) {
+        throw new Error(
+          `Tickets sold out during checkout. Tier "${tier.name}" only has ` +
+          `${tier.quantity - tier.sold} tickets remaining, but ${includedTier.quantity} were requested.`
+        );
+      }
+
+      // Atomic update with version increment
       await ctx.db.patch(tier._id, {
-        sold: tier.sold + includedTier.quantity,
+        sold: newSold,
+        version: currentVersion + 1,
         updatedAt: Date.now(),
       });
+
+      console.log(`[completeBundleOrder] Updated tier ${tier.name}: sold ${tier.sold} → ${newSold} (v${currentVersion} → v${currentVersion + 1})`);
     }
 
     // Increment bundle sold count
@@ -1303,11 +1328,11 @@ export const deleteTicket = mutation({
     ticketId: v.id("tickets"),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for deleting tickets
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[deleteTicket] TESTING MODE - No authentication required");
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to delete tickets.");
     }
 
     const ticket = await ctx.db.get(args.ticketId);
@@ -1321,16 +1346,18 @@ export const deleteTicket = mutation({
       throw new Error("Ticket is already cancelled");
     }
 
-    // Check ownership (skip in testing mode)
-    if (identity) {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    // Check ownership
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
 
-      if (user && ticket.attendeeId !== user._id) {
-        throw new Error("You can only delete your own tickets");
-      }
+    if (!user) {
+      throw new Error("User account not found. Please contact support.");
+    }
+
+    if (ticket.attendeeId !== user._id) {
+      throw new Error("You can only delete your own tickets");
     }
 
     // Release seat reservation if assigned
@@ -1338,15 +1365,21 @@ export const deleteTicket = mutation({
     // Currently seats are handled through seatReservations table
     // This section needs to be updated to use the new schema
 
-    // Update tier sold count
+    // PRODUCTION: Update tier sold count with optimistic locking
     if (ticket.ticketTierId) {
       const tier = await ctx.db.get(ticket.ticketTierId);
       if (tier && tier.sold > 0) {
+        const currentVersion = tier.version || 0;
+        const newSold = Math.max(0, tier.sold - 1);
+
+        // Atomic update with version increment
         await ctx.db.patch(ticket.ticketTierId, {
-          sold: tier.sold - 1,
+          sold: newSold,
+          version: currentVersion + 1,
           updatedAt: Date.now(),
         });
-        console.log(`[deleteTicket] Decremented sold count for tier ${tier.name}`);
+
+        console.log(`[deleteTicket] Decremented sold count for tier ${tier.name}: ${tier.sold} → ${newSold} (v${currentVersion} → v${currentVersion + 1})`);
       }
     }
 
@@ -1371,11 +1404,11 @@ export const bundleTickets = mutation({
     bundleName: v.string(),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for bundling tickets
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[bundleTickets] TESTING MODE - No authentication required");
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to bundle tickets.");
     }
 
     if (args.ticketIds.length < 2) {

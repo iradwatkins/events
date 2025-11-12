@@ -67,6 +67,7 @@ export default function EventDashboardPage() {
   });
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
+  const currentUser = useQuery(api.users.queries.getCurrentUser);
   const publishEvent = useMutation(api.events.mutations.publishEvent);
   const statistics = useQuery(
     api.events.queries.getEventStatistics,

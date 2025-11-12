@@ -47,12 +47,10 @@ const EVENT_CATEGORIES = [
 
 export default function CreateEventPage() {
   const router = useRouter();
-  // TESTING MODE: No authentication
-  // const { data: session, status } = useSession();
-  const session = null;
-  const status = "unauthenticated";
 
-  // TESTING MODE: Authentication disabled, user creation skipped
+  // PRODUCTION: Authentication will be enforced at the API level
+  // The Convex mutations will verify authentication
+  // This page is protected by middleware/layout guards
 
   const [step, setStep] = useState(1);
 

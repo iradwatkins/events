@@ -21,51 +21,36 @@ export const createTicketTier = mutation({
       availableFrom: v.number(), // Start timestamp
       availableUntil: v.optional(v.number()), // End timestamp (optional for last tier)
     }))),
-    // Table Package Options (LEGACY)
+    // Simple Table Package Support
     isTablePackage: v.optional(v.boolean()),
-    tableCapacity: v.optional(v.number()),
-    // Mixed Allocation - Support both tables AND individual tickets
-    allocationMode: v.optional(v.union(v.literal("individual"), v.literal("table"), v.literal("mixed"))),
-    tableQuantity: v.optional(v.number()),
-    individualQuantity: v.optional(v.number()),
-    // Multiple table groups
-    tableGroups: v.optional(v.array(v.object({
-      seatsPerTable: v.number(),
-      numberOfTables: v.number(),
-      sold: v.optional(v.number()),
-    }))),
+    tableCapacity: v.optional(v.number()), // Seats per table
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication
     const identity = await ctx.auth.getUserIdentity();
-
-    let organizerId: any;
-
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[createTicketTier] TESTING MODE - No authentication required");
-      // Get event to find organizer
-      const event = await ctx.db.get(args.eventId);
-      if (!event) throw new Error("Event not found");
-      organizerId = event.organizerId;
-    } else {
-      // Production mode: Verify event ownership
-      const event = await ctx.db.get(args.eventId);
-      if (!event) throw new Error("Event not found");
-
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
-      organizerId = user._id;
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to create ticket tiers.");
     }
 
-    // Verify event exists (even in TESTING MODE)
+    // Verify event exists and check ownership
     const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Verify user is the event organizer or admin
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user) {
+      throw new Error("User account not found");
+    }
+
+    if (event.organizerId !== user._id && user.role !== "admin") {
+      throw new Error("Not authorized. Only the event organizer can create ticket tiers.");
+    }
 
     // NO ALLOCATION CHECK - Organizers can create any ticket configuration up to event capacity
     // The only limit is the event's venue capacity, which is checked below
@@ -78,49 +63,23 @@ export const createTicketTier = mutation({
         .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
         .collect();
 
-      // Helper function to calculate tier capacity
+      // Simple capacity calculation
       const getTierCapacity = (tier: any) => {
-        if (tier.allocationMode === "mixed") {
-          // Support multiple table groups
-          if (tier.tableGroups && tier.tableGroups.length > 0) {
-            const tableSeats = tier.tableGroups.reduce((sum: number, group: any) => {
-              return sum + (group.seatsPerTable * group.numberOfTables);
-            }, 0);
-            return tableSeats + (tier.individualQuantity || 0);
-          }
-          // Fallback to legacy single table config
-          const tables = (tier.tableQuantity || 0) * (tier.tableCapacity || 0);
-          const individuals = tier.individualQuantity || 0;
-          return tables + individuals;
-        } else if (tier.allocationMode === "table" || tier.isTablePackage) {
-          return (tier.tableQuantity || tier.quantity) * (tier.tableCapacity || 0);
-        } else {
-          return tier.individualQuantity || tier.quantity;
+        const qty = tier.quantity || 0;
+        if (tier.isTablePackage && tier.tableCapacity) {
+          return qty * tier.tableCapacity; // Tables × seats per table
         }
+        return qty; // Individual tickets
       };
 
       const currentAllocated = existingTiers.reduce((sum, tier) => {
         return sum + getTierCapacity(tier);
       }, 0);
 
-      // Calculate new tier capacity
-      let newSeats = 0;
-      if (args.allocationMode === "mixed") {
-        // Support multiple table groups
-        if (args.tableGroups && args.tableGroups.length > 0) {
-          const tableSeats = args.tableGroups.reduce((sum, group) => {
-            return sum + (group.seatsPerTable * group.numberOfTables);
-          }, 0);
-          newSeats = tableSeats + (args.individualQuantity || 0);
-        } else {
-          // Fallback to legacy single table config
-          newSeats = ((args.tableQuantity || 0) * (args.tableCapacity || 0)) + (args.individualQuantity || 0);
-        }
-      } else if (args.allocationMode === "table" || args.isTablePackage) {
-        newSeats = (args.tableQuantity || args.quantity) * (args.tableCapacity || 0);
-      } else {
-        newSeats = args.individualQuantity || args.quantity;
-      }
+      // Calculate new tier capacity (simple)
+      const newSeats = args.isTablePackage && args.tableCapacity
+        ? args.quantity * args.tableCapacity // Tables × seats per table
+        : args.quantity; // Individual tickets
 
       const newTotal = currentAllocated + newSeats;
 
@@ -135,34 +94,20 @@ export const createTicketTier = mutation({
       console.log(`[createTicketTier] Capacity check: ${newTotal}/${event.capacity} tickets allocated`);
     }
 
-    // Determine allocation mode (backward compatible)
-    let allocationMode = args.allocationMode;
-    if (!allocationMode) {
-      // Backward compatibility: infer from isTablePackage
-      allocationMode = args.isTablePackage ? "table" : "individual";
-    }
-
-    // Create ticket tier
+    // Create ticket tier (simplified)
     const tierId = await ctx.db.insert("ticketTiers", {
       eventId: args.eventId,
       name: args.name,
       description: args.description,
       price: args.price,
       pricingTiers: args.pricingTiers, // Early bird pricing support
-      quantity: args.quantity, // Legacy support
-      sold: 0, // Legacy support
+      quantity: args.quantity,
+      sold: 0,
       saleStart: args.saleStart,
       saleEnd: args.saleEnd,
-      isTablePackage: args.isTablePackage, // LEGACY: Table package mode
-      tableCapacity: args.tableCapacity, // Seats per table (used for all modes)
-      // Mixed Allocation Support
-      allocationMode,
-      tableQuantity: args.tableQuantity,
-      tableSold: allocationMode === "individual" ? undefined : 0,
-      individualQuantity: args.individualQuantity,
-      individualSold: allocationMode === "table" ? undefined : 0,
-      // Multiple table groups
-      tableGroups: args.tableGroups,
+      // Simple table package support
+      isTablePackage: args.isTablePackage,
+      tableCapacity: args.tableCapacity, // Seats per table
       isActive: true,
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -255,18 +200,9 @@ export const updateTicketTier = mutation({
     quantity: v.optional(v.number()),
     saleStart: v.optional(v.number()),
     saleEnd: v.optional(v.number()),
+    // Simple table package support
     isTablePackage: v.optional(v.boolean()),
     tableCapacity: v.optional(v.number()),
-    // Mixed Allocation Support
-    allocationMode: v.optional(v.union(v.literal("individual"), v.literal("table"), v.literal("mixed"))),
-    tableQuantity: v.optional(v.number()),
-    individualQuantity: v.optional(v.number()),
-    // Multiple table groups
-    tableGroups: v.optional(v.array(v.object({
-      seatsPerTable: v.number(),
-      numberOfTables: v.number(),
-      sold: v.optional(v.number()),
-    }))),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -323,10 +259,8 @@ export const updateTicketTier = mutation({
     if (event.capacity && event.capacity > 0) {
       // Check if any allocation-related fields are being updated
       const hasAllocationChange = args.quantity !== undefined ||
-                                   args.tableQuantity !== undefined ||
-                                   args.individualQuantity !== undefined ||
                                    args.tableCapacity !== undefined ||
-                                   args.allocationMode !== undefined;
+                                   args.isTablePackage !== undefined;
 
       if (hasAllocationChange) {
         const existingTiers = await ctx.db
@@ -334,25 +268,13 @@ export const updateTicketTier = mutation({
           .withIndex("by_event", (q) => q.eq("eventId", tier.eventId))
           .collect();
 
-        // Helper function to calculate tier capacity
+        // Simple capacity calculation
         const getTierCapacity = (t: any) => {
-          if (t.allocationMode === "mixed") {
-            // Support multiple table groups
-            if (t.tableGroups && t.tableGroups.length > 0) {
-              const tableSeats = t.tableGroups.reduce((sum: number, group: any) => {
-                return sum + (group.seatsPerTable * group.numberOfTables);
-              }, 0);
-              return tableSeats + (t.individualQuantity || 0);
-            }
-            // Fallback to legacy single table config
-            const tables = (t.tableQuantity || 0) * (t.tableCapacity || 0);
-            const individuals = t.individualQuantity || 0;
-            return tables + individuals;
-          } else if (t.allocationMode === "table" || t.isTablePackage) {
-            return (t.tableQuantity || t.quantity) * (t.tableCapacity || 0);
-          } else {
-            return t.individualQuantity || t.quantity;
+          const qty = t.quantity || 0;
+          if (t.isTablePackage && t.tableCapacity) {
+            return qty * t.tableCapacity; // Tables × seats per table
           }
+          return qty; // Individual tickets
         };
 
         // Calculate new total (excluding this tier, then adding new capacity)
@@ -361,30 +283,13 @@ export const updateTicketTier = mutation({
           .reduce((sum, t) => sum + getTierCapacity(t), 0);
 
         // Calculate new tier capacity with updated values
-        const updatedMode = args.allocationMode !== undefined ? args.allocationMode : tier.allocationMode;
+        const updatedIsTablePackage = args.isTablePackage !== undefined ? args.isTablePackage : tier.isTablePackage;
         const updatedTableCap = args.tableCapacity !== undefined ? args.tableCapacity : tier.tableCapacity;
-        const updatedTableQty = args.tableQuantity !== undefined ? args.tableQuantity : tier.tableQuantity;
-        const updatedIndividualQty = args.individualQuantity !== undefined ? args.individualQuantity : tier.individualQuantity;
         const updatedQty = args.quantity !== undefined ? args.quantity : tier.quantity;
-        const updatedTableGroups = args.tableGroups !== undefined ? args.tableGroups : tier.tableGroups;
 
-        let newSeats = 0;
-        if (updatedMode === "mixed") {
-          // Support multiple table groups
-          if (updatedTableGroups && updatedTableGroups.length > 0) {
-            const tableSeats = updatedTableGroups.reduce((sum: number, group: any) => {
-              return sum + (group.seatsPerTable * group.numberOfTables);
-            }, 0);
-            newSeats = tableSeats + (updatedIndividualQty || 0);
-          } else {
-            // Fallback to legacy single table config
-            newSeats = ((updatedTableQty || 0) * (updatedTableCap || 0)) + (updatedIndividualQty || 0);
-          }
-        } else if (updatedMode === "table" || tier.isTablePackage) {
-          newSeats = (updatedTableQty || updatedQty) * (updatedTableCap || 0);
-        } else {
-          newSeats = updatedIndividualQty || updatedQty;
-        }
+        const newSeats = updatedIsTablePackage && updatedTableCap
+          ? updatedQty * updatedTableCap // Tables × seats per table
+          : updatedQty; // Individual tickets
 
         const newTotal = otherTiersTotal + newSeats;
 
@@ -416,11 +321,6 @@ export const updateTicketTier = mutation({
     if (args.saleEnd !== undefined) updates.saleEnd = args.saleEnd;
     if (args.isTablePackage !== undefined) updates.isTablePackage = args.isTablePackage;
     if (args.tableCapacity !== undefined) updates.tableCapacity = args.tableCapacity;
-    // Mixed Allocation fields
-    if (args.allocationMode !== undefined) updates.allocationMode = args.allocationMode;
-    if (args.tableQuantity !== undefined) updates.tableQuantity = args.tableQuantity;
-    if (args.individualQuantity !== undefined) updates.individualQuantity = args.individualQuantity;
-    if (args.tableGroups !== undefined) updates.tableGroups = args.tableGroups;
 
     await ctx.db.patch(args.tierId, updates);
 

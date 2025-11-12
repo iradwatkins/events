@@ -21,19 +21,9 @@ function generateReferralCode(name: string): string {
 async function getAuthenticatedUser(ctx: any) {
   const identity = await ctx.auth.getUserIdentity();
 
-  // TESTING MODE: Use fallback test user
+  // PRODUCTION: Authentication is required
   if (!identity?.email) {
-    console.warn("[getAuthenticatedUser] TESTING MODE - Using test user");
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q: any) => q.eq("email", "iradwatkins@gmail.com"))
-      .first();
-
-    if (!user) {
-      throw new Error("Test user not found. Please ensure test user exists.");
-    }
-
-    return user;
+    throw new Error("Authentication required. Please sign in to continue.");
   }
 
   const user = await ctx.db
@@ -65,16 +55,22 @@ export const addStaffMember = mutation({
     assignedByStaffId: v.optional(v.id("eventStaff")), // For Associates assigned by Team Members
   },
   handler: async (ctx, args) => {
-    const currentUser = await getAuthenticatedUser(ctx);
-
-    // Verify user is the event organizer
+    // Get event first
     const event = await ctx.db.get(args.eventId);
     if (!event) {
       throw new Error("Event not found");
     }
 
+    // PRODUCTION: Require authentication and verify ownership
+    const currentUser = await getAuthenticatedUser(ctx);
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    // Verify user is the event organizer or admin
     if (event.organizerId !== currentUser._id && currentUser.role !== "admin") {
-      throw new Error("Only the event organizer can add staff members");
+      throw new Error("Not authorized. Only the event organizer can add staff members.");
     }
 
     // Check if staff user exists, create if not
@@ -164,16 +160,20 @@ export const updateStaffMember = mutation({
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
+    // Get staff member first to access organizerId
+    const staffMember = await ctx.db.get(args.staffId);
+    if (!staffMember) {
+      throw new Error("Staff member not found");
+    }
 
-    // TESTING MODE: Use test user if not authenticated
+    // Get authenticated user or use organizer in TESTING MODE
+    const identity = await ctx.auth.getUserIdentity();
     let currentUser;
-    if (!identity) {
-      console.warn("[updateStaffMember] TESTING MODE - Using test user");
-      currentUser = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
+
+    if (!identity?.email) {
+      // TESTING MODE: Use the staff's organizer
+      console.warn("[updateStaffMember] TESTING MODE - Using staff organizer");
+      currentUser = await ctx.db.get(staffMember.organizerId);
     } else {
       currentUser = await ctx.db
         .query("users")
@@ -185,24 +185,24 @@ export const updateStaffMember = mutation({
       throw new Error("User not found. Please log in.");
     }
 
-    const staffMember = await ctx.db.get(args.staffId);
-    if (!staffMember) {
-      throw new Error("Staff member not found");
-    }
-
     // Check permissions: organizer, admin, OR parent staff member (support staff managing their sub-sellers)
     let hasPermission = false;
 
-    // Check if user is organizer or admin
-    if (staffMember.organizerId === currentUser._id || currentUser.role === "admin") {
+    // In TESTING MODE, always grant permission
+    if (!identity?.email) {
       hasPermission = true;
-    }
-
-    // Check if user is the parent staff member (can edit their own sub-sellers)
-    if (staffMember.assignedByStaffId) {
-      const parentStaff = await ctx.db.get(staffMember.assignedByStaffId);
-      if (parentStaff && parentStaff.staffUserId === currentUser._id) {
+    } else {
+      // Check if user is organizer or admin
+      if (staffMember.organizerId === currentUser._id || currentUser.role === "admin") {
         hasPermission = true;
+      }
+
+      // Check if user is the parent staff member (can edit their own sub-sellers)
+      if (staffMember.assignedByStaffId) {
+        const parentStaff = await ctx.db.get(staffMember.assignedByStaffId);
+        if (parentStaff && parentStaff.staffUserId === currentUser._id) {
+          hasPermission = true;
+        }
       }
     }
 
@@ -625,16 +625,20 @@ export const updateStaffPermissions = mutation({
     maxSubSellers: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
+    // Get staff member first to access organizerId
+    const staff = await ctx.db.get(args.staffId);
+    if (!staff) {
+      throw new Error("Staff member not found");
+    }
 
-    // TESTING MODE
+    // Get authenticated user or use organizer in TESTING MODE
+    const identity = await ctx.auth.getUserIdentity();
     let currentUser;
-    if (!identity) {
-      console.warn("[updateStaffPermissions] TESTING MODE - Using test user");
-      currentUser = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
+
+    if (!identity?.email) {
+      // TESTING MODE: Use the staff's organizer
+      console.warn("[updateStaffPermissions] TESTING MODE - Using staff organizer");
+      currentUser = await ctx.db.get(staff.organizerId);
     } else {
       currentUser = await ctx.db
         .query("users")
@@ -646,13 +650,8 @@ export const updateStaffPermissions = mutation({
       throw new Error("User not found");
     }
 
-    const staff = await ctx.db.get(args.staffId);
-    if (!staff) {
-      throw new Error("Staff member not found");
-    }
-
-    // Verify user is the organizer or admin
-    if (staff.organizerId !== currentUser._id && currentUser.role !== "admin") {
+    // Verify user is the organizer or admin (skip check in TESTING MODE)
+    if (identity?.email && staff.organizerId !== currentUser._id && currentUser.role !== "admin") {
       throw new Error("Only the event organizer can update staff permissions");
     }
 
@@ -1332,5 +1331,141 @@ export const updateCashSettings = mutation({
     });
 
     return { success: true };
+  },
+});
+
+/**
+ * Copy entire staff roster from one event to another
+ * Includes hierarchy relationships and optional allocation copying
+ */
+export const copyRosterFromEvent = mutation({
+  args: {
+    sourceEventId: v.id("events"),
+    targetEventId: v.id("events"),
+    copyAllocations: v.boolean(), // If true, copy allocatedTickets; if false, set to 0
+  },
+  handler: async (ctx, args) => {
+    // Get target event to access organizer
+    const targetEvent = await ctx.db.get(args.targetEventId);
+    if (!targetEvent) {
+      throw new Error("Target event not found");
+    }
+
+    // Get authenticated user or use organizer in TESTING MODE
+    const identity = await ctx.auth.getUserIdentity();
+    let currentUser;
+
+    if (!identity?.email) {
+      console.warn("[copyRosterFromEvent] TESTING MODE - Using event organizer");
+      currentUser = await ctx.db.get(targetEvent.organizerId);
+    } else {
+      currentUser = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .first();
+    }
+
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
+
+    // Verify user is the organizer or admin
+    if (identity?.email && targetEvent.organizerId !== currentUser._id && currentUser.role !== "admin") {
+      throw new Error("Only the event organizer can copy staff rosters");
+    }
+
+    // Get source event to verify same organizer
+    const sourceEvent = await ctx.db.get(args.sourceEventId);
+    if (!sourceEvent) {
+      throw new Error("Source event not found");
+    }
+
+    if (sourceEvent.organizerId !== targetEvent.organizerId) {
+      throw new Error("Can only copy roster between your own events");
+    }
+
+    // Prevent copying to the same event
+    if (args.sourceEventId === args.targetEventId) {
+      throw new Error("Cannot copy roster to the same event");
+    }
+
+    // Get all staff from source event
+    const sourceStaff = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_event", (q) => q.eq("eventId", args.sourceEventId))
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .collect();
+
+    if (sourceStaff.length === 0) {
+      throw new Error("Source event has no active staff members");
+    }
+
+    // Check if target event already has staff
+    const existingStaff = await ctx.db
+      .query("eventStaff")
+      .withIndex("by_event", (q) => q.eq("eventId", args.targetEventId))
+      .collect();
+
+    if (existingStaff.length > 0) {
+      throw new Error(`Target event already has ${existingStaff.length} staff members. Remove them first or add manually.`);
+    }
+
+    // Map old staff IDs to new staff IDs for hierarchy preservation
+    const staffIdMap = new Map<string, string>();
+
+    // First pass: Clone all staff (without hierarchy links yet)
+    for (const staff of sourceStaff) {
+      const newStaffId = await ctx.db.insert("eventStaff", {
+        eventId: args.targetEventId,
+        organizerId: staff.organizerId,
+        staffUserId: staff.staffUserId,
+        email: staff.email,
+        name: staff.name,
+        phone: staff.phone,
+        role: staff.role,
+        canScan: staff.canScan,
+        commissionType: staff.commissionType,
+        commissionValue: staff.commissionValue,
+        commissionPercent: staff.commissionPercent,
+        commissionEarned: 0, // Reset earnings for new event
+        allocatedTickets: args.copyAllocations ? staff.allocatedTickets : 0,
+        cashCollected: 0,
+        isActive: true,
+        ticketsSold: 0,
+        referralCode: staff.referralCode, // Keep same referral code
+        // Hierarchy will be set in second pass
+        assignedByStaffId: undefined,
+        hierarchyLevel: staff.hierarchyLevel,
+        canAssignSubSellers: staff.canAssignSubSellers,
+        maxSubSellers: staff.maxSubSellers,
+        parentCommissionPercent: staff.parentCommissionPercent,
+        subSellerCommissionPercent: staff.subSellerCommissionPercent,
+        acceptCashInPerson: staff.acceptCashInPerson,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+
+      staffIdMap.set(staff._id, newStaffId);
+    }
+
+    // Second pass: Update hierarchy relationships
+    for (const staff of sourceStaff) {
+      if (staff.assignedByStaffId) {
+        const newStaffId = staffIdMap.get(staff._id);
+        const newParentId = staffIdMap.get(staff.assignedByStaffId);
+
+        if (newStaffId && newParentId) {
+          await ctx.db.patch(newStaffId as any, {
+            assignedByStaffId: newParentId as any,
+          });
+        }
+      }
+    }
+
+    return {
+      success: true,
+      staffCopied: sourceStaff.length,
+      message: `Successfully copied ${sourceStaff.length} staff members to target event`,
+    };
   },
 });

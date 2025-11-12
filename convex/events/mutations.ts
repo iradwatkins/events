@@ -40,10 +40,15 @@ export const createEvent = mutation({
     try {
       console.log("[createEvent] Starting event creation...");
 
-      // Use fallback test user for anonymous events
-      const email = "iradwatkins@gmail.com";
-      const name = "Test Organizer";
-      const image = undefined;
+      // PRODUCTION: Require authentication
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity?.email) {
+        throw new Error("Authentication required. Please sign in to create events.");
+      }
+
+      const email = identity.email;
+      const name = identity.name;
+      const image = identity.pictureUrl;
 
       // Find or create user
       let user = await ctx.db
@@ -72,6 +77,17 @@ export const createEvent = mutation({
         console.log("[createEvent] User found:", user._id);
       }
 
+      // Check if user can create ticketed events
+      if (
+        (args.eventType === "TICKETED_EVENT" || args.eventType === "BALLROOM_EVENT") &&
+        user.canCreateTicketedEvents === false
+      ) {
+        throw new Error(
+          "Your account is restricted to creating Save The Date and Free Events only. " +
+          "Contact support to upgrade your account for ticketed events."
+        );
+      }
+
       console.log("[createEvent] Creating event with args:", {
         ...args,
         images: args.images?.length || 0,
@@ -96,8 +112,10 @@ export const createEvent = mutation({
         doorPrice: args.doorPrice,
         imageUrl: args.imageUrl,
         images: args.images || [],
-        // TESTING MODE: Create events as PUBLISHED so they appear on public homepage immediately
-        status: "PUBLISHED",
+        // PRODUCTION: Create events as DRAFT by default
+        // Organizers must explicitly publish events after setup
+        status: "DRAFT",
+        capacity: args.capacity,
         paymentModelSelected: false,
         ticketsVisible: false,
         allowWaitlist: false,

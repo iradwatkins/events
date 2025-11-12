@@ -358,8 +358,12 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
 
-    // Activation system for cash sales
-    activationCode: v.optional(v.string()), // 4-digit PIN code for customer activation
+    // PRODUCTION: Secure activation system for cash sales
+    activationCode: v.optional(v.string()), // DEPRECATED: Legacy 4-digit codes
+    activationCodeHash: v.optional(v.string()), // SHA-256 hash of 8-char activation code
+    activationCodeExpiry: v.optional(v.number()), // Expiry timestamp (48 hours)
+    activationAttempts: v.optional(v.number()), // Failed activation attempts (rate limiting)
+    activationLastAttempt: v.optional(v.number()), // Last attempt timestamp
     activatedAt: v.optional(v.number()), // When customer activated their ticket
 
     // Staff tracking

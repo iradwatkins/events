@@ -52,7 +52,7 @@ export function PublicHeader({
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <div
-              className="relative w-auto h-20 sm:h-24 md:h-28 lg:h-32"
+              className="relative w-auto h-19 sm:h-[91px] md:h-[106px] lg:h-[122px]"
               style={{ aspectRatio: '3/1' }}
             >
               {mounted && (

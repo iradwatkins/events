@@ -30,13 +30,12 @@ export default function PaymentMethodsPage() {
 
   // Queries
   const event = useQuery(api.events.queries.getEventById, { eventId });
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
   const paymentConfig = useQuery(api.paymentConfig.queries.getEventPaymentConfig, { eventId });
 
   // Mutation
   const updatePaymentMethods = useMutation(api.paymentConfig.mutations.updatePaymentMethods);
 
-  const isLoading = !event || !currentUser;
+  const isLoading = event === undefined;
 
   // Initialize state from existing config
   useState(() => {
@@ -116,12 +115,12 @@ export default function PaymentMethodsPage() {
         </div>
 
         {/* Info Banner */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+        <div className="bg-accent border border-primary/30 rounded-lg p-4 mb-8">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-900">
+            <AlertCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-foreground">
               <p className="font-semibold mb-1">Payment Hierarchy:</p>
-              <ul className="list-disc list-inside space-y-1 text-blue-800">
+              <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li><strong>Organizer Level (This Page):</strong> Choose merchant processor and enable/disable online payment methods</li>
                 <li><strong>Staff Level:</strong> Individual staff can toggle accepting cash payments in-person only</li>
                 <li><strong>Cash payments do not require merchant account setup</strong></li>
@@ -211,8 +210,8 @@ export default function PaymentMethodsPage() {
             {/* Credit/Debit Cards */}
             <div className="flex items-start justify-between p-4 border border-gray-200 rounded-lg">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CreditCard className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
+                  <CreditCard className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">Credit/Debit Cards</h3>

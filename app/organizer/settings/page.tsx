@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
   User,
@@ -16,12 +16,99 @@ import {
 import Link from "next/link";
 
 export default function SettingsPage() {
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
+  const updatePaymentSettings = useMutation(api.users.mutations.updatePaymentProcessorSettings);
+  const connectStripe = useMutation(api.users.mutations.connectStripeAccount);
+  const connectPaypal = useMutation(api.users.mutations.connectPaypalAccount);
+  const disconnectProcessor = useMutation(api.users.mutations.disconnectPaymentProcessor);
 
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!currentUser) {
+  // Fetch user data from API instead of Convex
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'same-origin' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setCurrentUser(data.user);
+        }
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setIsLoading(false);
+      });
+  }, []);
+
+  const handleConnectStripe = async () => {
+    try {
+      setIsProcessing(true);
+      // In production, this would redirect to Stripe Connect OAuth flow
+      // For now, show alert that feature is coming soon
+      alert("Stripe Connect integration coming soon! You'll be redirected to complete Stripe setup.");
+    } catch (error) {
+      console.error("Error connecting Stripe:", error);
+      alert("Failed to connect Stripe account");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleConnectPaypal = async () => {
+    try {
+      setIsProcessing(true);
+      // In production, this would redirect to PayPal OAuth flow
+      alert("PayPal integration coming soon! You'll be redirected to complete PayPal setup.");
+    } catch (error) {
+      console.error("Error connecting PayPal:", error);
+      alert("Failed to connect PayPal account");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDisconnectProcessor = async (processor: "stripe" | "paypal") => {
+    if (!confirm(`Are you sure you want to disconnect ${processor === "stripe" ? "Stripe" : "PayPal"}?`)) {
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      await disconnectProcessor({ processor });
+      alert(`${processor === "stripe" ? "Stripe" : "PayPal"} disconnected successfully`);
+    } catch (error) {
+      console.error(`Error disconnecting ${processor}:`, error);
+      alert(`Failed to disconnect ${processor}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleTogglePaymentMethod = async (
+    method: "stripe" | "paypal" | "cash",
+    enabled: boolean
+  ) => {
+    try {
+      setIsProcessing(true);
+      const updates: any = {};
+
+      if (method === "stripe") updates.acceptsStripePayments = enabled;
+      if (method === "paypal") updates.acceptsPaypalPayments = enabled;
+      if (method === "cash") updates.acceptsCashPayments = enabled;
+
+      await updatePaymentSettings(updates);
+    } catch (error) {
+      console.error("Error updating payment method:", error);
+      alert("Failed to update payment method");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Check if still loading
+  if (isLoading || !currentUser) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -86,36 +173,135 @@ export default function SettingsPage() {
               <CreditCard className="w-5 h-5" />
               Payment Settings
             </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Configure how you receive ticket payments from customers
+            </p>
           </div>
-          <div className="p-6 space-y-4">
-            {currentUser.stripeConnectedAccountId ? (
-              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                <div>
-                  <p className="font-semibold text-green-900">Stripe Connected</p>
-                  <p className="text-sm text-green-700">Your payment account is active</p>
+          <div className="p-6 space-y-6">
+            {/* Stripe Payment Processor */}
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    Stripe
+                    {currentUser.stripeConnectedAccountId && (
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    )}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Accept credit card payments through Stripe
+                  </p>
                 </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currentUser.acceptsStripePayments || false}
+                    onChange={(e) => handleTogglePaymentMethod("stripe", e.target.checked)}
+                    disabled={!currentUser.stripeConnectedAccountId || isProcessing}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary peer-disabled:opacity-50"></div>
+                </label>
               </div>
-            ) : (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="font-semibold text-yellow-900 mb-2">Payment Setup Required</p>
-                <p className="text-sm text-yellow-700 mb-4">
-                  Connect your Stripe account to receive payments for ticketed events
-                </p>
-                <Link
-                  href="/organizer/events"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
+              {currentUser.stripeConnectedAccountId ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 px-3 py-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                    Connected
+                  </div>
+                  <button
+                    onClick={() => handleDisconnectProcessor("stripe")}
+                    disabled={isProcessing}
+                    className="px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded border border-red-200 transition-colors disabled:opacity-50"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleConnectStripe}
+                  disabled={isProcessing}
+                  className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm disabled:opacity-50"
                 >
-                  Set Up Payments
-                  <ExternalLink className="w-4 h-4" />
-                </Link>
+                  Connect Stripe Account
+                </button>
+              )}
+            </div>
+
+            {/* PayPal Payment Processor */}
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    PayPal
+                    {currentUser.paypalMerchantId && (
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    )}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Accept PayPal payments from customers
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currentUser.acceptsPaypalPayments || false}
+                    onChange={(e) => handleTogglePaymentMethod("paypal", e.target.checked)}
+                    disabled={!currentUser.paypalMerchantId || isProcessing}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary peer-disabled:opacity-50"></div>
+                </label>
               </div>
-            )}
+              {currentUser.paypalMerchantId ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 px-3 py-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                    Connected
+                  </div>
+                  <button
+                    onClick={() => handleDisconnectProcessor("paypal")}
+                    disabled={isProcessing}
+                    className="px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded border border-red-200 transition-colors disabled:opacity-50"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleConnectPaypal}
+                  disabled={isProcessing}
+                  className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm disabled:opacity-50"
+                >
+                  Connect PayPal Account
+                </button>
+              )}
+            </div>
+
+            {/* Cash Payments */}
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">Cash Payments</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Accept cash payments in person (no online processing)
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currentUser.acceptsCashPayments || false}
+                    onChange={(e) => handleTogglePaymentMethod("cash", e.target.checked)}
+                    disabled={isProcessing}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary peer-disabled:opacity-50"></div>
+                </label>
+              </div>
+            </div>
 
             <div className="pt-4 border-t border-gray-200">
               <h3 className="font-semibold text-gray-900 mb-2">Credit Balance</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Your pre-purchased ticket credits for the PRE_PURCHASE payment model
+                Your pre-purchased ticket credits for the PREPAY payment model
               </p>
               <div className="flex items-center gap-4">
                 <div className="px-4 py-3 bg-accent border border-border rounded-lg">

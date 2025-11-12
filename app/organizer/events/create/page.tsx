@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ImageUpload } from "@/components/upload/ImageUpload";
-import { CapacityAwareTicketEditor } from "@/components/events/CapacityAwareTicketEditor";
+// Ticket editor removed - tickets created on dedicated page after event creation
 import { WelcomePopup } from "@/components/organizer/WelcomePopup";
 import { getTimezoneFromLocation, getTimezoneName } from "@/lib/timezone";
 import { Id } from "@/convex/_generated/dataModel";
@@ -51,7 +51,6 @@ export default function CreateEventPage() {
   // const { data: session, status } = useSession();
   const session = null;
   const status = "unauthenticated";
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
 
   // TESTING MODE: Authentication disabled, user creation skipped
 
@@ -82,8 +81,7 @@ export default function CreateEventPage() {
   const [uploadedImageId, setUploadedImageId] = useState<Id<"_storage"> | null>(null);
   const [doorPrice, setDoorPrice] = useState("");
 
-  // Ticket Tiers (for TICKETED_EVENT)
-  const [ticketTiers, setTicketTiers] = useState<TicketTier[]>([]);
+  // Ticket Tiers removed - will be created on dedicated tickets page
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
@@ -93,19 +91,21 @@ export default function CreateEventPage() {
   const creditBalance = useQuery(api.payments.queries.getCreditBalance);
   const markWelcomePopupShown = useMutation(api.users.mutations.markWelcomePopupShown);
 
+  // All users can create ticketed events by default (restrictions handled by middleware)
+  const canCreateTicketedEvents = true;
+
   // Show welcome popup if this is their first event and they haven't seen it
   useEffect(() => {
-    if (currentUser && myEvents !== undefined && creditBalance !== undefined) {
+    if (myEvents !== undefined && creditBalance !== undefined) {
       const isFirstEvent = myEvents.length === 0;
       const hasNoCredits = !creditBalance || creditBalance.creditsRemaining === 0;
-      const hasntSeenPopup = !currentUser.welcomePopupShown;
 
-      if (isFirstEvent && hasNoCredits && hasntSeenPopup) {
+      if (isFirstEvent && hasNoCredits) {
         console.log("[CreateEvent] First-time organizer detected - showing welcome popup");
         setShowWelcomePopup(true);
       }
     }
-  }, [currentUser, myEvents, creditBalance]);
+  }, [myEvents, creditBalance]);
 
   const handleWelcomePopupClose = async () => {
     setShowWelcomePopup(false);
@@ -127,7 +127,6 @@ export default function CreateEventPage() {
   }, [city, state]);
 
   const createEvent = useMutation(api.events.mutations.createEvent);
-  const createTicketTier = useMutation(api.tickets.mutations.createTicketTier);
   const testAuth = useMutation(api.debug.testAuth);
 
   // Debug: Test authentication
@@ -186,49 +185,10 @@ export default function CreateEventPage() {
     if (!city) missingFields.push("City");
     if (!state) missingFields.push("State");
 
-    // Validate ticket tiers for TICKETED_EVENT
-    if (eventType === "TICKETED_EVENT") { // || eventType === "BALLROOM_EVENT" - Ballroom feature hidden
-      if (ticketTiers.length === 0) {
-        alert("Please add at least one ticket tier for your ticketed event.");
-        return;
-      }
-
-      // Validate capacity is set
-      if (!capacity || parseInt(capacity) <= 0) {
-        alert("Please set an event capacity for ticketed events");
-        return;
-      }
-
-      // Calculate total allocated tickets
-      let totalAllocated = 0;
-
-      // Validate each tier
-      for (let i = 0; i < ticketTiers.length; i++) {
-        const tier = ticketTiers[i];
-        if (!tier.name) {
-          alert(`Ticket Tier ${i + 1}: Please enter a tier name`);
-          return;
-        }
-        if (!tier.price || parseFloat(tier.price) <= 0) {
-          alert(`Ticket Tier ${i + 1}: Please enter a valid price greater than $0`);
-          return;
-        }
-        if (!tier.quantity || parseInt(tier.quantity) <= 0) {
-          alert(`Ticket Tier ${i + 1}: Please enter a valid quantity greater than 0`);
-          return;
-        }
-        totalAllocated += parseInt(tier.quantity);
-      }
-
-      // Validate total tickets don't exceed capacity
-      const eventCapacity = parseInt(capacity);
-      if (totalAllocated > eventCapacity) {
-        alert(
-          `Total ticket allocation (${totalAllocated.toLocaleString()}) exceeds event capacity (${eventCapacity.toLocaleString()}).\n\n` +
-          `Please reduce your ticket quantities by ${(totalAllocated - eventCapacity).toLocaleString()} tickets or increase your event capacity.`
-        );
-        return;
-      }
+    // Validate capacity for ticketed events (tickets will be created later)
+    if (eventType === "TICKETED_EVENT" && (!capacity || parseInt(capacity) <= 0)) {
+      alert("Please set an event capacity for ticketed events");
+      return;
     }
 
     if (missingFields.length > 0) {
@@ -292,7 +252,6 @@ export default function CreateEventPage() {
       console.log("[CREATE EVENT] Submitting event data:", eventData);
       console.log("[CREATE EVENT] Session status:", status);
       // console.log("[CREATE EVENT] Session user:", session?.user);
-      console.log("[CREATE EVENT] Current user from Convex:", currentUser);
 
       const eventId = await createEvent(eventData);
 
@@ -304,61 +263,14 @@ export default function CreateEventPage() {
         throw new Error("No event ID returned from server");
       }
 
-      // Create ticket tiers for TICKETED_EVENT
-      if (eventType === "TICKETED_EVENT" && ticketTiers.length > 0) { // || eventType === "BALLROOM_EVENT" - Ballroom feature hidden
-        console.log("[CREATE EVENT] Creating", ticketTiers.length, "ticket tiers...");
-
-        for (const tier of ticketTiers) {
-          const priceCents = Math.round(parseFloat(tier.price) * 100);
-          const quantity = parseInt(tier.quantity);
-
-          await createTicketTier({
-            eventId,
-            name: tier.name,
-            description: tier.description || undefined,
-            price: priceCents,
-            quantity,
-            // Mixed Allocation Support
-            allocationMode: tier.allocationMode,
-            tableQuantity: tier.tableQuantity,
-            individualQuantity: tier.individualQuantity,
-            tableGroups: tier.tableGroups,
-            // Legacy table package support
-            isTablePackage: tier.isTablePackage,
-            tableCapacity: tier.tableCapacity,
-          });
-        }
-
-        console.log("[CREATE EVENT] All ticket tiers created successfully");
-      }
-
-      // Keep spinning while redirecting
+      // Tickets will be created on dedicated tickets page after event creation
+      console.log("[CREATE EVENT] Event created successfully");
       console.log("[CREATE EVENT] Event type selected:", eventType);
       console.log("[CREATE EVENT] Event ID:", eventId);
 
-      // Redirect based on event type and credit balance
-      // Ballroom feature hidden
-      // if (eventType === "BALLROOM_EVENT") {
-      //   console.log("[CREATE EVENT] Redirecting to seating designer for ballroom event...");
-      //   router.push(`/organizer/events/${eventId}/seating`);
-      // } else
-      if (eventType === "TICKETED_EVENT") {
-        // Check if user has credits - if yes, go to dashboard; if no, go to payment setup
-        // Note: Credits should have just been granted if this was first event
-        const hasCredits = creditBalance && creditBalance.creditsRemaining > 0;
-
-        if (hasCredits) {
-          console.log("[CREATE EVENT] User has credits - Redirecting to dashboard...");
-          router.push("/organizer/events");
-        } else {
-          console.log("[CREATE EVENT] No credits - Redirecting to payment setup...");
-          router.push(`/organizer/events/${eventId}/payment-setup`);
-        }
-      } else {
-        // For SAVE_THE_DATE and FREE_EVENT, go straight to dashboard
-        console.log("[CREATE EVENT] Event type is", eventType, "- Redirecting to dashboard...");
-        router.push("/organizer/events");
-      }
+      // Always redirect to events list where organizer can add tickets
+      console.log("[CREATE EVENT] Redirecting to events dashboard...");
+      router.push("/organizer/events");
 
       // Reset after a delay to allow redirect to happen
       setTimeout(() => setIsSubmitting(false), 2000);
@@ -441,30 +353,51 @@ export default function CreateEventPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Event Type *
                 </label>
+
+                {/* Show restriction notice if user cannot create ticketed events */}
+                {!canCreateTicketedEvents && (
+                  <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-start gap-2">
+                      <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-semibold text-amber-900">Account Restriction</p>
+                        <p className="text-amber-700 mt-1">
+                          Your account can only create <strong>Save The Date</strong> and <strong>Free Events</strong>.
+                          Contact support to upgrade for ticketed event access.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
-                    { type: "TICKETED_EVENT" as EventType, label: "Ticketed Event", desc: "Sell tickets", icon: "🎫" },
+                    canCreateTicketedEvents ? { type: "TICKETED_EVENT" as EventType, label: "Ticketed Event", desc: "Sell tickets", icon: "🎫" } : null,
                     // Ballroom feature hidden
-                    // { type: "BALLROOM_EVENT" as EventType, label: "Ballroom Event", desc: "Table seating & tickets", icon: "💃" },
+                    // canCreateTicketedEvents ? { type: "BALLROOM_EVENT" as EventType, label: "Ballroom Event", desc: "Table seating & tickets", icon: "💃" } : null,
                     { type: "FREE_EVENT" as EventType, label: "Free Event", desc: "Free registration", icon: "🎉" },
                     { type: "SAVE_THE_DATE" as EventType, label: "Save the Date", desc: "Coming soon", icon: "📅" },
-                  ].filter(Boolean).map(({ type, label, desc, icon }) => (
-                    <button
-                      key={type}
-                      onClick={() => setEventType(type)}
-                      className={`p-4 border-2 rounded-lg text-left transition-all ${
-                        eventType === type
-                          ? "border-primary bg-accent"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <p className="font-semibold text-gray-900">
-                        <span className="mr-2">{icon}</span>
-                        {label}
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">{desc}</p>
-                    </button>
-                  ))}
+                  ].filter(Boolean).map((item) => {
+                    if (!item) return null;
+                    const { type, label, desc, icon } = item;
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => setEventType(type)}
+                        className={`p-4 border-2 rounded-lg text-left transition-all ${
+                          eventType === type
+                            ? "border-primary bg-accent"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <p className="font-semibold text-gray-900">
+                          <span className="mr-2">{icon}</span>
+                          {label}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">{desc}</p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -707,34 +640,6 @@ export default function CreateEventPage() {
                 </div>
               )}
 
-              {/* Ticket Tiers - For TICKETED_EVENT */}
-              {eventType === "TICKETED_EVENT" && (
-                <div>
-                  {!capacity || parseInt(capacity) <= 0 ? (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-sm text-yellow-800">
-                        <strong>Set your event capacity first</strong> to start creating tickets.
-                      </p>
-                      <p className="text-xs text-yellow-700 mt-1">
-                        Enter the maximum number of attendees above to continue.
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <CapacityAwareTicketEditor
-                        capacity={parseInt(capacity)}
-                        tiers={ticketTiers}
-                        onChange={setTicketTiers}
-                        showPresets={true}
-                      />
-                      <p className="text-xs text-gray-500 mt-2">
-                        * At least one ticket tier is required for ticketed events
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Event Image (Optional)
@@ -751,7 +656,12 @@ export default function CreateEventPage() {
                   <div className="text-sm text-foreground">
                     <p className="font-semibold mb-1">Next Steps</p>
                     <p>
-                      After creating your event, you'll set up payment options and create ticket tiers.
+                      After creating your event, you'll be redirected to your events dashboard.
+                      {eventType === "TICKETED_EVENT" && (
+                        <span className="block mt-1">
+                          <strong>Important:</strong> Click the blinking "Tickets" button to create your ticket tiers.
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>

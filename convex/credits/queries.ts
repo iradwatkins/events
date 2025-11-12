@@ -34,39 +34,15 @@ export const getCreditBalance = query({
 
 /**
  * Get current user's credit balance
+ * This query should not be used directly - use getCreditBalance with user ID instead
+ * Kept for backward compatibility but returns null
  */
 export const getMyCredits = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user) return null;
-
-    const credits = await ctx.db
-      .query("organizerCredits")
-      .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
-      .first();
-
-    if (!credits) {
-      return {
-        creditsTotal: 0,
-        creditsUsed: 0,
-        creditsRemaining: 0,
-        firstEventFreeUsed: false,
-        hasFirstEventFree: true,
-      };
-    }
-
-    return {
-      ...credits,
-      hasFirstEventFree: !credits.firstEventFreeUsed,
-    };
+    // This query doesn't work with custom JWT auth
+    // Frontend should use getCreditBalance with user ID from /api/auth/me
+    return null;
   },
 });
 

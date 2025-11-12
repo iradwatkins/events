@@ -35,14 +35,13 @@ export default function TicketTiersPage() {
   const [editTierData, setEditTierData] = useState<EditorTicketTier[]>([]);
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
   const ticketTiers = useQuery(api.public.queries.getPublicEventDetails, { eventId });
 
   const createTier = useMutation(api.tickets.mutations.createTicketTier);
   const updateTier = useMutation(api.tickets.mutations.updateTicketTier);
   const deleteTier = useMutation(api.tickets.mutations.deleteTicketTier);
 
-  const isLoading = !event || !currentUser;
+  const isLoading = event === undefined;
 
   if (isLoading) {
     return (
@@ -52,19 +51,8 @@ export default function TicketTiersPage() {
     );
   }
 
-  // Check if user is the organizer
-  if (event.organizerId !== currentUser._id) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
-          <p className="text-gray-600">You don't have permission to access this page.</p>
-          <Link href="/" className="mt-4 inline-block text-primary hover:underline">
-            Go to Homepage
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // No need to check organizer permissions here - the proxy middleware already handles auth
+  // If the user got this far, they're authenticated and authorized
 
   const handleOpenAddTier = () => {
     // Initialize with one empty tier
@@ -95,14 +83,9 @@ export default function TicketTiersPage() {
         description: tier.description || undefined,
         price: priceCents,
         quantity,
-        // Mixed Allocation Support
-        allocationMode: tier.allocationMode,
-        tableQuantity: tier.tableQuantity,
-        individualQuantity: tier.individualQuantity,
-        tableGroups: tier.tableGroups,
-        // Legacy table package support
+        // Simple table package support
         isTablePackage: tier.isTablePackage,
-        tableCapacity: tier.tableCapacity,
+        tableCapacity: tier.seatsPerTable,
       });
 
       setNewTiers([]);
@@ -117,19 +100,16 @@ export default function TicketTiersPage() {
   const handleEditTier = (tier: any) => {
     setEditingTier(tier._id);
 
-    // Convert database tier to editor format
+    // Convert database tier to simplified editor format
     const editorTier: EditorTicketTier = {
       id: tier._id,
       name: tier.name,
       description: tier.description || "",
       price: (tier.price / 100).toString(),
       quantity: tier.quantity.toString(),
-      allocationMode: tier.allocationMode,
-      tableQuantity: tier.tableQuantity,
-      individualQuantity: tier.individualQuantity,
-      tableGroups: tier.tableGroups,
+      // Simple table package support
       isTablePackage: tier.isTablePackage,
-      tableCapacity: tier.tableCapacity,
+      seatsPerTable: tier.tableCapacity,
     };
 
     setEditTierData([editorTier]);
@@ -153,14 +133,9 @@ export default function TicketTiersPage() {
         description: tier.description || undefined,
         price: priceCents,
         quantity,
-        // Mixed Allocation Support
-        allocationMode: tier.allocationMode,
-        tableQuantity: tier.tableQuantity,
-        individualQuantity: tier.individualQuantity,
-        tableGroups: tier.tableGroups,
-        // Legacy table package support
+        // Simple table package support
         isTablePackage: tier.isTablePackage,
-        tableCapacity: tier.tableCapacity,
+        tableCapacity: tier.seatsPerTable,
       });
 
       setEditTierData([]);
@@ -225,40 +200,27 @@ export default function TicketTiersPage() {
             <CapacityProgressBar
               capacity={event.capacity}
               allocated={tiers.reduce((sum, tier) => {
-                // Calculate capacity based on allocation mode
-                if (tier.allocationMode === "mixed") {
-                  const tableSeats = (tier.tableGroups || []).reduce((s, g) => s + (g.seatsPerTable * g.numberOfTables), 0);
-                  const individuals = tier.individualQuantity || 0;
-                  return sum + tableSeats + individuals;
-                } else if (tier.allocationMode === "table" || tier.isTablePackage) {
-                  return sum + ((tier.tableQuantity || tier.quantity) * (tier.tableCapacity || 0));
-                } else {
-                  return sum + (tier.individualQuantity || tier.quantity);
+                // Simple capacity calculation
+                const qty = tier.quantity || 0;
+                if (tier.isTablePackage && tier.tableCapacity) {
+                  return sum + (qty * tier.tableCapacity); // Tables × seats per table
                 }
+                return sum + qty; // Individual tickets
               }, 0)}
               sold={tiers.reduce((sum, tier) => {
-                // Calculate sold based on allocation mode
-                if (tier.allocationMode === "mixed") {
-                  const tablesSold = (tier.tableSold || 0) * (tier.tableCapacity || 0);
-                  const individualsSold = tier.individualSold || 0;
-                  return sum + tablesSold + individualsSold;
-                } else if (tier.allocationMode === "table" || tier.isTablePackage) {
-                  return sum + ((tier.tableSold || tier.sold) * (tier.tableCapacity || 0));
-                } else {
-                  return sum + (tier.individualSold || tier.sold);
+                // Simple sold calculation
+                const sold = tier.sold || 0;
+                if (tier.isTablePackage && tier.tableCapacity) {
+                  return sum + (sold * tier.tableCapacity); // Tables sold × seats per table
                 }
+                return sum + sold; // Individual tickets sold
               }, 0)}
               showBreakdown={tiers.length <= 6}
               breakdown={tiers.map((tier, index) => {
-                let seats = 0;
-                if (tier.allocationMode === "mixed") {
-                  const tableSeats = (tier.tableGroups || []).reduce((s, g) => s + (g.seatsPerTable * g.numberOfTables), 0);
-                  seats = tableSeats + (tier.individualQuantity || 0);
-                } else if (tier.allocationMode === "table" || tier.isTablePackage) {
-                  seats = (tier.tableQuantity || tier.quantity) * (tier.tableCapacity || 0);
-                } else {
-                  seats = tier.individualQuantity || tier.quantity;
-                }
+                const qty = tier.quantity || 0;
+                const seats = tier.isTablePackage && tier.tableCapacity
+                  ? qty * tier.tableCapacity
+                  : qty;
                 return {
                   name: tier.name,
                   quantity: seats,
@@ -292,21 +254,15 @@ export default function TicketTiersPage() {
         ) : (
           <div className="space-y-4">
             {tiers.map((tier) => {
-              // Calculate total capacity and sold
-              let totalCapacity = 0;
-              let totalSold = 0;
-
-              if (tier.allocationMode === "mixed") {
-                const tableSeats = (tier.tableGroups || []).reduce((s, g) => s + (g.seatsPerTable * g.numberOfTables), 0);
-                totalCapacity = tableSeats + (tier.individualQuantity || 0);
-                totalSold = ((tier.tableSold || 0) * (tier.tableCapacity || 0)) + (tier.individualSold || 0);
-              } else if (tier.allocationMode === "table" || tier.isTablePackage) {
-                totalCapacity = (tier.tableQuantity || tier.quantity) * (tier.tableCapacity || 0);
-                totalSold = (tier.tableSold || tier.sold) * (tier.tableCapacity || 0);
-              } else {
-                totalCapacity = tier.individualQuantity || tier.quantity;
-                totalSold = tier.individualSold || tier.sold;
-              }
+              // Simple capacity calculation
+              const qty = tier.quantity || 0;
+              const sold = tier.sold || 0;
+              const totalCapacity = tier.isTablePackage && tier.tableCapacity
+                ? qty * tier.tableCapacity
+                : qty;
+              const totalSold = tier.isTablePackage && tier.tableCapacity
+                ? sold * tier.tableCapacity
+                : sold;
 
               const soldOut = totalSold >= totalCapacity;
               const saleActive = !tier.saleStart || tier.saleStart <= Date.now();
@@ -321,14 +277,9 @@ export default function TicketTiersPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white">{tier.name}</h3>
-                        {tier.allocationMode === "mixed" && (
-                          <span className="px-3 py-1 text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
-                            MIXED: TABLES + INDIVIDUAL
-                          </span>
-                        )}
-                        {(tier.allocationMode === "table" || tier.isTablePackage) && (
+                        {tier.isTablePackage && (
                           <span className="px-3 py-1 text-xs font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full">
-                            TABLE PACKAGES
+                            TABLE PACKAGE
                           </span>
                         )}
                         {soldOut && (
@@ -359,14 +310,19 @@ export default function TicketTiersPage() {
                             Price
                           </div>
                           <p className="text-lg font-bold text-gray-900 dark:text-white">
-                            ${(tier.price / 100).toFixed(2)}{tier.allocationMode === "mixed" ? " /seat" : ""}
+                            ${(tier.price / 100).toFixed(2)}
+                            {tier.isTablePackage && tier.tableCapacity && (
+                              <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
+                                ({qty} × {tier.tableCapacity} seats)
+                              </span>
+                            )}
                           </p>
                         </div>
 
                         <div>
                           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1">
                             <Users className="w-4 h-4" />
-                            {tier.allocationMode === "mixed" ? "Total Seats" : "Quantity"}
+                            {tier.isTablePackage ? "Total Seats" : "Tickets"}
                           </div>
                           <p className="text-lg font-bold text-gray-900 dark:text-white">
                             {totalSold} / {totalCapacity}

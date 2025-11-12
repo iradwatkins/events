@@ -21,14 +21,13 @@ export default function PaymentSetupPage() {
   const [showPrepayment, setShowPrepayment] = useState(false);
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
   const paymentConfig = useQuery(api.events.queries.getPaymentConfig, { eventId });
   const creditBalance = useQuery(api.payments.queries.getCreditBalance);
 
   const configurePayment = useMutation(api.events.mutations.configurePayment);
   const createStripeConnectAccount = useMutation(api.payments.mutations.createStripeConnectAccount);
 
-  const isLoading = !event || !currentUser;
+  const isLoading = event === undefined;
 
   // Check if user has Stripe account connected
   const hasStripeConnected = currentUser?.stripeAccountSetupComplete === true;
@@ -86,7 +85,7 @@ export default function PaymentSetupPage() {
           setIsProcessing(false);
         }
       } else {
-        // Configure credit card model (formerly PAY_AS_SELL)
+        // Configure credit card model (CREDIT_CARD)
         await configurePayment({
           eventId,
           model: "CREDIT_CARD",
@@ -111,7 +110,7 @@ export default function PaymentSetupPage() {
       // Configure pre-purchase model after payment
       await configurePayment({
         eventId,
-        model: "PRE_PURCHASE",
+        model: "PREPAY",
         ticketPrice: 0.30,
       });
 

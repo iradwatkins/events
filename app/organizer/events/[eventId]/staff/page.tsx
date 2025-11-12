@@ -74,11 +74,11 @@ function HierarchyNode({ staff, handleRemoveStaff, level = 0 }: {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
                 {/* Allocated Tickets */}
-                <div className="flex items-center gap-2 text-sm bg-blue-50 px-3 py-2 rounded-lg">
-                  <PackageCheck className="w-4 h-4 text-blue-600" />
+                <div className="flex items-center gap-2 text-sm bg-accent px-3 py-2 rounded-lg">
+                  <PackageCheck className="w-4 h-4 text-primary" />
                   <div className="flex flex-col">
-                    <span className="font-bold text-blue-900">{staff.allocatedTickets || 0}</span>
-                    <span className="text-xs text-blue-600">allocated</span>
+                    <span className="font-bold text-foreground">{staff.allocatedTickets || 0}</span>
+                    <span className="text-xs text-primary">allocated</span>
                   </div>
                 </div>
 
@@ -101,21 +101,21 @@ function HierarchyNode({ staff, handleRemoveStaff, level = 0 }: {
                 </div>
 
                 {/* Commission Earned */}
-                <div className="flex items-center gap-2 text-sm bg-purple-50 px-3 py-2 rounded-lg">
-                  <DollarSign className="w-4 h-4 text-purple-600" />
+                <div className="flex items-center gap-2 text-sm bg-accent px-3 py-2 rounded-lg">
+                  <DollarSign className="w-4 h-4 text-primary" />
                   <div className="flex flex-col">
-                    <span className="font-bold text-purple-900">${(staff.commissionEarned / 100).toFixed(2)}</span>
-                    <span className="text-xs text-purple-600">earned</span>
+                    <span className="font-bold text-foreground">${(staff.commissionEarned / 100).toFixed(2)}</span>
+                    <span className="text-xs text-primary">earned</span>
                   </div>
                 </div>
 
                 {/* Sub-sellers count if applicable */}
                 {hasSubSellers && (
-                  <div className="flex items-center gap-2 text-sm bg-indigo-50 px-3 py-2 rounded-lg">
-                    <Users className="w-4 h-4 text-indigo-600" />
+                  <div className="flex items-center gap-2 text-sm bg-accent px-3 py-2 rounded-lg">
+                    <Users className="w-4 h-4 text-primary" />
                     <div className="flex flex-col">
                       <span className="font-bold text-indigo-900">{staff.subSellers.length}</span>
-                      <span className="text-xs text-indigo-600">sub-sellers</span>
+                      <span className="text-xs text-primary">sub-sellers</span>
                     </div>
                   </div>
                 )}
@@ -173,7 +173,6 @@ export default function StaffManagementPage() {
   const [canScan, setCanScan] = useState(false);
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
-  const currentUser = useQuery(api.users.queries.getCurrentUser);
   const eventStaff = useQuery(api.staff.queries.getEventStaff, { eventId });
 
   const addStaffMember = useMutation(api.staff.mutations.addStaffMember);
@@ -341,7 +340,7 @@ export default function StaffManagementPage() {
                 placeholder="Search staff by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -540,7 +539,7 @@ export default function StaffManagementPage() {
                     value={staffName}
                     onChange={(e) => setStaffName(e.target.value)}
                     placeholder="John Doe"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
 
@@ -553,7 +552,7 @@ export default function StaffManagementPage() {
                     value={staffEmail}
                     onChange={(e) => setStaffEmail(e.target.value)}
                     placeholder="john@example.com"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
 
@@ -566,7 +565,7 @@ export default function StaffManagementPage() {
                     value={staffPhone}
                     onChange={(e) => setStaffPhone(e.target.value)}
                     placeholder="(555) 123-4567"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                 </div>
               </div>
@@ -621,7 +620,7 @@ export default function StaffManagementPage() {
                           value={commissionValue}
                           onChange={(e) => setCommissionValue(e.target.value)}
                           placeholder={commissionType === "PERCENTAGE" ? "10" : "5.00"}
-                          className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
+                          className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent ${
                             commissionType === "FIXED" ? "pl-8" : ""
                           }`}
                         />

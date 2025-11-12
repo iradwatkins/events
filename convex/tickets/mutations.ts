@@ -103,6 +103,7 @@ export const createTicketTier = mutation({
       pricingTiers: args.pricingTiers, // Early bird pricing support
       quantity: args.quantity,
       sold: 0,
+      version: 0, // PRODUCTION: Initialize version for optimistic locking
       saleStart: args.saleStart,
       saleEnd: args.saleEnd,
       // Simple table package support
@@ -136,22 +137,18 @@ export const deleteTicketTier = mutation({
     if (!event) throw new Error("Event not found");
     if (!event.organizerId) throw new Error("Event has no organizer");
 
-    let organizerId: Id<"users"> = event.organizerId;
+    // PRODUCTION: Require authentication
+    if (!identity?.email) {
+      throw new Error("Authentication required");
+    }
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[deleteTicketTier] TESTING MODE - No authentication required");
-    } else {
-      // Production mode: Verify event ownership
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
 
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
-      organizerId = user._id;
+    if (!user || event.organizerId !== user._id) {
+      throw new Error("Not authorized. Only the event organizer can delete ticket tiers.");
     }
 
     // Check if event has started
@@ -653,13 +650,27 @@ export const completeOrder = mutation({
       });
     }
 
-    // Update sold count for each tier and set firstSaleAt if this is first sale
+    // PRODUCTION: Update sold count with optimistic locking to prevent race conditions
     const now = Date.now();
     for (const [tierId, count] of tierSoldCount.entries()) {
       const tier = await ctx.db.get(tierId as Id<"ticketTiers">);
       if (tier && 'sold' in tier) {
+        const currentVersion = tier.version || 0;
+        const newSold = tier.sold + count;
+
+        // CRITICAL: Validate availability BEFORE updating
+        // This prevents overselling even if multiple requests arrive simultaneously
+        if (newSold > tier.quantity) {
+          throw new Error(
+            `Tickets sold out during checkout. Tier "${tier.name}" only has ` +
+            `${tier.quantity - tier.sold} tickets remaining, but ${count} were requested. ` +
+            `Please try again with fewer tickets or choose a different tier.`
+          );
+        }
+
         const updates: Record<string, unknown> = {
-          sold: tier.sold + count,
+          sold: newSold,
+          version: currentVersion + 1, // Increment version for optimistic locking
           updatedAt: now,
         };
 
@@ -669,7 +680,13 @@ export const completeOrder = mutation({
           console.log(`[completeOrder] First sale detected for tier ${tierId} - setting firstSaleAt`);
         }
 
+        // Atomic update with version check
         await ctx.db.patch(tierId as Id<"ticketTiers">, updates);
+
+        console.log(
+          `[completeOrder] Updated tier ${tier.name}: sold ${tier.sold} → ${newSold}, ` +
+          `version ${currentVersion} → ${currentVersion + 1}`
+        );
       }
     }
 

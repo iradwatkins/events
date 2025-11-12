@@ -11,10 +11,28 @@ export default defineSchema({
     role: v.optional(v.union(v.literal("admin"), v.literal("organizer"), v.literal("user"))),
     // Authentication
     passwordHash: v.optional(v.string()), // bcrypt hash for classic login
-    // Stripe fields
+    googleId: v.optional(v.string()), // Google OAuth user ID
+    authProvider: v.optional(v.union(
+      v.literal("password"),
+      v.literal("magic_link"),
+      v.literal("google")
+    )), // Which auth method was used
+    // Magic Link fields
+    magicLinkToken: v.optional(v.string()), // Hashed token for magic link login
+    magicLinkExpiry: v.optional(v.number()), // Expiration timestamp (15 minutes)
+    // Permissions
+    canCreateTicketedEvents: v.optional(v.boolean()), // Restrict organizers to only Save The Date/Free events
+    // Stripe fields (for receiving ticket payments from customers)
     stripeCustomerId: v.optional(v.string()),
     stripeConnectedAccountId: v.optional(v.string()),
     stripeAccountSetupComplete: v.optional(v.boolean()),
+    // PayPal fields (for receiving ticket payments from customers)
+    paypalMerchantId: v.optional(v.string()),
+    paypalAccountSetupComplete: v.optional(v.boolean()),
+    // Payment processor preferences (which processors organizer accepts for ticket sales)
+    acceptsStripePayments: v.optional(v.boolean()),
+    acceptsPaypalPayments: v.optional(v.boolean()),
+    acceptsCashPayments: v.optional(v.boolean()),
     // Onboarding
     welcomePopupShown: v.optional(v.boolean()), // Track if user has seen the 1000 free tickets welcome popup
     // Timestamps
@@ -26,7 +44,9 @@ export default defineSchema({
     isAdmin: v.optional(v.boolean()), // Legacy field (migrated to role field)
   })
     .index("by_email", ["email"])
-    .index("by_role", ["role"]),
+    .index("by_role", ["role"])
+    .index("by_googleId", ["googleId"])
+    .index("by_magicLinkToken", ["magicLinkToken"]),
 
   events: defineTable({
     // Basic info
@@ -88,11 +108,16 @@ export default defineSchema({
     ticketsVisible: v.optional(v.boolean()),
     paymentModelSelected: v.optional(v.boolean()),
 
+    // Ticket stats (calculated fields)
+    ticketsSold: v.optional(v.number()),
+    ticketTierCount: v.optional(v.number()),
+
     // Settings
     allowWaitlist: v.optional(v.boolean()),
     allowTransfers: v.optional(v.boolean()),
     maxTicketsPerOrder: v.optional(v.number()),
     minTicketsPerOrder: v.optional(v.number()),
+    capacity: v.optional(v.number()), // Event capacity (max attendees/tickets)
 
     // Free event specific
     doorPrice: v.optional(v.string()),
@@ -140,7 +165,9 @@ export default defineSchema({
     ticketsPurchased: v.number(),
     amountPaid: v.number(), // in cents
     pricePerTicket: v.number(), // in cents
-    stripePaymentIntentId: v.string(),
+    stripePaymentIntentId: v.optional(v.string()),
+    squarePaymentId: v.optional(v.string()),
+    paypalOrderId: v.optional(v.string()),
     status: v.union(v.literal("PENDING"), v.literal("COMPLETED"), v.literal("FAILED")),
     purchasedAt: v.number(),
   })
@@ -214,16 +241,35 @@ export default defineSchema({
     // If pricingTiers exists, system uses current tier price based on date
     // Otherwise falls back to base price field
 
-    quantity: v.number(), // total available
-    sold: v.number(), // number sold
+    quantity: v.number(), // total available (for individual mode or legacy support)
+    sold: v.number(), // number sold (for individual mode or legacy support)
+    version: v.optional(v.number()), // PRODUCTION: Version number for optimistic locking to prevent race conditions
     saleStart: v.optional(v.number()),
     saleEnd: v.optional(v.number()),
     isActive: v.boolean(),
 
     // Table Package - Sell entire tables as single units
-    isTablePackage: v.optional(v.boolean()), // True if this tier sells whole tables
+    isTablePackage: v.optional(v.boolean()), // LEGACY: True if this tier sells whole tables
     tableCapacity: v.optional(v.number()), // Number of seats per table (4, 6, 8, 10, etc.)
     // When isTablePackage=true, price is for entire table, not per seat
+
+    // Mixed Allocation - Support both tables AND individual tickets in same tier
+    allocationMode: v.optional(v.union(
+      v.literal("individual"), // Default: sell individual tickets only
+      v.literal("table"),      // Sell entire tables only
+      v.literal("mixed")       // Sell BOTH tables AND individual tickets
+    )),
+    tableQuantity: v.optional(v.number()), // LEGACY: Number of tables available (for table/mixed mode)
+    tableSold: v.optional(v.number()),     // Number of tables sold (for table/mixed mode)
+    individualQuantity: v.optional(v.number()), // Individual tickets available (for mixed mode)
+    individualSold: v.optional(v.number()),     // Individual tickets sold (for mixed mode)
+    // Multiple Table Groups - Support different table sizes in same tier
+    tableGroups: v.optional(v.array(v.object({
+      seatsPerTable: v.number(),     // Seats in this table size (e.g., 4, 8)
+      numberOfTables: v.number(),    // How many tables of this size (e.g., 5)
+      sold: v.optional(v.number()),  // How many tables of this group sold
+    }))),
+    // Total capacity = sum(each group: numberOfTables × seatsPerTable) + individualQuantity
 
     // First sale tracking - used to determine when tickets go "live"
     firstSaleAt: v.optional(v.number()), // Timestamp of first ticket sale for this tier
@@ -373,8 +419,8 @@ export default defineSchema({
     autoAssignToNewEvents: v.optional(v.boolean()), // Auto-assign this staff/sub-seller to new events created by organizer or when parent joins new event
 
     // Role and permissions
-    role: v.union(v.literal("SELLER"), v.literal("SCANNER")),
-    canScan: v.optional(v.boolean()), // Sellers can also scan if approved by organizer
+    role: v.union(v.literal("STAFF"), v.literal("TEAM_MEMBERS"), v.literal("ASSOCIATES")),
+    canScan: v.optional(v.boolean()), // Team members and associates can also scan if approved by organizer
 
     // Commission
     commissionType: v.optional(v.union(v.literal("PERCENTAGE"), v.literal("FIXED"))),
@@ -391,6 +437,7 @@ export default defineSchema({
 
     // Cash tracking
     cashCollected: v.optional(v.number()), // Total cash collected by staff in cents
+    acceptCashInPerson: v.optional(v.boolean()), // Whether this staff accepts cash payments in-person
 
     // Status
     isActive: v.boolean(),

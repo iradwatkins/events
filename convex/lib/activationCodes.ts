@@ -1,3 +1,5 @@
+"use node";
+
 /**
  * PRODUCTION-GRADE ACTIVATION CODE SECURITY
  *
@@ -6,6 +8,8 @@
  * - SHA-256 hashing (codes stored hashed, never plain text)
  * - 48-hour expiry
  * - Designed for rate limiting integration
+ *
+ * NOTE: Uses Node.js runtime for crypto module
  */
 
 import crypto from "crypto";

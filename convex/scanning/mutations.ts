@@ -11,25 +11,20 @@ export const scanTicket = mutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for ticket scanning
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Use test user if not authenticated
-    let currentUser;
-    if (!identity) {
-      console.warn("[scanTicket] TESTING MODE - Using test user");
-      currentUser = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
-    } else {
-      currentUser = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    if (!identity?.email) {
+      throw new Error("Authentication required. Staff must be signed in to scan tickets.");
     }
 
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
     if (!currentUser) {
-      throw new Error("User not found. Please log in.");
+      throw new Error("User account not found. Please contact support.");
     }
 
     // Find the ticket
@@ -119,25 +114,20 @@ export const unScanTicket = mutation({
     ticketCode: v.string(),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for ticket management
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Use test user if not authenticated
-    let currentUser;
-    if (!identity) {
-      console.warn("[unScanTicket] TESTING MODE - Using test user");
-      currentUser = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
-    } else {
-      currentUser = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    if (!identity?.email) {
+      throw new Error("Authentication required. Staff must be signed in to manage tickets.");
     }
 
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
     if (!currentUser) {
-      throw new Error("User not found. Please log in.");
+      throw new Error("User account not found. Please contact support.");
     }
 
     // Find the ticket

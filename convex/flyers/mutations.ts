@@ -16,28 +16,20 @@ export const logUploadedFlyer = mutation({
     optimizedSize: v.number(),
   },
   handler: async (ctx, args) => {
-    // Get current user (in TESTING MODE, returns test user)
+    // PRODUCTION: Require authentication for flyer uploads
     const identity = await ctx.auth.getUserIdentity();
 
-    let user;
-    if (!identity) {
-      // TESTING MODE: Get test user
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
-    } else {
-      // Production: Get user by email from identity
-      const userInfo = typeof identity === "string" ? JSON.parse(identity) : identity;
-      const email = userInfo.email || identity.email;
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", email))
-        .first();
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to upload flyers.");
     }
 
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
     if (!user) {
-      throw new Error("User not found");
+      throw new Error("User account not found. Please contact support.");
     }
 
     const flyerId = await ctx.db.insert("uploadedFlyers", {

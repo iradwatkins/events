@@ -90,29 +90,29 @@ export const createSeatingChart = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for creating seating charts
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[createSeatingChart] TESTING MODE - No authentication required");
-    } else {
-      // Production mode: Verify user is the event organizer
-      const event = await ctx.db.get(args.eventId);
-      if (!event) throw new Error("Event not found");
-
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to create seating charts.");
     }
 
-    // Verify event exists
+    // Verify event exists and user is the organizer
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
+    if (!user) {
+      throw new Error("User account not found. Please contact support.");
+    }
+
+    if (event.organizerId !== user._id) {
+      throw new Error("Not authorized. You can only create seating charts for your own events.");
+    }
 
     // Calculate total seats (handles both rows and tables)
     let totalSeats = 0;
@@ -241,27 +241,31 @@ export const updateSeatingChart = mutation({
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for updating seating charts
     const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to update seating charts.");
+    }
 
     const seatingChart = await ctx.db.get(args.seatingChartId);
     if (!seatingChart) throw new Error("Seating chart not found");
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[updateSeatingChart] TESTING MODE - No authentication required");
-    } else {
-      // Production mode: Verify user is the event organizer
-      const event = await ctx.db.get(seatingChart.eventId);
-      if (!event) throw new Error("Event not found");
+    // Verify user is the event organizer
+    const event = await ctx.db.get(seatingChart.eventId);
+    if (!event) throw new Error("Event not found");
 
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
 
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
+    if (!user) {
+      throw new Error("User account not found. Please contact support.");
+    }
+
+    if (event.organizerId !== user._id) {
+      throw new Error("Not authorized. You can only update seating charts for your own events.");
     }
 
     const updates: any = {
@@ -312,27 +316,31 @@ export const deleteSeatingChart = mutation({
     seatingChartId: v.id("seatingCharts"),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for deleting seating charts
     const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to delete seating charts.");
+    }
 
     const seatingChart = await ctx.db.get(args.seatingChartId);
     if (!seatingChart) throw new Error("Seating chart not found");
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[deleteSeatingChart] TESTING MODE - No authentication required");
-    } else {
-      // Production mode: Verify user is the event organizer
-      const event = await ctx.db.get(seatingChart.eventId);
-      if (!event) throw new Error("Event not found");
+    // Verify user is the event organizer
+    const event = await ctx.db.get(seatingChart.eventId);
+    if (!event) throw new Error("Event not found");
 
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
 
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
+    if (!user) {
+      throw new Error("User account not found. Please contact support.");
+    }
+
+    if (event.organizerId !== user._id) {
+      throw new Error("Not authorized. You can only delete seating charts for your own events.");
     }
 
     // Check if there are any reservations

@@ -10,24 +10,21 @@ export const createStripeConnectAccount = mutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for Stripe Connect
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Skip authentication, use test user
-    let user;
-    if (!identity) {
-      console.warn("[createStripeConnectAccount] TESTING MODE - No authentication required");
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
-    } else {
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to connect Stripe.");
     }
 
-    if (!user) throw new Error("User not found");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
+    if (!user) {
+      throw new Error("User account not found. Please contact support.");
+    }
 
     // If user already has a Stripe account, just return a new onboarding link
     if (user.stripeConnectedAccountId) {
@@ -59,24 +56,21 @@ export const saveStripeConnectAccount = mutation({
     accountId: v.string(),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for saving Stripe account
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Skip authentication, use test user
-    let user;
-    if (!identity) {
-      console.warn("[saveStripeConnectAccount] TESTING MODE - No authentication required");
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
-    } else {
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to save Stripe account.");
     }
 
-    if (!user) throw new Error("User not found");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
+    if (!user) {
+      throw new Error("User account not found. Please contact support.");
+    }
 
     // Update user with Stripe account ID and mark as setup complete
     await ctx.db.patch(user._id, {

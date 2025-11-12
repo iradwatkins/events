@@ -43,7 +43,12 @@ export const createTicketBundle = mutation({
     saleEnd: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require authentication for creating ticket bundles
     const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to create ticket bundles.");
+    }
 
     // Determine bundle type (default to SINGLE_EVENT for backward compatibility)
     const bundleType = args.bundleType || "SINGLE_EVENT";
@@ -65,29 +70,26 @@ export const createTicketBundle = mutation({
       }
     }
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[createTicketBundle] TESTING MODE - No authentication required");
-    } else {
-      // Production mode: Verify event ownership
-      const eventsToCheck = bundleType === "SINGLE_EVENT"
-        ? [args.eventId!]
-        : args.eventIds!;
+    // Verify event ownership
+    const eventsToCheck = bundleType === "SINGLE_EVENT"
+      ? [args.eventId!]
+      : args.eventIds!;
 
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
 
-      if (!user) throw new Error("User not found");
+    if (!user) {
+      throw new Error("User account not found. Please contact support.");
+    }
 
-      // Verify all events belong to the same organizer
-      for (const eventId of eventsToCheck) {
-        const event = await ctx.db.get(eventId);
-        if (!event) throw new Error(`Event ${eventId} not found`);
-        if (event.organizerId !== user._id) {
-          throw new Error(`Not authorized to create bundles for event: ${event.name}`);
-        }
+    // Verify all events belong to the organizer
+    for (const eventId of eventsToCheck) {
+      const event = await ctx.db.get(eventId);
+      if (!event) throw new Error(`Event ${eventId} not found`);
+      if (event.organizerId !== user._id) {
+        throw new Error(`Not authorized to create bundles for event: ${event.name}`);
       }
     }
 

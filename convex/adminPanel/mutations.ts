@@ -18,26 +18,24 @@ export const updateUserRole = mutation({
     role: v.union(v.literal("admin"), v.literal("organizer"), v.literal("user")),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require admin authentication for role updates
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: If no identity, use test admin user
-    let admin;
-    if (!identity) {
-      console.warn("[updateUserRole] TESTING MODE - No authentication");
-      admin = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
-    } else {
-      admin = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    if (!identity?.email) {
+      throw new Error("Authentication required. This is an admin-only operation.");
+    }
+
+    const admin = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
+    if (!admin) {
+      throw new Error("User account not found. Please contact support.");
     }
 
     // Require admin role
     requireAdmin(admin);
-    if (!admin) throw new Error("User not found");
 
     // Don't allow changing your own role
     if (admin._id === args.userId) {
@@ -61,26 +59,24 @@ export const deleteUser = mutation({
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    // PRODUCTION: Require admin authentication for user deletion
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: If no identity, use test admin user
-    let admin;
-    if (!identity) {
-      console.warn("[deleteUser] TESTING MODE - No authentication");
-      admin = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
-    } else {
-      admin = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
+    if (!identity?.email) {
+      throw new Error("Authentication required. This is an admin-only operation.");
+    }
+
+    const admin = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
+    if (!admin) {
+      throw new Error("User account not found. Please contact support.");
     }
 
     // Require admin role
     requireAdmin(admin);
-    if (!admin) throw new Error("User not found");
 
     // Don't allow deleting yourself
     if (admin._id === args.userId) {

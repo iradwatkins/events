@@ -30,23 +30,23 @@ export const createRoomTemplate = mutation({
     thumbnailUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // TESTING MODE: Make authentication optional
+    // PRODUCTION: Require authentication for creating templates
     const identity = await ctx.auth.getUserIdentity();
 
-    let userId = undefined;
-
-    if (identity) {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (user) {
-        userId = user._id;
-      }
-    } else {
-      console.warn("[createRoomTemplate] TESTING MODE - No authentication provided");
+    if (!identity?.email) {
+      throw new Error("Authentication required. Please sign in to create room templates.");
     }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email))
+      .first();
+
+    if (!user) {
+      throw new Error("User account not found. Please contact support.");
+    }
+
+    const userId = user._id;
 
     const now = Date.now();
 

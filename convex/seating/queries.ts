@@ -12,22 +12,11 @@ export const getEventSeatingChart = query({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[getEventSeatingChart] TESTING MODE - No authentication required");
+    // Verify ownership if authenticated (TESTING MODE: skip if no identity)
+    if (identity) {
+      await requireEventOwnership(ctx, args.eventId);
     } else {
-      // Production mode: Verify user is the event organizer
-      const event = await ctx.db.get(args.eventId);
-      if (!event) throw new Error("Event not found");
-
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
+      console.warn("[getEventSeatingChart] TESTING MODE - No authentication required");
     }
 
     const seatingChart = await ctx.db
@@ -124,22 +113,11 @@ export const getEventSeatReservations = query({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[getEventSeatReservations] TESTING MODE - No authentication required");
+    // Verify ownership if authenticated (TESTING MODE: skip if no identity)
+    if (identity) {
+      await requireEventOwnership(ctx, args.eventId);
     } else {
-      // Production mode: Verify user is the event organizer
-      const event = await ctx.db.get(args.eventId);
-      if (!event) throw new Error("Event not found");
-
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
+      console.warn("[getEventSeatReservations] TESTING MODE - No authentication required");
     }
 
     const reservations = await ctx.db
@@ -173,22 +151,11 @@ export const getEventTableAssignments = query({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[getEventTableAssignments] TESTING MODE - No authentication required");
+    // Verify ownership if authenticated (TESTING MODE: skip if no identity)
+    if (identity) {
+      await requireEventOwnership(ctx, args.eventId);
     } else {
-      // Production mode: Verify user is the event organizer
-      const event = await ctx.db.get(args.eventId);
-      if (!event) throw new Error("Event not found");
-
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
+      console.warn("[getEventTableAssignments] TESTING MODE - No authentication required");
     }
 
     // Get seating chart

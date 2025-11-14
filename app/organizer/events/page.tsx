@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2, Gift, Sparkles, X, Edit, TrendingUp, Check, BarChart3 } from "lucide-react";
+import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2, Gift, Sparkles, X, Edit, TrendingUp, Check, BarChart3, Eye, EyeOff } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { formatEventDate } from "@/lib/date-format";
@@ -14,11 +14,13 @@ import { Id } from "@/convex/_generated/dataModel";
 export default function OrganizerEventsPage() {
   const router = useRouter();
 
-  // TESTING MODE: Commented out authentication check
-  // const currentUser = useQuery(api.users.queries.getCurrentUser);
+  // Verify user authentication
+  const currentUser = useQuery(api.users.queries.getCurrentUser);
   const events = useQuery(api.events.queries.getOrganizerEvents);
   const credits = useQuery(api.credits.queries.getMyCredits);
   const bulkDeleteEvents = useMutation(api.events.mutations.bulkDeleteEvents);
+  const publishEvent = useMutation(api.events.mutations.publishEvent);
+  const unpublishEvent = useMutation(api.events.mutations.updateEvent);
 
   // Helper: Check if event needs tickets
   const needsTickets = (event: any) => {
@@ -35,7 +37,25 @@ export default function OrganizerEventsPage() {
     failedEvents: Array<{ eventId: string; reason: string }>;
   } | null>(null);
 
-  const isLoading = events === undefined || credits === undefined;
+  const isLoading = events === undefined || credits === undefined || currentUser === undefined;
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading your events...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!currentUser) {
+    router.push("/login");
+    return null;
+  }
 
   // Calculate totals for dashboard
   const totalTicketsAllocated = events?.reduce((sum, event) => sum + (event.totalTickets || 0), 0) || 0;
@@ -83,6 +103,25 @@ export default function OrganizerEventsPage() {
       setSelectedEvents(new Set());
     } else {
       setSelectedEvents(new Set(events.map((e) => e._id)));
+    }
+  };
+
+  // Handle publish/unpublish event
+  const handleTogglePublish = async (eventId: Id<"events">, currentStatus: string) => {
+    try {
+      if (currentStatus === "PUBLISHED") {
+        // Unpublish by setting to DRAFT
+        await unpublishEvent({
+          eventId,
+          status: "DRAFT",
+        });
+      } else {
+        // Publish
+        await publishEvent({ eventId });
+      }
+    } catch (error) {
+      console.error("Failed to toggle publish status:", error);
+      alert(error instanceof Error ? error.message : "Failed to update event status");
     }
   };
 
@@ -514,13 +553,25 @@ export default function OrganizerEventsPage() {
                               {event.eventType.replace("_", " ")}
                             </span>
                           )}
+                          {/* Status Badge */}
+                          {event.status === "PUBLISHED" ? (
+                            <span className="px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full flex items-center gap-1">
+                              <Eye className="w-3 h-3" />
+                              Published
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 rounded-full flex items-center gap-1">
+                              <EyeOff className="w-3 h-3" />
+                              Draft
+                            </span>
+                          )}
                           {isPast && (
                             <span className="px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-semibold bg-gray-200 text-gray-600 rounded-full">
                               Ended
                             </span>
                           )}
                           {isUpcoming && (
-                            <span className="px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full">
+                            <span className="px-1.5 py-0.5 md:px-2 md:py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
                               Upcoming
                             </span>
                           )}
@@ -558,6 +609,28 @@ export default function OrganizerEventsPage() {
                             </span>
                           ) : null}
                         </Link>
+
+                        {/* Publish/Unpublish Button - Prominent */}
+                        <button
+                          onClick={() => handleTogglePublish(event._id, event.status || "DRAFT")}
+                          className={`flex items-center justify-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm rounded-lg transition-all flex-1 sm:flex-none font-semibold shadow-md ${
+                            event.status === "PUBLISHED"
+                              ? "bg-green-600 hover:bg-green-700 text-white"
+                              : "bg-yellow-500 hover:bg-yellow-600 text-white animate-pulse"
+                          }`}
+                        >
+                          {event.status === "PUBLISHED" ? (
+                            <>
+                              <Eye className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                              <span>Published</span>
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                              <span>Publish Now</span>
+                            </>
+                          )}
+                        </button>
 
                         {/* View Public - Desktop Only */}
                         <Link

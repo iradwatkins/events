@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "../_generated/server";
+import { getCurrentUser, requireEventOwnership } from "../lib/auth";
 
 /**
  * Get all tickets for current user with full event details
@@ -7,24 +8,8 @@ import { query } from "../_generated/server";
 export const getMyTickets = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    // TESTING MODE: Use test user if not authenticated
-    let user;
-    if (!identity) {
-      console.warn("[getMyTickets] TESTING MODE - Using test user");
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
-    } else {
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-    }
-
-    if (!user) return [];
+    // Get authenticated user
+    const user = await getCurrentUser(ctx);
 
     // Get all tickets for this user
     const tickets = await ctx.db
@@ -579,6 +564,24 @@ export const getTiersFromMultipleEvents = query({
 });
 
 /**
+ * Get all ticket tiers for an event (for organizer management)
+ * Works with events in any status (DRAFT, PUBLISHED, etc.)
+ */
+export const getTicketsByEvent = query({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    const tiers = await ctx.db
+      .query("ticketTiers")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .collect();
+
+    return tiers;
+  },
+});
+
+/**
  * Get a single ticket tier for editing
  * Includes sold count and live status check
  */
@@ -587,28 +590,18 @@ export const getTicketTierForEdit = query({
     tierId: v.id("ticketTiers"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-
     const tier = await ctx.db.get(args.tierId);
     if (!tier) return null;
 
-    // Verify ownership
+    // Verify event ownership
     const event = await ctx.db.get(tier.eventId);
     if (!event) return null;
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[getTicketTierForEdit] TESTING MODE - No authentication required");
-    } else {
-      // Production mode: Verify event ownership
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (!user || event.organizerId !== user._id) {
-        return null; // Not authorized
-      }
+    // Verify user owns this event
+    try {
+      await requireEventOwnership(ctx, tier.eventId);
+    } catch {
+      return null; // Not authorized
     }
 
     // Calculate if event has started - tickets lock when event begins

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "../_generated/server";
+import { getCurrentUser, requireEventOwnership } from "../lib/auth";
 
 /**
  * Get event by ID
@@ -38,12 +39,24 @@ export const getPaymentConfig = query({
 export const getOrganizerEvents = query({
   args: {},
   handler: async (ctx) => {
+    // Get current authenticated user
+    const user = await getCurrentUser(ctx);
 
-    // Return all events for now
-    const events = await ctx.db
-      .query("events")
-      .order("desc")
-      .collect();
+    // Admins see all events, organizers see only their events
+    let events;
+    if (user.role === "admin") {
+      events = await ctx.db
+        .query("events")
+        .order("desc")
+        .collect();
+    } else {
+      // Filter events by organizerId for non-admin users
+      events = await ctx.db
+        .query("events")
+        .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
+        .order("desc")
+        .collect();
+    }
 
     // Convert storage IDs to URLs for images
     const eventsWithImageUrls = await Promise.all(
@@ -98,6 +111,9 @@ export const getEventStatistics = query({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
+    // Verify user has access to this event
+    await requireEventOwnership(ctx, args.eventId);
+
     // Get all orders for this event
     const orders = await ctx.db
       .query("orders")
@@ -166,6 +182,9 @@ export const getEventOrders = query({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
+    // Verify user has access to this event
+    await requireEventOwnership(ctx, args.eventId);
+
     const orders = await ctx.db
       .query("orders")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
@@ -205,6 +224,9 @@ export const getEventAttendees = query({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
+    // Verify user has access to this event
+    await requireEventOwnership(ctx, args.eventId);
+
     const tickets = await ctx.db
       .query("tickets")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))

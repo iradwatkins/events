@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
+import { getCurrentUser, requireEventOwnership } from "../lib/auth";
 
 /**
  * Create a new event
@@ -40,42 +41,9 @@ export const createEvent = mutation({
     try {
       console.log("[createEvent] Starting event creation...");
 
-      // PRODUCTION: Require authentication
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity?.email) {
-        throw new Error("Authentication required. Please sign in to create events.");
-      }
-
-      const email = identity.email;
-      const name = identity.name;
-      const image = identity.pictureUrl;
-
-      // Find or create user
-      let user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", email))
-        .first();
-
-      if (!user) {
-        console.log("[createEvent] User not found, creating new user");
-        const now = Date.now();
-        const userId = await ctx.db.insert("users", {
-          email,
-          name: name || undefined,
-          image: image || undefined,
-          role: "user",
-          emailVerified: true,
-          createdAt: now,
-          updatedAt: now,
-        });
-        user = await ctx.db.get(userId);
-        if (!user) {
-          throw new Error("Failed to create user");
-        }
-        console.log("[createEvent] User created:", user._id);
-      } else {
-        console.log("[createEvent] User found:", user._id);
-      }
+      // Get authenticated user
+      const user = await getCurrentUser(ctx);
+      console.log("[createEvent] User authenticated:", user._id);
 
       // Check if user can create ticketed events
       if (
@@ -445,6 +413,7 @@ export const publishEvent = mutation({
 
     await ctx.db.patch(args.eventId, {
       status: "PUBLISHED",
+      ticketsVisible: true, // Make tickets visible when publishing
       updatedAt: Date.now(),
     });
 
@@ -475,30 +444,11 @@ export const updateEvent = mutation({
     ),
     capacity: v.optional(v.number()),
     imageUrl: v.optional(v.string()),
+    images: v.optional(v.array(v.id("_storage"))),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[updateEvent] TESTING MODE - No authentication required");
-    } else {
-      // Production mode: Verify event ownership
-      const event = await ctx.db.get(args.eventId);
-      if (!event) throw new Error("Event not found");
-
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
-    }
-
-    const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
+    // Verify event ownership
+    const { event } = await requireEventOwnership(ctx, args.eventId);
 
     // SAFEGUARD: Check if event has any ticket sales
     const hasTicketSales = event.status === "PUBLISHED" && event.eventType === "TICKETED_EVENT";
@@ -532,7 +482,15 @@ export const updateEvent = mutation({
     if (args.description) updates.description = args.description;
     if (args.categories) updates.categories = args.categories;
     if (args.location) updates.location = args.location;
-    if (args.imageUrl) updates.imageUrl = args.imageUrl;
+    // Handle imageUrl - can be set or explicitly cleared
+    if (args.imageUrl !== undefined) {
+      updates.imageUrl = args.imageUrl;
+    }
+    if (args.images) {
+      updates.images = args.images;
+      // Clear imageUrl when uploading new images to storage
+      updates.imageUrl = undefined;
+    }
 
     // RESTRICTED: Only allow date changes if no sales
     if (args.startDate && ticketsSold === 0) updates.startDate = args.startDate;
@@ -591,17 +549,13 @@ export const claimEvent = mutation({
       }
     }
 
-    // TESTING MODE: Use first user as organizer
-    // TODO: Replace with actual authenticated user ID
-    const users = await ctx.db.query("users").first();
-    if (!users) {
-      throw new Error("No users found in system");
-    }
+    // Get authenticated user to claim the event
+    const user = await getCurrentUser(ctx);
 
     // Claim the event
     await ctx.db.patch(args.eventId, {
-      organizerId: users._id,
-      organizerName: users.name,
+      organizerId: user._id,
+      organizerName: user.name,
       isClaimable: false,
       claimedAt: Date.now(),
       updatedAt: Date.now(),
@@ -610,7 +564,7 @@ export const claimEvent = mutation({
     return {
       success: true,
       eventId: args.eventId,
-      organizerId: users._id,
+      organizerId: user._id,
     };
   },
 });
@@ -630,30 +584,8 @@ export const duplicateEvent = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[duplicateEvent] TESTING MODE - No authentication required");
-    }
-
-    // Get original event
-    const originalEvent = await ctx.db.get(args.eventId);
-    if (!originalEvent) {
-      throw new Error("Event not found");
-    }
-
-    // Check ownership (skip in testing mode)
-    if (identity) {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (user && originalEvent.organizerId !== user._id) {
-        throw new Error("You can only duplicate your own events");
-      }
-    }
+    // Verify event ownership
+    const { user, event: originalEvent } = await requireEventOwnership(ctx, args.eventId);
 
     // Create new event with duplicated data
     const newEventData = {
@@ -802,26 +734,10 @@ export const bulkDeleteEvents = mutation({
     eventIds: v.array(v.id("events")),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-
     console.log(`[bulkDeleteEvents] Starting bulk delete for ${args.eventIds.length} events`);
 
-    // Get user for ownership verification
-    let user;
-    if (!identity) {
-      console.warn("[bulkDeleteEvents] TESTING MODE - No authentication required");
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
-        .first();
-      if (!user) throw new Error("Test user not found");
-    } else {
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-      if (!user) throw new Error("User not found");
-    }
+    // Get authenticated user
+    const user = await getCurrentUser(ctx);
 
     const deletedEvents: string[] = [];
     const failedEvents: Array<{ eventId: string; reason: string }> = [];
@@ -836,8 +752,8 @@ export const bulkDeleteEvents = mutation({
           continue;
         }
 
-        // Verify ownership (skip in testing mode)
-        if (identity && event.organizerId !== user._id) {
+        // Verify ownership (admins can delete any event)
+        if (user.role !== "admin" && event.organizerId !== user._id) {
           failedEvents.push({ eventId, reason: "Not authorized to delete this event" });
           continue;
         }
@@ -960,5 +876,52 @@ export const bulkDeleteEvents = mutation({
       deletedEvents,
       failedEvents,
     };
+  },
+});
+
+/**
+ * Delete an event (only if it hasn't started yet)
+ */
+export const deleteEvent = mutation({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    // Get the event
+    const event = await ctx.db.get(args.eventId);
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Check if event has already started
+    const now = Date.now();
+    if (event.startDate < now) {
+      throw new Error("Cannot delete an event that has already started");
+    }
+
+    // Check if there are any sold tickets
+    const tickets = await ctx.db
+      .query("tickets")
+      .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+      .collect();
+
+    if (tickets.length > 0) {
+      throw new Error("Cannot delete an event with sold tickets. Please cancel the event instead.");
+    }
+
+    // Delete related ticket tiers
+    const ticketTiers = await ctx.db
+      .query("ticketTiers")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .collect();
+
+    for (const tier of ticketTiers) {
+      await ctx.db.delete(tier._id);
+    }
+
+    // Delete the event
+    await ctx.db.delete(args.eventId);
+
+    return { success: true, eventId: args.eventId };
   },
 });

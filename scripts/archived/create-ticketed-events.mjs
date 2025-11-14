@@ -246,7 +246,7 @@ async function createOrGetOrganizer() {
   console.log(`👤 Setting up organizer: ${organizer.name}`);
   console.log(`   Email: ${organizer.email}\n`);
 
-  const existingUser = await client.query(api.auth.queries.getUserByEmail, {
+  const existingUser = await client.query(api.users.queries.getUserByEmail, {
     email: organizer.email,
   });
 

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user from Convex
-    const user = await convex.query(api.auth.queries.getUserByEmail, {
+    const user = await convex.query(api.users.queries.getUserByEmail, {
       email: email.toLowerCase(),
     });
 

@@ -8,7 +8,7 @@ async function createBallroomEvent() {
 
   try {
     // Get the admin user by email
-    const adminUser = await client.query(api.auth.queries.getUserByEmail, {
+    const adminUser = await client.query(api.users.queries.getUserByEmail, {
       email: "iradwatkins@gmail.com"
     });
 

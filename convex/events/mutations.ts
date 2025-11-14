@@ -3,6 +3,7 @@ import { mutation, internalMutation } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
 import { getCurrentUser, requireEventOwnership } from "../lib/auth";
 import { internal } from "../_generated/api";
+import { getTimestamps, getUpdateTimestamp } from "../lib/helpers";
 
 /**
  * Create a new event
@@ -84,8 +85,7 @@ export const createEvent = mutation({
         maxTicketsPerOrder: 10,
         minTicketsPerOrder: 1,
         socialShareCount: 0,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        ...getTimestamps(),
       });
 
       // CHECK IF THIS IS USER'S FIRST EVENT - GRANT 1000 FREE CREDITS

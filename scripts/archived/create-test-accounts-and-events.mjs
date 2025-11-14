@@ -147,7 +147,7 @@ async function createTestAccount(organizer, index) {
     console.log(`   Email: ${organizer.email}`);
 
     // Check if user already exists
-    const existingUser = await client.query(api.auth.queries.getUserByEmail, {
+    const existingUser = await client.query(api.users.queries.getUserByEmail, {
       email: organizer.email,
     });
 

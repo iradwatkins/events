@@ -16,7 +16,7 @@ async function resetAdminPassword() {
   try {
     // Get user
     console.log(`📧 Looking for user: ${email}`);
-    const user = await convex.query(api.auth.queries.getUserByEmail, {
+    const user = await convex.query(api.users.queries.getUserByEmail, {
       email: email,
     });
 

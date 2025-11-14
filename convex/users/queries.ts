@@ -49,12 +49,30 @@ export const isAuthenticated = query({
 });
 
 /**
- * Get user by ID
+ * Get user by ID (includes password hash - use getUserByIdPublic for client-facing endpoints)
  */
 export const getUserById = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.userId);
+  },
+});
+
+/**
+ * Get user by ID without password hash (safe for client-facing endpoints)
+ */
+export const getUserByIdPublic = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+
+    if (!user) {
+      return null;
+    }
+
+    // Don't return password hash to client
+    const { passwordHash, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   },
 });
 

@@ -20,7 +20,7 @@ async function updateOrganizerCredits() {
     for (const email of organizerEmails) {
       try {
         // Get the user
-        const user = await convex.query(api.auth.queries.getUserByEmail, {
+        const user = await convex.query(api.users.queries.getUserByEmail, {
           email: email,
         });
 

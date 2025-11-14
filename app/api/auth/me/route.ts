@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
     // Verify JWT
     const { payload } = await jwtVerify(token, JWT_SECRET);
 
-    // Get fresh user data from Convex
-    const user = await convex.query(api.auth.queries.getUserById, {
+    // Get fresh user data from Convex (without password hash)
+    const user = await convex.query(api.users.queries.getUserByIdPublic, {
       userId: payload.userId as Id<"users">,
     });
 

@@ -144,7 +144,7 @@ async function createAccount(organizer, index) {
     console.log(`\n👤 Organizer ${index + 1}/3: ${organizer.name}`);
     console.log(`   Email: ${organizer.email}`);
 
-    const existingUser = await client.query(api.auth.queries.getUserByEmail, {
+    const existingUser = await client.query(api.users.queries.getUserByEmail, {
       email: organizer.email,
     });
 

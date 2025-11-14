@@ -84,7 +84,7 @@ async function seedTestAccounts() {
     for (const account of testAccounts) {
       try {
         // Check if user already exists
-        const existingUser = await convex.query(api.auth.queries.getUserByEmail, {
+        const existingUser = await convex.query(api.users.queries.getUserByEmail, {
           email: account.email,
         });
 

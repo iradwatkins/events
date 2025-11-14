@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
+import { requireEventOwnership } from "../lib/auth";
 
 /**
  * Create a seating chart for an event

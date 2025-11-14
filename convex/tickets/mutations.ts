@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
+import { requireEventOwnership } from "../lib/auth";
 
 /**
  * Create a ticket tier for an event
@@ -124,29 +125,11 @@ export const deleteTicketTier = mutation({
     tierId: v.id("ticketTiers"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-
     const tier = await ctx.db.get(args.tierId);
     if (!tier) throw new Error("Ticket tier not found");
 
-    // Get event and verify ownership
-    const event = await ctx.db.get(tier.eventId);
-    if (!event) throw new Error("Event not found");
-    if (!event.organizerId) throw new Error("Event has no organizer");
-
-    // PRODUCTION: Require authentication
-    if (!identity?.email) {
-      throw new Error("Authentication required");
-    }
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user || event.organizerId !== user._id) {
-      throw new Error("Not authorized. Only the event organizer can delete ticket tiers.");
-    }
+    // Verify ownership (throws if not authorized)
+    const { user, event } = await requireEventOwnership(ctx, tier.eventId);
 
     // Check if event has started
     const now = Date.now();
@@ -1522,21 +1505,17 @@ export const duplicateTicketTier = mutation({
       throw new Error("Ticket tier not found");
     }
 
-    // Get event to check ownership
-    const event = await ctx.db.get(originalTier.eventId);
-    if (!event) {
-      throw new Error("Event not found");
-    }
-
-    // Check ownership (skip in testing mode)
+    // Verify ownership (throws if not authorized, or skips if no identity for testing)
+    let event, user;
     if (identity) {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (user && event.organizerId !== user._id) {
-        throw new Error("You can only duplicate ticket tiers for your own events");
+      const ownershipCheck = await requireEventOwnership(ctx, originalTier.eventId);
+      event = ownershipCheck.event;
+      user = ownershipCheck.user;
+    } else {
+      // Testing mode - just get event without ownership check
+      event = await ctx.db.get(originalTier.eventId);
+      if (!event) {
+        throw new Error("Event not found");
       }
     }
 

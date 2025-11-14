@@ -11,9 +11,7 @@ export function MasonryGrid({ events }: MasonryGridProps) {
     return (
       <div className="text-center py-16">
         <p className="text-gray-500 text-lg">No events found</p>
-        <p className="text-gray-400 text-sm mt-2">
-          Try adjusting your search or filters
-        </p>
+        <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters</p>
       </div>
     );
   }
@@ -22,14 +20,9 @@ export function MasonryGrid({ events }: MasonryGridProps) {
   // Previous implementation rendered events 3x (desktop, tablet, mobile)
   // This reduces component renders by 66% and improves paint performance
   return (
-    <div
-      className="columns-2 sm:columns-3 md:columns-4 gap-3 sm:gap-4"
-    >
+    <div className="columns-2 sm:columns-3 md:columns-4 gap-3 sm:gap-4">
       {events.map((event: any) => (
-        <div
-          key={event._id}
-          className="break-inside-avoid mb-3 sm:mb-4"
-        >
+        <div key={event._id} className="break-inside-avoid mb-3 sm:mb-4">
           <MasonryEventCard event={event} />
         </div>
       ))}

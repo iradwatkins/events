@@ -79,7 +79,7 @@ export const purchaseCredits = mutation({
 
     return {
       transactionId,
-      newBalance: userCredits.creditsTotal + args.credits
+      newBalance: userCredits.creditsTotal + args.credits,
     };
   },
 });
@@ -161,7 +161,9 @@ export const useCredits = mutation({
     }
 
     if (credits.creditsRemaining < args.quantity) {
-      throw new Error(`Insufficient credits. Available: ${credits.creditsRemaining}, Needed: ${args.quantity}`);
+      throw new Error(
+        `Insufficient credits. Available: ${credits.creditsRemaining}, Needed: ${args.quantity}`
+      );
     }
 
     // Deduct credits

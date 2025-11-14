@@ -23,8 +23,8 @@ export const expireCashOrders = internalMutation({
       .collect();
 
     // Filter by expired hold time
-    const expiredOrders = allPendingOrders.filter((order) =>
-      order.holdExpiresAt && order.holdExpiresAt < now
+    const expiredOrders = allPendingOrders.filter(
+      (order) => order.holdExpiresAt && order.holdExpiresAt < now
     );
 
     console.log(`[expireCashOrders] Found ${expiredOrders.length} expired orders`);

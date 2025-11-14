@@ -13,9 +13,7 @@ export async function GET(request: NextRequest) {
     const callbackUrl = searchParams.get("callbackUrl") || "/";
 
     if (!token) {
-      return NextResponse.redirect(
-        new URL("/login?error=invalid-token", request.url)
-      );
+      return NextResponse.redirect(new URL("/login?error=invalid-token", request.url));
     }
 
     // Hash token to compare with database
@@ -27,9 +25,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.redirect(
-        new URL("/login?error=invalid-or-expired-token", request.url)
-      );
+      return NextResponse.redirect(new URL("/login?error=invalid-or-expired-token", request.url));
     }
 
     // Create JWT session token
@@ -80,8 +76,6 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error: any) {
     console.error("[Magic Link] Verification error:", error);
-    return NextResponse.redirect(
-      new URL("/login?error=verification-failed", request.url)
-    );
+    return NextResponse.redirect(new URL("/login?error=verification-failed", request.url));
   }
 }

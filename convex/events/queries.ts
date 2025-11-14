@@ -66,10 +66,7 @@ export const getOrganizerEvents = query({
     let events;
     if (user.role === "admin") {
       console.log("[getOrganizerEvents] Admin user - fetching all events");
-      events = await ctx.db
-        .query("events")
-        .order("desc")
-        .collect();
+      events = await ctx.db.query("events").order("desc").collect();
     } else {
       console.log("[getOrganizerEvents] Non-admin user - filtering by organizerId");
       // Filter events by organizerId for non-admin users
@@ -81,7 +78,6 @@ export const getOrganizerEvents = query({
     }
 
     console.log("[getOrganizerEvents] Returning", events.length, "events");
-
 
     // Convert storage IDs to URLs for images
     const eventsWithImageUrls = await Promise.all(
@@ -168,9 +164,7 @@ export const getEventStatistics = query({
     const totalAttendees = tickets.length;
 
     // Recent orders (last 5)
-    const recentOrders = completedOrders
-      .sort((a, b) => b.createdAt - a.createdAt)
-      .slice(0, 5);
+    const recentOrders = completedOrders.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
 
     // Sales by tier
     const salesByTier = tiers.map((tier) => ({
@@ -190,9 +184,8 @@ export const getEventStatistics = query({
       totalTicketsSold,
       totalTicketsAvailable,
       totalAttendees,
-      percentageSold: totalTicketsAvailable > 0
-        ? (totalTicketsSold / totalTicketsAvailable) * 100
-        : 0,
+      percentageSold:
+        totalTicketsAvailable > 0 ? (totalTicketsSold / totalTicketsAvailable) * 100 : 0,
       recentOrders,
       salesByTier,
     };
@@ -260,13 +253,9 @@ export const getEventAttendees = query({
     // Enrich with tier information
     const enrichedTickets = await Promise.all(
       tickets.map(async (ticket) => {
-        const tier = ticket.ticketTierId
-          ? await ctx.db.get(ticket.ticketTierId)
-          : null;
+        const tier = ticket.ticketTierId ? await ctx.db.get(ticket.ticketTierId) : null;
 
-        const order = ticket.orderId
-          ? await ctx.db.get(ticket.orderId)
-          : null;
+        const order = ticket.orderId ? await ctx.db.get(ticket.orderId) : null;
 
         return {
           ...ticket,
@@ -352,23 +341,24 @@ export const searchClaimableEvents = query({
     // Apply search term filter
     if (args.searchTerm) {
       const searchLower = args.searchTerm.toLowerCase();
-      claimableEvents = claimableEvents.filter(
-        (event) => {
-          const locationString = typeof event.location === 'string'
+      claimableEvents = claimableEvents.filter((event) => {
+        const locationString =
+          typeof event.location === "string"
             ? event.location
-            : event.location?.venueName || event.location?.city || '';
+            : event.location?.venueName || event.location?.city || "";
 
-          return event.name.toLowerCase().includes(searchLower) ||
-            (event.description?.toLowerCase().includes(searchLower) ?? false) ||
-            (locationString?.toLowerCase().includes(searchLower) ?? false)
-        }
-      );
+        return (
+          event.name.toLowerCase().includes(searchLower) ||
+          (event.description?.toLowerCase().includes(searchLower) ?? false) ||
+          (locationString?.toLowerCase().includes(searchLower) ?? false)
+        );
+      });
     }
 
     // Apply category filter
     if (args.category) {
-      claimableEvents = claimableEvents.filter(
-        (event) => event.categories?.includes(args.category as string)
+      claimableEvents = claimableEvents.filter((event) =>
+        event.categories?.includes(args.category as string)
       );
     }
 

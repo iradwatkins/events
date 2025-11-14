@@ -10,9 +10,9 @@
  * - Visual hierarchy (subtotal → fees → total)
  */
 
-import { useState } from 'react';
-import { ChevronDown, ChevronUp, Info } from 'lucide-react';
-import { formatCurrency } from '@/lib/checkout/calculate-fees';
+import { useState } from "react";
+import { ChevronDown, ChevronUp, Info } from "lucide-react";
+import { formatCurrency } from "@/lib/checkout/calculate-fees";
 
 export interface OrderItem {
   /** Item name/description */
@@ -185,9 +185,7 @@ export function OrderSummary({
           <span className="text-lg font-bold text-gray-900">Total</span>
           <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
         </div>
-        {hasFees && (
-          <p className="text-xs text-gray-500 mt-1 text-right">All fees included</p>
-        )}
+        {hasFees && <p className="text-xs text-gray-500 mt-1 text-right">All fees included</p>}
       </div>
     </div>
   );
@@ -196,10 +194,7 @@ export function OrderSummary({
 /**
  * Compact Order Summary for mobile/small spaces
  */
-export function CompactOrderSummary({
-  items,
-  total,
-}: Pick<OrderSummaryProps, 'items' | 'total'>) {
+export function CompactOrderSummary({ items, total }: Pick<OrderSummaryProps, "items" | "total">) {
   const [expanded, setExpanded] = useState(false);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -212,7 +207,7 @@ export function CompactOrderSummary({
       >
         <div className="text-left">
           <div className="text-sm text-gray-600">
-            {totalItems} {totalItems === 1 ? 'item' : 'items'}
+            {totalItems} {totalItems === 1 ? "item" : "items"}
           </div>
           <div className="text-lg font-bold text-primary">{formatCurrency(total)}</div>
         </div>

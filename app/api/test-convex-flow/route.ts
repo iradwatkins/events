@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         step: 1,
         status: "FAIL",
         error: "Invalid session token",
-        details: error instanceof Error ? error.message : String(error)
+        details: error instanceof Error ? error.message : String(error),
       });
     }
 
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         step: 2,
         status: "FAIL",
         error: "Failed to verify convex token",
-        details: error instanceof Error ? error.message : String(error)
+        details: error instanceof Error ? error.message : String(error),
       });
     }
 
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       steps: {
         step1_session: "✅ Session token valid",
         step2_convex_token: "✅ Convex token created",
-        step3_verification: "✅ Convex token verified locally"
+        step3_verification: "✅ Convex token verified locally",
       },
       sessionPayload,
       convexPayload,
@@ -69,13 +69,21 @@ export async function GET(request: NextRequest) {
         issuer: convexPayload.iss,
         audience: convexPayload.aud,
         subject: convexPayload.sub,
-        hasAllFields: !!(convexPayload.sub && convexPayload.email && convexPayload.name && convexPayload.role)
-      }
+        hasAllFields: !!(
+          convexPayload.sub &&
+          convexPayload.email &&
+          convexPayload.name &&
+          convexPayload.role
+        ),
+      },
     });
   } catch (error) {
-    return NextResponse.json({
-      status: "ERROR",
-      error: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        status: "ERROR",
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
   }
 }

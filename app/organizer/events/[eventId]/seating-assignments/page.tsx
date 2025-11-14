@@ -19,9 +19,7 @@ export default function SeatingAssignmentsPage() {
         <div className="mb-4">
           <Users className="w-16 h-16 text-gray-400 mx-auto" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Seating Assignments Coming Soon
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Seating Assignments Coming Soon</h1>
         <p className="text-gray-600 mb-6">
           The seating assignments feature is currently being enhanced and will be available soon.
         </p>
@@ -35,5 +33,4 @@ export default function SeatingAssignmentsPage() {
       </div>
     </div>
   );
-
 }

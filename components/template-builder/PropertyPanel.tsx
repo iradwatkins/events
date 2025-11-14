@@ -1,7 +1,23 @@
 "use client";
 
 import React from "react";
-import { Trash2, Circle, Square, RectangleHorizontal, Palette, BoxSelect, Sparkles, Ruler, MoveVertical, Users, Tag, MapPin, Minus, Plus, Copy } from "lucide-react";
+import {
+  Trash2,
+  Circle,
+  Square,
+  RectangleHorizontal,
+  Palette,
+  BoxSelect,
+  Sparkles,
+  Ruler,
+  MoveVertical,
+  Users,
+  Tag,
+  MapPin,
+  Minus,
+  Plus,
+  Copy,
+} from "lucide-react";
 import { CanvasItem, TableItem, RowSectionItem, StageItem, DanceFloorItem } from "./types";
 import { SECTION_COLORS } from "./utils";
 
@@ -113,13 +129,15 @@ function TableProperties({ table, onUpdate }: TablePropertiesProps) {
 
       {/* Shape */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Shape
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Shape</label>
         <div className="grid grid-cols-3 gap-2">
           {[
             { shape: "ROUND" as const, icon: <Circle className="w-5 h-5" />, label: "Round" },
-            { shape: "RECTANGULAR" as const, icon: <RectangleHorizontal className="w-5 h-5" />, label: "Rectangle" },
+            {
+              shape: "RECTANGULAR" as const,
+              icon: <RectangleHorizontal className="w-5 h-5" />,
+              label: "Rectangle",
+            },
             { shape: "SQUARE" as const, icon: <Square className="w-5 h-5" />, label: "Square" },
           ].map(({ shape, icon, label }) => (
             <button
@@ -235,9 +253,7 @@ function RowSectionProperties({ rowSection, onUpdate }: RowSectionPropertiesProp
 
       {/* Label */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Label (optional)
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Label (optional)</label>
         <input
           type="text"
           value={rowSection.label || ""}
@@ -249,9 +265,7 @@ function RowSectionProperties({ rowSection, onUpdate }: RowSectionPropertiesProp
 
       {/* Row Count */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Number of Rows
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Number of Rows</label>
         <input
           type="number"
           min="1"
@@ -264,9 +278,7 @@ function RowSectionProperties({ rowSection, onUpdate }: RowSectionPropertiesProp
 
       {/* Seats Per Row */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Seats Per Row
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Seats Per Row</label>
         <input
           type="number"
           min="1"
@@ -303,7 +315,8 @@ function RowSectionProperties({ rowSection, onUpdate }: RowSectionPropertiesProp
       {/* Position info (read-only) */}
       <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
         <p className="text-xs text-gray-600">
-          <strong>Position:</strong> X: {Math.round(rowSection.position.x)}px, Y: {Math.round(rowSection.position.y)}px
+          <strong>Position:</strong> X: {Math.round(rowSection.position.x)}px, Y:{" "}
+          {Math.round(rowSection.position.y)}px
         </p>
         <p className="text-xs text-gray-600 mt-1">
           <strong>Size:</strong> {rowSection.size.width} × {rowSection.size.height}px
@@ -355,7 +368,9 @@ function StageProperties({ stage, onUpdate }: StagePropertiesProps) {
         </label>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onUpdate({ size: { ...stage.size, width: Math.max(50, stage.size.width - 10) } })}
+            onClick={() =>
+              onUpdate({ size: { ...stage.size, width: Math.max(50, stage.size.width - 10) } })
+            }
             className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <Minus className="w-4 h-4" />
@@ -365,12 +380,16 @@ function StageProperties({ stage, onUpdate }: StagePropertiesProps) {
             min="50"
             max="500"
             value={stage.size.width}
-            onChange={(e) => onUpdate({ size: { ...stage.size, width: parseInt(e.target.value) || 50 } })}
+            onChange={(e) =>
+              onUpdate({ size: { ...stage.size, width: parseInt(e.target.value) || 50 } })
+            }
             className="flex-1 text-center px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 font-semibold transition-all"
           />
           <span className="text-sm text-gray-500 w-8">px</span>
           <button
-            onClick={() => onUpdate({ size: { ...stage.size, width: Math.min(500, stage.size.width + 10) } })}
+            onClick={() =>
+              onUpdate({ size: { ...stage.size, width: Math.min(500, stage.size.width + 10) } })
+            }
             className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -386,7 +405,9 @@ function StageProperties({ stage, onUpdate }: StagePropertiesProps) {
         </label>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onUpdate({ size: { ...stage.size, height: Math.max(50, stage.size.height - 10) } })}
+            onClick={() =>
+              onUpdate({ size: { ...stage.size, height: Math.max(50, stage.size.height - 10) } })
+            }
             className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <Minus className="w-4 h-4" />
@@ -396,12 +417,16 @@ function StageProperties({ stage, onUpdate }: StagePropertiesProps) {
             min="50"
             max="500"
             value={stage.size.height}
-            onChange={(e) => onUpdate({ size: { ...stage.size, height: parseInt(e.target.value) || 50 } })}
+            onChange={(e) =>
+              onUpdate({ size: { ...stage.size, height: parseInt(e.target.value) || 50 } })
+            }
             className="flex-1 text-center px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 font-semibold transition-all"
           />
           <span className="text-sm text-gray-500 w-8">px</span>
           <button
-            onClick={() => onUpdate({ size: { ...stage.size, height: Math.min(500, stage.size.height + 10) } })}
+            onClick={() =>
+              onUpdate({ size: { ...stage.size, height: Math.min(500, stage.size.height + 10) } })
+            }
             className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -435,7 +460,8 @@ function StageProperties({ stage, onUpdate }: StagePropertiesProps) {
       {/* Position info (read-only) */}
       <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
         <p className="text-xs text-gray-600">
-          <strong>Position:</strong> X: {Math.round(stage.position.x)}px, Y: {Math.round(stage.position.y)}px
+          <strong>Position:</strong> X: {Math.round(stage.position.x)}px, Y:{" "}
+          {Math.round(stage.position.y)}px
         </p>
         <p className="text-xs text-gray-600 mt-1">
           <strong>Size:</strong> {stage.size.width} × {stage.size.height}px
@@ -487,7 +513,11 @@ function DanceFloorProperties({ danceFloor, onUpdate }: DanceFloorPropertiesProp
         </label>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onUpdate({ size: { ...danceFloor.size, width: Math.max(50, danceFloor.size.width - 10) } })}
+            onClick={() =>
+              onUpdate({
+                size: { ...danceFloor.size, width: Math.max(50, danceFloor.size.width - 10) },
+              })
+            }
             className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <Minus className="w-4 h-4" />
@@ -497,12 +527,18 @@ function DanceFloorProperties({ danceFloor, onUpdate }: DanceFloorPropertiesProp
             min="50"
             max="500"
             value={danceFloor.size.width}
-            onChange={(e) => onUpdate({ size: { ...danceFloor.size, width: parseInt(e.target.value) || 50 } })}
+            onChange={(e) =>
+              onUpdate({ size: { ...danceFloor.size, width: parseInt(e.target.value) || 50 } })
+            }
             className="flex-1 text-center px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 font-semibold transition-all"
           />
           <span className="text-sm text-gray-500 w-8">px</span>
           <button
-            onClick={() => onUpdate({ size: { ...danceFloor.size, width: Math.min(500, danceFloor.size.width + 10) } })}
+            onClick={() =>
+              onUpdate({
+                size: { ...danceFloor.size, width: Math.min(500, danceFloor.size.width + 10) },
+              })
+            }
             className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -518,7 +554,11 @@ function DanceFloorProperties({ danceFloor, onUpdate }: DanceFloorPropertiesProp
         </label>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onUpdate({ size: { ...danceFloor.size, height: Math.max(50, danceFloor.size.height - 10) } })}
+            onClick={() =>
+              onUpdate({
+                size: { ...danceFloor.size, height: Math.max(50, danceFloor.size.height - 10) },
+              })
+            }
             className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <Minus className="w-4 h-4" />
@@ -528,12 +568,18 @@ function DanceFloorProperties({ danceFloor, onUpdate }: DanceFloorPropertiesProp
             min="50"
             max="500"
             value={danceFloor.size.height}
-            onChange={(e) => onUpdate({ size: { ...danceFloor.size, height: parseInt(e.target.value) || 50 } })}
+            onChange={(e) =>
+              onUpdate({ size: { ...danceFloor.size, height: parseInt(e.target.value) || 50 } })
+            }
             className="flex-1 text-center px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 font-semibold transition-all"
           />
           <span className="text-sm text-gray-500 w-8">px</span>
           <button
-            onClick={() => onUpdate({ size: { ...danceFloor.size, height: Math.min(500, danceFloor.size.height + 10) } })}
+            onClick={() =>
+              onUpdate({
+                size: { ...danceFloor.size, height: Math.min(500, danceFloor.size.height + 10) },
+              })
+            }
             className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -567,7 +613,8 @@ function DanceFloorProperties({ danceFloor, onUpdate }: DanceFloorPropertiesProp
       {/* Position info (read-only) */}
       <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
         <p className="text-xs text-gray-600">
-          <strong>Position:</strong> X: {Math.round(danceFloor.position.x)}px, Y: {Math.round(danceFloor.position.y)}px
+          <strong>Position:</strong> X: {Math.round(danceFloor.position.x)}px, Y:{" "}
+          {Math.round(danceFloor.position.y)}px
         </p>
         <p className="text-xs text-gray-600 mt-1">
           <strong>Size:</strong> {danceFloor.size.width} × {danceFloor.size.height}px

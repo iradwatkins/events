@@ -40,11 +40,12 @@ export default function BuyTableButton({
       <Users className="w-4 h-4" />
       <div className="flex flex-col items-start">
         <span className="text-sm font-semibold">
-          {isPartiallyFilled ? `Buy ${availableSeats} Remaining Seats` : `Buy Entire Table ${tableNumber}`}
+          {isPartiallyFilled
+            ? `Buy ${availableSeats} Remaining Seats`
+            : `Buy Entire Table ${tableNumber}`}
         </span>
         <span className="text-xs opacity-90 flex items-center gap-1">
-          <DollarSign className="w-3 h-3" />
-          ${totalPrice.toFixed(2)} total
+          <DollarSign className="w-3 h-3" />${totalPrice.toFixed(2)} total
         </span>
       </div>
     </button>

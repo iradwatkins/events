@@ -15,9 +15,7 @@ if (!SQUARE_ACCESS_TOKEN) {
 }
 
 const squareEnvironment =
-  SQUARE_ENVIRONMENT === "production"
-    ? SquareEnvironment.Production
-    : SquareEnvironment.Sandbox;
+  SQUARE_ENVIRONMENT === "production" ? SquareEnvironment.Production : SquareEnvironment.Sandbox;
 
 const client = new SquareClient({
   token: SQUARE_ACCESS_TOKEN!,

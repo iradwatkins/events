@@ -45,7 +45,8 @@ export const createTestBundles = mutation({
     const dateNightId = await ctx.runMutation(api.bundles.mutations.createTicketBundle, {
       eventId: nyeEvent._id,
       name: "Date Night Package",
-      description: "Perfect for couples! Two General Admission tickets to ring in the new year together. Save $10 when you buy as a bundle.",
+      description:
+        "Perfect for couples! Two General Admission tickets to ring in the new year together. Save $10 when you buy as a bundle.",
       price: 19000, // $190 (normally $200 for 2×$100)
       includedTiers: [
         {
@@ -64,7 +65,8 @@ export const createTestBundles = mutation({
     const squadGoalsId = await ctx.runMutation(api.bundles.mutations.createTicketBundle, {
       eventId: nyeEvent._id,
       name: "Squad Goals",
-      description: "Bring the crew! Four General Admission tickets so you and your friends can celebrate together. Save $40 with this group package.",
+      description:
+        "Bring the crew! Four General Admission tickets so you and your friends can celebrate together. Save $40 with this group package.",
       price: 36000, // $360 (normally $400 for 4×$100)
       includedTiers: [
         {
@@ -83,7 +85,8 @@ export const createTestBundles = mutation({
     const vipExpId = await ctx.runMutation(api.bundles.mutations.createTicketBundle, {
       eventId: nyeEvent._id,
       name: "VIP Experience",
-      description: "Treat yourself and bring a guest! One VIP Package ticket with premium seating and bottle service, plus one General Admission ticket. Perfect for special occasions.",
+      description:
+        "Treat yourself and bring a guest! One VIP Package ticket with premium seating and bottle service, plus one General Admission ticket. Perfect for special occasions.",
       price: 23000, // $230 (normally $250 for $150+$100)
       includedTiers: [
         {
@@ -110,7 +113,8 @@ export const createTestBundles = mutation({
     const earlyBirdId = await ctx.runMutation(api.bundles.mutations.createTicketBundle, {
       eventId: nyeEvent._id,
       name: "Early Bird Triple",
-      description: "LIMITED TIME OFFER! Three General Admission tickets at a special early bird rate. Only available until December 15th - don't miss out!",
+      description:
+        "LIMITED TIME OFFER! Three General Admission tickets at a special early bird rate. Only available until December 15th - don't miss out!",
       price: 27000, // $270 (normally $300 for 3×$100)
       includedTiers: [
         {

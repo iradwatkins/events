@@ -20,7 +20,8 @@ export const createSampleEvents = mutation({
     const sampleEvents = [
       {
         name: "Chicago Steppers Set - Summer Edition",
-        description: "Join us for an unforgettable night of Chicago Stepping! This summer edition features live DJ sets, professional dancers, and an electric atmosphere. Whether you're a seasoned stepper or just starting out, everyone is welcome. Free dance lessons from 7-8pm for beginners!\n\nDress code: Semi-formal attire recommended.",
+        description:
+          "Join us for an unforgettable night of Chicago Stepping! This summer edition features live DJ sets, professional dancers, and an electric atmosphere. Whether you're a seasoned stepper or just starting out, everyone is welcome. Free dance lessons from 7-8pm for beginners!\n\nDress code: Semi-formal attire recommended.",
         eventType: "TICKETED_EVENT" as const,
         startDate: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days from now
         endDate: Date.now() + 30 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000, // +5 hours
@@ -38,12 +39,14 @@ export const createSampleEvents = mutation({
         paymentModelSelected: true,
         status: "PUBLISHED" as const,
         contactEmail: "chicago@stepperslife.com",
-        additionalDetails: "Parking available at nearby garage. Food and drinks available for purchase.",
+        additionalDetails:
+          "Parking available at nearby garage. Food and drinks available for purchase.",
         socialShareCount: 45,
       },
       {
         name: "Steppin' Workshop: Mastering the Basics",
-        description: "Perfect for beginners! Learn the fundamentals of Chicago Stepping in this comprehensive 3-hour workshop. Our experienced instructors will guide you through:\n\n• Basic footwork and rhythm\n• Partner connection and leading/following\n• Essential turns and patterns\n• Practice time with music\n\nAll levels welcome, but especially designed for those new to stepping.",
+        description:
+          "Perfect for beginners! Learn the fundamentals of Chicago Stepping in this comprehensive 3-hour workshop. Our experienced instructors will guide you through:\n\n• Basic footwork and rhythm\n• Partner connection and leading/following\n• Essential turns and patterns\n• Practice time with music\n\nAll levels welcome, but especially designed for those new to stepping.",
         eventType: "TICKETED_EVENT" as const,
         startDate: Date.now() + 15 * 24 * 60 * 60 * 1000, // 15 days from now
         endDate: Date.now() + 15 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000,
@@ -61,12 +64,14 @@ export const createSampleEvents = mutation({
         paymentModelSelected: true,
         status: "PUBLISHED" as const,
         contactEmail: "atlanta@stepperslife.com",
-        additionalDetails: "Comfortable shoes required. Water provided. Partners not required - we rotate!",
+        additionalDetails:
+          "Comfortable shoes required. Water provided. Partners not required - we rotate!",
         socialShareCount: 23,
       },
       {
         name: "Memorial Day Weekend Steppers Cruise 2025",
-        description: "Set sail for the ultimate stepping experience! Join fellow steppers for a 4-day Caribbean cruise featuring:\n\n• Daily stepping sessions with live bands\n• Pool parties and deck sets\n• Professional performances\n• Dance workshops\n• Island excursions\n• All meals included\n\nCabin availability limited - book early!",
+        description:
+          "Set sail for the ultimate stepping experience! Join fellow steppers for a 4-day Caribbean cruise featuring:\n\n• Daily stepping sessions with live bands\n• Pool parties and deck sets\n• Professional performances\n• Dance workshops\n• Island excursions\n• All meals included\n\nCabin availability limited - book early!",
         eventType: "SAVE_THE_DATE" as const,
         startDate: Date.now() + 180 * 24 * 60 * 60 * 1000, // 180 days from now
         endDate: Date.now() + 184 * 24 * 60 * 60 * 1000,
@@ -84,12 +89,14 @@ export const createSampleEvents = mutation({
         paymentModelSelected: false,
         status: "PUBLISHED" as const,
         contactEmail: "cruise@stepperslife.com",
-        additionalDetails: "More details coming soon! Early bird pricing will be announced in 60 days.",
+        additionalDetails:
+          "More details coming soon! Early bird pricing will be announced in 60 days.",
         socialShareCount: 89,
       },
       {
         name: "Outdoor Steppin' in the Park - Free Community Event",
-        description: "Bring your friends and family for a FREE afternoon of stepping in beautiful Millennium Park! This community event features:\n\n• Live DJ from 2pm-7pm\n• Free beginner lessons at 2:30pm\n• Open dancing for all skill levels\n• Food trucks on site\n• Family friendly atmosphere\n\nNo registration required - just show up and step!",
+        description:
+          "Bring your friends and family for a FREE afternoon of stepping in beautiful Millennium Park! This community event features:\n\n• Live DJ from 2pm-7pm\n• Free beginner lessons at 2:30pm\n• Open dancing for all skill levels\n• Food trucks on site\n• Family friendly atmosphere\n\nNo registration required - just show up and step!",
         eventType: "FREE_EVENT" as const,
         startDate: Date.now() + 45 * 24 * 60 * 60 * 1000, // 45 days from now
         endDate: Date.now() + 45 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000,
@@ -107,12 +114,14 @@ export const createSampleEvents = mutation({
         paymentModelSelected: false,
         status: "PUBLISHED" as const,
         contactEmail: "community@stepperslife.com",
-        additionalDetails: "Bring sunscreen and comfortable shoes. Event will be moved indoors if weather is poor.",
+        additionalDetails:
+          "Bring sunscreen and comfortable shoes. Event will be moved indoors if weather is poor.",
         socialShareCount: 156,
       },
       {
         name: "New Year's Eve Steppers Ball 2025",
-        description: "Ring in the New Year with the most elegant stepping event of the season! This formal gala includes:\n\n• Champagne reception at 9pm\n• Live band and DJ\n• Midnight countdown celebration\n• Complimentary party favors\n• Professional photography\n• Elegant ballroom setting\n\nBlack tie optional. VIP tables available.",
+        description:
+          "Ring in the New Year with the most elegant stepping event of the season! This formal gala includes:\n\n• Champagne reception at 9pm\n• Live band and DJ\n• Midnight countdown celebration\n• Complimentary party favors\n• Professional photography\n• Elegant ballroom setting\n\nBlack tie optional. VIP tables available.",
         eventType: "TICKETED_EVENT" as const,
         startDate: Date.now() + 60 * 24 * 60 * 60 * 1000, // 60 days from now
         endDate: Date.now() + 60 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000,
@@ -130,12 +139,14 @@ export const createSampleEvents = mutation({
         paymentModelSelected: true,
         status: "PUBLISHED" as const,
         contactEmail: "nye@stepperslife.com",
-        additionalDetails: "Valet parking included. Hotel room packages available at discounted rate.",
+        additionalDetails:
+          "Valet parking included. Hotel room packages available at discounted rate.",
         socialShareCount: 234,
       },
       {
         name: "Detroit Steppers Weekend Getaway",
-        description: "Experience Motor City stepping culture! This weekend event features:\n\n• Friday night welcome party\n• Saturday afternoon workshop\n• Saturday night grand set\n• Sunday brunch and farewell session\n• Hotel block with group rates\n\nDiscover why Detroit has one of the most vibrant stepping scenes in the country!",
+        description:
+          "Experience Motor City stepping culture! This weekend event features:\n\n• Friday night welcome party\n• Saturday afternoon workshop\n• Saturday night grand set\n• Sunday brunch and farewell session\n• Hotel block with group rates\n\nDiscover why Detroit has one of the most vibrant stepping scenes in the country!",
         eventType: "TICKETED_EVENT" as const,
         startDate: Date.now() + 90 * 24 * 60 * 60 * 1000, // 90 days from now
         endDate: Date.now() + 92 * 24 * 60 * 60 * 1000,

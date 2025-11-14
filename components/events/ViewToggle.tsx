@@ -25,9 +25,7 @@ export function ViewToggle({ currentView, onViewChange }: ViewToggleProps) {
             key={view.id}
             onClick={() => onViewChange(view.id)}
             className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
-              isActive
-                ? "bg-primary text-white"
-                : "text-gray-600 hover:bg-gray-100"
+              isActive ? "bg-primary text-white" : "text-gray-600 hover:bg-gray-100"
             }`}
             aria-label={view.label}
           >

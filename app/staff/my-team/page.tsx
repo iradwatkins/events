@@ -135,7 +135,8 @@ export default function MyTeamPage() {
           My Default Team
         </h1>
         <p className="text-gray-600 mt-1">
-          Manage your default sub-seller roster. These team members will be automatically assigned to events when you join them.
+          Manage your default sub-seller roster. These team members will be automatically assigned
+          to events when you join them.
         </p>
       </div>
 
@@ -181,7 +182,8 @@ export default function MyTeamPage() {
           <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-gray-900 mb-2">No Default Sub-Sellers Yet</h3>
           <p className="text-gray-600 mb-6">
-            Add sub-sellers to your default team to have them automatically assigned when you join events.
+            Add sub-sellers to your default team to have them automatically assigned when you join
+            events.
           </p>
         </div>
       ) : (
@@ -215,7 +217,9 @@ export default function MyTeamPage() {
                   <tr key={subSeller._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">{subSeller.name}</div>
-                      <div className="text-xs text-gray-500">Referral: {subSeller.referralCode}</div>
+                      <div className="text-xs text-gray-500">
+                        Referral: {subSeller.referralCode}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1">
@@ -240,7 +244,9 @@ export default function MyTeamPage() {
                       <div className="text-sm text-gray-900">
                         <div className="flex items-center gap-1">
                           <Percent className="w-4 h-4 text-green-600" />
-                          <span className="font-medium">You: {subSeller.parentCommissionPercent}%</span>
+                          <span className="font-medium">
+                            You: {subSeller.parentCommissionPercent}%
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Percent className="w-4 h-4 text-primary" />
@@ -250,7 +256,12 @@ export default function MyTeamPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
-                        onClick={() => handleToggleAutoAssign(subSeller._id, subSeller.autoAssignToNewEvents || false)}
+                        onClick={() =>
+                          handleToggleAutoAssign(
+                            subSeller._id,
+                            subSeller.autoAssignToNewEvents || false
+                          )
+                        }
                         className="flex items-center gap-2"
                       >
                         {subSeller.autoAssignToNewEvents ? (
@@ -343,7 +354,9 @@ export default function MyTeamPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value as StaffRole })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value as StaffRole })
+                    }
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                   >
                     <option value="SELLER">Seller</option>
@@ -368,11 +381,15 @@ export default function MyTeamPage() {
                           step="0.01"
                           required
                           value={formData.parentCommissionPercent}
-                          onChange={(e) => setFormData({ ...formData, parentCommissionPercent: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({ ...formData, parentCommissionPercent: e.target.value })
+                          }
                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           placeholder="50"
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                          %
+                        </span>
                       </div>
                     </div>
 
@@ -386,11 +403,15 @@ export default function MyTeamPage() {
                           step="0.01"
                           required
                           value={formData.subSellerCommissionPercent}
-                          onChange={(e) => setFormData({ ...formData, subSellerCommissionPercent: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({ ...formData, subSellerCommissionPercent: e.target.value })
+                          }
                           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                           placeholder="30"
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                          %
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -405,7 +426,9 @@ export default function MyTeamPage() {
                     <input
                       type="checkbox"
                       checked={formData.autoAssignToNewEvents}
-                      onChange={(e) => setFormData({ ...formData, autoAssignToNewEvents: e.target.checked })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, autoAssignToNewEvents: e.target.checked })
+                      }
                       className="w-4 h-4 text-primary rounded focus:ring-2 focus:ring-ring"
                     />
                     <div>

@@ -9,8 +9,8 @@
  * - Accessibility compliant
  */
 
-import { User, Mail, Phone, AlertCircle } from 'lucide-react';
-import { ChangeEvent } from 'react';
+import { User, Mail, Phone, AlertCircle } from "lucide-react";
+import { ChangeEvent } from "react";
 
 export interface ContactFormValues {
   name: string;
@@ -37,7 +37,7 @@ export interface ContactFormProps {
  */
 function formatPhoneNumber(value: string): string {
   // Remove all non-digit characters
-  const digits = value.replace(/\D/g, '');
+  const digits = value.replace(/\D/g, "");
 
   // Limit to 10 digits
   const limited = digits.slice(0, 10);
@@ -69,7 +69,7 @@ export function ContactForm({
 }: ContactFormProps) {
   const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhoneNumber(e.target.value);
-    onChange('phone', formatted);
+    onChange("phone", formatted);
   };
 
   const handleEmailBlur = () => {
@@ -81,9 +81,7 @@ export function ContactForm({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Contact Information
-      </h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
 
       {/* Name Field */}
       <div>
@@ -98,18 +96,18 @@ export function ContactForm({
             id="contact-name"
             type="text"
             value={values.name}
-            onChange={(e) => onChange('name', e.target.value)}
+            onChange={(e) => onChange("name", e.target.value)}
             disabled={disabled}
             className={`
               block w-full pl-10 pr-3 py-3 border rounded-lg
               focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${errors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'}
+              ${errors.name ? "border-red-300 bg-red-50" : "border-gray-300"}
             `}
             placeholder="John Doe"
             required
             aria-invalid={!!errors.name}
-            aria-describedby={errors.name ? 'name-error' : undefined}
+            aria-describedby={errors.name ? "name-error" : undefined}
           />
         </div>
         {errors.name && (
@@ -123,7 +121,7 @@ export function ContactForm({
       {/* Email Field */}
       <div>
         <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-2">
-          Email Address{' '}
+          Email Address{" "}
           {emailRequired ? (
             <span className="text-red-500">*</span>
           ) : (
@@ -138,19 +136,19 @@ export function ContactForm({
             id="contact-email"
             type="email"
             value={values.email}
-            onChange={(e) => onChange('email', e.target.value)}
+            onChange={(e) => onChange("email", e.target.value)}
             onBlur={handleEmailBlur}
             disabled={disabled}
             className={`
               block w-full pl-10 pr-3 py-3 border rounded-lg
               focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'}
+              ${errors.email ? "border-red-300 bg-red-50" : "border-gray-300"}
             `}
             placeholder="john@example.com"
             required={emailRequired}
             aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? 'email-error' : undefined}
+            aria-describedby={errors.email ? "email-error" : undefined}
           />
         </div>
         {errors.email && (
@@ -185,12 +183,12 @@ export function ContactForm({
               block w-full pl-10 pr-3 py-3 border rounded-lg
               focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'}
+              ${errors.phone ? "border-red-300 bg-red-50" : "border-gray-300"}
             `}
             placeholder="(555) 123-4567"
             required
             aria-invalid={!!errors.phone}
-            aria-describedby={errors.phone ? 'phone-error' : undefined}
+            aria-describedby={errors.phone ? "phone-error" : undefined}
           />
         </div>
         {errors.phone && (
@@ -230,29 +228,29 @@ export function validateContactForm(
 
   // Name validation
   if (!values.name || values.name.trim().length === 0) {
-    errors.name = 'Please enter your full name';
+    errors.name = "Please enter your full name";
   } else if (values.name.trim().length < 2) {
-    errors.name = 'Name must be at least 2 characters';
+    errors.name = "Name must be at least 2 characters";
   }
 
   // Email validation
   if (emailRequired) {
     if (!values.email || values.email.trim().length === 0) {
-      errors.email = 'Please enter your email address';
+      errors.email = "Please enter your email address";
     } else if (!isValidEmail(values.email)) {
-      errors.email = 'Please enter a valid email address';
+      errors.email = "Please enter a valid email address";
     }
   } else if (values.email && !isValidEmail(values.email)) {
     // Email is optional but if provided, must be valid
-    errors.email = 'Please enter a valid email address';
+    errors.email = "Please enter a valid email address";
   }
 
   // Phone validation
-  const phoneDigits = values.phone.replace(/\D/g, '');
+  const phoneDigits = values.phone.replace(/\D/g, "");
   if (!values.phone || phoneDigits.length === 0) {
-    errors.phone = 'Please enter your phone number';
+    errors.phone = "Please enter your phone number";
   } else if (phoneDigits.length !== 10) {
-    errors.phone = 'Phone number must be 10 digits';
+    errors.phone = "Phone number must be 10 digits";
   }
 
   return errors;

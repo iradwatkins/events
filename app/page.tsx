@@ -12,7 +12,7 @@ const convex = new ConvexHttpClient(convexUrl);
 
 // Force dynamic rendering - always fetch fresh data (no static caching)
 // This ensures events appear immediately after being published
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 0; // Disable ISR caching
 
 // Server Component - fetches data at build time or on request
@@ -24,8 +24,8 @@ export default async function Home() {
   const products = await convex.query(api.products.queries.getActiveProducts);
 
   // Remove duplicates (just in case)
-  const uniqueEvents = events.filter((event, index, self) =>
-    index === self.findIndex((e) => e._id === event._id)
+  const uniqueEvents = events.filter(
+    (event, index, self) => index === self.findIndex((e) => e._id === event._id)
   );
 
   return (

@@ -28,7 +28,10 @@ export const createStripeConnectAccount = mutation({
 
     // If user already has a Stripe account, just return a new onboarding link
     if (user.stripeConnectedAccountId) {
-      console.log("[createStripeConnectAccount] User already has Stripe account:", user.stripeConnectedAccountId);
+      console.log(
+        "[createStripeConnectAccount] User already has Stripe account:",
+        user.stripeConnectedAccountId
+      );
 
       // Return existing account with refresh link
       // The frontend will call the PUT endpoint to get a new account link
@@ -78,7 +81,11 @@ export const saveStripeConnectAccount = mutation({
       stripeAccountSetupComplete: true,
     });
 
-    console.log("[saveStripeConnectAccount] Saved Stripe account for user:", user._id, args.accountId);
+    console.log(
+      "[saveStripeConnectAccount] Saved Stripe account for user:",
+      user._id,
+      args.accountId
+    );
 
     return { success: true };
   },

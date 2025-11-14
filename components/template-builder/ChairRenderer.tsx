@@ -38,7 +38,7 @@ export default function ChairRenderer({
           isSelected
             ? "ring-2 ring-yellow-400 border-yellow-400 shadow-lg"
             : "border-gray-400 shadow-sm"
-        } ${chairColor ? '' : 'bg-gray-200'}`}
+        } ${chairColor ? "" : "bg-gray-200"}`}
         style={{
           backgroundColor: chairColor,
         }}

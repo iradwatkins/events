@@ -203,7 +203,7 @@ export const generateVariantCombinations = mutation({
   args: {
     productId: v.id("products"),
     colors: v.array(v.string()), // ["Red", "Blue", "Green"]
-    sizes: v.array(v.string()),  // ["S", "M", "L"]
+    sizes: v.array(v.string()), // ["S", "M", "L"]
     basePrice: v.number(), // Price in cents
     baseSku: v.optional(v.string()),
   },
@@ -225,7 +225,9 @@ export const generateVariantCombinations = mutation({
             size,
           },
           price: args.basePrice, // Each variant gets independent price (can be edited later)
-          sku: args.baseSku ? `${args.baseSku}-${color.toUpperCase()}-${size.toUpperCase()}` : undefined,
+          sku: args.baseSku
+            ? `${args.baseSku}-${color.toUpperCase()}-${size.toUpperCase()}`
+            : undefined,
           inventoryQuantity: 0, // Default to 0, can be set later
           image: undefined, // No image by default
         });
@@ -411,12 +413,16 @@ export const addProductOption = mutation({
         v.literal("image_swatch")
       ),
       required: v.boolean(),
-      choices: v.optional(v.array(v.object({
-        label: v.string(),
-        priceModifier: v.number(),
-        image: v.optional(v.string()),
-        default: v.optional(v.boolean()),
-      }))),
+      choices: v.optional(
+        v.array(
+          v.object({
+            label: v.string(),
+            priceModifier: v.number(),
+            image: v.optional(v.string()),
+            default: v.optional(v.boolean()),
+          })
+        )
+      ),
       priceModifier: v.optional(v.number()),
       minLength: v.optional(v.number()),
       maxLength: v.optional(v.number()),
@@ -466,13 +472,17 @@ export const updateProductOption = mutation({
       name: v.optional(v.string()),
       description: v.optional(v.string()),
       required: v.optional(v.boolean()),
-      choices: v.optional(v.array(v.object({
-        id: v.optional(v.string()),
-        label: v.string(),
-        priceModifier: v.number(),
-        image: v.optional(v.string()),
-        default: v.optional(v.boolean()),
-      }))),
+      choices: v.optional(
+        v.array(
+          v.object({
+            id: v.optional(v.string()),
+            label: v.string(),
+            priceModifier: v.number(),
+            image: v.optional(v.string()),
+            default: v.optional(v.boolean()),
+          })
+        )
+      ),
       priceModifier: v.optional(v.number()),
       minLength: v.optional(v.number()),
       maxLength: v.optional(v.number()),
@@ -498,7 +508,9 @@ export const updateProductOption = mutation({
         let choices = option.choices;
         if (args.updates.choices) {
           choices = args.updates.choices.map((choice, index) => ({
-            id: choice.id || `choice-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`,
+            id:
+              choice.id ||
+              `choice-${Date.now()}-${index}-${Math.random().toString(36).substr(2, 9)}`,
             label: choice.label,
             priceModifier: choice.priceModifier,
             image: choice.image,
@@ -568,7 +580,7 @@ export const reorderProductOptions = mutation({
     }
 
     // Create a map for quick lookup
-    const optionsMap = new Map(product.options.map(opt => [opt.id, opt]));
+    const optionsMap = new Map(product.options.map((opt) => [opt.id, opt]));
 
     // Reorder based on the provided array
     const reorderedOptions = args.optionIds.map((id, index) => {

@@ -6,18 +6,20 @@ import { query } from "../_generated/server";
  */
 export const listRoomTemplates = query({
   args: {
-    category: v.optional(v.union(
-      v.literal("theater"),
-      v.literal("stadium"),
-      v.literal("concert"),
-      v.literal("conference"),
-      v.literal("outdoor"),
-      v.literal("wedding"),
-      v.literal("gala"),
-      v.literal("banquet"),
-      v.literal("custom"),
-      v.literal("all")
-    )),
+    category: v.optional(
+      v.union(
+        v.literal("theater"),
+        v.literal("stadium"),
+        v.literal("concert"),
+        v.literal("conference"),
+        v.literal("outdoor"),
+        v.literal("wedding"),
+        v.literal("gala"),
+        v.literal("banquet"),
+        v.literal("custom"),
+        v.literal("all")
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -29,9 +31,7 @@ export const listRoomTemplates = query({
       const category = args.category;
       allTemplates = await ctx.db
         .query("roomTemplates")
-        .withIndex("by_category", (q) =>
-          q.eq("category", category as any)
-        )
+        .withIndex("by_category", (q) => q.eq("category", category as any))
         .collect();
     } else {
       allTemplates = await ctx.db.query("roomTemplates").collect();
@@ -40,7 +40,7 @@ export const listRoomTemplates = query({
     // Filter to show:
     // 1. All public templates
     // 2. User's own templates (if authenticated)
-    const filteredTemplates = allTemplates.filter(template => {
+    const filteredTemplates = allTemplates.filter((template) => {
       if (template.isPublic) return true;
       if (identity && template.createdBy) {
         // Get user to compare
@@ -128,13 +128,13 @@ export const getTemplateStats = query({
 
     const stats = {
       total: templates.length,
-      public: templates.filter(t => t.isPublic).length,
-      system: templates.filter(t => t.isSystemTemplate).length,
+      public: templates.filter((t) => t.isPublic).length,
+      system: templates.filter((t) => t.isSystemTemplate).length,
       byCategory: {} as Record<string, number>,
     };
 
     // Count by category
-    templates.forEach(template => {
+    templates.forEach((template) => {
       stats.byCategory[template.category] = (stats.byCategory[template.category] || 0) + 1;
     });
 

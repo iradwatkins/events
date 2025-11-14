@@ -50,7 +50,9 @@ export const selectPrepayModel = mutation({
     const availableCredits = credits ? credits.creditsRemaining : 0;
 
     if (availableCredits < args.ticketsAllocated) {
-      throw new Error(`Insufficient credits. Available: ${availableCredits}, Needed: ${args.ticketsAllocated}`);
+      throw new Error(
+        `Insufficient credits. Available: ${availableCredits}, Needed: ${args.ticketsAllocated}`
+      );
     }
 
     // Create payment config
@@ -126,8 +128,12 @@ export const selectCreditCardModel = mutation({
 
     // Calculate fees (apply 50% discount if charity)
     const isCharity = args.charityDiscount || false;
-    const platformFeePercent = isCharity ? DEFAULT_PLATFORM_FEE_PERCENT / 2 : DEFAULT_PLATFORM_FEE_PERCENT;
-    const platformFeeFixed = isCharity ? Math.round(DEFAULT_PLATFORM_FEE_FIXED_CENTS / 2) : DEFAULT_PLATFORM_FEE_FIXED_CENTS;
+    const platformFeePercent = isCharity
+      ? DEFAULT_PLATFORM_FEE_PERCENT / 2
+      : DEFAULT_PLATFORM_FEE_PERCENT;
+    const platformFeeFixed = isCharity
+      ? Math.round(DEFAULT_PLATFORM_FEE_FIXED_CENTS / 2)
+      : DEFAULT_PLATFORM_FEE_FIXED_CENTS;
 
     // Create payment config
     const configId = await ctx.db.insert("eventPaymentConfig", {
@@ -180,7 +186,8 @@ export const calculateOrderFees = mutation({
 
     if (config.paymentModel === "CREDIT_CARD") {
       // Calculate platform fee: percentage + fixed
-      platformFee = Math.round((args.subtotal * config.platformFeePercent) / 100) + config.platformFeeFixed;
+      platformFee =
+        Math.round((args.subtotal * config.platformFeePercent) / 100) + config.platformFeeFixed;
 
       // Calculate processing fee on total (subtotal + platform fee)
       const totalBeforeProcessing = args.subtotal + platformFee;
@@ -290,11 +297,7 @@ export const deactivatePaymentConfig = mutation({
 export const updatePaymentMethods = mutation({
   args: {
     eventId: v.id("events"),
-    merchantProcessor: v.union(
-      v.literal("SQUARE"),
-      v.literal("STRIPE"),
-      v.literal("PAYPAL")
-    ),
+    merchantProcessor: v.union(v.literal("SQUARE"), v.literal("STRIPE"), v.literal("PAYPAL")),
     creditCardEnabled: v.boolean(),
     cashAppEnabled: v.boolean(),
   },

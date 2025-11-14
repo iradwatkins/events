@@ -8,7 +8,9 @@ import { api } from "./_generated/api";
  */
 export const runLiveTicketTests = mutation({
   args: {},
-  handler: async (ctx): Promise<{
+  handler: async (
+    ctx
+  ): Promise<{
     success: boolean;
     testsPassed: number;
     testsFailed: number;
@@ -203,17 +205,20 @@ export const runLiveTicketTests = mutation({
       }
 
       // Create bundle order
-      const order3Id: Id<"orders"> = await ctx.runMutation(api.tickets.mutations.createBundleOrder, {
-        eventId: primaryEventId,
-        bundleId: singleEventBundle._id,
-        quantity: 1,
-        buyerEmail: `test3-${Date.now()}@stepperslife.com`,
-        buyerName: "Test User 3",
-        subtotalCents: singleEventBundle.price,
-        platformFeeCents: 0,
-        processingFeeCents: 0,
-        totalCents: singleEventBundle.price,
-      });
+      const order3Id: Id<"orders"> = await ctx.runMutation(
+        api.tickets.mutations.createBundleOrder,
+        {
+          eventId: primaryEventId,
+          bundleId: singleEventBundle._id,
+          quantity: 1,
+          buyerEmail: `test3-${Date.now()}@stepperslife.com`,
+          buyerName: "Test User 3",
+          subtotalCents: singleEventBundle.price,
+          platformFeeCents: 0,
+          processingFeeCents: 0,
+          totalCents: singleEventBundle.price,
+        }
+      );
 
       console.log(`Order created: ${order3Id}`);
 
@@ -280,17 +285,20 @@ export const runLiveTicketTests = mutation({
       }
 
       // Create bundle order
-      const order4Id: Id<"orders"> = await ctx.runMutation(api.tickets.mutations.createBundleOrder, {
-        eventId: primaryEventId,
-        bundleId: multiEventBundle._id,
-        quantity: 1,
-        buyerEmail: `test4-${Date.now()}@stepperslife.com`,
-        buyerName: "Test User 4",
-        subtotalCents: multiEventBundle.price,
-        platformFeeCents: 0,
-        processingFeeCents: 0,
-        totalCents: multiEventBundle.price,
-      });
+      const order4Id: Id<"orders"> = await ctx.runMutation(
+        api.tickets.mutations.createBundleOrder,
+        {
+          eventId: primaryEventId,
+          bundleId: multiEventBundle._id,
+          quantity: 1,
+          buyerEmail: `test4-${Date.now()}@stepperslife.com`,
+          buyerName: "Test User 4",
+          subtotalCents: multiEventBundle.price,
+          platformFeeCents: 0,
+          processingFeeCents: 0,
+          totalCents: multiEventBundle.price,
+        }
+      );
 
       console.log(`Order created: ${order4Id}`);
 
@@ -328,7 +336,9 @@ export const runLiveTicketTests = mutation({
 
       // Verify tickets are for different events
       const uniqueEvents = new Set(tickets4.map((t: any) => t.eventId));
-      console.log(`   Unique Events: ${uniqueEvents.size}/${multiEventBundle.eventIds?.length || 0}`);
+      console.log(
+        `   Unique Events: ${uniqueEvents.size}/${multiEventBundle.eventIds?.length || 0}`
+      );
       console.log("");
 
       testResults.push({

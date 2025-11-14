@@ -92,7 +92,9 @@ export default function FreeEventRegisterPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
-          <p className="text-gray-600 mb-4">This is not a free event. Please use the checkout page to purchase tickets.</p>
+          <p className="text-gray-600 mb-4">
+            This is not a free event. Please use the checkout page to purchase tickets.
+          </p>
           <Link
             href={`/events/${eventId}/checkout`}
             className="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -138,7 +140,9 @@ export default function FreeEventRegisterPage() {
                 {eventDetails.startDate && (
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-primary" />
-                    <span>{format(new Date(eventDetails.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
+                    <span>
+                      {format(new Date(eventDetails.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                    </span>
                   </div>
                 )}
                 {eventDetails.location && typeof eventDetails.location === "object" && (
@@ -161,7 +165,9 @@ export default function FreeEventRegisterPage() {
                   <div className="bg-white p-4 rounded-lg border-4 border-gray-200">
                     <QRCode value={ticketUrl} size={200} />
                   </div>
-                  <p className="text-sm text-gray-600 mt-4 font-mono">{registrationData.ticketCode}</p>
+                  <p className="text-sm text-gray-600 mt-4 font-mono">
+                    {registrationData.ticketCode}
+                  </p>
                   <p className="text-xs text-gray-500 mt-2 text-center">
                     Show this QR code at the event entrance
                   </p>
@@ -192,7 +198,9 @@ export default function FreeEventRegisterPage() {
                     <UserCheck className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground">Referred by {staffMemberInfo.name}</p>
+                    <p className="font-semibold text-foreground">
+                      Referred by {staffMemberInfo.name}
+                    </p>
                     <p className="text-sm text-primary">Thanks for using their referral code!</p>
                   </div>
                 </div>
@@ -253,7 +261,9 @@ export default function FreeEventRegisterPage() {
               {eventDetails.startDate && (
                 <div className="flex items-center gap-3">
                   <Calendar className="w-5 h-5 text-primary" />
-                  <span>{format(new Date(eventDetails.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
+                  <span>
+                    {format(new Date(eventDetails.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                  </span>
                 </div>
               )}
               {eventDetails.location && typeof eventDetails.location === "object" && (
@@ -270,7 +280,9 @@ export default function FreeEventRegisterPage() {
             {/* Door Price Info */}
             {eventDetails.doorPrice && (
               <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm font-semibold text-green-900">Door Price: {eventDetails.doorPrice}</p>
+                <p className="text-sm font-semibold text-green-900">
+                  Door Price: {eventDetails.doorPrice}
+                </p>
                 <p className="text-xs text-green-700 mt-1">Payment accepted at venue</p>
               </div>
             )}
@@ -298,9 +310,7 @@ export default function FreeEventRegisterPage() {
           {/* Registration Form */}
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -329,9 +339,7 @@ export default function FreeEventRegisterPage() {
                   required
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Your ticket will be sent to this email
-              </p>
+              <p className="text-xs text-gray-500 mt-1">Your ticket will be sent to this email</p>
             </div>
 
             <div className="pt-4">

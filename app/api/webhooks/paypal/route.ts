@@ -16,10 +16,7 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID || "5NK114525U789563D";
 
 // PRODUCTION: Verify PayPal webhook signature with cryptographic verification
-async function verifyPayPalSignature(
-  headers: Headers,
-  body: string
-): Promise<boolean> {
+async function verifyPayPalSignature(headers: Headers, body: string): Promise<boolean> {
   try {
     const transmissionId = headers.get("paypal-transmission-id");
     const transmissionTime = headers.get("paypal-transmission-time");
@@ -33,10 +30,7 @@ async function verifyPayPalSignature(
     }
 
     // SECURITY: Validate cert URL is from PayPal
-    const allowedCertDomains = [
-      "paypal.com",
-      "paypalobjects.com"
-    ];
+    const allowedCertDomains = ["paypal.com", "paypalobjects.com"];
 
     let certDomain;
     try {
@@ -47,9 +41,7 @@ async function verifyPayPalSignature(
       return false;
     }
 
-    const isValidDomain = allowedCertDomains.some(domain =>
-      certDomain.endsWith(domain)
-    );
+    const isValidDomain = allowedCertDomains.some((domain) => certDomain.endsWith(domain));
 
     if (!isValidDomain) {
       console.error("[PayPal Webhook] Cert URL from untrusted domain:", certDomain);
@@ -94,13 +86,13 @@ async function verifyPayPalSignature(
 // CRC32 implementation for PayPal webhook verification
 function computeCrc32(str: string): number {
   const crcTable = makeCrcTable();
-  let crc = 0 ^ (-1);
+  let crc = 0 ^ -1;
 
   for (let i = 0; i < str.length; i++) {
-    crc = (crc >>> 8) ^ crcTable[(crc ^ str.charCodeAt(i)) & 0xFF];
+    crc = (crc >>> 8) ^ crcTable[(crc ^ str.charCodeAt(i)) & 0xff];
   }
 
-  return (crc ^ (-1)) >>> 0;
+  return (crc ^ -1) >>> 0;
 }
 
 function makeCrcTable(): number[] {
@@ -109,7 +101,7 @@ function makeCrcTable(): number[] {
   for (let n = 0; n < 256; n++) {
     c = n;
     for (let k = 0; k < 8; k++) {
-      c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
     }
     crcTable[n] = c;
   }

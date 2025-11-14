@@ -47,10 +47,7 @@ interface Section {
   tables?: Table[];
 }
 
-type PropertiesTarget =
-  | { type: "table"; data: Table }
-  | { type: "section"; data: Section }
-  | null;
+type PropertiesTarget = { type: "table"; data: Table } | { type: "section"; data: Section } | null;
 
 interface PropertiesPanelProps {
   target: PropertiesTarget;
@@ -66,7 +63,12 @@ interface CollapsibleSectionProps {
   defaultOpen?: boolean;
 }
 
-function CollapsibleSection({ title, icon, children, defaultOpen = true }: CollapsibleSectionProps) {
+function CollapsibleSection({
+  title,
+  icon,
+  children,
+  defaultOpen = true,
+}: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
@@ -177,20 +179,13 @@ export default function PropertiesPanel({
         {/* Header */}
         <div className="bg-primary px-6 py-4 text-white sticky top-0 z-10">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">
-              {isTable ? `Edit Table` : `Edit Section`}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-white/20 rounded transition-colors"
-            >
+            <h2 className="text-lg font-bold">{isTable ? `Edit Table` : `Edit Section`}</h2>
+            <button onClick={onClose} className="p-1 hover:bg-white/20 rounded transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
           <p className="text-sm text-purple-100 mt-1">
-            {isTable
-              ? `Table ${(data as Table).number}`
-              : (data as Section).name}
+            {isTable ? `Table ${(data as Table).number}` : (data as Section).name}
           </p>
         </div>
 
@@ -276,7 +271,10 @@ export default function PropertiesPanel({
           </CollapsibleSection>
 
           {/* Position & Size Section */}
-          <CollapsibleSection title="Position & Size" icon={<RotateCw className="w-4 h-4 text-gray-600" />}>
+          <CollapsibleSection
+            title="Position & Size"
+            icon={<RotateCw className="w-4 h-4 text-gray-600" />}
+          >
             {/* Position */}
             <div className="mb-4">
               <label className="block text-xs font-medium text-gray-700 mb-1.5">
@@ -335,9 +333,7 @@ export default function PropertiesPanel({
 
             {/* Rotation */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Rotation
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Rotation</label>
               <div className="flex items-center gap-3">
                 <input
                   type="range"
@@ -364,7 +360,10 @@ export default function PropertiesPanel({
 
           {/* Table-specific: Seating Arrangement */}
           {isTable && (data as Table).shape === "ROUND" && (
-            <CollapsibleSection title="Seating Arrangement" icon={<Users className="w-4 h-4 text-gray-600" />}>
+            <CollapsibleSection
+              title="Seating Arrangement"
+              icon={<Users className="w-4 h-4 text-gray-600" />}
+            >
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">
                   Seat Pattern
@@ -374,10 +373,10 @@ export default function PropertiesPanel({
                     (data as Table).seatArc?.arcDegrees === 360 || !(data as Table).seatArc
                       ? "full"
                       : (data as Table).seatArc?.arcDegrees === 270
-                      ? "three-quarter"
-                      : (data as Table).seatArc?.arcDegrees === 180
-                      ? "half"
-                      : "crescent"
+                        ? "three-quarter"
+                        : (data as Table).seatArc?.arcDegrees === 180
+                          ? "half"
+                          : "crescent"
                   }
                   onChange={(e) => {
                     const arcMap = {

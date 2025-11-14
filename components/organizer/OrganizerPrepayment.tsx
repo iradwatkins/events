@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { DollarSign, CreditCard, Smartphone, CheckCircle, AlertCircle } from 'lucide-react'
-import { SquareCardPayment } from '@/components/checkout/SquareCardPayment'
-import { CashAppQRPayment } from '@/components/checkout/CashAppPayment'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DollarSign, CreditCard, Smartphone, CheckCircle, AlertCircle } from "lucide-react";
+import { SquareCardPayment } from "@/components/checkout/SquareCardPayment";
+import { CashAppQRPayment } from "@/components/checkout/CashAppPayment";
 
 interface OrganizerPrepaymentProps {
-  eventId: string
-  eventName: string
-  estimatedTickets: number
-  pricePerTicket: number // in dollars (e.g., 0.30)
-  onPaymentSuccess: () => void
-  onCancel: () => void
+  eventId: string;
+  eventName: string;
+  estimatedTickets: number;
+  pricePerTicket: number; // in dollars (e.g., 0.30)
+  onPaymentSuccess: () => void;
+  onCancel: () => void;
 }
 
 export function OrganizerPrepayment({
@@ -24,59 +24,61 @@ export function OrganizerPrepayment({
   onPaymentSuccess,
   onCancel,
 }: OrganizerPrepaymentProps) {
-  const [selectedMethod, setSelectedMethod] = useState<'square' | 'cashapp' | null>(null)
-  const [showPayment, setShowPayment] = useState(false)
+  const [selectedMethod, setSelectedMethod] = useState<"square" | "cashapp" | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
 
-  const totalAmount = estimatedTickets * pricePerTicket
-  const totalAmountCents = Math.round(totalAmount * 100)
+  const totalAmount = estimatedTickets * pricePerTicket;
+  const totalAmountCents = Math.round(totalAmount * 100);
 
-  const handlePaymentMethodSelect = (method: 'square' | 'cashapp') => {
-    setSelectedMethod(method)
-    setShowPayment(true)
-  }
+  const handlePaymentMethodSelect = (method: "square" | "cashapp") => {
+    setSelectedMethod(method);
+    setShowPayment(true);
+  };
 
   const handleSquarePaymentSuccess = async (result: Record<string, unknown>) => {
-    console.log('[Prepayment] Square payment successful:', result)
+    console.log("[Prepayment] Square payment successful:", result);
     // TODO: Call Convex mutation to update payment config
-    onPaymentSuccess()
-  }
+    onPaymentSuccess();
+  };
 
   const handleSquarePaymentError = (error: string) => {
-    console.error('[Prepayment] Payment error:', error)
-    alert(`Payment failed: ${error}`)
-  }
+    console.error("[Prepayment] Payment error:", error);
+    alert(`Payment failed: ${error}`);
+  };
 
   const handleCashAppPaymentSuccess = async (result: Record<string, unknown>) => {
-    console.log('[Prepayment] CashApp payment successful:', result)
+    console.log("[Prepayment] CashApp payment successful:", result);
     // TODO: Call Convex mutation to update payment config
-    onPaymentSuccess()
-  }
+    onPaymentSuccess();
+  };
 
   const handleCashAppPaymentError = (error: string) => {
-    console.error('[Prepayment] CashApp payment error:', error)
-    alert(`Payment failed: ${error}`)
-  }
+    console.error("[Prepayment] CashApp payment error:", error);
+    alert(`Payment failed: ${error}`);
+  };
 
-  if (showPayment && selectedMethod === 'square') {
+  if (showPayment && selectedMethod === "square") {
     return (
       <div className="max-w-2xl mx-auto">
         <SquareCardPayment
-          applicationId={process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID || ''}
-          locationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID || ''}
+          applicationId={process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID || ""}
+          locationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID || ""}
           total={totalAmount}
-          environment={process.env.NEXT_PUBLIC_SQUARE_ENVIRONMENT as 'sandbox' | 'production' || 'sandbox'}
+          environment={
+            (process.env.NEXT_PUBLIC_SQUARE_ENVIRONMENT as "sandbox" | "production") || "sandbox"
+          }
           onPaymentSuccess={handleSquarePaymentSuccess}
           onPaymentError={handleSquarePaymentError}
           onBack={() => {
-            setShowPayment(false)
-            setSelectedMethod(null)
+            setShowPayment(false);
+            setSelectedMethod(null);
           }}
         />
       </div>
-    )
+    );
   }
 
-  if (showPayment && selectedMethod === 'cashapp') {
+  if (showPayment && selectedMethod === "cashapp") {
     return (
       <div className="max-w-2xl mx-auto">
         <CashAppQRPayment
@@ -84,20 +86,18 @@ export function OrganizerPrepayment({
           onPaymentSuccess={handleCashAppPaymentSuccess}
           onPaymentError={handleCashAppPaymentError}
           onBack={() => {
-            setShowPayment(false)
-            setSelectedMethod(null)
+            setShowPayment(false);
+            setSelectedMethod(null);
           }}
         />
       </div>
-    )
+    );
   }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Complete Platform Fee Payment
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Complete Platform Fee Payment</h2>
         <p className="text-gray-600">
           Pay upfront for "{eventName}" and collect 100% of ticket sales
         </p>
@@ -108,9 +108,7 @@ export function OrganizerPrepayment({
         <CardContent className="pt-6">
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-1">Total Platform Fee</p>
-            <p className="text-4xl font-bold text-gray-900 mb-2">
-              ${totalAmount.toFixed(2)}
-            </p>
+            <p className="text-4xl font-bold text-gray-900 mb-2">${totalAmount.toFixed(2)}</p>
             <p className="text-sm text-gray-600">
               {estimatedTickets} tickets × ${pricePerTicket.toFixed(2)} each
             </p>
@@ -137,7 +135,7 @@ export function OrganizerPrepayment({
       <div className="grid md:grid-cols-2 gap-6">
         {/* Square Payment */}
         <button
-          onClick={() => handlePaymentMethodSelect('square')}
+          onClick={() => handlePaymentMethodSelect("square")}
           className="bg-white rounded-lg border-2 border-gray-200 p-6 text-left hover:border-primary hover:shadow-lg transition-all"
         >
           <div className="flex items-center gap-3 mb-4">
@@ -172,7 +170,7 @@ export function OrganizerPrepayment({
 
         {/* CashApp Payment */}
         <button
-          onClick={() => handlePaymentMethodSelect('cashapp')}
+          onClick={() => handlePaymentMethodSelect("cashapp")}
           className="bg-white rounded-lg border-2 border-gray-200 p-6 text-left hover:border-green-600 hover:shadow-lg transition-all"
         >
           <div className="flex items-center gap-3 mb-4">
@@ -207,14 +205,10 @@ export function OrganizerPrepayment({
       </div>
 
       <div className="text-center">
-        <Button
-          variant="ghost"
-          onClick={onCancel}
-          className="text-gray-600 hover:text-gray-900"
-        >
+        <Button variant="ghost" onClick={onCancel} className="text-gray-600 hover:text-gray-900">
           Cancel and Go Back
         </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -40,9 +40,6 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error: any) {
     console.error("[Google OAuth] Initiation error:", error);
-    return NextResponse.json(
-      { error: "Failed to initiate Google OAuth" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to initiate Google OAuth" }, { status: 500 });
   }
 }

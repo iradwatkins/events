@@ -62,12 +62,14 @@ export default function EventsModerationPage() {
     try {
       await markClaimable({
         eventId: claimModalEventId,
-        claimCode: claimCode || undefined
+        claimCode: claimCode || undefined,
       });
       setClaimModalEventId(null);
       setClaimCode("");
     } catch (error: unknown) {
-      alert(`Failed to mark event as claimable: ${error instanceof Error ? error.message : String(error)}`);
+      alert(
+        `Failed to mark event as claimable: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   };
 
@@ -206,7 +208,7 @@ export default function EventsModerationPage() {
                       src={event.imageUrl}
                       alt={event.name}
                       className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity rounded-l-lg"
-                      onClick={() => window.open(event.imageUrl, '_blank')}
+                      onClick={() => window.open(event.imageUrl, "_blank")}
                       title="Click to view full-size flyer"
                     />
                   ) : (
@@ -227,10 +229,10 @@ export default function EventsModerationPage() {
                             event.status === "PUBLISHED"
                               ? "bg-green-100 text-green-800"
                               : event.status === "DRAFT"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : event.status === "CANCELLED"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-accent text-accent-foreground"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : event.status === "CANCELLED"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-accent text-accent-foreground"
                           }`}
                         >
                           {event.status || "DRAFT"}
@@ -248,128 +250,130 @@ export default function EventsModerationPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-600 mb-3 line-clamp-2">{event.description || "No description"}</p>
-
-                    {/* Event Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Clock className="w-4 h-4" />
-                        <span>
-                          {event.startDate
-                            ? format(new Date(event.startDate), "MMM d, yyyy h:mm a")
-                            : "No date"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4" />
-                        <span className="truncate">
-                          {typeof event.location === "string"
-                            ? event.location
-                            : event.location
-                            ? `${event.location.city}, ${event.location.state}`
-                            : "No location"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Ticket className="w-4 h-4" />
-                        <span>{event.ticketCount || 0} tickets sold</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <DollarSign className="w-4 h-4" />
-                        <span>${((event.revenue || 0) / 100).toFixed(2)} revenue</span>
-                      </div>
-                    </div>
-
-                    {/* Organizer Info */}
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-sm text-gray-600">
-                        <span className="font-medium">Organizer:</span> {event.organizerName}
-                        {" • "}
-                        <span className="text-gray-500">{event.organizerEmail}</span>
+                      <p className="text-gray-600 mb-3 line-clamp-2">
+                        {event.description || "No description"}
                       </p>
+
+                      {/* Event Details */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Clock className="w-4 h-4" />
+                          <span>
+                            {event.startDate
+                              ? format(new Date(event.startDate), "MMM d, yyyy h:mm a")
+                              : "No date"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <MapPin className="w-4 h-4" />
+                          <span className="truncate">
+                            {typeof event.location === "string"
+                              ? event.location
+                              : event.location
+                                ? `${event.location.city}, ${event.location.state}`
+                                : "No location"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Ticket className="w-4 h-4" />
+                          <span>{event.ticketCount || 0} tickets sold</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <DollarSign className="w-4 h-4" />
+                          <span>${((event.revenue || 0) / 100).toFixed(2)} revenue</span>
+                        </div>
+                      </div>
+
+                      {/* Organizer Info */}
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium">Organizer:</span> {event.organizerName}
+                          {" • "}
+                          <span className="text-gray-500">{event.organizerEmail}</span>
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Change Status:</span>
-                    <button
-                      onClick={() => handleStatusChange(event._id, "PUBLISHED")}
-                      disabled={event.status === "PUBLISHED"}
-                      className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Publish
-                    </button>
-                    <button
-                      onClick={() => handleStatusChange(event._id, "DRAFT")}
-                      disabled={event.status === "DRAFT"}
-                      className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Draft
-                    </button>
-                    <button
-                      onClick={() => handleStatusChange(event._id, "CANCELLED")}
-                      disabled={event.status === "CANCELLED"}
-                      className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => handleStatusChange(event._id, "COMPLETED")}
-                      disabled={event.status === "COMPLETED"}
-                      className="px-3 py-1 text-sm bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Complete
-                    </button>
-                  </div>
+                  {/* Actions */}
+                  <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Change Status:</span>
+                      <button
+                        onClick={() => handleStatusChange(event._id, "PUBLISHED")}
+                        disabled={event.status === "PUBLISHED"}
+                        className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Publish
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(event._id, "DRAFT")}
+                        disabled={event.status === "DRAFT"}
+                        className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Draft
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(event._id, "CANCELLED")}
+                        disabled={event.status === "CANCELLED"}
+                        className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(event._id, "COMPLETED")}
+                        disabled={event.status === "COMPLETED"}
+                        className="px-3 py-1 text-sm bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Complete
+                      </button>
+                    </div>
 
-                  <div className="ml-auto flex items-center gap-2">
-                    {event.isClaimable ? (
-                      <button
-                        onClick={() => handleUnmarkClaimable(event._id)}
-                        className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1"
-                        title="Remove from claimable list"
+                    <div className="ml-auto flex items-center gap-2">
+                      {event.isClaimable ? (
+                        <button
+                          onClick={() => handleUnmarkClaimable(event._id)}
+                          className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1"
+                          title="Remove from claimable list"
+                        >
+                          <Gift className="w-4 h-4" />
+                          Unmark Claimable
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setClaimModalEventId(event._id)}
+                          className="px-3 py-1 text-sm bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors flex items-center gap-1"
+                          title="Make event claimable by organizers"
+                        >
+                          <Gift className="w-4 h-4" />
+                          Make Claimable
+                        </button>
+                      )}
+                      <a
+                        href={`/organizer/events/${event._id}/edit`}
+                        className="p-2 text-primary hover:bg-accent rounded-lg transition-colors"
+                        title="Edit event"
                       >
-                        <Gift className="w-4 h-4" />
-                        Unmark Claimable
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setClaimModalEventId(event._id)}
-                        className="px-3 py-1 text-sm bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors flex items-center gap-1"
-                        title="Make event claimable by organizers"
+                        <Edit className="w-4 h-4" />
+                      </a>
+                      <a
+                        href={`/events/${event._id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-primary hover:bg-accent rounded-lg transition-colors"
+                        title="View event"
                       >
-                        <Gift className="w-4 h-4" />
-                        Make Claimable
+                        <Eye className="w-4 h-4" />
+                      </a>
+                      <button
+                        onClick={() => handleDeleteEvent(event._id, event.name)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete event"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
-                    )}
-                    <a
-                      href={`/organizer/events/${event._id}/edit`}
-                      className="p-2 text-primary hover:bg-accent rounded-lg transition-colors"
-                      title="Edit event"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </a>
-                    <a
-                      href={`/events/${event._id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 text-primary hover:bg-accent rounded-lg transition-colors"
-                      title="View event"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </a>
-                    <button
-                      onClick={() => handleDeleteEvent(event._id, event.name)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete event"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    </div>
                   </div>
-                </div>
                 </div>
               </div>
             </div>
@@ -402,7 +406,8 @@ export default function EventsModerationPage() {
               <h3 className="text-xl font-bold text-gray-900">Make Event Claimable</h3>
             </div>
             <p className="text-sm text-gray-600 mb-4">
-              This event will be available for organizers to claim ownership. You can optionally set a claim code for security.
+              This event will be available for organizers to claim ownership. You can optionally set
+              a claim code for security.
             </p>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">

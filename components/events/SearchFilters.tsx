@@ -77,9 +77,7 @@ export function SearchFilters({
       <div className="flex flex-wrap gap-2 items-center">
         {CATEGORIES.map((category) => {
           const isSelected =
-            category === "All"
-              ? selectedCategory === null
-              : selectedCategory === category;
+            category === "All" ? selectedCategory === null : selectedCategory === category;
 
           return (
             <button
@@ -122,14 +120,10 @@ export function SearchFilters({
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>Showing results for:</span>
           {searchQuery && (
-            <span className="px-2 py-1 bg-accent text-primary rounded">
-              "{searchQuery}"
-            </span>
+            <span className="px-2 py-1 bg-accent text-primary rounded">"{searchQuery}"</span>
           )}
           {selectedCategory && (
-            <span className="px-2 py-1 bg-accent text-primary rounded">
-              {selectedCategory}
-            </span>
+            <span className="px-2 py-1 bg-accent text-primary rounded">{selectedCategory}</span>
           )}
         </div>
       )}

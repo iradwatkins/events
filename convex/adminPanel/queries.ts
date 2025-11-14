@@ -50,7 +50,10 @@ export const getPlatformAnalytics = query({
 
     // Calculate GMV (Gross Merchandise Value)
     const gmv = completedOrders.reduce((sum, order) => sum + (order.totalCents || 0), 0);
-    const platformRevenue = completedOrders.reduce((sum, order) => sum + (order.platformFeeCents || 0), 0);
+    const platformRevenue = completedOrders.reduce(
+      (sum, order) => sum + (order.platformFeeCents || 0),
+      0
+    );
 
     // Get all tickets
     const allTickets = await ctx.db.query("tickets").collect();
@@ -160,12 +163,14 @@ export const getAllUsers = query({
  */
 export const getAllEvents = query({
   args: {
-    status: v.optional(v.union(
-      v.literal("DRAFT"),
-      v.literal("PUBLISHED"),
-      v.literal("CANCELLED"),
-      v.literal("COMPLETED")
-    )),
+    status: v.optional(
+      v.union(
+        v.literal("DRAFT"),
+        v.literal("PUBLISHED"),
+        v.literal("CANCELLED"),
+        v.literal("COMPLETED")
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -198,9 +203,7 @@ export const getAllEvents = query({
     // Enrich with organizer info
     const enrichedEvents = await Promise.all(
       events.map(async (event) => {
-        const organizer = event.organizerId
-          ? await ctx.db.get(event.organizerId)
-          : null;
+        const organizer = event.organizerId ? await ctx.db.get(event.organizerId) : null;
 
         const ticketCount = await ctx.db
           .query("tickets")
@@ -315,8 +318,7 @@ export const searchUsers = query({
     const searchTerm = args.query.toLowerCase();
     const filtered = allUsers.filter(
       (u) =>
-        (u.email?.toLowerCase().includes(searchTerm)) ||
-        (u.name?.toLowerCase().includes(searchTerm))
+        u.email?.toLowerCase().includes(searchTerm) || u.name?.toLowerCase().includes(searchTerm)
     );
 
     return filtered.slice(0, 50);

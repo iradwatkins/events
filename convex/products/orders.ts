@@ -26,10 +26,7 @@ export const getAllOrders = query({
       return orders;
     }
 
-    const orders = await ctx.db
-      .query("productOrders")
-      .order("desc")
-      .collect();
+    const orders = await ctx.db.query("productOrders").order("desc").collect();
     return orders;
   },
 });
@@ -166,7 +163,12 @@ export const updateFulfillmentStatus = mutation({
 export const updatePaymentStatus = mutation({
   args: {
     orderId: v.id("productOrders"),
-    paymentStatus: v.union(v.literal("PENDING"), v.literal("PAID"), v.literal("FAILED"), v.literal("REFUNDED")),
+    paymentStatus: v.union(
+      v.literal("PENDING"),
+      v.literal("PAID"),
+      v.literal("FAILED"),
+      v.literal("REFUNDED")
+    ),
     stripePaymentIntentId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {

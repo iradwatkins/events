@@ -29,14 +29,14 @@ export function calculateRoundTableChairs(
   const chairDistance = radius + 12; // 12px offset from table edge for larger chairs
 
   for (let i = 0; i < capacity; i++) {
-    const angle = startAngle + (i * angleStep);
+    const angle = startAngle + i * angleStep;
 
     // Calculate chair center position
     const x = centerX + chairDistance * Math.cos(angle);
     const y = centerY + chairDistance * Math.sin(angle);
 
     // Rotation in degrees (facing toward table center)
-    const rotation = (angle * 180 / Math.PI) + 90;
+    const rotation = (angle * 180) / Math.PI + 90;
 
     chairs.push({
       x: x - 10, // Offset by half chair width (20px)

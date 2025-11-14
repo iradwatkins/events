@@ -1,44 +1,44 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { AlertCircle, Lock, CreditCard } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { AlertCircle, Lock, CreditCard } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SquareCardPaymentProps {
-  applicationId: string
-  locationId: string
-  total: number
-  environment?: 'sandbox' | 'production'
+  applicationId: string;
+  locationId: string;
+  total: number;
+  environment?: "sandbox" | "production";
   billingContact?: {
-    givenName?: string
-    familyName?: string
-    email?: string
-    phone?: string
-    addressLines?: string[]
-    city?: string
-    state?: string
-    countryCode?: string
-    postalCode?: string
-  }
+    givenName?: string;
+    familyName?: string;
+    email?: string;
+    phone?: string;
+    addressLines?: string[];
+    city?: string;
+    state?: string;
+    countryCode?: string;
+    postalCode?: string;
+  };
   savedPaymentMethod?: {
-    id: string
-    squareCardId: string
-    maskedNumber: string
-    cardBrand: string
-  } | null
-  user?: { id: string; email: string; name?: string | null } | null
-  onPaymentSuccess: (result: Record<string, unknown>) => void
-  onPaymentError: (error: string) => void
-  onBack: () => void
+    id: string;
+    squareCardId: string;
+    maskedNumber: string;
+    cardBrand: string;
+  } | null;
+  user?: { id: string; email: string; name?: string | null } | null;
+  onPaymentSuccess: (result: Record<string, unknown>) => void;
+  onPaymentError: (error: string) => void;
+  onBack: () => void;
 }
 
 declare global {
   interface Window {
-    Square?: Record<string, unknown>
+    Square?: Record<string, unknown>;
   }
 }
 
@@ -46,7 +46,7 @@ export function SquareCardPayment({
   applicationId,
   locationId,
   total,
-  environment = 'sandbox',
+  environment = "sandbox",
   billingContact,
   savedPaymentMethod,
   user,
@@ -54,242 +54,244 @@ export function SquareCardPayment({
   onPaymentError,
   onBack,
 }: SquareCardPaymentProps) {
-  const [isLoading, setIsLoading] = useState(true)
-  const [isInitializing, setIsInitializing] = useState(true)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [card, setCard] = useState<any>(null)
-  const [payments, setPayments] = useState<any>(null)
-  const [shouldSavePaymentMethod, setShouldSavePaymentMethod] = useState(false)
-  const initAttempted = useRef(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [card, setCard] = useState<any>(null);
+  const [payments, setPayments] = useState<any>(null);
+  const [shouldSavePaymentMethod, setShouldSavePaymentMethod] = useState(false);
+  const initAttempted = useRef(false);
 
   useEffect(() => {
-    if (initAttempted.current) return
-    initAttempted.current = true
+    if (initAttempted.current) return;
+    initAttempted.current = true;
 
     // Set isLoading to false immediately so containers render
-    setIsLoading(false)
+    setIsLoading(false);
 
     const initializeSquare = async () => {
       try {
         // Load Square.js script dynamically
-        await loadSquareScript()
+        await loadSquareScript();
 
         // Wait for Square SDK
-        let attempts = 0
-        const maxAttempts = 50
+        let attempts = 0;
+        const maxAttempts = 50;
         while (!window.Square && attempts < maxAttempts) {
-          await new Promise((resolve) => setTimeout(resolve, 100))
-          attempts++
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          attempts++;
         }
 
         if (!window.Square) {
-          throw new Error('Square Web Payments SDK failed to load - please refresh the page')
+          throw new Error("Square Web Payments SDK failed to load - please refresh the page");
         }
 
-        const paymentsInstance = (window.Square as any).payments(applicationId, locationId)
-        setPayments(paymentsInstance)
+        const paymentsInstance = (window.Square as any).payments(applicationId, locationId);
+        setPayments(paymentsInstance);
 
         // Initialize card
         const cardInstance = await paymentsInstance.card({
           style: {
-            '.input-container': {
-              borderRadius: '6px',
-              borderColor: '#D1D5DB',
-              borderWidth: '1px',
+            ".input-container": {
+              borderRadius: "6px",
+              borderColor: "#D1D5DB",
+              borderWidth: "1px",
             },
-            '.input-container.is-focus': {
-              borderColor: '#3B82F6',
+            ".input-container.is-focus": {
+              borderColor: "#3B82F6",
             },
-            '.input-container.is-error': {
-              borderColor: '#EF4444',
+            ".input-container.is-error": {
+              borderColor: "#EF4444",
             },
             input: {
-              fontSize: '14px',
-              color: '#374151',
+              fontSize: "14px",
+              color: "#374151",
             },
-            'input::placeholder': {
-              color: '#9CA3AF',
+            "input::placeholder": {
+              color: "#9CA3AF",
             },
           },
-        })
+        });
 
-        let containerAttempts = 0
-        let container = document.getElementById('square-card-container')
+        let containerAttempts = 0;
+        let container = document.getElementById("square-card-container");
         while (!container && containerAttempts < 30) {
-          await new Promise((resolve) => setTimeout(resolve, 100))
-          container = document.getElementById('square-card-container')
-          containerAttempts++
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          container = document.getElementById("square-card-container");
+          containerAttempts++;
         }
 
         if (!container) {
-          throw new Error('Card container element not found after 3 seconds')
+          throw new Error("Card container element not found after 3 seconds");
         }
 
-        await cardInstance.attach('#square-card-container')
-        setCard(cardInstance)
+        await cardInstance.attach("#square-card-container");
+        setCard(cardInstance);
 
-        setIsInitializing(false)
+        setIsInitializing(false);
       } catch (err) {
-        console.error('[Square] Initialization error:', err)
-        const errorMsg = err instanceof Error ? err.message : 'Unknown error'
-        setError(`Failed to initialize payment form: ${errorMsg}`)
-        setIsInitializing(false)
+        console.error("[Square] Initialization error:", err);
+        const errorMsg = err instanceof Error ? err.message : "Unknown error";
+        setError(`Failed to initialize payment form: ${errorMsg}`);
+        setIsInitializing(false);
       }
-    }
+    };
 
     // Safety timeout - increased to 30 seconds for slower connections
     const timeout = setTimeout(() => {
       if (isInitializing) {
-        console.error('[Square] Initialization timeout after 30 seconds')
-        setError('Payment form initialization timeout. Please refresh the page or contact support.')
-        setIsInitializing(false)
+        console.error("[Square] Initialization timeout after 30 seconds");
+        setError(
+          "Payment form initialization timeout. Please refresh the page or contact support."
+        );
+        setIsInitializing(false);
       }
-    }, 30000)
+    }, 30000);
 
     // Wait for DOM to be ready before initializing
     const initTimer = setTimeout(() => {
-      initializeSquare()
-    }, 300)
+      initializeSquare();
+    }, 300);
 
     return () => {
-      clearTimeout(timeout)
-      clearTimeout(initTimer)
+      clearTimeout(timeout);
+      clearTimeout(initTimer);
       if (card) {
-        card.destroy()
+        card.destroy();
       }
-    }
-  }, [applicationId, locationId])
+    };
+  }, [applicationId, locationId]);
 
   const loadSquareScript = () => {
     return new Promise((resolve, reject) => {
       if (window.Square) {
-        resolve(true)
-        return
+        resolve(true);
+        return;
       }
 
-      const script = document.createElement('script')
+      const script = document.createElement("script");
       // Use correct environment URL based on SQUARE_ENVIRONMENT
       const sdkUrl =
-        environment === 'production'
-          ? 'https://web.squarecdn.com/v1/square.js'
-          : 'https://sandbox.web.squarecdn.com/v1/square.js'
-      script.src = sdkUrl
-      script.async = true
+        environment === "production"
+          ? "https://web.squarecdn.com/v1/square.js"
+          : "https://sandbox.web.squarecdn.com/v1/square.js";
+      script.src = sdkUrl;
+      script.async = true;
 
       script.onload = () => {
-        resolve(true)
-      }
+        resolve(true);
+      };
 
       script.onerror = (error) => {
-        console.error('[Square] Failed to load Square.js:', error)
-        reject(new Error('Failed to load Square.js. Please check your internet connection.'))
-      }
+        console.error("[Square] Failed to load Square.js:", error);
+        reject(new Error("Failed to load Square.js. Please check your internet connection."));
+      };
 
-      document.head.appendChild(script)
-    })
-  }
+      document.head.appendChild(script);
+    });
+  };
 
   const handleCardPayment = async () => {
-    setIsProcessing(true)
-    setError(null)
+    setIsProcessing(true);
+    setError(null);
 
     try {
-      let sourceId: string
-      let paymentResult: any
+      let sourceId: string;
+      let paymentResult: any;
 
       if (savedPaymentMethod) {
         // Use saved payment method
-        const response = await fetch('/api/checkout/process-square-payment', {
-          method: 'POST',
+        const response = await fetch("/api/checkout/process-square-payment", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             cardId: savedPaymentMethod.squareCardId,
             amount: Math.round(total * 100),
-            currency: 'USD',
+            currency: "USD",
             useSavedCard: true,
           }),
-        })
+        });
 
-        paymentResult = await response.json()
+        paymentResult = await response.json();
       } else {
         // Process new card
         if (!card || !payments) {
-          throw new Error('Payment form not initialized')
+          throw new Error("Payment form not initialized");
         }
 
         const verificationDetails = {
-          intent: 'CHARGE',
+          intent: "CHARGE",
           amount: Math.round(total * 100).toString(),
-          currencyCode: 'USD',
+          currencyCode: "USD",
           billingContact: billingContact || {
-            givenName: 'Customer',
-            familyName: '',
+            givenName: "Customer",
+            familyName: "",
           },
           customerInitiated: true,
           sellerKeyedIn: false,
-        }
+        };
 
-        const result = await card.tokenize(verificationDetails)
+        const result = await card.tokenize(verificationDetails);
 
-        if (result.status === 'OK') {
-          sourceId = result.token
+        if (result.status === "OK") {
+          sourceId = result.token;
 
           // Save payment method if requested
           if (user && shouldSavePaymentMethod) {
             try {
-              await fetch('/api/user/payment-methods', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+              await fetch("/api/user/payment-methods", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   sourceId,
-                  nickname: 'Card from checkout',
+                  nickname: "Card from checkout",
                   isDefault: false,
                 }),
-              })
+              });
             } catch (saveError) {
-              console.warn('Failed to save payment method:', saveError)
+              console.warn("Failed to save payment method:", saveError);
               // Don't fail the payment if saving fails
             }
           }
 
-          const response = await fetch('/api/checkout/process-square-payment', {
-            method: 'POST',
+          const response = await fetch("/api/checkout/process-square-payment", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               sourceId,
               amount: Math.round(total * 100),
-              currency: 'USD',
+              currency: "USD",
             }),
-          })
+          });
 
-          paymentResult = await response.json()
+          paymentResult = await response.json();
         } else {
           const errorMessages = result.errors
             ?.map((error: Record<string, unknown>) => error.message)
-            .join(', ')
-          throw new Error(errorMessages || 'Card validation failed')
+            .join(", ");
+          throw new Error(errorMessages || "Card validation failed");
         }
       }
 
       if (paymentResult.success) {
-        onPaymentSuccess(paymentResult)
+        onPaymentSuccess(paymentResult);
       } else {
-        throw new Error(paymentResult.error || 'Payment failed')
+        throw new Error(paymentResult.error || "Payment failed");
       }
     } catch (err) {
-      console.error('[Square] Payment error:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Payment processing failed'
-      setError(errorMessage)
-      onPaymentError(errorMessage)
+      console.error("[Square] Payment error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Payment processing failed";
+      setError(errorMessage);
+      onPaymentError(errorMessage);
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -356,7 +358,7 @@ export function SquareCardPayment({
                   <div>
                     <p className="font-medium">{savedPaymentMethod.maskedNumber}</p>
                     <p className="text-sm text-muted-foreground capitalize">
-                      {savedPaymentMethod.cardBrand.replace('_', ' ').toLowerCase()}
+                      {savedPaymentMethod.cardBrand.replace("_", " ").toLowerCase()}
                     </p>
                   </div>
                 </div>
@@ -445,5 +447,5 @@ export function SquareCardPayment({
         </p>
       </div>
     </div>
-  )
+  );
 }

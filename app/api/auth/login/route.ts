@@ -21,10 +21,7 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password) {
       console.log("[Login] Missing email or password");
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
     // Get user from Convex
@@ -35,20 +32,14 @@ export async function POST(request: NextRequest) {
     console.log("[Login] User found:", !!user);
 
     if (!user || !user.passwordHash) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 
     if (!isValidPassword) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
     // Create JWT token
@@ -91,7 +82,10 @@ export async function POST(request: NextRequest) {
     console.error("[Login] Login error:", error);
     console.error("[Login] Error details:", error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: "Internal server error", debug: error instanceof Error ? error.message : String(error) },
+      {
+        error: "Internal server error",
+        debug: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }

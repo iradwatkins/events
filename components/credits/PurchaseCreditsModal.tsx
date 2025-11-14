@@ -22,10 +22,7 @@ interface PurchaseCreditsModalProps {
   onSuccess: () => void;
 }
 
-export function PurchaseCreditsModal({
-  onClose,
-  onSuccess,
-}: PurchaseCreditsModalProps) {
+export function PurchaseCreditsModal({ onClose, onSuccess }: PurchaseCreditsModalProps) {
   const [selectedPackage, setSelectedPackage] = useState<Package>(PACKAGES[1]); // Default to popular
   const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal">("card");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -35,14 +32,14 @@ export function PurchaseCreditsModal({
 
   // Fetch current user ID
   useEffect(() => {
-    fetch('/api/auth/me', { credentials: 'same-origin' })
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/auth/me", { credentials: "same-origin" })
+      .then((res) => res.json())
+      .then((data) => {
         if (data.user && data.user._id) {
           setUserId(data.user._id);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Failed to fetch user:", err);
         setError("Failed to load user information");
       });
@@ -150,9 +147,7 @@ export function PurchaseCreditsModal({
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
             <ShoppingCart className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Purchase More Credits
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Purchase More Credits</h2>
           <p className="text-gray-600">Choose the package that fits your needs</p>
         </div>
 
@@ -210,8 +205,8 @@ export function PurchaseCreditsModal({
               }`}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.067 8.478c.492.88.556 2.014.3 3.327-.74 3.806-3.276 5.12-6.514 5.12h-.5a.805.805 0 00-.794.68l-.04.22-.63 3.993-.028.16a.804.804 0 01-.794.68H7.72a.483.483 0 01-.477-.558L7.418 21l1.177-7.46.022-.14a.805.805 0 01.794-.68h1.659c3.238 0 5.774-1.314 6.514-5.12a3.936 3.936 0 00-.517.878z"/>
-                <path d="M9.928 8.478a.805.805 0 01.794-.68h4.908c.58 0 1.11.044 1.592.145.16.034.318.072.475.114.48.128.928.31 1.334.553.1-1.358-.085-2.28-.647-3.199C17.538 3.924 15.822 3.34 13.647 3.34H6.869a.805.805 0 00-.794.68L3.5 17.812a.483.483 0 00.477.558h3.332l.836-5.304.776-4.588z"/>
+                <path d="M20.067 8.478c.492.88.556 2.014.3 3.327-.74 3.806-3.276 5.12-6.514 5.12h-.5a.805.805 0 00-.794.68l-.04.22-.63 3.993-.028.16a.804.804 0 01-.794.68H7.72a.483.483 0 01-.477-.558L7.418 21l1.177-7.46.022-.14a.805.805 0 01.794-.68h1.659c3.238 0 5.774-1.314 6.514-5.12a3.936 3.936 0 00-.517.878z" />
+                <path d="M9.928 8.478a.805.805 0 01.794-.68h4.908c.58 0 1.11.044 1.592.145.16.034.318.072.475.114.48.128.928.31 1.334.553.1-1.358-.085-2.28-.647-3.199C17.538 3.924 15.822 3.34 13.647 3.34H6.869a.805.805 0 00-.794.68L3.5 17.812a.483.483 0 00.477.558h3.332l.836-5.304.776-4.588z" />
               </svg>
               <span className="font-medium">PayPal</span>
             </button>
@@ -309,9 +304,7 @@ export function PurchaseCreditsModal({
                   Processing...
                 </>
               ) : (
-                <>
-                  Purchase ${selectedPackage.price}
-                </>
+                <>Purchase ${selectedPackage.price}</>
               )}
             </button>
           </div>

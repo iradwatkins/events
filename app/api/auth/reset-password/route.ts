@@ -11,10 +11,7 @@ export async function POST(request: NextRequest) {
     const { token, password } = await request.json();
 
     if (!token || !password) {
-      return NextResponse.json(
-        { error: "Token and password are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Token and password are required" }, { status: 400 });
     }
 
     // Validate password strength
@@ -59,9 +56,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error("[Password Reset] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to reset password" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to reset password" }, { status: 500 });
   }
 }

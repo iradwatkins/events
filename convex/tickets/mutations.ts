@@ -15,12 +15,16 @@ export const createTicketTier = mutation({
     saleStart: v.optional(v.number()),
     saleEnd: v.optional(v.number()),
     // Early Bird Pricing - time-based pricing tiers
-    pricingTiers: v.optional(v.array(v.object({
-      name: v.string(), // "Early Bird", "Regular", "Last Chance"
-      price: v.number(), // Price in cents for this tier
-      availableFrom: v.number(), // Start timestamp
-      availableUntil: v.optional(v.number()), // End timestamp (optional for last tier)
-    }))),
+    pricingTiers: v.optional(
+      v.array(
+        v.object({
+          name: v.string(), // "Early Bird", "Regular", "Last Chance"
+          price: v.number(), // Price in cents for this tier
+          availableFrom: v.number(), // Start timestamp
+          availableUntil: v.optional(v.number()), // End timestamp (optional for last tier)
+        })
+      )
+    ),
     // Simple Table Package Support
     isTablePackage: v.optional(v.boolean()),
     tableCapacity: v.optional(v.number()), // Seats per table
@@ -70,21 +74,24 @@ export const createTicketTier = mutation({
       }, 0);
 
       // Calculate new tier capacity (simple)
-      const newSeats = args.isTablePackage && args.tableCapacity
-        ? args.quantity * args.tableCapacity // Tables × seats per table
-        : args.quantity; // Individual tickets
+      const newSeats =
+        args.isTablePackage && args.tableCapacity
+          ? args.quantity * args.tableCapacity // Tables × seats per table
+          : args.quantity; // Individual tickets
 
       const newTotal = currentAllocated + newSeats;
 
       if (newTotal > event.capacity) {
         throw new Error(
           `Cannot create tier: Total ticket allocation (${newTotal.toLocaleString()}) would exceed event capacity (${event.capacity.toLocaleString()}). ` +
-          `Currently allocated: ${currentAllocated.toLocaleString()}. Remaining: ${(event.capacity - currentAllocated).toLocaleString()}. ` +
-          `Please reduce the quantity or increase your event capacity.`
+            `Currently allocated: ${currentAllocated.toLocaleString()}. Remaining: ${(event.capacity - currentAllocated).toLocaleString()}. ` +
+            `Please reduce the quantity or increase your event capacity.`
         );
       }
 
-      console.log(`[createTicketTier] Capacity check: ${newTotal}/${event.capacity} tickets allocated`);
+      console.log(
+        `[createTicketTier] Capacity check: ${newTotal}/${event.capacity} tickets allocated`
+      );
     }
 
     // Create ticket tier (simplified)
@@ -151,22 +158,24 @@ export const deleteTicketTier = mutation({
     if (eventHasStarted) {
       throw new Error(
         "Cannot delete tickets after the event has started. " +
-        "The event began and ticket configurations are now locked."
+          "The event began and ticket configurations are now locked."
       );
     }
 
     // Check if any tickets have been sold
     if (tier.sold > 0) {
       throw new Error(
-        `Cannot delete ticket tier with sold tickets. ${tier.sold} ticket${tier.sold === 1 ? ' has' : 's have'} already been sold. ` +
-        `You can reduce the quantity instead of deleting.`
+        `Cannot delete ticket tier with sold tickets. ${tier.sold} ticket${tier.sold === 1 ? " has" : "s have"} already been sold. ` +
+          `You can reduce the quantity instead of deleting.`
       );
     }
 
     // NO CREDIT REFUND - Tickets are per-event and don't transfer
     // Deleting a tier simply frees up allocation for THIS event only
     // The tickets remain allocated to this event and can be used for other tiers
-    console.log(`[deleteTicketTier] Deleted tier with ${tier.quantity} tickets. These tickets remain allocated to event ${tier.eventId} and can be used for other tiers.`);
+    console.log(
+      `[deleteTicketTier] Deleted tier with ${tier.quantity} tickets. These tickets remain allocated to event ${tier.eventId} and can be used for other tiers.`
+    );
 
     await ctx.db.delete(args.tierId);
 
@@ -194,13 +203,17 @@ export const updateTicketTier = mutation({
     isTablePackage: v.optional(v.boolean()),
     tableCapacity: v.optional(v.number()),
     // Early bird pricing support
-    pricingTiers: v.optional(v.array(v.object({
-      id: v.string(),
-      name: v.string(),
-      price: v.number(),
-      availableFrom: v.number(),
-      availableUntil: v.optional(v.number()),
-    }))),
+    pricingTiers: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          name: v.string(),
+          price: v.number(),
+          availableFrom: v.number(),
+          availableUntil: v.optional(v.number()),
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     // BYPASS ctx.auth - use same workaround as createTicketTier
@@ -232,16 +245,16 @@ export const updateTicketTier = mutation({
     if (eventHasStarted) {
       throw new Error(
         "Cannot edit tickets after the event has started. " +
-        "The event began and ticket configurations are now locked. " +
-        "Please contact support if you need assistance."
+          "The event began and ticket configurations are now locked. " +
+          "Please contact support if you need assistance."
       );
     }
 
     // SAFEGUARD: Cannot reduce quantity below sold count
     if (args.quantity !== undefined && args.quantity < tier.sold) {
       throw new Error(
-        `Cannot reduce quantity to ${args.quantity} because ${tier.sold} ticket${tier.sold === 1 ? ' has' : 's have'} already been sold. ` +
-        `Quantity must be at least ${tier.sold}.`
+        `Cannot reduce quantity to ${args.quantity} because ${tier.sold} ticket${tier.sold === 1 ? " has" : "s have"} already been sold. ` +
+          `Quantity must be at least ${tier.sold}.`
       );
     }
 
@@ -250,9 +263,10 @@ export const updateTicketTier = mutation({
     // VALIDATE AGAINST EVENT CAPACITY
     if (event.capacity && event.capacity > 0) {
       // Check if any allocation-related fields are being updated
-      const hasAllocationChange = args.quantity !== undefined ||
-                                   args.tableCapacity !== undefined ||
-                                   args.isTablePackage !== undefined;
+      const hasAllocationChange =
+        args.quantity !== undefined ||
+        args.tableCapacity !== undefined ||
+        args.isTablePackage !== undefined;
 
       if (hasAllocationChange) {
         const existingTiers = await ctx.db
@@ -271,17 +285,20 @@ export const updateTicketTier = mutation({
 
         // Calculate new total (excluding this tier, then adding new capacity)
         const otherTiersTotal = existingTiers
-          .filter(t => t._id !== args.tierId)
+          .filter((t) => t._id !== args.tierId)
           .reduce((sum, t) => sum + getTierCapacity(t), 0);
 
         // Calculate new tier capacity with updated values
-        const updatedIsTablePackage = args.isTablePackage !== undefined ? args.isTablePackage : tier.isTablePackage;
-        const updatedTableCap = args.tableCapacity !== undefined ? args.tableCapacity : tier.tableCapacity;
+        const updatedIsTablePackage =
+          args.isTablePackage !== undefined ? args.isTablePackage : tier.isTablePackage;
+        const updatedTableCap =
+          args.tableCapacity !== undefined ? args.tableCapacity : tier.tableCapacity;
         const updatedQty = args.quantity !== undefined ? args.quantity : tier.quantity;
 
-        const newSeats = updatedIsTablePackage && updatedTableCap
-          ? updatedQty * updatedTableCap // Tables × seats per table
-          : updatedQty; // Individual tickets
+        const newSeats =
+          updatedIsTablePackage && updatedTableCap
+            ? updatedQty * updatedTableCap // Tables × seats per table
+            : updatedQty; // Individual tickets
 
         const newTotal = otherTiersTotal + newSeats;
 
@@ -290,13 +307,15 @@ export const updateTicketTier = mutation({
 
           throw new Error(
             `Cannot update tier: Total ticket allocation (${newTotal.toLocaleString()}) would exceed event capacity (${event.capacity.toLocaleString()}). ` +
-            `Other tiers are using ${otherTiersTotal.toLocaleString()} seats. ` +
-            `You can allocate at most ${maxAllowedForThisTier.toLocaleString()} seats to this tier. ` +
-            `Please reduce the quantity or increase your event capacity.`
+              `Other tiers are using ${otherTiersTotal.toLocaleString()} seats. ` +
+              `You can allocate at most ${maxAllowedForThisTier.toLocaleString()} seats to this tier. ` +
+              `Please reduce the quantity or increase your event capacity.`
           );
         }
 
-        console.log(`[updateTicketTier] Capacity check: ${newTotal}/${event.capacity} tickets allocated`);
+        console.log(
+          `[updateTicketTier] Capacity check: ${newTotal}/${event.capacity} tickets allocated`
+        );
       }
     }
 
@@ -340,16 +359,20 @@ export const createOrder = mutation({
     referralCode: v.optional(v.string()),
     discountCodeId: v.optional(v.id("discountCodes")),
     discountAmountCents: v.optional(v.number()),
-    selectedSeats: v.optional(v.array(v.object({
-      sectionId: v.string(),
-      sectionName: v.string(),
-      rowId: v.optional(v.string()),
-      rowLabel: v.optional(v.string()),
-      tableId: v.optional(v.string()),
-      tableNumber: v.optional(v.union(v.string(), v.number())),
-      seatId: v.string(),
-      seatNumber: v.string(),
-    }))),
+    selectedSeats: v.optional(
+      v.array(
+        v.object({
+          sectionId: v.string(),
+          sectionName: v.string(),
+          rowId: v.optional(v.string()),
+          rowLabel: v.optional(v.string()),
+          tableId: v.optional(v.string()),
+          tableNumber: v.optional(v.union(v.string(), v.number())),
+          seatId: v.string(),
+          seatNumber: v.string(),
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -449,10 +472,7 @@ export const createOrder = mutation({
                 .eq("seatId", seat.seatId)
             )
             .filter((q) =>
-              q.and(
-                q.eq(q.field("status"), "RESERVED"),
-                q.eq(q.field("rowId"), seat.rowId)
-              )
+              q.and(q.eq(q.field("status"), "RESERVED"), q.eq(q.field("rowId"), seat.rowId))
             )
             .first();
         } else if (seat.tableId) {
@@ -466,19 +486,16 @@ export const createOrder = mutation({
                 .eq("tableId", seat.tableId)
             )
             .filter((q) =>
-              q.and(
-                q.eq(q.field("status"), "RESERVED"),
-                q.eq(q.field("seatId"), seat.seatId)
-              )
+              q.and(q.eq(q.field("status"), "RESERVED"), q.eq(q.field("seatId"), seat.seatId))
             )
             .first();
         }
 
         if (existingReservation) {
-          const location = seat.rowId
-            ? `Row ${seat.rowLabel}`
-            : `Table ${seat.tableNumber}`;
-          throw new Error(`Seat ${seat.seatNumber} at ${location} in ${seat.sectionName} is already reserved`);
+          const location = seat.rowId ? `Row ${seat.rowLabel}` : `Table ${seat.tableNumber}`;
+          throw new Error(
+            `Seat ${seat.seatNumber} at ${location} in ${seat.sectionName} is already reserved`
+          );
         }
       }
     }
@@ -650,7 +667,7 @@ export const completeOrder = mutation({
     const now = Date.now();
     for (const [tierId, count] of tierSoldCount.entries()) {
       const tier = await ctx.db.get(tierId as Id<"ticketTiers">);
-      if (tier && 'sold' in tier) {
+      if (tier && "sold" in tier) {
         const currentVersion = tier.version || 0;
         const newSold = tier.sold + count;
 
@@ -659,8 +676,8 @@ export const completeOrder = mutation({
         if (newSold > tier.quantity) {
           throw new Error(
             `Tickets sold out during checkout. Tier "${tier.name}" only has ` +
-            `${tier.quantity - tier.sold} tickets remaining, but ${count} were requested. ` +
-            `Please try again with fewer tickets or choose a different tier.`
+              `${tier.quantity - tier.sold} tickets remaining, but ${count} were requested. ` +
+              `Please try again with fewer tickets or choose a different tier.`
           );
         }
 
@@ -673,7 +690,9 @@ export const completeOrder = mutation({
         // Set firstSaleAt if this is the first sale for this tier
         if (tier.sold === 0 && !tier.firstSaleAt) {
           updates.firstSaleAt = now;
-          console.log(`[completeOrder] First sale detected for tier ${tierId} - setting firstSaleAt`);
+          console.log(
+            `[completeOrder] First sale detected for tier ${tierId} - setting firstSaleAt`
+          );
         }
 
         // Atomic update with version check
@@ -681,7 +700,7 @@ export const completeOrder = mutation({
 
         console.log(
           `[completeOrder] Updated tier ${tier.name}: sold ${tier.sold} → ${newSold}, ` +
-          `version ${currentVersion} → ${currentVersion + 1}`
+            `version ${currentVersion} → ${currentVersion + 1}`
         );
       }
     }
@@ -956,7 +975,9 @@ export const cancelTicket = mutation({
           updatedAt: Date.now(),
         });
 
-        console.log(`[cancelTicket] Decremented sold count for tier ${tier.name} (v${currentVersion} → v${currentVersion + 1})`);
+        console.log(
+          `[cancelTicket] Decremented sold count for tier ${tier.name} (v${currentVersion} → v${currentVersion + 1})`
+        );
       }
     }
 
@@ -1026,7 +1047,7 @@ export const createBundleOrder = mutation({
     // Check bundle availability
     const available = bundle.totalQuantity - bundle.sold;
     if (available < args.quantity) {
-      throw new Error(`Only ${available} bundle${available === 1 ? '' : 's'} available`);
+      throw new Error(`Only ${available} bundle${available === 1 ? "" : "s"} available`);
     }
 
     // Look up staff member if referral code provided
@@ -1154,7 +1175,7 @@ export const completeBundleOrder = mutation({
       if (newSold > tier.quantity) {
         throw new Error(
           `Tickets sold out during checkout. Tier "${tier.name}" only has ` +
-          `${tier.quantity - tier.sold} tickets remaining, but ${includedTier.quantity} were requested.`
+            `${tier.quantity - tier.sold} tickets remaining, but ${includedTier.quantity} were requested.`
         );
       }
 
@@ -1165,7 +1186,9 @@ export const completeBundleOrder = mutation({
         updatedAt: Date.now(),
       });
 
-      console.log(`[completeBundleOrder] Updated tier ${tier.name}: sold ${tier.sold} → ${newSold} (v${currentVersion} → v${currentVersion + 1})`);
+      console.log(
+        `[completeBundleOrder] Updated tier ${tier.name}: sold ${tier.sold} → ${newSold} (v${currentVersion} → v${currentVersion + 1})`
+      );
     }
 
     // Increment bundle sold count
@@ -1231,7 +1254,9 @@ export const activateTicket = mutation({
     const event = await ctx.db.get(ticket.eventId);
     const ticketTier = ticket.ticketTierId ? await ctx.db.get(ticket.ticketTierId) : null;
 
-    console.log(`[activateTicket] Successfully activated ticket ${ticket._id} with code ${ticketCode}`);
+    console.log(
+      `[activateTicket] Successfully activated ticket ${ticket._id} with code ${ticketCode}`
+    );
 
     return {
       success: true,
@@ -1372,7 +1397,9 @@ export const deleteTicket = mutation({
           updatedAt: Date.now(),
         });
 
-        console.log(`[deleteTicket] Decremented sold count for tier ${tier.name}: ${tier.sold} → ${newSold} (v${currentVersion} → v${currentVersion + 1})`);
+        console.log(
+          `[deleteTicket] Decremented sold count for tier ${tier.name}: ${tier.sold} → ${newSold} (v${currentVersion} → v${currentVersion + 1})`
+        );
       }
     }
 
@@ -1409,9 +1436,7 @@ export const bundleTickets = mutation({
     }
 
     // Verify all tickets exist and belong to the user
-    const tickets = await Promise.all(
-      args.ticketIds.map(id => ctx.db.get(id))
-    );
+    const tickets = await Promise.all(args.ticketIds.map((id) => ctx.db.get(id)));
 
     // Check ownership (skip in testing mode)
     if (identity) {
@@ -1450,7 +1475,7 @@ export const bundleTickets = mutation({
       success: true,
       bundleId,
       bundleName: args.bundleName,
-      ticketCount: args.ticketIds.length
+      ticketCount: args.ticketIds.length,
     };
   },
 });
@@ -1471,9 +1496,7 @@ export const unbundleTickets = mutation({
     }
 
     // Verify all tickets exist and belong to the user
-    const tickets = await Promise.all(
-      args.ticketIds.map(id => ctx.db.get(id))
-    );
+    const tickets = await Promise.all(args.ticketIds.map((id) => ctx.db.get(id)));
 
     // Check ownership (skip in testing mode)
     if (identity) {
@@ -1504,7 +1527,7 @@ export const unbundleTickets = mutation({
     console.log(`[unbundleTickets] Unbundled ${args.ticketIds.length} tickets`);
     return {
       success: true,
-      ticketCount: args.ticketIds.length
+      ticketCount: args.ticketIds.length,
     };
   },
 });

@@ -26,7 +26,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
       id: `pricing-tier-${Date.now()}`,
       name: "",
       price: basePrice || "",
-      availableFrom: new Date().toISOString().split('T')[0],
+      availableFrom: new Date().toISOString().split("T")[0],
       availableUntil: "",
     };
     onChange([...tiers, newTier]);
@@ -38,16 +38,12 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
   };
 
   const updateTier = (id: string, field: keyof PricingTier, value: string) => {
-    onChange(
-      tiers.map((tier) =>
-        tier.id === id ? { ...tier, [field]: value } : tier
-      )
-    );
+    onChange(tiers.map((tier) => (tier.id === id ? { ...tier, [field]: value } : tier)));
   };
 
   // Sort tiers by availableFrom date for display
-  const sortedTiers = [...tiers].sort((a, b) =>
-    new Date(a.availableFrom).getTime() - new Date(b.availableFrom).getTime()
+  const sortedTiers = [...tiers].sort(
+    (a, b) => new Date(a.availableFrom).getTime() - new Date(b.availableFrom).getTime()
   );
 
   // Calculate savings between tiers
@@ -69,11 +65,10 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
             <Clock className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
-            <h4 className="font-medium text-foreground mb-1">
-              Early Bird Pricing (Optional)
-            </h4>
+            <h4 className="font-medium text-foreground mb-1">Early Bird Pricing (Optional)</h4>
             <p className="text-sm text-primary mb-3">
-              Create time-based pricing tiers to reward early buyers. Example: $50 Early Bird → $75 Regular → $100 Last Chance
+              Create time-based pricing tiers to reward early buyers. Example: $50 Early Bird → $75
+              Regular → $100 Last Chance
             </p>
             <button
               type="button"
@@ -94,9 +89,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
       <div className="flex items-center justify-between">
         <div>
           <h4 className="font-medium text-gray-900">Early Bird Pricing</h4>
-          <p className="text-sm text-gray-600">
-            Prices automatically change based on date
-          </p>
+          <p className="text-sm text-gray-600">Prices automatically change based on date</p>
         </div>
         {tiers.length === 0 && (
           <button
@@ -236,7 +229,7 @@ export function PricingTierForm({ tiers, onChange, basePrice }: PricingTierFormP
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
           <p className="text-sm text-green-800">
             <strong>Preview:</strong> Customers will see different prices based on when they buy.{" "}
-            {sortedTiers.length} pricing tier{sortedTiers.length !== 1 ? 's' : ''} configured.
+            {sortedTiers.length} pricing tier{sortedTiers.length !== 1 ? "s" : ""} configured.
           </p>
         </div>
       )}

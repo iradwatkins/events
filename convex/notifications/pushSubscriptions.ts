@@ -27,7 +27,9 @@ export const subscribe = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    console.log(`[subscribe] Subscribing: staffId=${args.staffId}, endpoint=${args.subscription.endpoint}`);
+    console.log(
+      `[subscribe] Subscribing: staffId=${args.staffId}, endpoint=${args.subscription.endpoint}`
+    );
 
     // Check if subscription already exists
     const existing = await ctx.db

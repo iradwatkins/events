@@ -56,9 +56,7 @@ export const getEventWaitlist = query({
 
     const waitlist = await ctx.db
       .query("eventWaitlist")
-      .withIndex("by_event_and_status", (q) =>
-        q.eq("eventId", args.eventId).eq("status", "ACTIVE")
-      )
+      .withIndex("by_event_and_status", (q) => q.eq("eventId", args.eventId).eq("status", "ACTIVE"))
       .collect();
 
     // Get tier details for each entry
@@ -94,10 +92,7 @@ export const checkUserOnWaitlist = query({
       .filter((q) =>
         q.and(
           q.eq(q.field("eventId"), args.eventId),
-          q.or(
-            q.eq(q.field("status"), "ACTIVE"),
-            q.eq(q.field("status"), "NOTIFIED")
-          )
+          q.or(q.eq(q.field("status"), "ACTIVE"), q.eq(q.field("status"), "NOTIFIED"))
         )
       )
       .first();
@@ -116,9 +111,7 @@ export const getWaitlistCount = query({
   handler: async (ctx, args) => {
     const waitlist = await ctx.db
       .query("eventWaitlist")
-      .withIndex("by_event_and_status", (q) =>
-        q.eq("eventId", args.eventId).eq("status", "ACTIVE")
-      )
+      .withIndex("by_event_and_status", (q) => q.eq("eventId", args.eventId).eq("status", "ACTIVE"))
       .collect();
 
     return waitlist.length;

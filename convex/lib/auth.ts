@@ -24,7 +24,7 @@ export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
   // Convex auth identity can have different structures depending on the provider
   const email = identity.email || identity.tokenIdentifier?.split("|")[1];
 
-  if (!email || typeof email !== 'string') {
+  if (!email || typeof email !== "string") {
     console.error("[getCurrentUser] No email found in identity:", identity);
     throw new Error("No email found in authentication token");
   }
@@ -48,10 +48,7 @@ export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
  * Throws an error if not authorized.
  * Returns both the user and event for convenience.
  */
-export async function requireEventOwnership(
-  ctx: QueryCtx | MutationCtx,
-  eventId: Id<"events">
-) {
+export async function requireEventOwnership(ctx: QueryCtx | MutationCtx, eventId: Id<"events">) {
   const user = await getCurrentUser(ctx);
   const event = await ctx.db.get(eventId);
 

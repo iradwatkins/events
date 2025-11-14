@@ -8,7 +8,9 @@ import { api } from "./_generated/api";
  */
 export const testActivationFlow = mutation({
   args: {},
-  handler: async (ctx): Promise<{
+  handler: async (
+    ctx
+  ): Promise<{
     success: boolean;
     steps: any[];
     error?: string;

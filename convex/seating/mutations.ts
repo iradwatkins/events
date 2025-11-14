@@ -8,86 +8,108 @@ export const createSeatingChart = mutation({
   args: {
     eventId: v.id("events"),
     name: v.string(),
-    seatingStyle: v.optional(v.union(
-      v.literal("ROW_BASED"),
-      v.literal("TABLE_BASED"),
-      v.literal("MIXED")
-    )),
+    seatingStyle: v.optional(
+      v.union(v.literal("ROW_BASED"), v.literal("TABLE_BASED"), v.literal("MIXED"))
+    ),
     venueImageId: v.optional(v.id("_storage")),
     venueImageUrl: v.optional(v.string()),
     imageScale: v.optional(v.number()),
     imageRotation: v.optional(v.number()),
-    sections: v.array(v.object({
-      id: v.string(),
-      name: v.string(),
-      color: v.optional(v.string()),
-      x: v.optional(v.number()),
-      y: v.optional(v.number()),
-      width: v.optional(v.number()),
-      height: v.optional(v.number()),
-      rotation: v.optional(v.number()),
-      containerType: v.optional(v.union(v.literal("ROWS"), v.literal("TABLES"))),
-      // ROW-BASED (optional)
-      rows: v.optional(v.array(v.object({
+    sections: v.array(
+      v.object({
         id: v.string(),
-        label: v.string(),
-        curved: v.optional(v.boolean()),
-        seats: v.array(v.object({
-          id: v.string(),
-          number: v.string(),
-          type: v.union(
-            v.literal("STANDARD"),
-            v.literal("WHEELCHAIR"),
-            v.literal("COMPANION"),
-            v.literal("VIP"),
-            v.literal("BLOCKED"),
-            v.literal("STANDING"),
-            v.literal("PARKING"),
-            v.literal("TENT")
-          ),
-          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE")),
-        })),
-      }))),
-      // TABLE-BASED (optional)
-      tables: v.optional(v.array(v.object({
-        id: v.string(),
-        number: v.union(v.string(), v.number()),
-        shape: v.union(
-          v.literal("ROUND"),
-          v.literal("RECTANGULAR"),
-          v.literal("SQUARE"),
-          v.literal("CUSTOM")
-        ),
-        x: v.number(),
-        y: v.number(),
-        width: v.number(),
-        height: v.number(),
+        name: v.string(),
+        color: v.optional(v.string()),
+        x: v.optional(v.number()),
+        y: v.optional(v.number()),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
         rotation: v.optional(v.number()),
-        customPath: v.optional(v.string()),
-        capacity: v.number(),
-        seats: v.array(v.object({
-          id: v.string(),
-          number: v.string(),
-          type: v.union(
-            v.literal("STANDARD"),
-            v.literal("WHEELCHAIR"),
-            v.literal("COMPANION"),
-            v.literal("VIP"),
-            v.literal("BLOCKED"),
-            v.literal("STANDING"),
-            v.literal("PARKING"),
-            v.literal("TENT")
-          ),
-          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE")),
-          position: v.optional(v.object({
-            angle: v.optional(v.number()),
-            side: v.optional(v.string()),
-            offset: v.optional(v.number()),
-          })),
-        })),
-      }))),
-      ticketTierId: v.optional(v.id("ticketTiers")),
-    })),
+        containerType: v.optional(v.union(v.literal("ROWS"), v.literal("TABLES"))),
+        // ROW-BASED (optional)
+        rows: v.optional(
+          v.array(
+            v.object({
+              id: v.string(),
+              label: v.string(),
+              curved: v.optional(v.boolean()),
+              seats: v.array(
+                v.object({
+                  id: v.string(),
+                  number: v.string(),
+                  type: v.union(
+                    v.literal("STANDARD"),
+                    v.literal("WHEELCHAIR"),
+                    v.literal("COMPANION"),
+                    v.literal("VIP"),
+                    v.literal("BLOCKED"),
+                    v.literal("STANDING"),
+                    v.literal("PARKING"),
+                    v.literal("TENT")
+                  ),
+                  status: v.union(
+                    v.literal("AVAILABLE"),
+                    v.literal("RESERVED"),
+                    v.literal("UNAVAILABLE")
+                  ),
+                })
+              ),
+            })
+          )
+        ),
+        // TABLE-BASED (optional)
+        tables: v.optional(
+          v.array(
+            v.object({
+              id: v.string(),
+              number: v.union(v.string(), v.number()),
+              shape: v.union(
+                v.literal("ROUND"),
+                v.literal("RECTANGULAR"),
+                v.literal("SQUARE"),
+                v.literal("CUSTOM")
+              ),
+              x: v.number(),
+              y: v.number(),
+              width: v.number(),
+              height: v.number(),
+              rotation: v.optional(v.number()),
+              customPath: v.optional(v.string()),
+              capacity: v.number(),
+              seats: v.array(
+                v.object({
+                  id: v.string(),
+                  number: v.string(),
+                  type: v.union(
+                    v.literal("STANDARD"),
+                    v.literal("WHEELCHAIR"),
+                    v.literal("COMPANION"),
+                    v.literal("VIP"),
+                    v.literal("BLOCKED"),
+                    v.literal("STANDING"),
+                    v.literal("PARKING"),
+                    v.literal("TENT")
+                  ),
+                  status: v.union(
+                    v.literal("AVAILABLE"),
+                    v.literal("RESERVED"),
+                    v.literal("UNAVAILABLE")
+                  ),
+                  position: v.optional(
+                    v.object({
+                      angle: v.optional(v.number()),
+                      side: v.optional(v.string()),
+                      offset: v.optional(v.number()),
+                    })
+                  ),
+                })
+              ),
+            })
+          )
+        ),
+        ticketTierId: v.optional(v.id("ticketTiers")),
+      })
+    ),
   },
   handler: async (ctx, args) => {
     // PRODUCTION: Require authentication for creating seating charts
@@ -158,86 +180,110 @@ export const updateSeatingChart = mutation({
   args: {
     seatingChartId: v.id("seatingCharts"),
     name: v.optional(v.string()),
-    seatingStyle: v.optional(v.union(
-      v.literal("ROW_BASED"),
-      v.literal("TABLE_BASED"),
-      v.literal("MIXED")
-    )),
+    seatingStyle: v.optional(
+      v.union(v.literal("ROW_BASED"), v.literal("TABLE_BASED"), v.literal("MIXED"))
+    ),
     venueImageId: v.optional(v.id("_storage")),
     venueImageUrl: v.optional(v.string()),
     imageScale: v.optional(v.number()),
     imageRotation: v.optional(v.number()),
-    sections: v.optional(v.array(v.object({
-      id: v.string(),
-      name: v.string(),
-      color: v.optional(v.string()),
-      x: v.optional(v.number()),
-      y: v.optional(v.number()),
-      width: v.optional(v.number()),
-      height: v.optional(v.number()),
-      rotation: v.optional(v.number()),
-      containerType: v.optional(v.union(v.literal("ROWS"), v.literal("TABLES"))),
-      // ROW-BASED (optional)
-      rows: v.optional(v.array(v.object({
-        id: v.string(),
-        label: v.string(),
-        curved: v.optional(v.boolean()),
-        seats: v.array(v.object({
+    sections: v.optional(
+      v.array(
+        v.object({
           id: v.string(),
-          number: v.string(),
-          type: v.union(
-            v.literal("STANDARD"),
-            v.literal("WHEELCHAIR"),
-            v.literal("COMPANION"),
-            v.literal("VIP"),
-            v.literal("BLOCKED"),
-            v.literal("STANDING"),
-            v.literal("PARKING"),
-            v.literal("TENT")
+          name: v.string(),
+          color: v.optional(v.string()),
+          x: v.optional(v.number()),
+          y: v.optional(v.number()),
+          width: v.optional(v.number()),
+          height: v.optional(v.number()),
+          rotation: v.optional(v.number()),
+          containerType: v.optional(v.union(v.literal("ROWS"), v.literal("TABLES"))),
+          // ROW-BASED (optional)
+          rows: v.optional(
+            v.array(
+              v.object({
+                id: v.string(),
+                label: v.string(),
+                curved: v.optional(v.boolean()),
+                seats: v.array(
+                  v.object({
+                    id: v.string(),
+                    number: v.string(),
+                    type: v.union(
+                      v.literal("STANDARD"),
+                      v.literal("WHEELCHAIR"),
+                      v.literal("COMPANION"),
+                      v.literal("VIP"),
+                      v.literal("BLOCKED"),
+                      v.literal("STANDING"),
+                      v.literal("PARKING"),
+                      v.literal("TENT")
+                    ),
+                    status: v.union(
+                      v.literal("AVAILABLE"),
+                      v.literal("RESERVED"),
+                      v.literal("UNAVAILABLE")
+                    ),
+                  })
+                ),
+              })
+            )
           ),
-          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE")),
-        })),
-      }))),
-      // TABLE-BASED (optional)
-      tables: v.optional(v.array(v.object({
-        id: v.string(),
-        number: v.union(v.string(), v.number()),
-        shape: v.union(
-          v.literal("ROUND"),
-          v.literal("RECTANGULAR"),
-          v.literal("SQUARE"),
-          v.literal("CUSTOM")
-        ),
-        x: v.number(),
-        y: v.number(),
-        width: v.number(),
-        height: v.number(),
-        rotation: v.optional(v.number()),
-        customPath: v.optional(v.string()),
-        capacity: v.number(),
-        seats: v.array(v.object({
-          id: v.string(),
-          number: v.string(),
-          type: v.union(
-            v.literal("STANDARD"),
-            v.literal("WHEELCHAIR"),
-            v.literal("COMPANION"),
-            v.literal("VIP"),
-            v.literal("BLOCKED"),
-            v.literal("STANDING"),
-            v.literal("PARKING"),
-            v.literal("TENT")
+          // TABLE-BASED (optional)
+          tables: v.optional(
+            v.array(
+              v.object({
+                id: v.string(),
+                number: v.union(v.string(), v.number()),
+                shape: v.union(
+                  v.literal("ROUND"),
+                  v.literal("RECTANGULAR"),
+                  v.literal("SQUARE"),
+                  v.literal("CUSTOM")
+                ),
+                x: v.number(),
+                y: v.number(),
+                width: v.number(),
+                height: v.number(),
+                rotation: v.optional(v.number()),
+                customPath: v.optional(v.string()),
+                capacity: v.number(),
+                seats: v.array(
+                  v.object({
+                    id: v.string(),
+                    number: v.string(),
+                    type: v.union(
+                      v.literal("STANDARD"),
+                      v.literal("WHEELCHAIR"),
+                      v.literal("COMPANION"),
+                      v.literal("VIP"),
+                      v.literal("BLOCKED"),
+                      v.literal("STANDING"),
+                      v.literal("PARKING"),
+                      v.literal("TENT")
+                    ),
+                    status: v.union(
+                      v.literal("AVAILABLE"),
+                      v.literal("RESERVED"),
+                      v.literal("UNAVAILABLE")
+                    ),
+                    position: v.optional(
+                      v.object({
+                        angle: v.optional(v.number()),
+                        side: v.optional(v.string()),
+                        offset: v.optional(v.number()),
+                      })
+                    ),
+                  })
+                ),
+              })
+            )
           ),
-          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE")),
-          position: v.optional(v.object({
-            angle: v.optional(v.number()),
-            side: v.optional(v.string()),
-            offset: v.optional(v.number()),
-          })),
-        })),
-      }))),
-      ticketTierId: v.optional(v.id("ticketTiers")),
-    }))),
+          ticketTierId: v.optional(v.id("ticketTiers")),
+        })
+      )
+    ),
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -368,18 +414,20 @@ export const reserveSeats = mutation({
     seatingChartId: v.id("seatingCharts"),
     ticketId: v.id("tickets"),
     orderId: v.id("orders"),
-    seats: v.array(v.object({
-      sectionId: v.string(),
-      // ROW-BASED fields (optional)
-      rowId: v.optional(v.string()),
-      rowLabel: v.optional(v.string()),
-      // TABLE-BASED fields (optional)
-      tableId: v.optional(v.string()),
-      tableNumber: v.optional(v.union(v.string(), v.number())),
-      // Common fields
-      seatId: v.string(),
-      seatNumber: v.string(),
-    })),
+    seats: v.array(
+      v.object({
+        sectionId: v.string(),
+        // ROW-BASED fields (optional)
+        rowId: v.optional(v.string()),
+        rowLabel: v.optional(v.string()),
+        // TABLE-BASED fields (optional)
+        tableId: v.optional(v.string()),
+        tableNumber: v.optional(v.union(v.string(), v.number())),
+        // Common fields
+        seatId: v.string(),
+        seatNumber: v.string(),
+      })
+    ),
   },
   handler: async (ctx, args) => {
     const seatingChart = await ctx.db.get(args.seatingChartId);
@@ -481,10 +529,12 @@ export const holdSeatsForSession = mutation({
   args: {
     eventId: v.id("events"),
     sessionId: v.string(),
-    seats: v.array(v.object({
-      tableId: v.string(),
-      seatNumber: v.string(),
-    })),
+    seats: v.array(
+      v.object({
+        tableId: v.string(),
+        seatNumber: v.string(),
+      })
+    ),
   },
   handler: async (ctx, args) => {
     const seatingChart = await ctx.db
@@ -496,22 +546,22 @@ export const holdSeatsForSession = mutation({
       throw new Error("Seating chart not found");
     }
 
-    const expiryTime = Date.now() + (15 * 60 * 1000); // 15 minutes from now
+    const expiryTime = Date.now() + 15 * 60 * 1000; // 15 minutes from now
 
     // Check if seats are available and hold them
-    const updatedSections = seatingChart.sections.map(section => {
+    const updatedSections = seatingChart.sections.map((section) => {
       if (!section.tables) return section;
 
       return {
         ...section,
-        tables: section.tables.map(table => {
-          const seatsToHold = args.seats.filter(s => s.tableId === table.id);
+        tables: section.tables.map((table) => {
+          const seatsToHold = args.seats.filter((s) => s.tableId === table.id);
           if (seatsToHold.length === 0) return table;
 
           return {
             ...table,
-            seats: table.seats.map(seat => {
-              const shouldHold = seatsToHold.some(s => s.seatNumber === seat.number);
+            seats: table.seats.map((seat) => {
+              const shouldHold = seatsToHold.some((s) => s.seatNumber === seat.number);
 
               if (shouldHold) {
                 // Check if seat is available
@@ -557,10 +607,14 @@ export const releaseSessionHolds = mutation({
   args: {
     eventId: v.id("events"),
     sessionId: v.string(),
-    seats: v.optional(v.array(v.object({
-      tableId: v.string(),
-      seatNumber: v.string(),
-    }))),
+    seats: v.optional(
+      v.array(
+        v.object({
+          tableId: v.string(),
+          seatNumber: v.string(),
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const seatingChart = await ctx.db
@@ -572,19 +626,19 @@ export const releaseSessionHolds = mutation({
       return { success: true }; // Chart doesn't exist, nothing to release
     }
 
-    const updatedSections = seatingChart.sections.map(section => {
+    const updatedSections = seatingChart.sections.map((section) => {
       if (!section.tables) return section;
 
       return {
         ...section,
-        tables: section.tables.map(table => {
+        tables: section.tables.map((table) => {
           return {
             ...table,
-            seats: table.seats.map(seat => {
+            seats: table.seats.map((seat) => {
               // If specific seats provided, only release those
               if (args.seats) {
                 const shouldRelease = args.seats.some(
-                  s => s.tableId === table.id && s.seatNumber === seat.number
+                  (s) => s.tableId === table.id && s.seatNumber === seat.number
                 );
                 if (!shouldRelease) return seat;
               }
@@ -628,15 +682,15 @@ export const cleanupExpiredSessionHolds = mutation({
     const now = Date.now();
     let cleanedCount = 0;
 
-    const updatedSections = seatingChart.sections.map(section => {
+    const updatedSections = seatingChart.sections.map((section) => {
       if (!section.tables) return section;
 
       return {
         ...section,
-        tables: section.tables.map(table => {
+        tables: section.tables.map((table) => {
           return {
             ...table,
-            seats: table.seats.map(seat => {
+            seats: table.seats.map((seat) => {
               // Check if this seat has an expired session hold
               if (seat.sessionId && seat.sessionExpiry && seat.sessionExpiry < now) {
                 cleanedCount++;

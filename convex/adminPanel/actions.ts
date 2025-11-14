@@ -28,12 +28,15 @@ export const refundOrder = action({
 
     // Process actual refund via Square API if payment exists
     if (order.paymentMethod === "SQUARE" && order.paymentId) {
-      const refundResult = await ctx.runAction((internal as any).payments.actions.processSquareRefund, {
-        paymentId: order.paymentId,
-        amountCents: order.totalCents,
-        orderId: args.orderId,
-        reason: args.reason,
-      });
+      const refundResult = await ctx.runAction(
+        (internal as any).payments.actions.processSquareRefund,
+        {
+          paymentId: order.paymentId,
+          amountCents: order.totalCents,
+          orderId: args.orderId,
+          reason: args.reason,
+        }
+      );
 
       if (!refundResult.success) {
         throw new Error(`Refund processing failed: ${refundResult.error}`);

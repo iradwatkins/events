@@ -95,12 +95,7 @@ export function ImageUpload({
 
       {previewUrl ? (
         <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200">
-          <Image
-            src={previewUrl}
-            alt="Event preview"
-            fill
-            className="object-cover"
-          />
+          <Image src={previewUrl} alt="Event preview" fill className="object-cover" />
           <button
             onClick={handleRemove}
             className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg"
@@ -124,13 +119,9 @@ export function ImageUpload({
                 <ImageIcon className="w-12 h-12 text-gray-400 mb-4" />
                 <div className="flex items-center gap-2 mb-2">
                   <Upload className="w-5 h-5 text-primary" />
-                  <p className="text-sm font-medium text-gray-700">
-                    Click to upload event image
-                  </p>
+                  <p className="text-sm font-medium text-gray-700">Click to upload event image</p>
                 </div>
-                <p className="text-xs text-gray-500">
-                  PNG, JPG, GIF up to 10MB
-                </p>
+                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
               </>
             )}
           </div>

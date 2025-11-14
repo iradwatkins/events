@@ -56,10 +56,7 @@ export function hashActivationCode(code: string): string {
   // Normalize code (uppercase, remove hyphens) before hashing
   const normalized = code.toUpperCase().replace(/-/g, "");
 
-  return crypto
-    .createHash("sha256")
-    .update(normalized)
-    .digest("hex");
+  return crypto.createHash("sha256").update(normalized).digest("hex");
 }
 
 /**
@@ -73,10 +70,7 @@ export function verifyActivationCode(plainCode: string, storedHash: string): boo
   const hashedInput = hashActivationCode(plainCode);
 
   // Use constant-time comparison to prevent timing attacks
-  return crypto.timingSafeEqual(
-    Buffer.from(hashedInput),
-    Buffer.from(storedHash)
-  );
+  return crypto.timingSafeEqual(Buffer.from(hashedInput), Buffer.from(storedHash));
 }
 
 /**
@@ -88,7 +82,7 @@ export function verifyActivationCode(plainCode: string, storedHash: string): boo
  */
 export function getActivationCodeExpiry(): number {
   const EXPIRY_HOURS = 48;
-  return Date.now() + (EXPIRY_HOURS * 60 * 60 * 1000);
+  return Date.now() + EXPIRY_HOURS * 60 * 60 * 1000;
 }
 
 /**

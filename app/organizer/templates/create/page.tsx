@@ -4,19 +4,23 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import {
-  ArrowLeft,
-  Save,
-  Eye,
-  Info,
-} from "lucide-react";
+import { ArrowLeft, Save, Eye, Info } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import SeatingTemplates, { seatingTemplates } from "@/components/seating/SeatingTemplates";
 import TemplateBuilder from "@/components/template-builder/TemplateBuilder";
 
 type SeatingStyle = "ROW_BASED" | "TABLE_BASED" | "MIXED";
-type Category = "theater" | "stadium" | "concert" | "conference" | "outdoor" | "wedding" | "gala" | "banquet" | "custom";
+type Category =
+  | "theater"
+  | "stadium"
+  | "concert"
+  | "conference"
+  | "outdoor"
+  | "wedding"
+  | "gala"
+  | "banquet"
+  | "custom";
 
 interface TemplateFormData {
   name: string;
@@ -37,9 +41,7 @@ function CreateTemplatePageContent() {
         <div className="mb-4">
           <Info className="w-16 h-16 text-gray-400 mx-auto" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Template Creation Coming Soon
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Template Creation Coming Soon</h1>
         <p className="text-gray-600 mb-6">
           The template creation feature is currently being enhanced and will be available soon.
         </p>
@@ -53,16 +55,17 @@ function CreateTemplatePageContent() {
       </div>
     </div>
   );
-
 }
 
 export default function CreateTemplatePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+      }
+    >
       <CreateTemplatePageContent />
     </Suspense>
   );

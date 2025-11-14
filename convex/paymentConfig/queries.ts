@@ -105,7 +105,7 @@ export const calculateFeePreview = query({
     }
 
     const totalAmount = args.ticketPrice + platformFee + processingFee;
-    const organizerReceives = args.ticketPrice - (platformFee); // Organizer pays platform fee
+    const organizerReceives = args.ticketPrice - platformFee; // Organizer pays platform fee
     const buyerPays = totalAmount;
 
     return {
@@ -139,17 +139,20 @@ export const getPaymentModelComparison = query({
 
     // Pre-Purchase Model
     const prePurchaseCost = args.ticketQuantity * CREDIT_PRICE_CENTS;
-    const prePurchaseProcessingFee = Math.round((args.ticketPrice * 2.9) / 100) * args.ticketQuantity;
+    const prePurchaseProcessingFee =
+      Math.round((args.ticketPrice * 2.9) / 100) * args.ticketQuantity;
     const prePurchaseTotal = prePurchaseCost + prePurchaseProcessingFee;
-    const prePurchaseRevenue = (args.ticketPrice * args.ticketQuantity) - prePurchaseProcessingFee;
+    const prePurchaseRevenue = args.ticketPrice * args.ticketQuantity - prePurchaseProcessingFee;
     const prePurchaseProfit = prePurchaseRevenue - prePurchaseCost;
 
     // Pay-As-Sell Model
     const platformFeePerTicket = Math.round((args.ticketPrice * 3.7) / 100) + 179;
-    const processingFeePerTicket = Math.round(((args.ticketPrice + platformFeePerTicket) * 2.9) / 100);
+    const processingFeePerTicket = Math.round(
+      ((args.ticketPrice + platformFeePerTicket) * 2.9) / 100
+    );
     const totalFeesPerTicket = platformFeePerTicket + processingFeePerTicket;
     const payAsSellTotalFees = totalFeesPerTicket * args.ticketQuantity;
-    const payAsSellRevenue = (args.ticketPrice * args.ticketQuantity);
+    const payAsSellRevenue = args.ticketPrice * args.ticketQuantity;
     const payAsSellProfit = payAsSellRevenue - payAsSellTotalFees;
 
     return {
@@ -175,7 +178,9 @@ export const getPaymentModelComparison = query({
       comparison: {
         prePurchaseBetter: prePurchaseProfit > payAsSellProfit,
         savingsWithPrePurchase: Math.max(0, payAsSellTotalFees - prePurchaseTotal),
-        savingsWithPrePurchaseDollars: (Math.max(0, payAsSellTotalFees - prePurchaseTotal) / 100).toFixed(2),
+        savingsWithPrePurchaseDollars: (
+          Math.max(0, payAsSellTotalFees - prePurchaseTotal) / 100
+        ).toFixed(2),
       },
     };
   },

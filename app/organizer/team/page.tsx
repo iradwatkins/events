@@ -121,7 +121,8 @@ export default function DefaultTeamPage() {
           Default Team
         </h1>
         <p className="text-gray-600 mt-1">
-          Manage your default staff roster. These team members will be automatically assigned to all new events you create.
+          Manage your default staff roster. These team members will be automatically assigned to all
+          new events you create.
         </p>
       </div>
 
@@ -141,7 +142,10 @@ export default function DefaultTeamPage() {
             <p className="font-semibold mb-1">How Default Team Works:</p>
             <ul className="list-disc list-inside space-y-1">
               <li>Staff members added here are your "default roster"</li>
-              <li>When you create a new event, they'll be automatically added with their commission rates</li>
+              <li>
+                When you create a new event, they'll be automatically added with their commission
+                rates
+              </li>
               <li>You can still customize allocations and settings per event after creation</li>
               <li>Toggle auto-assign on/off for each staff member individually</li>
             </ul>
@@ -239,8 +243,8 @@ export default function DefaultTeamPage() {
                           </>
                         ) : (
                           <>
-                            <DollarSign className="w-4 h-4" />
-                            ${((staff.commissionValue || 0) / 100).toFixed(2)}
+                            <DollarSign className="w-4 h-4" />$
+                            {((staff.commissionValue || 0) / 100).toFixed(2)}
                           </>
                         )}
                       </div>
@@ -275,7 +279,9 @@ export default function DefaultTeamPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
-                        onClick={() => handleToggleAutoAssign(staff._id, staff.autoAssignToNewEvents || false)}
+                        onClick={() =>
+                          handleToggleAutoAssign(staff._id, staff.autoAssignToNewEvents || false)
+                        }
                         className="flex items-center gap-2"
                       >
                         {staff.autoAssignToNewEvents ? (
@@ -368,7 +374,9 @@ export default function DefaultTeamPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value as StaffRole })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value as StaffRole })
+                    }
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                   >
                     <option value="TEAM_MEMBERS">Team Member (Seller)</option>
@@ -380,11 +388,16 @@ export default function DefaultTeamPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Commission Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Commission Type
+                  </label>
                   <select
                     value={formData.commissionType}
                     onChange={(e) =>
-                      setFormData({ ...formData, commissionType: e.target.value as "PERCENTAGE" | "FIXED" })
+                      setFormData({
+                        ...formData,
+                        commissionType: e.target.value as "PERCENTAGE" | "FIXED",
+                      })
                     }
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                   >
@@ -403,15 +416,21 @@ export default function DefaultTeamPage() {
                       step="0.01"
                       required
                       value={formData.commissionValue}
-                      onChange={(e) => setFormData({ ...formData, commissionValue: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, commissionValue: e.target.value })
+                      }
                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder={formData.commissionType === "PERCENTAGE" ? "10" : "5.00"}
                     />
                     {formData.commissionType === "PERCENTAGE" && (
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+                        %
+                      </span>
                     )}
                     {formData.commissionType === "FIXED" && (
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                        $
+                      </span>
                     )}
                   </div>
                 </div>
@@ -421,7 +440,9 @@ export default function DefaultTeamPage() {
                     <input
                       type="checkbox"
                       checked={formData.autoAssignToNewEvents}
-                      onChange={(e) => setFormData({ ...formData, autoAssignToNewEvents: e.target.checked })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, autoAssignToNewEvents: e.target.checked })
+                      }
                       className="w-4 h-4 text-primary rounded focus:ring-2 focus:ring-ring"
                     />
                     <div>

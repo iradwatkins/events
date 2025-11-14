@@ -3,7 +3,17 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Calendar, TrendingUp, Ticket, Gift, DollarSign, Check, Plus, ArrowRight, Users } from "lucide-react";
+import {
+  Calendar,
+  TrendingUp,
+  Ticket,
+  Gift,
+  DollarSign,
+  Check,
+  Plus,
+  ArrowRight,
+  Users,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { formatEventDate } from "@/lib/date-format";
 
@@ -14,15 +24,15 @@ export default function OrganizerDashboardPage() {
   const isLoading = events === undefined || credits === undefined;
 
   // Calculate dashboard statistics
-  const totalTicketsAllocated = events?.reduce((sum, event) => sum + (event.totalTickets || 0), 0) || 0;
+  const totalTicketsAllocated =
+    events?.reduce((sum, event) => sum + (event.totalTickets || 0), 0) || 0;
   const totalTicketsSold = events?.reduce((sum, event) => sum + (event.ticketsSold || 0), 0) || 0;
   const totalRevenue = events?.reduce((sum, event) => sum + (event.totalRevenue || 0), 0) || 0;
   const percentageUsed = credits ? (credits.creditsUsed / credits.creditsTotal) * 100 : 0;
 
   // Get upcoming events
-  const upcomingEvents = events?.filter(event =>
-    event.startDate && event.startDate > Date.now()
-  ).slice(0, 3) || [];
+  const upcomingEvents =
+    events?.filter((event) => event.startDate && event.startDate > Date.now()).slice(0, 3) || [];
 
   // Get recent events
   const recentEvents = events?.slice(0, 5) || [];
@@ -90,7 +100,10 @@ export default function OrganizerDashboardPage() {
                   {/* Progress Bar */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span>Usage: {credits.creditsUsed.toLocaleString()} / {credits.creditsTotal.toLocaleString()}</span>
+                      <span>
+                        Usage: {credits.creditsUsed.toLocaleString()} /{" "}
+                        {credits.creditsTotal.toLocaleString()}
+                      </span>
                       <span>{percentageUsed.toFixed(1)}% used</span>
                     </div>
                     <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-3">
@@ -142,7 +155,10 @@ export default function OrganizerDashboardPage() {
                 <p className="text-3xl font-bold text-gray-900">{events?.length || 0}</p>
               </div>
             </div>
-            <Link href="/organizer/events" className="text-sm text-primary hover:underline flex items-center gap-1">
+            <Link
+              href="/organizer/events"
+              className="text-sm text-primary hover:underline flex items-center gap-1"
+            >
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -154,7 +170,9 @@ export default function OrganizerDashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Allocated</p>
-                <p className="text-3xl font-bold text-gray-900">{totalTicketsAllocated.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {totalTicketsAllocated.toLocaleString()}
+                </p>
               </div>
             </div>
             <p className="text-xs text-gray-500">Tickets created across all events</p>
@@ -167,7 +185,9 @@ export default function OrganizerDashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Tickets Sold</p>
-                <p className="text-3xl font-bold text-gray-900">{totalTicketsSold.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {totalTicketsSold.toLocaleString()}
+                </p>
               </div>
             </div>
             <p className="text-xs text-gray-500">Successful ticket sales</p>
@@ -180,7 +200,9 @@ export default function OrganizerDashboardPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-3xl font-bold text-gray-900">${(totalRevenue / 100).toFixed(2)}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  ${(totalRevenue / 100).toFixed(2)}
+                </p>
               </div>
             </div>
             <p className="text-xs text-gray-500">Gross ticket sales</p>
@@ -282,9 +304,7 @@ export default function OrganizerDashboardPage() {
                                 {event.ticketTierCount} tiers
                               </span>
                             )}
-                            {event.totalTickets && (
-                              <span>{event.totalTickets} tickets</span>
-                            )}
+                            {event.totalTickets && <span>{event.totalTickets} tickets</span>}
                           </div>
                         </div>
                         {event.startDate && event.startDate > Date.now() && (

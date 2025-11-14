@@ -5,7 +5,17 @@ import { api } from "@/convex/_generated/api";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
-import { Package, Save, X, Upload, Image as ImageIcon, Loader2, Trash2, Star, ArrowLeft } from "lucide-react";
+import {
+  Package,
+  Save,
+  X,
+  Upload,
+  Image as ImageIcon,
+  Loader2,
+  Trash2,
+  Star,
+  ArrowLeft,
+} from "lucide-react";
 import Link from "next/link";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
@@ -14,8 +24,12 @@ import dynamic from "next/dynamic";
 
 // Dynamic import for heavy ProductOptionsManager (only loaded when needed)
 const ProductOptionsManager = dynamic(() => import("@/components/admin/ProductOptionsManager"), {
-  loading: () => <div className="flex items-center justify-center h-32"><div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full"></div></div>,
-  ssr: false
+  loading: () => (
+    <div className="flex items-center justify-center h-32">
+      <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full"></div>
+    </div>
+  ),
+  ssr: false,
 });
 
 export default function EditProductPage() {
@@ -131,10 +145,10 @@ export default function EditProductPage() {
     try {
       const uploadPromises = acceptedFiles.map(async (file, index) => {
         console.log(`📸 Uploading image ${index + 1}/${acceptedFiles.length}:`, file.name);
-        setUploadProgress(prev => ({ ...prev, [`additional-${index}`]: true }));
+        setUploadProgress((prev) => ({ ...prev, [`additional-${index}`]: true }));
         const url = await uploadImage(file);
         console.log(`✅ Image ${index + 1} uploaded:`, url);
-        setUploadProgress(prev => ({ ...prev, [`additional-${index}`]: false }));
+        setUploadProgress((prev) => ({ ...prev, [`additional-${index}`]: false }));
         return url;
       });
 
@@ -162,7 +176,9 @@ export default function EditProductPage() {
 
       setPrimaryImageUrl("");
     } catch (error) {
-      alert(`Failed to delete primary image: ${error instanceof Error ? error.message : String(error)}`);
+      alert(
+        `Failed to delete primary image: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   };
 
@@ -192,7 +208,9 @@ export default function EditProductPage() {
 
       setPrimaryImageUrl(url);
     } catch (error) {
-      alert(`Failed to set as primary image: ${error instanceof Error ? error.message : String(error)}`);
+      alert(
+        `Failed to set as primary image: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   };
 
@@ -304,9 +322,7 @@ export default function EditProductPage() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Name *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>
               <input
                 type="text"
                 required
@@ -318,9 +334,7 @@ export default function EditProductPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
               <textarea
                 required
                 rows={4}
@@ -458,9 +472,7 @@ export default function EditProductPage() {
           <div className="space-y-6">
             {/* Primary Image Drop Zone */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Primary Image
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Primary Image</label>
 
               {primaryImageUrl ? (
                 <div className="relative w-full aspect-square border-2 border-green-300 rounded-lg overflow-hidden group">
@@ -523,7 +535,10 @@ export default function EditProductPage() {
               {uploadedImages.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   {uploadedImages.map((url, index) => (
-                    <div key={index} className="relative w-full aspect-square border-2 border-gray-200 rounded-lg overflow-hidden group">
+                    <div
+                      key={index}
+                      className="relative w-full aspect-square border-2 border-gray-200 rounded-lg overflow-hidden group"
+                    >
                       <Image
                         src={url}
                         alt={`Product image ${index + 1}`}
@@ -564,7 +579,8 @@ export default function EditProductPage() {
                 } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <input {...additionalDropzone.getInputProps()} />
-                {isUploading && Object.keys(uploadProgress).some(k => k.startsWith("additional-")) ? (
+                {isUploading &&
+                Object.keys(uploadProgress).some((k) => k.startsWith("additional-")) ? (
                   <div className="text-center">
                     <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-2" />
                     <p className="text-sm text-gray-600">Uploading images...</p>
@@ -627,7 +643,9 @@ export default function EditProductPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="5.99"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Delivery shipping cost (pickup is free)</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Delivery shipping cost (pickup is free)
+                  </p>
                 </div>
               </div>
             )}
@@ -651,7 +669,9 @@ export default function EditProductPage() {
                     hasVariants: newValue,
                   });
                 } catch (error) {
-                  alert(`Failed to update hasVariants: ${error instanceof Error ? error.message : String(error)}`);
+                  alert(
+                    `Failed to update hasVariants: ${error instanceof Error ? error.message : String(error)}`
+                  );
                 }
               }}
               className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-ring"
@@ -667,7 +687,7 @@ export default function EditProductPage() {
               basePrice={Math.round(parseFloat(formData.price) * 100)}
               baseSku={formData.sku}
               variants={product.variants}
-              onVariantsChange={() => setVariantsKey(k => k + 1)}
+              onVariantsChange={() => setVariantsKey((k) => k + 1)}
             />
           )}
         </div>
@@ -675,10 +695,7 @@ export default function EditProductPage() {
         {/* Product Options */}
         {product && (
           <div>
-            <ProductOptionsManager
-              productId={productId}
-              options={product.options}
-            />
+            <ProductOptionsManager productId={productId} options={product.options} />
           </div>
         )}
 

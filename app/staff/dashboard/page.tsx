@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 // Force dynamic rendering for user-specific data
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 import {
   DollarSign,
   Ticket,
@@ -121,9 +121,7 @@ export default function StaffDashboardPage() {
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-1">Net Payout</p>
-            <p className="text-3xl font-bold text-gray-900">
-              ${(totalNetPayout / 100).toFixed(2)}
-            </p>
+            <p className="text-3xl font-bold text-gray-900">${(totalNetPayout / 100).toFixed(2)}</p>
           </div>
         </div>
 
@@ -135,7 +133,8 @@ export default function StaffDashboardPage() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No Active Positions</h3>
             <p className="text-gray-600">
-              You don't have any active staff positions yet. Contact an event organizer to get started.
+              You don't have any active staff positions yet. Contact an event organizer to get
+              started.
             </p>
           </div>
         ) : (
@@ -158,16 +157,21 @@ export default function StaffDashboardPage() {
                         {position.event.startDate && (
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Calendar className="w-4 h-4" />
-                            {format(new Date(position.event.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                            {format(
+                              new Date(position.event.startDate),
+                              "EEEE, MMMM d, yyyy 'at' h:mm a"
+                            )}
                           </div>
                         )}
                         <div className="mt-3 flex items-center gap-2 flex-wrap">
                           {/* Role Badge */}
-                          <span className={`px-3 py-1 text-xs font-bold rounded-full ${
-                            position.role === "SELLER"
-                              ? "bg-primary text-white"
-                              : "bg-gray-600 text-white"
-                          }`}>
+                          <span
+                            className={`px-3 py-1 text-xs font-bold rounded-full ${
+                              position.role === "SELLER"
+                                ? "bg-primary text-white"
+                                : "bg-gray-600 text-white"
+                            }`}
+                          >
                             {position.role === "SELLER" ? "🎫 SELLER" : "📱 SCANNER"}
                           </span>
 
@@ -205,7 +209,9 @@ export default function StaffDashboardPage() {
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-6 border-b bg-gray-50">
                     <div className="bg-accent/50 rounded-lg p-3">
                       <p className="text-xs text-primary mb-1 font-medium">Allocated</p>
-                      <p className="text-2xl font-bold text-foreground">{position.allocatedTickets || 0}</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {position.allocatedTickets || 0}
+                      </p>
                     </div>
                     <div className="bg-green-50 rounded-lg p-3">
                       <p className="text-xs text-green-600 mb-1 font-medium">Sold</p>
@@ -213,7 +219,9 @@ export default function StaffDashboardPage() {
                     </div>
                     <div className="bg-orange-50 rounded-lg p-3">
                       <p className="text-xs text-orange-600 mb-1 font-medium">Remaining</p>
-                      <p className="text-2xl font-bold text-orange-900">{position.ticketsRemaining}</p>
+                      <p className="text-2xl font-bold text-orange-900">
+                        {position.ticketsRemaining}
+                      </p>
                     </div>
                     <div className="bg-accent/50 rounded-lg p-3">
                       <p className="text-xs text-primary mb-1 font-medium">Commission</p>
@@ -310,7 +318,9 @@ export default function StaffDashboardPage() {
                             {`${window.location.origin}/events/${position.event._id}/checkout?ref=${position.referralCode}`}
                           </div>
                           <button
-                            onClick={() => handleCopyReferralLink(position.event!._id, position.referralCode)}
+                            onClick={() =>
+                              handleCopyReferralLink(position.event!._id, position.referralCode)
+                            }
                             className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                           >
                             {copiedCode === position.referralCode ? (

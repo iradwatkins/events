@@ -29,9 +29,7 @@ export default function PlatformAnalyticsPage() {
   }
 
   // Calculate top performing events
-  const topEvents = [...allEvents]
-    .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
-    .slice(0, 10);
+  const topEvents = [...allEvents].sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 10);
 
   // Calculate organizer statistics
   const organizerStats = allUsers
@@ -40,8 +38,14 @@ export default function PlatformAnalyticsPage() {
       const organizerEvents = allEvents.filter(
         (e: any) => e.organizerId?.toString() === organizer._id.toString()
       );
-      const totalRevenue = organizerEvents.reduce((sum: number, e: any) => sum + (e.revenue || 0), 0);
-      const totalTickets = organizerEvents.reduce((sum: number, e: any) => sum + (e.ticketCount || 0), 0);
+      const totalRevenue = organizerEvents.reduce(
+        (sum: number, e: any) => sum + (e.revenue || 0),
+        0
+      );
+      const totalTickets = organizerEvents.reduce(
+        (sum: number, e: any) => sum + (e.ticketCount || 0),
+        0
+      );
 
       return {
         organizer,
@@ -54,15 +58,13 @@ export default function PlatformAnalyticsPage() {
     .slice(0, 5);
 
   // Calculate conversion rates
-  const conversionRate = analytics.users.total > 0
-    ? (analytics.users.organizers / analytics.users.total) * 100
-    : 0;
+  const conversionRate =
+    analytics.users.total > 0 ? (analytics.users.organizers / analytics.users.total) * 100 : 0;
 
   const ticketScanRate = analytics.tickets.scanRate;
 
-  const eventPublishRate = analytics.events.total > 0
-    ? (analytics.events.published / analytics.events.total) * 100
-    : 0;
+  const eventPublishRate =
+    analytics.events.total > 0 ? (analytics.events.published / analytics.events.total) * 100 : 0;
 
   return (
     <div className="space-y-8">
@@ -303,10 +305,10 @@ export default function PlatformAnalyticsPage() {
                         index === 0
                           ? "bg-yellow-100 text-yellow-800"
                           : index === 1
-                          ? "bg-gray-100 text-gray-800"
-                          : index === 2
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-accent text-primary"
+                            ? "bg-gray-100 text-gray-800"
+                            : index === 2
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-accent text-primary"
                       }`}
                     >
                       {index + 1}
@@ -349,10 +351,10 @@ export default function PlatformAnalyticsPage() {
                     index === 0
                       ? "bg-yellow-100 text-yellow-800"
                       : index === 1
-                      ? "bg-gray-100 text-gray-800"
-                      : index === 2
-                      ? "bg-orange-100 text-orange-800"
-                      : "bg-accent text-primary"
+                        ? "bg-gray-100 text-gray-800"
+                        : index === 2
+                          ? "bg-orange-100 text-orange-800"
+                          : "bg-accent text-primary"
                   }`}
                 >
                   {index + 1}

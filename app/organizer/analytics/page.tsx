@@ -2,15 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import {
-  DollarSign,
-  Ticket,
-  Calendar,
-  TrendingUp,
-  Users,
-  BarChart3,
-  Eye,
-} from "lucide-react";
+import { DollarSign, Ticket, Calendar, TrendingUp, Users, BarChart3, Eye } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -89,9 +81,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
-          <p className="text-3xl font-bold text-gray-900">
-            ${(totalRevenue / 100).toFixed(2)}
-          </p>
+          <p className="text-3xl font-bold text-gray-900">${(totalRevenue / 100).toFixed(2)}</p>
           <p className="text-xs text-gray-500 mt-1">Across all events</p>
         </motion.div>
 
@@ -152,8 +142,8 @@ export default function AnalyticsPage() {
                       {event.eventType === "TICKETED_EVENT"
                         ? "Ticketed Event"
                         : event.eventType === "FREE_EVENT"
-                        ? "Free Event"
-                        : "Save the Date"}
+                          ? "Free Event"
+                          : "Save the Date"}
                     </p>
                   </div>
                   <div className="flex items-center gap-6 text-sm">
@@ -175,9 +165,7 @@ export default function AnalyticsPage() {
           <div className="text-center py-12">
             <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">No Published Events Yet</h3>
-            <p className="text-gray-600 mb-6">
-              Publish your first event to start seeing analytics
-            </p>
+            <p className="text-gray-600 mb-6">Publish your first event to start seeing analytics</p>
             <Link
               href="/organizer/events/create"
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"

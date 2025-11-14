@@ -5,8 +5,19 @@ import { useDropzone } from "react-dropzone";
 import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
-  Upload, X, CheckCircle, AlertCircle, Sparkles,
-  Loader2, Zap, Package, Trash2, Send, Play, ToggleLeft, ToggleRight
+  Upload,
+  X,
+  CheckCircle,
+  AlertCircle,
+  Sparkles,
+  Loader2,
+  Zap,
+  Package,
+  Trash2,
+  Send,
+  Play,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Id } from "@/convex/_generated/dataModel";
@@ -60,9 +71,7 @@ export default function BulkFlyerUploadPage() {
   }, [duplicateHash]);
 
   const processFlyer = async (flyer: UploadedFlyer) => {
-    setFlyers((prev) =>
-      prev.map((f) => (f.id === flyer.id ? { ...f, status: "uploading" } : f))
-    );
+    setFlyers((prev) => prev.map((f) => (f.id === flyer.id ? { ...f, status: "uploading" } : f)));
 
     try {
       const formData = new FormData();
@@ -87,7 +96,9 @@ export default function BulkFlyerUploadPage() {
             setFlyers((prev) => prev.filter((f) => f.id !== flyer.id));
           }, 2000);
 
-          throw new Error(errorData.message || "Duplicate flyer - this file has already been uploaded");
+          throw new Error(
+            errorData.message || "Duplicate flyer - this file has already been uploaded"
+          );
         }
         throw new Error(errorData.error || "Upload failed");
       }
@@ -219,22 +230,25 @@ export default function BulkFlyerUploadPage() {
     }
   };
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const newFlyers = acceptedFiles.map((file) => ({
-      id: Math.random().toString(36).substring(7),
-      file,
-      preview: URL.createObjectURL(file),
-      status: "pending" as const,
-    }));
-    setFlyers((prev) => [...prev, ...newFlyers]);
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      const newFlyers = acceptedFiles.map((file) => ({
+        id: Math.random().toString(36).substring(7),
+        file,
+        preview: URL.createObjectURL(file),
+        status: "pending" as const,
+      }));
+      setFlyers((prev) => [...prev, ...newFlyers]);
 
-    // Automatically start processing if auto-process is enabled
-    if (autoProcess) {
-      for (const flyer of newFlyers) {
-        processFlyer(flyer);
+      // Automatically start processing if auto-process is enabled
+      if (autoProcess) {
+        for (const flyer of newFlyers) {
+          processFlyer(flyer);
+        }
       }
-    }
-  }, [autoProcess, logFlyer, updateExtractedData]);
+    },
+    [autoProcess, logFlyer, updateExtractedData]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -255,7 +269,7 @@ export default function BulkFlyerUploadPage() {
       console.log(`✅ Flyer deleted successfully: ${flyerId}`);
 
       // Give the backend a moment to complete file deletion
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Clear any cached duplicate hashes
       setDuplicateHash(null);
@@ -265,7 +279,9 @@ export default function BulkFlyerUploadPage() {
       // Page will auto-refresh via Convex reactivity
     } catch (error) {
       console.error(`❌ Failed to delete flyer:`, error);
-      alert("Failed to delete flyer: " + (error instanceof Error ? error.message : "Unknown error"));
+      alert(
+        "Failed to delete flyer: " + (error instanceof Error ? error.message : "Unknown error")
+      );
     }
   };
 
@@ -281,14 +297,16 @@ export default function BulkFlyerUploadPage() {
       setEditingFlyerId(null);
       // Page will auto-refresh via Convex reactivity
     } catch (error) {
-      alert("Failed to save changes: " + (error instanceof Error ? error.message : "Unknown error"));
+      alert(
+        "Failed to save changes: " + (error instanceof Error ? error.message : "Unknown error")
+      );
     }
   };
 
   const handleRetryExtraction = async (flyerId: Id<"uploadedFlyers">, filepath: string) => {
     try {
       // Find the draft flyer to update its status
-      const draftFlyer = draftFlyers?.find(f => f._id === flyerId);
+      const draftFlyer = draftFlyers?.find((f) => f._id === flyerId);
       if (!draftFlyer) return;
 
       console.log(`🔄 Retrying AI extraction for: ${filepath}`);
@@ -339,7 +357,9 @@ export default function BulkFlyerUploadPage() {
       const result = await autoCreateEvent({ flyerId });
       // Success - page will auto-refresh via Convex reactivity
     } catch (error) {
-      alert("Failed to publish event: " + (error instanceof Error ? error.message : "Unknown error"));
+      alert(
+        "Failed to publish event: " + (error instanceof Error ? error.message : "Unknown error")
+      );
     }
   };
 
@@ -378,9 +398,7 @@ export default function BulkFlyerUploadPage() {
             <div className="flex items-center gap-3 bg-white rounded-xl shadow-md border-2 border-gray-200 px-4 py-3 sm:px-6 sm:py-4">
               <div className="text-right">
                 <p className="text-sm font-bold text-gray-700">Auto-Process</p>
-                <p className="text-xs text-gray-500">
-                  {autoProcess ? "ON" : "OFF"}
-                </p>
+                <p className="text-xs text-gray-500">{autoProcess ? "ON" : "OFF"}</p>
               </div>
               <button
                 onClick={() => setAutoProcess(!autoProcess)}
@@ -451,9 +469,13 @@ export default function BulkFlyerUploadPage() {
             `}
           >
             <input {...getInputProps()} />
-            <Upload className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 ${isDragActive ? "text-primary" : "text-gray-400"}`} />
+            <Upload
+              className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 ${isDragActive ? "text-primary" : "text-gray-400"}`}
+            />
             {isDragActive ? (
-              <p className="text-lg sm:text-xl text-primary font-semibold">Drop your flyers here!</p>
+              <p className="text-lg sm:text-xl text-primary font-semibold">
+                Drop your flyers here!
+              </p>
             ) : (
               <>
                 <p className="text-lg sm:text-xl text-gray-700 font-semibold mb-2">
@@ -462,9 +484,7 @@ export default function BulkFlyerUploadPage() {
                 <p className="text-xs sm:text-sm text-gray-500 mb-3">
                   or click to browse your computer
                 </p>
-                <p className="text-xs text-gray-400">
-                  JPG, PNG, WEBP • Multiple files OK
-                </p>
+                <p className="text-xs text-gray-400">JPG, PNG, WEBP • Multiple files OK</p>
               </>
             )}
           </div>
@@ -479,7 +499,8 @@ export default function BulkFlyerUploadPage() {
                     Duplicate Flyer Detected
                   </h3>
                   <p className="text-sm text-amber-800 mb-2">
-                    This flyer has already been uploaded. The duplicate flyer can be found in the draft section below.
+                    This flyer has already been uploaded. The duplicate flyer can be found in the
+                    draft section below.
                   </p>
                   <p className="text-xs text-amber-700 italic">
                     This message will automatically dismiss in 5 seconds...
@@ -512,9 +533,7 @@ export default function BulkFlyerUploadPage() {
                     className="w-16 h-16 object-cover rounded-lg"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {flyer.file.name}
-                    </p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{flyer.file.name}</p>
                     <p className="text-xs text-gray-500">
                       {(flyer.file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
@@ -560,9 +579,7 @@ export default function BulkFlyerUploadPage() {
                         <span className="text-sm text-green-600">Ready for review!</span>
                       </div>
                     )}
-                    {flyer.status === "error" && (
-                      <AlertCircle className="w-5 h-5 text-red-600" />
-                    )}
+                    {flyer.status === "error" && <AlertCircle className="w-5 h-5 text-red-600" />}
                   </div>
                 </div>
               ))}
@@ -604,7 +621,7 @@ export default function BulkFlyerUploadPage() {
                             src={flyer.filepath}
                             alt={flyer.filename}
                             className="w-full h-auto rounded-lg shadow-md cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
-                            onClick={() => window.open(flyer.filepath, '_blank')}
+                            onClick={() => window.open(flyer.filepath, "_blank")}
                             title="Click to view full-size flyer"
                           />
                           <p className="text-xs text-gray-500 text-center mt-3">Click to enlarge</p>
@@ -668,13 +685,17 @@ export default function BulkFlyerUploadPage() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="text-sm font-semibold text-gray-700 block mb-2">
-                                End Date <span className="text-gray-500 font-normal text-xs">(if multi-day)</span>
+                                End Date{" "}
+                                <span className="text-gray-500 font-normal text-xs">
+                                  (if multi-day)
+                                </span>
                               </label>
                               <input
                                 type="text"
                                 value={data?.eventEndDate || ""}
                                 onChange={(e) =>
-                                  isEditing && updateField(flyer._id, "eventEndDate", e.target.value)
+                                  isEditing &&
+                                  updateField(flyer._id, "eventEndDate", e.target.value)
                                 }
                                 disabled={!isEditing}
                                 className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700 focus:border-primary focus:ring-2 focus:ring-blue-200 transition-all"
@@ -683,13 +704,17 @@ export default function BulkFlyerUploadPage() {
                             </div>
                             <div>
                               <label className="text-sm font-semibold text-gray-700 block mb-2">
-                                End Time <span className="text-gray-500 font-normal text-xs">(optional)</span>
+                                End Time{" "}
+                                <span className="text-gray-500 font-normal text-xs">
+                                  (optional)
+                                </span>
                               </label>
                               <input
                                 type="text"
                                 value={data?.eventEndTime || ""}
                                 onChange={(e) =>
-                                  isEditing && updateField(flyer._id, "eventEndTime", e.target.value)
+                                  isEditing &&
+                                  updateField(flyer._id, "eventEndTime", e.target.value)
                                 }
                                 disabled={!isEditing}
                                 className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700 focus:border-primary focus:ring-2 focus:ring-blue-200 transition-all"
@@ -700,7 +725,9 @@ export default function BulkFlyerUploadPage() {
 
                           {/* Location Section Header */}
                           <div className="pt-4 border-t-2 border-gray-200">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4">Location Details</h3>
+                            <h3 className="text-lg font-bold text-gray-800 mb-4">
+                              Location Details
+                            </h3>
                           </div>
 
                           {/* Venue Name */}
@@ -799,7 +826,9 @@ export default function BulkFlyerUploadPage() {
 
                           {/* Additional Info Section Header */}
                           <div className="pt-4 border-t-2 border-gray-200">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4">Additional Information</h3>
+                            <h3 className="text-lg font-bold text-gray-800 mb-4">
+                              Additional Information
+                            </h3>
                           </div>
 
                           {/* Organizer & Contact */}
@@ -812,7 +841,8 @@ export default function BulkFlyerUploadPage() {
                                 type="text"
                                 value={data?.hostOrganizer || ""}
                                 onChange={(e) =>
-                                  isEditing && updateField(flyer._id, "hostOrganizer", e.target.value)
+                                  isEditing &&
+                                  updateField(flyer._id, "hostOrganizer", e.target.value)
                                 }
                                 disabled={!isEditing}
                                 className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700 focus:border-primary focus:ring-2 focus:ring-blue-200 transition-all"
@@ -858,7 +888,8 @@ export default function BulkFlyerUploadPage() {
                                 type="text"
                                 value={data?.ageRestriction || ""}
                                 onChange={(e) =>
-                                  isEditing && updateField(flyer._id, "ageRestriction", e.target.value)
+                                  isEditing &&
+                                  updateField(flyer._id, "ageRestriction", e.target.value)
                                 }
                                 disabled={!isEditing}
                                 className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg disabled:bg-gray-50 disabled:text-gray-700 focus:border-primary focus:ring-2 focus:ring-blue-200 transition-all"

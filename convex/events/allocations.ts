@@ -40,7 +40,8 @@ export const allocateEventTickets = mutation({
       .withIndex("by_organizer", (q) => q.eq("organizerId", user._id))
       .collect();
 
-    const isFirstEvent = allOrganizerEvents.length === 1 && allOrganizerEvents[0]._id === args.eventId;
+    const isFirstEvent =
+      allOrganizerEvents.length === 1 && allOrganizerEvents[0]._id === args.eventId;
 
     // Check if allocation already exists
     const existingConfig = await ctx.db
@@ -51,7 +52,7 @@ export const allocateEventTickets = mutation({
     if (existingConfig && existingConfig.ticketsAllocated) {
       throw new Error(
         `This event already has ${existingConfig.ticketsAllocated} tickets allocated. ` +
-        `Use the ticket management interface to adjust quantities.`
+          `Use the ticket management interface to adjust quantities.`
       );
     }
 
@@ -71,8 +72,8 @@ export const allocateEventTickets = mutation({
     if (credits.creditsRemaining < args.ticketQuantity) {
       throw new Error(
         `Insufficient credits! You have ${credits.creditsRemaining} credits remaining, but you need ${args.ticketQuantity}. ` +
-        `You need ${args.ticketQuantity - credits.creditsRemaining} more credits ($${((args.ticketQuantity - credits.creditsRemaining) * PRICE_PER_TICKET_CENTS / 100).toFixed(2)} at $0.30 each). ` +
-        `Please visit the Credits page to purchase additional tickets.`
+          `You need ${args.ticketQuantity - credits.creditsRemaining} more credits ($${(((args.ticketQuantity - credits.creditsRemaining) * PRICE_PER_TICKET_CENTS) / 100).toFixed(2)} at $0.30 each). ` +
+          `Please visit the Credits page to purchase additional tickets.`
       );
     }
 
@@ -81,7 +82,7 @@ export const allocateEventTickets = mutation({
       if (args.ticketQuantity > FIRST_EVENT_FREE_TICKETS) {
         throw new Error(
           `Your first event gets ${FIRST_EVENT_FREE_TICKETS} FREE tickets (risk-free trial). ` +
-          `You requested ${args.ticketQuantity} tickets. Please reduce your quantity to ${FIRST_EVENT_FREE_TICKETS} or less.`
+            `You requested ${args.ticketQuantity} tickets. Please reduce your quantity to ${FIRST_EVENT_FREE_TICKETS} or less.`
         );
       }
 
@@ -485,7 +486,10 @@ export const expireFirstEventCredits = internalMutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-    console.log("[expireFirstEventCredits] Checking for credits to expire for event:", args.eventId);
+    console.log(
+      "[expireFirstEventCredits] Checking for credits to expire for event:",
+      args.eventId
+    );
 
     // Find credits linked to this event
     const creditsRecord = await ctx.db
@@ -529,7 +533,7 @@ export const expireFirstEventCredits = internalMutation({
       return {
         success: true,
         expired: 0,
-        message: "All allocated tickets for this event were used"
+        message: "All allocated tickets for this event were used",
       };
     }
 
@@ -543,7 +547,7 @@ export const expireFirstEventCredits = internalMutation({
 
     console.log(
       `[expireFirstEventCredits] Expired ${expiredAmount} unused credits from first event. ` +
-      `New balance: ${creditsRecord.creditsRemaining - expiredAmount}`
+        `New balance: ${creditsRecord.creditsRemaining - expiredAmount}`
     );
 
     return {

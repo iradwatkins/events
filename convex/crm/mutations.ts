@@ -11,11 +11,13 @@ export const createContact = mutation({
     email: v.optional(v.string()),
     role: v.optional(v.string()),
     organization: v.optional(v.string()),
-    socialMedia: v.optional(v.object({
-      instagram: v.optional(v.string()),
-      facebook: v.optional(v.string()),
-      twitter: v.optional(v.string()),
-    })),
+    socialMedia: v.optional(
+      v.object({
+        instagram: v.optional(v.string()),
+        facebook: v.optional(v.string()),
+        twitter: v.optional(v.string()),
+      })
+    ),
     eventId: v.optional(v.id("events")),
     flyerId: v.optional(v.id("uploadedFlyers")),
     extractedFrom: v.union(v.literal("FLYER"), v.literal("MANUAL")),
@@ -54,11 +56,13 @@ export const updateContact = mutation({
     email: v.optional(v.string()),
     role: v.optional(v.string()),
     organization: v.optional(v.string()),
-    socialMedia: v.optional(v.object({
-      instagram: v.optional(v.string()),
-      facebook: v.optional(v.string()),
-      twitter: v.optional(v.string()),
-    })),
+    socialMedia: v.optional(
+      v.object({
+        instagram: v.optional(v.string()),
+        facebook: v.optional(v.string()),
+        twitter: v.optional(v.string()),
+      })
+    ),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -109,18 +113,22 @@ export const linkContactToEvent = mutation({
  */
 export const bulkCreateContacts = mutation({
   args: {
-    contacts: v.array(v.object({
-      name: v.string(),
-      phoneNumber: v.optional(v.string()),
-      email: v.optional(v.string()),
-      role: v.optional(v.string()),
-      organization: v.optional(v.string()),
-      socialMedia: v.optional(v.object({
-        instagram: v.optional(v.string()),
-        facebook: v.optional(v.string()),
-        twitter: v.optional(v.string()),
-      })),
-    })),
+    contacts: v.array(
+      v.object({
+        name: v.string(),
+        phoneNumber: v.optional(v.string()),
+        email: v.optional(v.string()),
+        role: v.optional(v.string()),
+        organization: v.optional(v.string()),
+        socialMedia: v.optional(
+          v.object({
+            instagram: v.optional(v.string()),
+            facebook: v.optional(v.string()),
+            twitter: v.optional(v.string()),
+          })
+        ),
+      })
+    ),
     flyerId: v.id("uploadedFlyers"),
     eventId: v.optional(v.id("events")),
   },

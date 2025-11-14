@@ -16,9 +16,7 @@ export const getBundlesForEvent = query({
       .collect();
 
     // Filter by active status if requested
-    const filteredBundles = args.includeInactive
-      ? bundles
-      : bundles.filter((b) => b.isActive);
+    const filteredBundles = args.includeInactive ? bundles : bundles.filter((b) => b.isActive);
 
     // Enrich with tier information
     const enrichedBundles = await Promise.all(
@@ -29,12 +27,14 @@ export const getBundlesForEvent = query({
             const tier = await ctx.db.get(includedTier.tierId);
             return {
               ...includedTier,
-              tierDetails: tier ? {
-                name: tier.name,
-                description: tier.description,
-                price: tier.price,
-                available: tier.quantity - tier.sold,
-              } : null,
+              tierDetails: tier
+                ? {
+                    name: tier.name,
+                    description: tier.description,
+                    price: tier.price,
+                    available: tier.quantity - tier.sold,
+                  }
+                : null,
             };
           })
         );
@@ -51,9 +51,10 @@ export const getBundlesForEvent = query({
           ...bundle,
           includedTiersDetails: tierDetails,
           available: maxAvailable,
-          percentageSavings: bundle.regularPrice && bundle.regularPrice > 0
-            ? Math.round((bundle.savings! / bundle.regularPrice) * 100)
-            : 0,
+          percentageSavings:
+            bundle.regularPrice && bundle.regularPrice > 0
+              ? Math.round((bundle.savings! / bundle.regularPrice) * 100)
+              : 0,
         };
       })
     );
@@ -79,14 +80,16 @@ export const getBundleDetails = query({
         const tier = await ctx.db.get(includedTier.tierId);
         return {
           ...includedTier,
-          tierDetails: tier ? {
-            name: tier.name,
-            description: tier.description,
-            price: tier.price,
-            quantity: tier.quantity,
-            sold: tier.sold,
-            available: tier.quantity - tier.sold,
-          } : null,
+          tierDetails: tier
+            ? {
+                name: tier.name,
+                description: tier.description,
+                price: tier.price,
+                quantity: tier.quantity,
+                sold: tier.sold,
+                available: tier.quantity - tier.sold,
+              }
+            : null,
         };
       })
     );
@@ -103,9 +106,10 @@ export const getBundleDetails = query({
       ...bundle,
       includedTiersDetails: tierDetails,
       available: maxAvailable,
-      percentageSavings: bundle.regularPrice && bundle.regularPrice > 0
-        ? Math.round((bundle.savings! / bundle.regularPrice) * 100)
-        : 0,
+      percentageSavings:
+        bundle.regularPrice && bundle.regularPrice > 0
+          ? Math.round((bundle.savings! / bundle.regularPrice) * 100)
+          : 0,
     };
   },
 });
@@ -156,7 +160,7 @@ export const isBundleAvailable = query({
     if (bundlesLeft < args.quantity) {
       return {
         available: false,
-        reason: `Only ${bundlesLeft} bundle${bundlesLeft === 1 ? '' : 's'} remaining`,
+        reason: `Only ${bundlesLeft} bundle${bundlesLeft === 1 ? "" : "s"} remaining`,
         maxQuantity: bundlesLeft,
       };
     }
@@ -209,9 +213,7 @@ export const getMultiEventBundles = query({
     const eventIds = organizerEvents.map((e) => e._id);
 
     // Get all bundles
-    const allBundles = await ctx.db
-      .query("ticketBundles")
-      .collect();
+    const allBundles = await ctx.db.query("ticketBundles").collect();
 
     // Filter to multi-event bundles owned by this organizer
     const multiEventBundles = allBundles.filter((bundle) => {
@@ -324,9 +326,7 @@ export const getAllOrganizerBundles = query({
     const eventIds = organizerEvents.map((e) => e._id);
 
     // Get all bundles
-    const allBundles = await ctx.db
-      .query("ticketBundles")
-      .collect();
+    const allBundles = await ctx.db.query("ticketBundles").collect();
 
     // Filter bundles owned by this organizer
     const organizerBundles = allBundles.filter((bundle) => {
@@ -351,8 +351,8 @@ export const getAllOrganizerBundles = query({
           bundle.bundleType === "MULTI_EVENT" && bundle.eventIds
             ? bundle.eventIds
             : bundle.eventId
-            ? [bundle.eventId]
-            : [];
+              ? [bundle.eventId]
+              : [];
 
         const eventDetails = await Promise.all(
           bundleEventIds.map(async (eventId) => {
@@ -459,8 +459,8 @@ export const getBundlesForPublicEvent = query({
           bundle.bundleType === "MULTI_EVENT" && bundle.eventIds
             ? bundle.eventIds
             : bundle.eventId
-            ? [bundle.eventId]
-            : [];
+              ? [bundle.eventId]
+              : [];
 
         const eventDetails = await Promise.all(
           bundleEventIds.map(async (eventId) => {

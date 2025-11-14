@@ -19,11 +19,7 @@ export const createRoomTemplate = mutation({
       v.literal("banquet"),
       v.literal("custom")
     ),
-    seatingStyle: v.union(
-      v.literal("ROW_BASED"),
-      v.literal("TABLE_BASED"),
-      v.literal("MIXED")
-    ),
+    seatingStyle: v.union(v.literal("ROW_BASED"), v.literal("TABLE_BASED"), v.literal("MIXED")),
     estimatedCapacity: v.number(),
     sections: v.array(v.any()),
     isPublic: v.boolean(),
@@ -78,22 +74,22 @@ export const updateRoomTemplate = mutation({
     templateId: v.id("roomTemplates"),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
-    category: v.optional(v.union(
-      v.literal("theater"),
-      v.literal("stadium"),
-      v.literal("concert"),
-      v.literal("conference"),
-      v.literal("outdoor"),
-      v.literal("wedding"),
-      v.literal("gala"),
-      v.literal("banquet"),
-      v.literal("custom")
-    )),
-    seatingStyle: v.optional(v.union(
-      v.literal("ROW_BASED"),
-      v.literal("TABLE_BASED"),
-      v.literal("MIXED")
-    )),
+    category: v.optional(
+      v.union(
+        v.literal("theater"),
+        v.literal("stadium"),
+        v.literal("concert"),
+        v.literal("conference"),
+        v.literal("outdoor"),
+        v.literal("wedding"),
+        v.literal("gala"),
+        v.literal("banquet"),
+        v.literal("custom")
+      )
+    ),
+    seatingStyle: v.optional(
+      v.union(v.literal("ROW_BASED"), v.literal("TABLE_BASED"), v.literal("MIXED"))
+    ),
     estimatedCapacity: v.optional(v.number()),
     sections: v.optional(v.array(v.any())),
     isPublic: v.optional(v.boolean()),

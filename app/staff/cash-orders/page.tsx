@@ -19,12 +19,15 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function CashOrdersPage() {
   const [selectedEventId, setSelectedEventId] = useState<Id<"events"> | null>(null);
   const [activatingOrderId, setActivatingOrderId] = useState<Id<"orders"> | null>(null);
-  const [generatedCode, setGeneratedCode] = useState<{ orderId: Id<"orders">; code: string } | null>(null);
+  const [generatedCode, setGeneratedCode] = useState<{
+    orderId: Id<"orders">;
+    code: string;
+  } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Get staff positions (to select which event to view)
@@ -50,7 +53,7 @@ export default function CashOrdersPage() {
   // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey((prev) => prev + 1);
     }, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -74,9 +77,12 @@ export default function CashOrdersPage() {
       setGeneratedCode({ orderId, code: result.activationCode });
 
       // Clear after 5 minutes
-      setTimeout(() => {
-        setGeneratedCode(null);
-      }, 5 * 60 * 1000);
+      setTimeout(
+        () => {
+          setGeneratedCode(null);
+        },
+        5 * 60 * 1000
+      );
     } catch (error: any) {
       alert(`Failed to generate code: ${error.message}`);
     }
@@ -92,7 +98,7 @@ export default function CashOrdersPage() {
     const minutes = Math.floor(diff / 1000 / 60);
     const seconds = Math.floor((diff / 1000) % 60);
 
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   // Get color based on time remaining
@@ -130,7 +136,7 @@ export default function CashOrdersPage() {
   }
 
   // Find selected event details
-  const selectedEvent = staffPositions.find(pos => pos.eventId === selectedEventId);
+  const selectedEvent = staffPositions.find((pos) => pos.eventId === selectedEventId);
   const selectedStaffId = selectedEvent?.staffId as Id<"eventStaff"> | undefined;
 
   return (
@@ -143,7 +149,7 @@ export default function CashOrdersPage() {
             <p className="text-gray-600 mt-1">Approve in-person cash payments</p>
           </div>
           <button
-            onClick={() => setRefreshKey(prev => prev + 1)}
+            onClick={() => setRefreshKey((prev) => prev + 1)}
             className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
           >
             <RefreshCw className="w-4 h-4" />
@@ -177,8 +183,13 @@ export default function CashOrdersPage() {
               <p className="font-semibold mb-1">How Cash Orders Work:</p>
               <ul className="list-disc list-inside space-y-1 text-foreground">
                 <li>Customers reserve tickets with a 30-minute hold</li>
-                <li><strong>Instant Approval:</strong> Tap "Approve Order" after receiving cash</li>
-                <li><strong>Activation Code:</strong> Generate a 4-digit code for the customer to activate later</li>
+                <li>
+                  <strong>Instant Approval:</strong> Tap "Approve Order" after receiving cash
+                </li>
+                <li>
+                  <strong>Activation Code:</strong> Generate a 4-digit code for the customer to
+                  activate later
+                </li>
                 <li>Orders expire automatically if not approved within 30 minutes</li>
               </ul>
             </div>
@@ -254,7 +265,9 @@ export default function CashOrdersPage() {
                   <div className={`flex items-center gap-2 mb-4 font-semibold ${timeColor}`}>
                     <Clock className="w-5 h-5" />
                     <span className="text-lg">
-                      {timeRemaining === "Expired" ? "⚠️ Expired" : `Time remaining: ${timeRemaining}`}
+                      {timeRemaining === "Expired"
+                        ? "⚠️ Expired"
+                        : `Time remaining: ${timeRemaining}`}
                     </span>
                   </div>
 
@@ -262,11 +275,16 @@ export default function CashOrdersPage() {
                   <div className="bg-gray-50 rounded-lg p-4 mb-4">
                     <p className="text-sm font-medium text-gray-700 mb-2">Order Details:</p>
                     <div className="space-y-1 text-sm text-gray-600">
-                      <p><strong>Order #:</strong> {order.orderNumber}</p>
+                      <p>
+                        <strong>Order #:</strong> {order.orderNumber}
+                      </p>
                       {order.tickets.map((ticket, idx) => (
                         <div key={idx} className="flex items-center gap-2">
                           <Ticket className="w-4 h-4" />
-                          <span>{ticket.quantity}x {ticket.tierName} @ ${(ticket.price / 100).toFixed(2)}</span>
+                          <span>
+                            {ticket.quantity}x {ticket.tierName} @ $
+                            {(ticket.price / 100).toFixed(2)}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -278,7 +296,9 @@ export default function CashOrdersPage() {
                       <div className="flex items-center gap-3">
                         <Key className="w-6 h-6 text-green-600" />
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-green-900 mb-1">Activation Code Generated</p>
+                          <p className="text-sm font-semibold text-green-900 mb-1">
+                            Activation Code Generated
+                          </p>
                           <p className="text-3xl font-mono font-bold text-green-700 tracking-wider">
                             {generatedCode.code}
                           </p>

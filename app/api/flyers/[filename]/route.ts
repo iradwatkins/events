@@ -13,20 +13,14 @@ export async function GET(
     const { filename } = await params;
 
     // Security: Only allow .jpg files and prevent directory traversal
-    if (!filename.endsWith('.jpg') || filename.includes('..') || filename.includes('/')) {
-      return NextResponse.json(
-        { error: "Invalid filename" },
-        { status: 400 }
-      );
+    if (!filename.endsWith(".jpg") || filename.includes("..") || filename.includes("/")) {
+      return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
     }
 
     const filepath = path.join(FLYER_STORAGE_PATH, filename);
 
     if (!existsSync(filepath)) {
-      return NextResponse.json(
-        { error: "File not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
     const imageBuffer = await readFile(filepath);
@@ -39,9 +33,6 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error serving flyer:", error);
-    return NextResponse.json(
-      { error: "Failed to load image" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to load image" }, { status: 500 });
   }
 }

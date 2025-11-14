@@ -18,7 +18,8 @@ export const createRealTestEvents = mutation({
     console.log("1️⃣  Creating Thanksgiving Weekend Event...");
     const event1Id: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "Thanksgiving Weekend Steppin' Social",
-      description: "Join us for a post-Thanksgiving stepping celebration! Great music, great people, and great steppin'. Bring your appetite for dancing after all that turkey! DJ Rockin' Rodney will be spinning classic stepping tracks all night long.",
+      description:
+        "Join us for a post-Thanksgiving stepping celebration! Great music, great people, and great steppin'. Bring your appetite for dancing after all that turkey! DJ Rockin' Rodney will be spinning classic stepping tracks all night long.",
       eventType: "TICKETED_EVENT",
       categories: ["Social", "Set", "Holiday"],
       startDate: new Date("2025-11-29T20:00:00").getTime(), // Nov 29, 2025 8:00 PM
@@ -58,7 +59,8 @@ export const createRealTestEvents = mutation({
     console.log("2️⃣  Creating Holiday Steppin' Extravaganza...");
     const event2Id: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "Holiday Steppin' Extravaganza",
-      description: "Get in the holiday spirit with Chicago's premier stepping event! Featuring live band performances, holiday-themed music, complimentary holiday treats, and a special midnight toast. Dress in your festive best!",
+      description:
+        "Get in the holiday spirit with Chicago's premier stepping event! Featuring live band performances, holiday-themed music, complimentary holiday treats, and a special midnight toast. Dress in your festive best!",
       eventType: "TICKETED_EVENT",
       categories: ["Gala", "Holiday", "Set"],
       startDate: new Date("2025-12-20T19:00:00").getTime(), // Dec 20, 2025 7:00 PM
@@ -119,7 +121,8 @@ export const createRealTestEvents = mutation({
     console.log("3️⃣  Creating New Year's Eve Event...");
     const event3Id: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "New Year's Eve Stepping Celebration 2026",
-      description: "Ring in 2026 with the most elegant stepping event of the year! Black-tie optional affair featuring champagne toast at midnight, gourmet dinner, premium open bar, party favors, and the hottest DJs in Chicago. This is THE event to end 2025!",
+      description:
+        "Ring in 2026 with the most elegant stepping event of the year! Black-tie optional affair featuring champagne toast at midnight, gourmet dinner, premium open bar, party favors, and the hottest DJs in Chicago. This is THE event to end 2025!",
       eventType: "TICKETED_EVENT",
       categories: ["Gala", "Special Event", "Holiday"],
       startDate: new Date("2025-12-31T21:00:00").getTime(), // Dec 31, 2025 9:00 PM
@@ -144,21 +147,28 @@ export const createRealTestEvents = mutation({
       model: "PREPAY",
     });
 
-    const vipTierId: Id<"ticketTiers"> = await ctx.runMutation(api.tickets.mutations.createTicketTier, {
-      eventId: event3Id,
-      name: "VIP Package",
-      description: "Premium seating, bottle service, exclusive VIP lounge access, gourmet dinner, and champagne",
-      price: 15000, // $150
-      quantity: 50,
-    });
+    const vipTierId: Id<"ticketTiers"> = await ctx.runMutation(
+      api.tickets.mutations.createTicketTier,
+      {
+        eventId: event3Id,
+        name: "VIP Package",
+        description:
+          "Premium seating, bottle service, exclusive VIP lounge access, gourmet dinner, and champagne",
+        price: 15000, // $150
+        quantity: 50,
+      }
+    );
 
-    const generalTierId: Id<"ticketTiers"> = await ctx.runMutation(api.tickets.mutations.createTicketTier, {
-      eventId: event3Id,
-      name: "General Admission",
-      description: "Includes dinner, open bar, midnight champagne toast, and dance floor access",
-      price: 10000, // $100
-      quantity: 250,
-    });
+    const generalTierId: Id<"ticketTiers"> = await ctx.runMutation(
+      api.tickets.mutations.createTicketTier,
+      {
+        eventId: event3Id,
+        name: "General Admission",
+        description: "Includes dinner, open bar, midnight champagne toast, and dance floor access",
+        price: 10000, // $100
+        quantity: 250,
+      }
+    );
 
     events.push({ eventId: event3Id, name: "New Year's Eve Stepping Celebration 2026" });
     console.log("   ✅ New Year's Eve Event created with VIP and General tiers\n");
@@ -167,7 +177,8 @@ export const createRealTestEvents = mutation({
     console.log("4️⃣  Creating Sunday Afternoon Set...");
     const event4Id: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "Sunday Afternoon Steppers Set",
-      description: "Perfect way to end your weekend! Relaxed afternoon stepping session with smooth grooves and chill vibes. Great for beginners and seasoned steppers alike. Light appetizers and cash bar available.",
+      description:
+        "Perfect way to end your weekend! Relaxed afternoon stepping session with smooth grooves and chill vibes. Great for beginners and seasoned steppers alike. Light appetizers and cash bar available.",
       eventType: "TICKETED_EVENT",
       categories: ["Social", "Set"],
       startDate: new Date("2025-12-07T15:00:00").getTime(), // Dec 7, 2025 3:00 PM

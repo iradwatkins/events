@@ -32,9 +32,7 @@ export const getCreditStats = query({
     firstDayOfMonth.setHours(0, 0, 0, 0);
     const monthStart = firstDayOfMonth.getTime();
 
-    const thisMonthTransactions = allTransactions.filter(
-      (t) => t.purchasedAt >= monthStart
-    );
+    const thisMonthTransactions = allTransactions.filter((t) => t.purchasedAt >= monthStart);
     const monthlyRevenue = thisMonthTransactions.reduce((sum, t) => sum + t.amountPaid, 0);
     const monthlyTickets = thisMonthTransactions.reduce((sum, t) => sum + t.ticketsPurchased, 0);
 
@@ -42,18 +40,17 @@ export const getCreditStats = query({
     const activeOrganizers = allCredits.filter((c) => c.creditsUsed > 0).length;
 
     // Calculate average credits per organizer
-    const avgCreditsPerOrganizer = activeOrganizers > 0
-      ? totalCreditsUsed / activeOrganizers
-      : 0;
+    const avgCreditsPerOrganizer = activeOrganizers > 0 ? totalCreditsUsed / activeOrganizers : 0;
 
     return {
       overall: {
         totalCreditsTotal,
         totalCreditsUsed,
         totalCreditsRemaining,
-        utilizationRate: totalCreditsTotal > 0
-          ? ((totalCreditsUsed / totalCreditsTotal) * 100).toFixed(1) + "%"
-          : "0%",
+        utilizationRate:
+          totalCreditsTotal > 0
+            ? ((totalCreditsUsed / totalCreditsTotal) * 100).toFixed(1) + "%"
+            : "0%",
       },
       revenue: {
         totalRevenue: (totalRevenue / 100).toFixed(2), // Convert cents to dollars
@@ -80,10 +77,7 @@ export const getRecentCreditTransactions = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 10;
 
-    const transactions = await ctx.db
-      .query("creditTransactions")
-      .order("desc")
-      .take(limit);
+    const transactions = await ctx.db.query("creditTransactions").order("desc").take(limit);
 
     // Enrich with organizer info
     const enriched = await Promise.all(

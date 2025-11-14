@@ -48,10 +48,10 @@ export function CapacityAwareTicketEditor({
   // Calculate totals
   const totalAllocated = tiers.reduce((sum, tier) => sum + getTierCapacity(tier), 0);
   const totalIndividual = tiers
-    .filter(t => !t.isTablePackage)
+    .filter((t) => !t.isTablePackage)
     .reduce((sum, t) => sum + (parseInt(t.quantity) || 0), 0);
 
-  const tableTiers = tiers.filter(t => t.isTablePackage);
+  const tableTiers = tiers.filter((t) => t.isTablePackage);
   const totalTables = tableTiers.reduce((sum, t) => sum + (parseInt(t.quantity) || 0), 0);
   const totalSeatsInTables = tableTiers.reduce((sum, t) => sum + getTierCapacity(t), 0);
 
@@ -77,19 +77,11 @@ export function CapacityAwareTicketEditor({
   };
 
   const updateTier = (id: string, field: keyof TicketTier, value: any) => {
-    onChange(
-      tiers.map((tier) =>
-        tier.id === id ? { ...tier, [field]: value } : tier
-      )
-    );
+    onChange(tiers.map((tier) => (tier.id === id ? { ...tier, [field]: value } : tier)));
   };
 
   const updateTierPricing = (id: string, pricingTiers: PricingTier[]) => {
-    onChange(
-      tiers.map((tier) =>
-        tier.id === id ? { ...tier, pricingTiers } : tier
-      )
-    );
+    onChange(tiers.map((tier) => (tier.id === id ? { ...tier, pricingTiers } : tier)));
   };
 
   const toggleExpanded = (id: string) => {
@@ -132,11 +124,15 @@ export function CapacityAwareTicketEditor({
 
           {/* Ticket Breakdown Summary */}
           <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Ticket Breakdown:</h4>
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+              Ticket Breakdown:
+            </h4>
             <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex justify-between">
                 <span>Total Capacity:</span>
-                <span className="font-semibold text-gray-900 dark:text-white">{totalAllocated} tickets</span>
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {totalAllocated} tickets
+                </span>
               </div>
               {totalIndividual > 0 && (
                 <div className="flex justify-between pl-4">
@@ -146,7 +142,9 @@ export function CapacityAwareTicketEditor({
               )}
               {totalSeatsInTables > 0 && (
                 <div className="flex justify-between pl-4">
-                  <span>↳ Seats in {totalTables} table{totalTables !== 1 ? 's' : ''}:</span>
+                  <span>
+                    ↳ Seats in {totalTables} table{totalTables !== 1 ? "s" : ""}:
+                  </span>
                   <span>{totalSeatsInTables}</span>
                 </div>
               )}
@@ -161,13 +159,25 @@ export function CapacityAwareTicketEditor({
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Quick Start:</h3>
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => addQuickTier({ name: "General Admission", price: "25", quantity: capacity > 0 ? Math.floor(capacity * 0.7).toString() : "100" })}
+              onClick={() =>
+                addQuickTier({
+                  name: "General Admission",
+                  price: "25",
+                  quantity: capacity > 0 ? Math.floor(capacity * 0.7).toString() : "100",
+                })
+              }
               className="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               General Admission
             </button>
             <button
-              onClick={() => addQuickTier({ name: "VIP", price: "50", quantity: capacity > 0 ? Math.floor(capacity * 0.3).toString() : "50" })}
+              onClick={() =>
+                addQuickTier({
+                  name: "VIP",
+                  price: "50",
+                  quantity: capacity > 0 ? Math.floor(capacity * 0.3).toString() : "50",
+                })
+              }
               className="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               VIP
@@ -348,7 +358,9 @@ export function CapacityAwareTicketEditor({
                         </label>
                         <select
                           value={tier.seatsPerTable || 8}
-                          onChange={(e) => updateTier(tier.id, "seatsPerTable", parseInt(e.target.value))}
+                          onChange={(e) =>
+                            updateTier(tier.id, "seatsPerTable", parseInt(e.target.value))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         >
                           <option value="2">2 seats per table</option>
@@ -359,7 +371,8 @@ export function CapacityAwareTicketEditor({
                           <option value="12">12 seats per table</option>
                         </select>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          = {getTierCapacity(tier)} total seats ({tier.quantity} tables × {tier.seatsPerTable} seats)
+                          = {getTierCapacity(tier)} total seats ({tier.quantity} tables ×{" "}
+                          {tier.seatsPerTable} seats)
                         </p>
                       </div>
                     )}

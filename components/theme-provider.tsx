@@ -13,11 +13,11 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     // Force light theme on mobile devices
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
     if (isMobile) {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
-      document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      document.documentElement.setAttribute("data-theme", "light");
       // Override any stored theme preference
-      localStorage.setItem('theme', 'light');
+      localStorage.setItem("theme", "light");
     }
   }, []);
 

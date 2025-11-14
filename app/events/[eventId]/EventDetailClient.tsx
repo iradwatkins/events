@@ -20,7 +20,7 @@ import {
   X,
   TrendingDown,
   Package,
-  Zap
+  Zap,
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,12 +34,14 @@ interface EventDetailClientProps {
 
 export default function EventDetailClient({ eventId }: EventDetailClientProps) {
   const router = useRouter();
-  const ENABLE_SEATING = process.env.NEXT_PUBLIC_ENABLE_SEATING_CHARTS === 'true';
+  const ENABLE_SEATING = process.env.NEXT_PUBLIC_ENABLE_SEATING_CHARTS === "true";
 
   const eventDetails = useQuery(api.public.queries.getPublicEventDetails, {
     eventId,
   });
-  const seatingChart = ENABLE_SEATING ? useQuery(api.seating.queries.getPublicSeatingChart, { eventId }) : null;
+  const seatingChart = ENABLE_SEATING
+    ? useQuery(api.seating.queries.getPublicSeatingChart, { eventId })
+    : null;
   const eventBundles = useQuery(api.bundles.queries.getBundlesForPublicEvent, { eventId });
 
   // Waitlist state
@@ -156,15 +158,18 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
 
   const isUpcoming = eventDetails.startDate ? eventDetails.startDate > Date.now() : false;
   const isPast = eventDetails.endDate ? eventDetails.endDate < Date.now() : false;
-  const showTickets = eventDetails.eventType === "TICKETED_EVENT" &&
-                       eventDetails.ticketsVisible &&
-                       eventDetails.paymentConfigured &&
-                       isUpcoming;
+  const showTickets =
+    eventDetails.eventType === "TICKETED_EVENT" &&
+    eventDetails.ticketsVisible &&
+    eventDetails.paymentConfigured &&
+    isUpcoming;
 
   // Check if all tickets are sold out
-  const allTicketsSoldOut = eventDetails.ticketTiers?.every(
-    tier => tier.quantity !== undefined && tier.sold !== undefined && tier.quantity - tier.sold <= 0
-  ) ?? false;
+  const allTicketsSoldOut =
+    eventDetails.ticketTiers?.every(
+      (tier) =>
+        tier.quantity !== undefined && tier.sold !== undefined && tier.quantity - tier.sold <= 0
+    ) ?? false;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -205,10 +210,7 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
             >
               <div className="relative w-full bg-gray-200 rounded-xl overflow-hidden shadow-lg sticky top-24">
                 {eventDetails.imageUrl ? (
-                  <div
-                    onClick={() => setShowFlyerModal(true)}
-                    className="cursor-pointer"
-                  >
+                  <div onClick={() => setShowFlyerModal(true)} className="cursor-pointer">
                     <img
                       src={eventDetails.imageUrl}
                       alt={eventDetails.name}
@@ -223,18 +225,20 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
 
                 {/* Event Type Badge */}
                 <div className="absolute top-4 left-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${
-                    eventDetails.eventType === "SAVE_THE_DATE"
-                      ? "bg-yellow-500 text-white"
-                      : eventDetails.eventType === "FREE_EVENT"
-                      ? "bg-green-500 text-white"
-                      : "bg-primary text-white"
-                  }`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${
+                      eventDetails.eventType === "SAVE_THE_DATE"
+                        ? "bg-yellow-500 text-white"
+                        : eventDetails.eventType === "FREE_EVENT"
+                          ? "bg-green-500 text-white"
+                          : "bg-primary text-white"
+                    }`}
+                  >
                     {eventDetails.eventType === "SAVE_THE_DATE"
                       ? "Save the Date"
                       : eventDetails.eventType === "FREE_EVENT"
-                      ? "Free Event"
-                      : "Ticketed Event"}
+                        ? "Free Event"
+                        : "Ticketed Event"}
                   </span>
                 </div>
 
@@ -287,7 +291,8 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                       </p>
                       <p className="text-sm text-gray-600">
                         {formatEventTime(eventDetails.startDate, eventDetails.timezone)}
-                        {eventDetails.endDate && ` - ${formatEventTime(eventDetails.endDate, eventDetails.timezone)}`}
+                        {eventDetails.endDate &&
+                          ` - ${formatEventTime(eventDetails.endDate, eventDetails.timezone)}`}
                       </p>
                     </div>
                   </div>
@@ -298,11 +303,14 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                   <div className="flex items-start gap-3 mb-4">
                     <MapPin className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-semibold text-gray-900">{eventDetails.location.venueName}</p>
+                      <p className="font-semibold text-gray-900">
+                        {eventDetails.location.venueName}
+                      </p>
                       <p className="text-sm text-gray-600">
                         {eventDetails.location.address}
                         <br />
-                        {eventDetails.location.city}, {eventDetails.location.state} {eventDetails.location.zipCode}
+                        {eventDetails.location.city}, {eventDetails.location.state}{" "}
+                        {eventDetails.location.zipCode}
                       </p>
                       <a
                         href={`https://maps.google.com/?q=${encodeURIComponent(
@@ -321,206 +329,234 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
               </div>
 
               {/* Ticket Tiers Display for TICKETED_EVENT */}
-              {eventDetails.eventType === "TICKETED_EVENT" && eventDetails.ticketTiers && eventDetails.ticketTiers.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.5 }}
-                  className="mb-6"
-                >
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Ticket className="w-5 h-5 text-primary" />
-                      <h3 className="text-lg font-semibold text-gray-900">Available Tickets</h3>
-                    </div>
-                    <div className="space-y-3">
-                      {eventDetails.ticketTiers.map((tier: any, index: number) => {
-                        const isSoldOut = tier.quantity !== undefined && tier.sold !== undefined && tier.quantity - tier.sold <= 0;
-                        const showEarlyBird = tier.isEarlyBird && tier.currentTierName;
-                        const nextPriceIncrease = tier.nextPriceChange && tier.nextPriceChange.price > tier.currentPrice;
+              {eventDetails.eventType === "TICKETED_EVENT" &&
+                eventDetails.ticketTiers &&
+                eventDetails.ticketTiers.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.5 }}
+                    className="mb-6"
+                  >
+                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Ticket className="w-5 h-5 text-primary" />
+                        <h3 className="text-lg font-semibold text-gray-900">Available Tickets</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {eventDetails.ticketTiers.map((tier: any, index: number) => {
+                          const isSoldOut =
+                            tier.quantity !== undefined &&
+                            tier.sold !== undefined &&
+                            tier.quantity - tier.sold <= 0;
+                          const showEarlyBird = tier.isEarlyBird && tier.currentTierName;
+                          const nextPriceIncrease =
+                            tier.nextPriceChange && tier.nextPriceChange.price > tier.currentPrice;
 
-                        return (
+                          return (
+                            <motion.div
+                              key={tier._id}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
+                              className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                                showEarlyBird
+                                  ? "bg-amber-50 border-amber-200"
+                                  : "bg-accent border-blue-100"
+                              }`}
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <p className="font-semibold text-gray-900">{tier.name}</p>
+                                    {showEarlyBird && (
+                                      <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-amber-500 text-white rounded-full font-medium">
+                                        <Zap className="w-3 h-3" />
+                                        {tier.currentTierName}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {tier.description && (
+                                    <p className="text-sm text-gray-600">{tier.description}</p>
+                                  )}
+                                </div>
+                                <div className="text-right ml-2">
+                                  <p
+                                    className={`font-bold text-xl ${showEarlyBird ? "text-amber-600" : "text-primary"}`}
+                                  >
+                                    ${(tier.currentPrice / 100).toFixed(2)}
+                                  </p>
+                                  {showEarlyBird && tier.price !== tier.currentPrice && (
+                                    <p className="text-sm text-gray-500 line-through">
+                                      ${(tier.price / 100).toFixed(2)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              {nextPriceIncrease && (
+                                <div className="mt-2 mb-2 p-2 bg-orange-50 border border-orange-200 rounded text-sm">
+                                  <p className="text-orange-700 font-medium">
+                                    Price increases to $
+                                    {(tier.nextPriceChange.price / 100).toFixed(2)} on{" "}
+                                    {format(tier.nextPriceChange.date, "MMM d, yyyy")}
+                                  </p>
+                                </div>
+                              )}
+
+                              {tier.quantity !== undefined && tier.sold !== undefined && (
+                                <div className="flex items-center justify-between gap-2 mt-2">
+                                  <p
+                                    className={`text-sm font-medium ${
+                                      tier.quantity - tier.sold > 0
+                                        ? "text-green-600"
+                                        : "text-red-600"
+                                    }`}
+                                  >
+                                    {tier.quantity - tier.sold > 0
+                                      ? `${tier.quantity - tier.sold} tickets available`
+                                      : "Sold out"}
+                                  </p>
+                                  {isSoldOut && (
+                                    <button
+                                      onClick={() => handleJoinWaitlist(tier._id)}
+                                      className="flex items-center gap-1 px-3 py-1 bg-orange-500 text-white rounded text-sm font-medium hover:bg-orange-600 transition-colors"
+                                    >
+                                      <Bell className="w-3 h-3" />
+                                      Waitlist
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+              {/* Ticket Bundles Display */}
+              {eventDetails.eventType === "TICKETED_EVENT" &&
+                eventBundles &&
+                eventBundles.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.7 }}
+                    className="mb-6"
+                  >
+                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Package className="w-5 h-5 text-primary" />
+                          <h3 className="text-lg font-semibold text-gray-900">Ticket Bundles</h3>
+                          <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                            Save More
+                          </span>
+                        </div>
+                        <Link
+                          href="/bundles"
+                          className="text-sm text-primary hover:text-primary font-medium flex items-center gap-1"
+                        >
+                          View All Bundles
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      </div>
+                      <div className="space-y-3">
+                        {eventBundles.map((bundle: any, index: number) => (
                           <motion.div
-                            key={tier._id}
+                            key={bundle._id}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
-                            className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
-                              showEarlyBird
-                                ? 'bg-amber-50 border-amber-200'
-                                : 'bg-accent border-blue-100'
-                            }`}
+                            transition={{ duration: 0.3, delay: 0.8 + index * 0.1 }}
+                            className="bg-accent border border-purple-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
+                            onClick={() => router.push(`/bundles/${bundle._id}`)}
                           >
                             <div className="flex justify-between items-start mb-2">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <p className="font-semibold text-gray-900">{tier.name}</p>
-                                  {showEarlyBird && (
-                                    <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-amber-500 text-white rounded-full font-medium">
-                                      <Zap className="w-3 h-3" />
-                                      {tier.currentTierName}
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <p className="font-semibold text-gray-900">{bundle.name}</p>
+                                  <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-green-500 text-white rounded-full font-bold">
+                                    <TrendingDown className="w-3 h-3" />
+                                    Save {bundle.percentageSavings}%
+                                  </span>
+                                  {bundle.bundleType === "MULTI_EVENT" && (
+                                    <span className="text-xs px-2 py-0.5 bg-primary text-white rounded-full font-medium">
+                                      Multi-Event
                                     </span>
                                   )}
                                 </div>
-                                {tier.description && (
-                                  <p className="text-sm text-gray-600">{tier.description}</p>
+                                {bundle.description && (
+                                  <p className="text-sm text-gray-600 mb-2">{bundle.description}</p>
                                 )}
+
+                                {/* Show events for multi-event bundles */}
+                                {bundle.bundleType === "MULTI_EVENT" &&
+                                  bundle.events &&
+                                  bundle.events.length > 0 && (
+                                    <div className="mb-2">
+                                      <p className="text-xs text-gray-500 mb-1">
+                                        Includes {bundle.events.length} events:
+                                      </p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {bundle.events.map((event: any) => (
+                                          <span
+                                            key={event._id}
+                                            className="text-xs px-2 py-0.5 bg-accent text-primary rounded border border-primary/30"
+                                          >
+                                            <Calendar className="w-3 h-3 inline mr-1" />
+                                            {event.name}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                {/* Show included tickets */}
+                                <div className="flex flex-wrap gap-1">
+                                  {bundle.includedTiersDetails?.slice(0, 3).map((tier: any) => (
+                                    <span
+                                      key={tier.tierId}
+                                      className="text-xs px-2 py-0.5 bg-accent text-primary rounded"
+                                    >
+                                      {tier.quantity}x {tier.tierName}
+                                    </span>
+                                  ))}
+                                  {bundle.includedTiersDetails &&
+                                    bundle.includedTiersDetails.length > 3 && (
+                                      <span className="text-xs px-2 py-0.5 text-primary font-medium">
+                                        +{bundle.includedTiersDetails.length - 3} more
+                                      </span>
+                                    )}
+                                </div>
                               </div>
                               <div className="text-right ml-2">
-                                <p className={`font-bold text-xl ${showEarlyBird ? 'text-amber-600' : 'text-primary'}`}>
-                                  ${(tier.currentPrice / 100).toFixed(2)}
+                                <p className="font-bold text-primary text-xl">
+                                  ${(bundle.price / 100).toFixed(2)}
                                 </p>
-                                {showEarlyBird && tier.price !== tier.currentPrice && (
+                                {bundle.regularPrice && (
                                   <p className="text-sm text-gray-500 line-through">
-                                    ${(tier.price / 100).toFixed(2)}
+                                    ${(bundle.regularPrice / 100).toFixed(2)}
                                   </p>
                                 )}
                               </div>
                             </div>
-
-                            {nextPriceIncrease && (
-                              <div className="mt-2 mb-2 p-2 bg-orange-50 border border-orange-200 rounded text-sm">
-                                <p className="text-orange-700 font-medium">
-                                  Price increases to ${(tier.nextPriceChange.price / 100).toFixed(2)} on {format(tier.nextPriceChange.date, "MMM d, yyyy")}
-                                </p>
-                              </div>
-                            )}
-
-                            {tier.quantity !== undefined && tier.sold !== undefined && (
-                              <div className="flex items-center justify-between gap-2 mt-2">
-                                <p className={`text-sm font-medium ${
-                                  tier.quantity - tier.sold > 0 ? "text-green-600" : "text-red-600"
-                                }`}>
-                                  {tier.quantity - tier.sold > 0
-                                    ? `${tier.quantity - tier.sold} tickets available`
-                                    : "Sold out"}
-                                </p>
-                                {isSoldOut && (
-                                  <button
-                                    onClick={() => handleJoinWaitlist(tier._id)}
-                                    className="flex items-center gap-1 px-3 py-1 bg-orange-500 text-white rounded text-sm font-medium hover:bg-orange-600 transition-colors"
-                                  >
-                                    <Bell className="w-3 h-3" />
-                                    Waitlist
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Ticket Bundles Display */}
-              {eventDetails.eventType === "TICKETED_EVENT" && eventBundles && eventBundles.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.7 }}
-                  className="mb-6"
-                >
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <Package className="w-5 h-5 text-primary" />
-                        <h3 className="text-lg font-semibold text-gray-900">Ticket Bundles</h3>
-                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
-                          Save More
-                        </span>
-                      </div>
-                      <Link
-                        href="/bundles"
-                        className="text-sm text-primary hover:text-primary font-medium flex items-center gap-1"
-                      >
-                        View All Bundles
-                        <ExternalLink className="w-3 h-3" />
-                      </Link>
-                    </div>
-                    <div className="space-y-3">
-                      {eventBundles.map((bundle: any, index: number) => (
-                        <motion.div
-                          key={bundle._id}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: 0.8 + index * 0.1 }}
-                          className="bg-accent border border-purple-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
-                          onClick={() => router.push(`/bundles/${bundle._id}`)}
-                        >
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <p className="font-semibold text-gray-900">{bundle.name}</p>
-                                <span className="flex items-center gap-1 text-xs px-2 py-0.5 bg-green-500 text-white rounded-full font-bold">
-                                  <TrendingDown className="w-3 h-3" />
-                                  Save {bundle.percentageSavings}%
-                                </span>
-                                {bundle.bundleType === "MULTI_EVENT" && (
-                                  <span className="text-xs px-2 py-0.5 bg-primary text-white rounded-full font-medium">
-                                    Multi-Event
-                                  </span>
-                                )}
-                              </div>
-                              {bundle.description && (
-                                <p className="text-sm text-gray-600 mb-2">{bundle.description}</p>
-                              )}
-
-                              {/* Show events for multi-event bundles */}
-                              {bundle.bundleType === "MULTI_EVENT" && bundle.events && bundle.events.length > 0 && (
-                                <div className="mb-2">
-                                  <p className="text-xs text-gray-500 mb-1">Includes {bundle.events.length} events:</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {bundle.events.map((event: any) => (
-                                      <span key={event._id} className="text-xs px-2 py-0.5 bg-accent text-primary rounded border border-primary/30">
-                                        <Calendar className="w-3 h-3 inline mr-1" />
-                                        {event.name}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Show included tickets */}
-                              <div className="flex flex-wrap gap-1">
-                                {bundle.includedTiersDetails?.slice(0, 3).map((tier: any) => (
-                                  <span key={tier.tierId} className="text-xs px-2 py-0.5 bg-accent text-primary rounded">
-                                    {tier.quantity}x {tier.tierName}
-                                  </span>
-                                ))}
-                                {bundle.includedTiersDetails && bundle.includedTiersDetails.length > 3 && (
-                                  <span className="text-xs px-2 py-0.5 text-primary font-medium">
-                                    +{bundle.includedTiersDetails.length - 3} more
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-right ml-2">
-                              <p className="font-bold text-primary text-xl">
-                                ${(bundle.price / 100).toFixed(2)}
+                            <div className="mt-2 flex items-center justify-between">
+                              <p className="text-sm font-medium text-green-600">
+                                {bundle.available} bundle{bundle.available !== 1 ? "s" : ""}{" "}
+                                available
                               </p>
-                              {bundle.regularPrice && (
-                                <p className="text-sm text-gray-500 line-through">
-                                  ${(bundle.regularPrice / 100).toFixed(2)}
-                                </p>
-                              )}
+                              <button className="text-sm text-primary hover:text-primary font-medium">
+                                View Details →
+                              </button>
                             </div>
-                          </div>
-                          <div className="mt-2 flex items-center justify-between">
-                            <p className="text-sm font-medium text-green-600">
-                              {bundle.available} bundle{bundle.available !== 1 ? 's' : ''} available
-                            </p>
-                            <button className="text-sm text-primary hover:text-primary font-medium">
-                              View Details →
-                            </button>
-                          </div>
-                        </motion.div>
-                      ))}
+                          </motion.div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
+                  </motion.div>
+                )}
 
               {/* Door Price Display for FREE_EVENT */}
               {eventDetails.eventType === "FREE_EVENT" && eventDetails.doorPrice && (
@@ -609,12 +645,8 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
               ) : eventDetails.eventType === "SAVE_THE_DATE" ? (
                 <div className="text-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-6">
                   <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                  <p className="text-sm text-yellow-800 font-medium">
-                    Tickets coming soon!
-                  </p>
-                  <p className="text-xs text-yellow-700 mt-1">
-                    Save this date on your calendar
-                  </p>
+                  <p className="text-sm text-yellow-800 font-medium">Tickets coming soon!</p>
+                  <p className="text-xs text-yellow-700 mt-1">Save this date on your calendar</p>
                 </div>
               ) : isPast ? (
                 <div className="text-center p-4 bg-gray-50 border border-gray-200 rounded-lg mb-6">
@@ -636,7 +668,9 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                 <div className="bg-white rounded-lg border border-gray-200 p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Organized By</h3>
                   <p className="text-gray-700 font-medium text-xl">
-                    {eventDetails.organizer?.name || eventDetails.organizerName || "Event Organizer"}
+                    {eventDetails.organizer?.name ||
+                      eventDetails.organizerName ||
+                      "Event Organizer"}
                   </p>
                   {eventDetails.organizer?.email && (
                     <a
@@ -657,8 +691,12 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
               <div className="mt-6">
                 <SocialShareButtons
                   eventName={eventDetails.name}
-                  eventUrl={typeof window !== 'undefined' ? window.location.href : ''}
-                  eventDate={eventDetails.startDate ? formatEventDate(eventDetails.startDate, eventDetails.timezone) : ''}
+                  eventUrl={typeof window !== "undefined" ? window.location.href : ""}
+                  eventDate={
+                    eventDetails.startDate
+                      ? formatEventDate(eventDetails.startDate, eventDetails.timezone)
+                      : ""
+                  }
                   hasTickets={showTickets}
                 />
               </div>
@@ -737,99 +775,99 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                 /* Traditional Row/Section view for ROW_BASED layouts */
                 <div className="space-y-6">
                   {seatingChart.sections.map((section: any, sectionIndex: number) => (
-                  <div key={section.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div
-                        className="w-4 h-4 rounded"
-                        style={{ backgroundColor: section.color || "#3B82F6" }}
-                      ></div>
-                      <h3 className="text-lg font-bold text-gray-900">{section.name}</h3>
+                    <div key={section.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div
+                          className="w-4 h-4 rounded"
+                          style={{ backgroundColor: section.color || "#3B82F6" }}
+                        ></div>
+                        <h3 className="text-lg font-bold text-gray-900">{section.name}</h3>
+                      </div>
+
+                      {/* Row-based seating */}
+                      {section.rows && section.rows.length > 0 && (
+                        <div className="space-y-2">
+                          {section.rows.map((row: any) => (
+                            <div key={row.id} className="flex items-center gap-2">
+                              <span className="w-8 text-sm font-medium text-gray-600 text-right">
+                                {row.label}
+                              </span>
+                              <div className="flex gap-1 flex-wrap">
+                                {row.seats.map((seat: any) => (
+                                  <div
+                                    key={seat.id}
+                                    className={`w-8 h-8 rounded flex items-center justify-center text-xs font-medium border-2 ${
+                                      seat.status === "RESERVED"
+                                        ? "bg-gray-300 text-gray-600 border-gray-400"
+                                        : seat.status === "UNAVAILABLE"
+                                          ? "bg-gray-200 text-gray-500 border-gray-400"
+                                          : "bg-white text-gray-900 border-gray-900"
+                                    }`}
+                                    title={`Seat ${seat.number} - ${seat.status}`}
+                                  >
+                                    {seat.number}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Table-based seating */}
+                      {section.tables && section.tables.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                          {section.tables.map((table: any) => (
+                            <div
+                              key={table.id}
+                              className="border border-gray-200 rounded-lg p-3 bg-gray-50"
+                            >
+                              <p className="font-semibold text-gray-900 mb-2">
+                                Table {table.number}
+                              </p>
+                              <div className="flex gap-1 flex-wrap">
+                                {table.seats.map((seat: any) => (
+                                  <div
+                                    key={seat.id}
+                                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 ${
+                                      seat.status === "RESERVED"
+                                        ? "bg-gray-300 text-gray-600 border-gray-400"
+                                        : "bg-white text-gray-900 border-gray-900"
+                                    }`}
+                                    title={`Seat ${seat.number}`}
+                                  >
+                                    {seat.number}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-
-                    {/* Row-based seating */}
-                    {section.rows && section.rows.length > 0 && (
-                      <div className="space-y-2">
-                        {section.rows.map((row: any) => (
-                          <div key={row.id} className="flex items-center gap-2">
-                            <span className="w-8 text-sm font-medium text-gray-600 text-right">
-                              {row.label}
-                            </span>
-                            <div className="flex gap-1 flex-wrap">
-                              {row.seats.map((seat: any) => (
-                                <div
-                                  key={seat.id}
-                                  className={`w-8 h-8 rounded flex items-center justify-center text-xs font-medium border-2 ${
-                                    seat.status === "RESERVED"
-                                      ? "bg-gray-300 text-gray-600 border-gray-400"
-                                      : seat.status === "UNAVAILABLE"
-                                      ? "bg-gray-200 text-gray-500 border-gray-400"
-                                      : "bg-white text-gray-900 border-gray-900"
-                                  }`}
-                                  title={`Seat ${seat.number} - ${seat.status}`}
-                                >
-                                  {seat.number}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Table-based seating */}
-                    {section.tables && section.tables.length > 0 && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {section.tables.map((table: any) => (
-                          <div
-                            key={table.id}
-                            className="border border-gray-200 rounded-lg p-3 bg-gray-50"
-                          >
-                            <p className="font-semibold text-gray-900 mb-2">
-                              Table {table.number}
-                            </p>
-                            <div className="flex gap-1 flex-wrap">
-                              {table.seats.map((seat: any) => (
-                                <div
-                                  key={seat.id}
-                                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 ${
-                                    seat.status === "RESERVED"
-                                      ? "bg-gray-300 text-gray-600 border-gray-400"
-                                      : "bg-white text-gray-900 border-gray-900"
-                                  }`}
-                                  title={`Seat ${seat.number}`}
-                                >
-                                  {seat.number}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  ))}
                 </div>
               )}
 
               {/* Legend - Only show for ROW_BASED layouts */}
               {seatingChart.layoutType !== "TABLE_BASED" && (
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-3">Legend</h4>
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-white border-2 border-gray-900 rounded"></div>
-                    <span className="text-gray-700">Available</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gray-300 border-2 border-gray-400 rounded"></div>
-                    <span className="text-gray-700">Reserved</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gray-200 border-2 border-gray-400 rounded"></div>
-                    <span className="text-gray-700">Unavailable</span>
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-3">Legend</h4>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-white border-2 border-gray-900 rounded"></div>
+                      <span className="text-gray-700">Available</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gray-300 border-2 border-gray-400 rounded"></div>
+                      <span className="text-gray-700">Reserved</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gray-200 border-2 border-gray-400 rounded"></div>
+                      <span className="text-gray-700">Unavailable</span>
+                    </div>
                   </div>
                 </div>
-              </div>
               )}
 
               <div className="mt-6">
@@ -877,7 +915,10 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="waitlist-email" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="waitlist-email"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Email Address
                   </label>
                   <input
@@ -892,7 +933,10 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                 </div>
 
                 <div>
-                  <label htmlFor="waitlist-name" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="waitlist-name"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Full Name
                   </label>
                   <input
@@ -907,7 +951,10 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
                 </div>
 
                 <div>
-                  <label htmlFor="waitlist-quantity" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="waitlist-quantity"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Number of Tickets
                   </label>
                   <input

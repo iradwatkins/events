@@ -112,7 +112,7 @@ export const listAllEvents = query({
 
     console.log(`[DEBUG] Found ${events.length} total events in database`);
 
-    const eventsSummary = events.map(e => ({
+    const eventsSummary = events.map((e) => ({
       id: e._id,
       name: e.name,
       status: e.status,
@@ -125,10 +125,10 @@ export const listAllEvents = query({
       total: events.length,
       events: eventsSummary,
       byStatus: {
-        DRAFT: events.filter(e => e.status === "DRAFT").length,
-        PUBLISHED: events.filter(e => e.status === "PUBLISHED").length,
-        CANCELLED: events.filter(e => e.status === "CANCELLED").length,
-      }
+        DRAFT: events.filter((e) => e.status === "DRAFT").length,
+        PUBLISHED: events.filter((e) => e.status === "PUBLISHED").length,
+        CANCELLED: events.filter((e) => e.status === "CANCELLED").length,
+      },
     };
   },
 });

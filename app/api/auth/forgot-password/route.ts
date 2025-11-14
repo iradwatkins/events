@@ -12,10 +12,7 @@ export async function POST(request: NextRequest) {
     const { email } = await request.json();
 
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // Check if user exists
@@ -43,7 +40,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Send reset email
-    const resetUrl = `${process.env.NEXTAUTH_URL || 'https://events.stepperslife.com'}/reset-password?token=${token}`;
+    const resetUrl = `${process.env.NEXTAUTH_URL || "https://events.stepperslife.com"}/reset-password?token=${token}`;
 
     await resend.emails.send({
       from: "Steppers Life Events <noreply@events.stepperslife.com>",

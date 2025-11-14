@@ -67,14 +67,16 @@ export const createClaimableEventFromFlyer = mutation({
       ),
       startDate: v.optional(v.number()),
       endDate: v.optional(v.number()),
-      location: v.optional(v.object({
-        venueName: v.optional(v.string()),
-        address: v.optional(v.string()),
-        city: v.string(),
-        state: v.string(),
-        zipCode: v.optional(v.string()),
-        country: v.string(),
-      })),
+      location: v.optional(
+        v.object({
+          venueName: v.optional(v.string()),
+          address: v.optional(v.string()),
+          city: v.string(),
+          state: v.string(),
+          zipCode: v.optional(v.string()),
+          country: v.string(),
+        })
+      ),
       isClaimable: v.boolean(),
       claimCode: v.optional(v.string()),
     }),
@@ -140,7 +142,7 @@ export const createClaimableEventFromFlyer = mutation({
       eventId,
       message: args.eventData.isClaimable
         ? "Claimable event created - organizers can now claim it"
-        : "Save-the-date event created"
+        : "Save-the-date event created",
     };
   },
 });
@@ -150,13 +152,15 @@ export const createClaimableEventFromFlyer = mutation({
  */
 export const getUploadedFlyers = mutation({
   args: {
-    status: v.optional(v.union(
-      v.literal("UPLOADED"),
-      v.literal("PROCESSING"),
-      v.literal("EXTRACTED"),
-      v.literal("EVENT_CREATED"),
-      v.literal("ERROR")
-    )),
+    status: v.optional(
+      v.union(
+        v.literal("UPLOADED"),
+        v.literal("PROCESSING"),
+        v.literal("EXTRACTED"),
+        v.literal("EVENT_CREATED"),
+        v.literal("ERROR")
+      )
+    ),
   },
   handler: async (ctx, args) => {
     let flyers;
@@ -168,10 +172,7 @@ export const getUploadedFlyers = mutation({
         .order("desc")
         .take(100);
     } else {
-      flyers = await ctx.db
-        .query("uploadedFlyers")
-        .order("desc")
-        .take(100);
+      flyers = await ctx.db.query("uploadedFlyers").order("desc").take(100);
     }
 
     return flyers;
@@ -232,12 +233,15 @@ export const autoCreateEventFromExtractedData = mutation({
 
     // Determine timezone from city/state (if timezone not on flyer)
     // This ensures Chicago events get CT, Atlanta gets ET, etc.
-    const eventTimezone = data.eventTimezone ||
+    const eventTimezone =
+      data.eventTimezone ||
       (data.city && data.state
         ? getTimezoneFromLocation(data.city, data.state)
         : "America/New_York");
 
-    console.log(`[AI Extraction] Event location: ${data.city}, ${data.state} → Timezone: ${eventTimezone}`);
+    console.log(
+      `[AI Extraction] Event location: ${data.city}, ${data.state} → Timezone: ${eventTimezone}`
+    );
 
     // Parse START date using event's timezone (not server timezone!)
     // This prevents date shifting based on where the server is located
@@ -258,7 +262,9 @@ export const autoCreateEventFromExtractedData = mutation({
         data.eventEndTime || data.eventTime || data.time, // Use end time if provided, else use start time
         eventTimezone
       );
-      console.log(`[AI Extraction] Weekend Event - Start: ${data.eventDate}, End: ${data.eventEndDate}`);
+      console.log(
+        `[AI Extraction] Weekend Event - Start: ${data.eventDate}, End: ${data.eventEndDate}`
+      );
     } else if (data.eventEndTime) {
       // Single-day event with END TIME - parse end time on the same date
       // Example: Event from 8PM to 2AM on the same night
@@ -267,7 +273,9 @@ export const autoCreateEventFromExtractedData = mutation({
         data.eventEndTime, // Use the END time
         eventTimezone
       );
-      console.log(`[AI Extraction] Single-day event with end time - Start: ${data.eventTime}, End: ${data.eventEndTime}`);
+      console.log(
+        `[AI Extraction] Single-day event with end time - Start: ${data.eventTime}, End: ${data.eventEndTime}`
+      );
     } else {
       // Single-day event without end time - end date same as start
       endDate = startDate;
@@ -275,9 +283,13 @@ export const autoCreateEventFromExtractedData = mutation({
     }
 
     if (startDate) {
-      console.log(`[AI Extraction] Parsed start timestamp: ${startDate} (${new Date(startDate).toISOString()})`);
+      console.log(
+        `[AI Extraction] Parsed start timestamp: ${startDate} (${new Date(startDate).toISOString()})`
+      );
       if (endDate && endDate !== startDate) {
-        console.log(`[AI Extraction] Parsed end timestamp: ${endDate} (${new Date(endDate).toISOString()})`);
+        console.log(
+          `[AI Extraction] Parsed end timestamp: ${endDate} (${new Date(endDate).toISOString()})`
+        );
       }
     } else {
       console.warn("[AI Extraction] Could not parse date:", data.eventDate || data.date);
@@ -292,14 +304,17 @@ export const autoCreateEventFromExtractedData = mutation({
     }
 
     // Build location object with full address details
-    const location = (data.city && data.state) ? {
-      venueName: data.venueName || undefined,
-      address: data.address || undefined,
-      city: data.city,
-      state: data.state,
-      zipCode: data.zipCode || undefined,
-      country: "USA",
-    } : undefined;
+    const location =
+      data.city && data.state
+        ? {
+            venueName: data.venueName || undefined,
+            address: data.address || undefined,
+            city: data.city,
+            state: data.state,
+            zipCode: data.zipCode || undefined,
+            country: "USA",
+          }
+        : undefined;
 
     // Get organizer name from hostOrganizer field
     const organizerName = data.hostOrganizer || "Event Organizer";
@@ -373,7 +388,7 @@ export const autoCreateEventFromExtractedData = mutation({
             // Create new contact
             // Clean socialMedia object - remove null values
             let cleanedSocialMedia = undefined;
-            if (contact.socialMedia && typeof contact.socialMedia === 'object') {
+            if (contact.socialMedia && typeof contact.socialMedia === "object") {
               const filtered: Record<string, string> = {};
               if (contact.socialMedia.instagram) filtered.instagram = contact.socialMedia.instagram;
               if (contact.socialMedia.facebook) filtered.facebook = contact.socialMedia.facebook;
@@ -416,7 +431,7 @@ export const autoCreateEventFromExtractedData = mutation({
       eventId,
       eventType,
       contactsCreated,
-      message: `Event automatically created from flyer${contactsCreated > 0 ? ` with ${contactsCreated} contact(s)` : ''}`
+      message: `Event automatically created from flyer${contactsCreated > 0 ? ` with ${contactsCreated} contact(s)` : ""}`,
     };
   },
 });
@@ -476,7 +491,10 @@ export const deleteFlyerWithCleanup = action({
   args: {
     flyerId: v.id("uploadedFlyers"),
   },
-  handler: async (ctx, args): Promise<{
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
     success: boolean;
     message: string;
     deletedFileHash: string;
@@ -485,28 +503,36 @@ export const deleteFlyerWithCleanup = action({
     console.log(`🗑️ [deleteFlyerWithCleanup] Starting deletion for flyer: ${args.flyerId}`);
 
     // Get the flyer to find the filepath
-    const flyer: Doc<"uploadedFlyers"> | null = await ctx.runQuery(api.flyers.queries.getFlyerById, {
-      flyerId: args.flyerId,
-    });
+    const flyer: Doc<"uploadedFlyers"> | null = await ctx.runQuery(
+      api.flyers.queries.getFlyerById,
+      {
+        flyerId: args.flyerId,
+      }
+    );
 
     if (!flyer) {
       throw new Error("Flyer not found");
     }
 
-    console.log(`📄 [deleteFlyerWithCleanup] Flyer details: ${flyer.filename}, hash: ${flyer.fileHash}`);
+    console.log(
+      `📄 [deleteFlyerWithCleanup] Flyer details: ${flyer.filename}, hash: ${flyer.fileHash}`
+    );
 
     // Call API to delete physical file
     try {
       console.log(`🔥 [deleteFlyerWithCleanup] Deleting physical file: ${flyer.filepath}`);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://events.stepperslife.com'}/api/admin/delete-flyer-file`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          filepath: flyer.filepath,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL || "https://events.stepperslife.com"}/api/admin/delete-flyer-file`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            filepath: flyer.filepath,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -544,7 +570,9 @@ export const deleteFlyerWithCleanup = action({
  */
 export const deleteAllFlyers = action({
   args: {},
-  handler: async (ctx): Promise<{
+  handler: async (
+    ctx
+  ): Promise<{
     success: boolean;
     totalFlyers: number;
     successCount: number;
@@ -632,7 +660,9 @@ export const deleteFlyer = mutation({
   },
   handler: async (ctx, args) => {
     // TESTING MODE: Skip admin authentication
-    console.warn("[deleteFlyer] TESTING MODE - No admin auth check (DEPRECATED - use deleteFlyerWithCleanup)");
+    console.warn(
+      "[deleteFlyer] TESTING MODE - No admin auth check (DEPRECATED - use deleteFlyerWithCleanup)"
+    );
 
     // Get the flyer
     const flyer = await ctx.db.get(args.flyerId);
@@ -661,13 +691,11 @@ export const deleteFlyer = mutation({
 export const getFlyerStats = mutation({
   args: {},
   handler: async (ctx) => {
-    const allFlyers = await ctx.db
-      .query("uploadedFlyers")
-      .collect();
+    const allFlyers = await ctx.db.query("uploadedFlyers").collect();
 
     const totalUploaded = allFlyers.length;
-    const eventsCreated = allFlyers.filter(f => f.eventCreated).length;
-    const pendingEvents = allFlyers.filter(f => !f.eventCreated).length;
+    const eventsCreated = allFlyers.filter((f) => f.eventCreated).length;
+    const pendingEvents = allFlyers.filter((f) => !f.eventCreated).length;
     const totalSizeSaved = allFlyers.reduce(
       (sum, f) => sum + (f.originalSize - f.optimizedSize),
       0
@@ -679,9 +707,9 @@ export const getFlyerStats = mutation({
       .filter((q) => q.neq(q.field("organizerId"), undefined))
       .collect();
 
-    const saveTheDateCount = eventsByType.filter(e => e.eventType === "SAVE_THE_DATE").length;
-    const freeEventCount = eventsByType.filter(e => e.eventType === "FREE_EVENT").length;
-    const ticketedEventCount = eventsByType.filter(e => e.eventType === "TICKETED_EVENT").length;
+    const saveTheDateCount = eventsByType.filter((e) => e.eventType === "SAVE_THE_DATE").length;
+    const freeEventCount = eventsByType.filter((e) => e.eventType === "FREE_EVENT").length;
+    const ticketedEventCount = eventsByType.filter((e) => e.eventType === "TICKETED_EVENT").length;
 
     // Get claimable vs claimed events
     const claimableEvents = await ctx.db

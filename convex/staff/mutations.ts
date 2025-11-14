@@ -117,7 +117,7 @@ export const addStaffMember = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === STAFF_ROLES.STAFF), // Staff can always scan, team members only if approved
+      canScan: args.canScan || args.role === STAFF_ROLES.STAFF, // Staff can always scan, team members only if approved
       commissionType: args.commissionType,
       commissionValue: args.commissionValue,
       commissionPercent: args.commissionType === "PERCENTAGE" ? args.commissionValue : undefined,
@@ -269,7 +269,10 @@ export const registerCashSale = mutation({
     }
 
     // Verify current user is the staff member or organizer
-    if (staffMember.staffUserId !== currentUser._id && staffMember.organizerId !== currentUser._id) {
+    if (
+      staffMember.staffUserId !== currentUser._id &&
+      staffMember.organizerId !== currentUser._id
+    ) {
       throw new Error("Unauthorized to register cash sales for this staff member");
     }
 
@@ -366,7 +369,10 @@ export const createCashSale = mutation({
     }
 
     // Verify current user is the staff member or organizer
-    if (staffMember.staffUserId !== currentUser._id && staffMember.organizerId !== currentUser._id) {
+    if (
+      staffMember.staffUserId !== currentUser._id &&
+      staffMember.organizerId !== currentUser._id
+    ) {
       throw new Error("Unauthorized to create sales for this staff member");
     }
 
@@ -412,7 +418,9 @@ export const createCashSale = mutation({
     // Calculate commission
     let commissionPerTicket = 0;
     if (staffMember.commissionType === "PERCENTAGE") {
-      commissionPerTicket = Math.round((ticketTier.price * (staffMember.commissionValue || 0)) / 100);
+      commissionPerTicket = Math.round(
+        (ticketTier.price * (staffMember.commissionValue || 0)) / 100
+      );
     } else if (staffMember.commissionType === "FIXED") {
       commissionPerTicket = staffMember.commissionValue || 0;
     }
@@ -429,7 +437,9 @@ export const createCashSale = mutation({
 
       while (!isUnique) {
         // Generate random 4-digit code (0000-9999)
-        activationCode = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        activationCode = Math.floor(Math.random() * 10000)
+          .toString()
+          .padStart(4, "0");
 
         // Check if code already exists
         const existing = await ctx.db
@@ -508,11 +518,15 @@ export const createCashSale = mutation({
 
         if (currentStaff.commissionType === "PERCENTAGE") {
           // Parent gets their % of the ticket price per ticket
-          parentCommission = Math.round((ticketTier.price * parentCommissionPercent / 100) * args.quantity);
+          parentCommission = Math.round(
+            ((ticketTier.price * parentCommissionPercent) / 100) * args.quantity
+          );
         } else if (currentStaff.commissionType === "FIXED") {
           // Parent gets their % of the fixed commission
           const childCommissionValue = currentStaff.commissionValue || 0;
-          parentCommission = Math.round((childCommissionValue * parentCommissionPercent / 100) * args.quantity);
+          parentCommission = Math.round(
+            ((childCommissionValue * parentCommissionPercent) / 100) * args.quantity
+          );
         }
 
         // Add commission to parent
@@ -834,10 +848,7 @@ export const assignSubSeller = mutation({
       .query("eventStaff")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
       .filter((q) =>
-        q.and(
-          q.eq(q.field("staffUserId"), currentUser._id),
-          q.eq(q.field("isActive"), true)
-        )
+        q.and(q.eq(q.field("staffUserId"), currentUser._id), q.eq(q.field("isActive"), true))
       )
       .first();
 
@@ -847,7 +858,9 @@ export const assignSubSeller = mutation({
 
     // Verify parent has permission to assign sub-sellers
     if (!parentStaff.canAssignSubSellers) {
-      throw new Error("You do not have permission to assign sub-sellers. Contact the event organizer.");
+      throw new Error(
+        "You do not have permission to assign sub-sellers. Contact the event organizer."
+      );
     }
 
     // Check if parent has reached their max sub-sellers limit
@@ -928,7 +941,7 @@ export const assignSubSeller = mutation({
     if (hierarchyLevel > HIERARCHY_CONFIG.MAX_DEPTH) {
       throw new Error(
         `Cannot assign sub-seller: Maximum hierarchy depth of ${HIERARCHY_CONFIG.MAX_DEPTH} levels reached. ` +
-        `Current level would be ${hierarchyLevel}. This limit prevents performance issues with deep hierarchies.`
+          `Current level would be ${hierarchyLevel}. This limit prevents performance issues with deep hierarchies.`
       );
     }
 
@@ -956,10 +969,11 @@ export const assignSubSeller = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === STAFF_ROLES.STAFF),
+      canScan: args.canScan || args.role === STAFF_ROLES.STAFF,
       commissionType: parentCommissionType,
       commissionValue: subSellerCommissionValue,
-      commissionPercent: parentCommissionType === "PERCENTAGE" ? subSellerCommissionValue : undefined,
+      commissionPercent:
+        parentCommissionType === "PERCENTAGE" ? subSellerCommissionValue : undefined,
       commissionEarned: 0,
       allocatedTickets: args.allocatedTickets || 0,
       cashCollected: 0,
@@ -1067,7 +1081,7 @@ export const addGlobalStaff = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === STAFF_ROLES.STAFF),
+      canScan: args.canScan || args.role === STAFF_ROLES.STAFF,
       commissionType: args.commissionType,
       commissionValue: args.commissionValue,
       commissionPercent: args.commissionType === "PERCENTAGE" ? args.commissionValue : undefined,
@@ -1084,7 +1098,8 @@ export const addGlobalStaff = mutation({
       maxSubSellers: undefined,
       parentCommissionPercent: undefined,
       subSellerCommissionPercent: undefined,
-      autoAssignToNewEvents: args.autoAssignToNewEvents !== undefined ? args.autoAssignToNewEvents : true,
+      autoAssignToNewEvents:
+        args.autoAssignToNewEvents !== undefined ? args.autoAssignToNewEvents : true,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -1134,9 +1149,9 @@ export const toggleStaffAutoAssign = mutation({
 
     // Permission check: must be organizer (for their staff) or parent staff (for their sub-sellers)
     const isOrganizer = staff.organizerId === currentUser._id;
-    const isParentStaff = staff.assignedByStaffId && (
-      await ctx.db.get(staff.assignedByStaffId)
-    )?.staffUserId === currentUser._id;
+    const isParentStaff =
+      staff.assignedByStaffId &&
+      (await ctx.db.get(staff.assignedByStaffId))?.staffUserId === currentUser._id;
 
     if (!isOrganizer && !isParentStaff && currentUser.role !== "admin") {
       throw new Error("You don't have permission to modify this staff member");
@@ -1213,12 +1228,7 @@ export const addGlobalSubSeller = mutation({
       const existingSubSellers = await ctx.db
         .query("eventStaff")
         .withIndex("by_assigned_by", (q) => q.eq("assignedByStaffId", myStaffRecord._id))
-        .filter((q) =>
-          q.and(
-            q.eq(q.field("eventId"), undefined),
-            q.eq(q.field("isActive"), true)
-          )
-        )
+        .filter((q) => q.and(q.eq(q.field("eventId"), undefined), q.eq(q.field("isActive"), true)))
         .collect();
 
       if (existingSubSellers.length >= myStaffRecord.maxSubSellers) {
@@ -1273,7 +1283,7 @@ export const addGlobalSubSeller = mutation({
       name: args.name,
       phone: args.phone,
       role: args.role,
-      canScan: args.canScan || (args.role === STAFF_ROLES.STAFF),
+      canScan: args.canScan || args.role === STAFF_ROLES.STAFF,
       referralCode,
       isActive: true,
       ticketsSold: 0,
@@ -1370,7 +1380,11 @@ export const copyRosterFromEvent = mutation({
     }
 
     // Verify user is the organizer or admin
-    if (identity?.email && targetEvent.organizerId !== currentUser._id && currentUser.role !== "admin") {
+    if (
+      identity?.email &&
+      targetEvent.organizerId !== currentUser._id &&
+      currentUser.role !== "admin"
+    ) {
       throw new Error("Only the event organizer can copy staff rosters");
     }
 
@@ -1407,7 +1421,9 @@ export const copyRosterFromEvent = mutation({
       .collect();
 
     if (existingStaff.length > 0) {
-      throw new Error(`Target event already has ${existingStaff.length} staff members. Remove them first or add manually.`);
+      throw new Error(
+        `Target event already has ${existingStaff.length} staff members. Remove them first or add manually.`
+      );
     }
 
     // Map old staff IDs to new staff IDs for hierarchy preservation

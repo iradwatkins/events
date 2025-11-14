@@ -38,10 +38,17 @@ import { convertToCSV, downloadCSV, generateAttendeeExportFilename } from "@/lib
 import dynamic from "next/dynamic";
 
 // Dynamic import for heavy BundleEditor (only loaded when viewing bundles tab)
-const BundleEditor = dynamic(() => import("@/components/events/BundleEditor").then(mod => ({ default: mod.BundleEditor })), {
-  loading: () => <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div></div>,
-  ssr: false
-});
+const BundleEditor = dynamic(
+  () => import("@/components/events/BundleEditor").then((mod) => ({ default: mod.BundleEditor })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 type TabType = "overview" | "orders" | "attendees" | "staff" | "discounts" | "bundles" | "waitlist";
 
@@ -74,10 +81,7 @@ export default function EventDashboardPage() {
     currentUser ? { eventId } : "skip"
   );
   const ticketTiers = useQuery(api.events.queries.getEventTicketTiers, { eventId });
-  const orders = useQuery(
-    api.events.queries.getEventOrders,
-    currentUser ? { eventId } : "skip"
-  );
+  const orders = useQuery(api.events.queries.getEventOrders, currentUser ? { eventId } : "skip");
   const attendees = useQuery(
     api.events.queries.getEventAttendees,
     currentUser ? { eventId } : "skip"
@@ -229,7 +233,8 @@ export default function EventDashboardPage() {
         validFrom: newDiscount.validFrom,
         validUntil: newDiscount.validUntil,
         minPurchaseAmount: newDiscount.minPurchaseAmount,
-        applicableToTierIds: newDiscount.applicableToTierIds.length > 0 ? newDiscount.applicableToTierIds : undefined,
+        applicableToTierIds:
+          newDiscount.applicableToTierIds.length > 0 ? newDiscount.applicableToTierIds : undefined,
       });
 
       // Reset form
@@ -250,7 +255,10 @@ export default function EventDashboardPage() {
     }
   };
 
-  const handleToggleDiscount = async (discountCodeId: Id<"discountCodes">, currentlyActive: boolean) => {
+  const handleToggleDiscount = async (
+    discountCodeId: Id<"discountCodes">,
+    currentlyActive: boolean
+  ) => {
     try {
       await updateDiscountCode({
         discountCodeId,
@@ -291,10 +299,10 @@ export default function EventDashboardPage() {
                     event.status === "PUBLISHED"
                       ? "bg-green-100 text-green-800"
                       : event.status === "DRAFT"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : event.status === "CANCELLED"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-gray-100 text-gray-800"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : event.status === "CANCELLED"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-800"
                   }`}
                 >
                   {event.status}
@@ -315,7 +323,9 @@ export default function EventDashboardPage() {
                 {event.startDate && (
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
-                    <span>{format(new Date(event.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}</span>
+                    <span>
+                      {format(new Date(event.startDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                    </span>
                   </div>
                 )}
                 {event.location && typeof event.location === "object" && (
@@ -501,9 +511,7 @@ export default function EventDashboardPage() {
                 </div>
                 <p className="text-3xl font-bold text-gray-900">
                   {statistics.totalTicketsSold}
-                  <span className="text-lg text-gray-500">
-                    /{statistics.totalTicketsAvailable}
-                  </span>
+                  <span className="text-lg text-gray-500">/{statistics.totalTicketsAvailable}</span>
                 </p>
                 <div className="mt-2">
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
@@ -684,9 +692,7 @@ export default function EventDashboardPage() {
               >
                 <Ticket className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-gray-900 mb-2">No Sales Yet</h3>
-                <p className="text-gray-600 mb-6">
-                  Share your event link to start selling tickets
-                </p>
+                <p className="text-gray-600 mb-6">Share your event link to start selling tickets</p>
                 <button
                   onClick={handleShare}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
@@ -759,10 +765,10 @@ export default function EventDashboardPage() {
                               order.status === "COMPLETED"
                                 ? "bg-green-100 text-green-800"
                                 : order.status === "PENDING"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : order.status === "FAILED"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-gray-100 text-gray-800"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : order.status === "FAILED"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-gray-100 text-gray-800"
                             }`}
                           >
                             {order.status === "COMPLETED" && <CheckCircle2 className="w-3 h-3" />}
@@ -850,10 +856,10 @@ export default function EventDashboardPage() {
                               ticket.status === "VALID"
                                 ? "bg-green-100 text-green-800"
                                 : ticket.status === "SCANNED"
-                                ? "bg-accent text-accent-foreground"
-                                : ticket.status === "CANCELLED"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-gray-100 text-gray-800"
+                                  ? "bg-accent text-accent-foreground"
+                                  : ticket.status === "CANCELLED"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-gray-100 text-gray-800"
                             }`}
                           >
                             {ticket.status === "VALID" && <CheckCircle2 className="w-3 h-3" />}
@@ -910,7 +916,9 @@ export default function EventDashboardPage() {
                     <span className="text-sm font-medium text-gray-600">Tickets Sold by Staff</span>
                     <Ticket className="w-5 h-5 text-primary" />
                   </div>
-                  <p className="text-3xl font-bold text-gray-900">{staffSummary.totalTicketsSold}</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {staffSummary.totalTicketsSold}
+                  </p>
                   <p className="text-xs text-gray-500 mt-1">Total staff sales</p>
                 </motion.div>
 
@@ -993,7 +1001,9 @@ export default function EventDashboardPage() {
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                               <p className="text-gray-600">Tickets Sold</p>
-                              <p className="text-2xl font-bold text-gray-900">{staff.ticketsSold}</p>
+                              <p className="text-2xl font-bold text-gray-900">
+                                {staff.ticketsSold}
+                              </p>
                             </div>
                             <div>
                               <p className="text-gray-600">Commission</p>
@@ -1054,7 +1064,9 @@ export default function EventDashboardPage() {
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900">{performer.name}</p>
-                          <p className="text-sm text-gray-600">{performer.ticketsSold} tickets sold</p>
+                          <p className="text-sm text-gray-600">
+                            {performer.ticketsSold} tickets sold
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -1105,11 +1117,15 @@ export default function EventDashboardPage() {
                       <input
                         type="text"
                         value={newDiscount.code}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, code: e.target.value.toUpperCase() })}
+                        onChange={(e) =>
+                          setNewDiscount({ ...newDiscount, code: e.target.value.toUpperCase() })
+                        }
                         placeholder="SUMMER2024"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent uppercase"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Letters and numbers only, automatically converted to uppercase</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Letters and numbers only, automatically converted to uppercase
+                      </p>
                     </div>
 
                     <div>
@@ -1118,7 +1134,12 @@ export default function EventDashboardPage() {
                       </label>
                       <select
                         value={newDiscount.discountType}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, discountType: e.target.value as "PERCENTAGE" | "FIXED_AMOUNT" })}
+                        onChange={(e) =>
+                          setNewDiscount({
+                            ...newDiscount,
+                            discountType: e.target.value as "PERCENTAGE" | "FIXED_AMOUNT",
+                          })
+                        }
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       >
                         <option value="PERCENTAGE">Percentage (%)</option>
@@ -1139,7 +1160,12 @@ export default function EventDashboardPage() {
                           min="1"
                           max="100"
                           value={newDiscount.discountValue || ""}
-                          onChange={(e) => setNewDiscount({ ...newDiscount, discountValue: parseInt(e.target.value) || 0 })}
+                          onChange={(e) =>
+                            setNewDiscount({
+                              ...newDiscount,
+                              discountValue: parseInt(e.target.value) || 0,
+                            })
+                          }
                           placeholder="20"
                           className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         />
@@ -1149,8 +1175,17 @@ export default function EventDashboardPage() {
                           type="number"
                           min="0.01"
                           step="0.01"
-                          value={newDiscount.discountValue ? (newDiscount.discountValue / 100).toFixed(2) : ""}
-                          onChange={(e) => setNewDiscount({ ...newDiscount, discountValue: Math.round(parseFloat(e.target.value) * 100) || 0 })}
+                          value={
+                            newDiscount.discountValue
+                              ? (newDiscount.discountValue / 100).toFixed(2)
+                              : ""
+                          }
+                          onChange={(e) =>
+                            setNewDiscount({
+                              ...newDiscount,
+                              discountValue: Math.round(parseFloat(e.target.value) * 100) || 0,
+                            })
+                          }
                           placeholder="10.00"
                           className="w-full px-4 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                         />
@@ -1178,11 +1213,18 @@ export default function EventDashboardPage() {
                         type="number"
                         min="1"
                         value={newDiscount.maxUses || ""}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, maxUses: e.target.value ? parseInt(e.target.value) : undefined })}
+                        onChange={(e) =>
+                          setNewDiscount({
+                            ...newDiscount,
+                            maxUses: e.target.value ? parseInt(e.target.value) : undefined,
+                          })
+                        }
                         placeholder="Unlimited"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Total number of times this code can be used</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Total number of times this code can be used
+                      </p>
                     </div>
 
                     <div>
@@ -1193,11 +1235,18 @@ export default function EventDashboardPage() {
                         type="number"
                         min="1"
                         value={newDiscount.maxUsesPerUser || ""}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, maxUsesPerUser: e.target.value ? parseInt(e.target.value) : undefined })}
+                        onChange={(e) =>
+                          setNewDiscount({
+                            ...newDiscount,
+                            maxUsesPerUser: e.target.value ? parseInt(e.target.value) : undefined,
+                          })
+                        }
                         placeholder="Unlimited"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Max times each customer can use this code</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Max times each customer can use this code
+                      </p>
                     </div>
                   </div>
 
@@ -1209,8 +1258,19 @@ export default function EventDashboardPage() {
                       </label>
                       <input
                         type="datetime-local"
-                        value={newDiscount.validFrom ? new Date(newDiscount.validFrom).toISOString().slice(0, 16) : ""}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, validFrom: e.target.value ? new Date(e.target.value).getTime() : undefined })}
+                        value={
+                          newDiscount.validFrom
+                            ? new Date(newDiscount.validFrom).toISOString().slice(0, 16)
+                            : ""
+                        }
+                        onChange={(e) =>
+                          setNewDiscount({
+                            ...newDiscount,
+                            validFrom: e.target.value
+                              ? new Date(e.target.value).getTime()
+                              : undefined,
+                          })
+                        }
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                       <p className="text-xs text-gray-500 mt-1">When this code becomes valid</p>
@@ -1222,8 +1282,19 @@ export default function EventDashboardPage() {
                       </label>
                       <input
                         type="datetime-local"
-                        value={newDiscount.validUntil ? new Date(newDiscount.validUntil).toISOString().slice(0, 16) : ""}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, validUntil: e.target.value ? new Date(e.target.value).getTime() : undefined })}
+                        value={
+                          newDiscount.validUntil
+                            ? new Date(newDiscount.validUntil).toISOString().slice(0, 16)
+                            : ""
+                        }
+                        onChange={(e) =>
+                          setNewDiscount({
+                            ...newDiscount,
+                            validUntil: e.target.value
+                              ? new Date(e.target.value).getTime()
+                              : undefined,
+                          })
+                        }
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                       <p className="text-xs text-gray-500 mt-1">When this code expires</p>
@@ -1240,14 +1311,27 @@ export default function EventDashboardPage() {
                         type="number"
                         min="0.01"
                         step="0.01"
-                        value={newDiscount.minPurchaseAmount ? (newDiscount.minPurchaseAmount / 100).toFixed(2) : ""}
-                        onChange={(e) => setNewDiscount({ ...newDiscount, minPurchaseAmount: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : undefined })}
+                        value={
+                          newDiscount.minPurchaseAmount
+                            ? (newDiscount.minPurchaseAmount / 100).toFixed(2)
+                            : ""
+                        }
+                        onChange={(e) =>
+                          setNewDiscount({
+                            ...newDiscount,
+                            minPurchaseAmount: e.target.value
+                              ? Math.round(parseFloat(e.target.value) * 100)
+                              : undefined,
+                          })
+                        }
                         placeholder="0.00"
                         className="w-full px-4 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                       />
                       <span className="absolute left-4 top-2.5 text-gray-500">$</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Minimum order value required to use this code</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Minimum order value required to use this code
+                    </p>
                   </div>
 
                   {/* Applicable Tiers */}
@@ -1261,7 +1345,9 @@ export default function EventDashboardPage() {
                           <input
                             type="checkbox"
                             checked={newDiscount.applicableToTierIds.length === 0}
-                            onChange={() => setNewDiscount({ ...newDiscount, applicableToTierIds: [] })}
+                            onChange={() =>
+                              setNewDiscount({ ...newDiscount, applicableToTierIds: [] })
+                            }
                             className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-ring"
                           />
                           <span className="font-medium">All Ticket Tiers</span>
@@ -1273,18 +1359,33 @@ export default function EventDashboardPage() {
                               checked={newDiscount.applicableToTierIds.includes(tier._id)}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setNewDiscount({ ...newDiscount, applicableToTierIds: [...newDiscount.applicableToTierIds, tier._id] });
+                                  setNewDiscount({
+                                    ...newDiscount,
+                                    applicableToTierIds: [
+                                      ...newDiscount.applicableToTierIds,
+                                      tier._id,
+                                    ],
+                                  });
                                 } else {
-                                  setNewDiscount({ ...newDiscount, applicableToTierIds: newDiscount.applicableToTierIds.filter((id) => id !== tier._id) });
+                                  setNewDiscount({
+                                    ...newDiscount,
+                                    applicableToTierIds: newDiscount.applicableToTierIds.filter(
+                                      (id) => id !== tier._id
+                                    ),
+                                  });
                                 }
                               }}
                               className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-ring"
                             />
-                            <span>{tier.name} - ${(tier.price / 100).toFixed(2)}</span>
+                            <span>
+                              {tier.name} - ${(tier.price / 100).toFixed(2)}
+                            </span>
                           </label>
                         ))}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">Select specific tiers this code applies to, or leave blank for all tiers</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Select specific tiers this code applies to, or leave blank for all tiers
+                      </p>
                     </div>
                   )}
 
@@ -1319,22 +1420,28 @@ export default function EventDashboardPage() {
                     const now = Date.now();
                     const isExpired = discount.validUntil && now > discount.validUntil;
                     const isNotStarted = discount.validFrom && now < discount.validFrom;
-                    const isLimitReached = discount.maxUses && discount.usedCount >= discount.maxUses;
+                    const isLimitReached =
+                      discount.maxUses && discount.usedCount >= discount.maxUses;
 
                     return (
                       <div key={discount._id} className="p-6 hover:bg-gray-50 transition-colors">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-lg font-bold text-gray-900 font-mono">{discount.code}</h3>
+                              <h3 className="text-lg font-bold text-gray-900 font-mono">
+                                {discount.code}
+                              </h3>
 
                               {/* Status Badges */}
                               <div className="flex items-center gap-2">
-                                {discount.isActive && !isExpired && !isNotStarted && !isLimitReached && (
-                                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                    Active
-                                  </span>
-                                )}
+                                {discount.isActive &&
+                                  !isExpired &&
+                                  !isNotStarted &&
+                                  !isLimitReached && (
+                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                      Active
+                                    </span>
+                                  )}
                                 {!discount.isActive && (
                                   <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">
                                     Inactive
@@ -1371,7 +1478,8 @@ export default function EventDashboardPage() {
                               <div>
                                 <span className="text-gray-600">Used:</span>
                                 <span className="font-medium text-gray-900 ml-2">
-                                  {discount.usedCount}{discount.maxUses ? ` / ${discount.maxUses}` : " times"}
+                                  {discount.usedCount}
+                                  {discount.maxUses ? ` / ${discount.maxUses}` : " times"}
                                 </span>
                               </div>
                               {discount.validFrom && (
@@ -1398,11 +1506,16 @@ export default function EventDashboardPage() {
                                 <span>Max {discount.maxUsesPerUser} per user</span>
                               )}
                               {discount.minPurchaseAmount && (
-                                <span>Min purchase: ${(discount.minPurchaseAmount / 100).toFixed(2)}</span>
+                                <span>
+                                  Min purchase: ${(discount.minPurchaseAmount / 100).toFixed(2)}
+                                </span>
                               )}
-                              {discount.applicableToTierIds && discount.applicableToTierIds.length > 0 && (
-                                <span>Tier-specific ({discount.applicableToTierIds.length} tiers)</span>
-                              )}
+                              {discount.applicableToTierIds &&
+                                discount.applicableToTierIds.length > 0 && (
+                                  <span>
+                                    Tier-specific ({discount.applicableToTierIds.length} tiers)
+                                  </span>
+                                )}
                             </div>
                           </div>
 
@@ -1461,14 +1574,12 @@ export default function EventDashboardPage() {
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Ticket Bundles</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Create package deals by bundling multiple ticket tiers together at a discounted price
+                  Create package deals by bundling multiple ticket tiers together at a discounted
+                  price
                 </p>
               </div>
 
-              <BundleEditor
-                eventId={eventId}
-                ticketTiers={ticketTiers || []}
-              />
+              <BundleEditor eventId={eventId} ticketTiers={ticketTiers || []} />
             </div>
           </div>
         )}
@@ -1535,8 +1646,8 @@ export default function EventDashboardPage() {
                                 entry.status === "ACTIVE"
                                   ? "bg-green-100 text-green-800"
                                   : entry.status === "NOTIFIED"
-                                  ? "bg-accent text-accent-foreground"
-                                  : "bg-gray-100 text-gray-800"
+                                    ? "bg-accent text-accent-foreground"
+                                    : "bg-gray-100 text-gray-800"
                               }`}
                             >
                               {entry.status === "ACTIVE" && <Bell className="w-3 h-3" />}
@@ -1570,7 +1681,8 @@ export default function EventDashboardPage() {
                   <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-gray-900 mb-2">No Waitlist Entries</h3>
                   <p className="text-gray-600">
-                    When your event sells out, customers can join a waitlist to be notified when tickets become available
+                    When your event sells out, customers can join a waitlist to be notified when
+                    tickets become available
                   </p>
                 </div>
               )}
@@ -1589,9 +1701,17 @@ export default function EventDashboardPage() {
                   <h3 className="font-semibold text-foreground mb-2">How the Waitlist Works</h3>
                   <ul className="text-sm text-accent-foreground space-y-1 list-disc list-inside">
                     <li>Customers can join the waitlist when all tickets are sold out</li>
-                    <li>Waitlist entries are shown in order of when they joined (first-in, first-out)</li>
-                    <li>Click "Notify" to mark an entry as notified (you should then contact them via email)</li>
-                    <li>Notified users have priority to purchase tickets before they become publicly available again</li>
+                    <li>
+                      Waitlist entries are shown in order of when they joined (first-in, first-out)
+                    </li>
+                    <li>
+                      Click "Notify" to mark an entry as notified (you should then contact them via
+                      email)
+                    </li>
+                    <li>
+                      Notified users have priority to purchase tickets before they become publicly
+                      available again
+                    </li>
                     <li>Waitlist entries automatically expire after 30 days</li>
                   </ul>
                 </div>

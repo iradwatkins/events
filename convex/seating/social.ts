@@ -18,7 +18,7 @@ export const createSeatingShare = mutation({
     const shareToken = `seat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // Expires in 7 days
-    const expiresAt = Date.now() + (7 * 24 * 60 * 60 * 1000);
+    const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
     const shareId = await ctx.db.insert("seatingShares", {
       eventId: args.eventId,

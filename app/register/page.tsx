@@ -134,7 +134,11 @@ export default function RegisterPage() {
         <Link href="/" className="flex justify-center mb-6">
           <div className="relative w-32 h-32 sm:w-40 sm:h-40">
             <Image
-              src={theme === "dark" ? "/logos/stepperslife-logo-dark.svg" : "/logos/stepperslife-logo-light.svg"}
+              src={
+                theme === "dark"
+                  ? "/logos/stepperslife-logo-dark.svg"
+                  : "/logos/stepperslife-logo-light.svg"
+              }
               alt="SteppersLife Events"
               fill
               className="object-contain"
@@ -179,7 +183,10 @@ export default function RegisterPage() {
 
             {/* Full Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Full Name
               </label>
               <div className="relative">
@@ -202,7 +209,10 @@ export default function RegisterPage() {
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Email Address
               </label>
               <div className="relative">
@@ -225,7 +235,10 @@ export default function RegisterPage() {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -279,7 +292,10 @@ export default function RegisterPage() {
 
             {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -336,13 +352,24 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="ml-3">
-                <label htmlFor="agree-to-terms" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                <label
+                  htmlFor="agree-to-terms"
+                  className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                >
                   I agree to the{" "}
-                  <Link href="/terms" className="text-primary hover:underline font-medium" target="_blank">
+                  <Link
+                    href="/terms"
+                    className="text-primary hover:underline font-medium"
+                    target="_blank"
+                  >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-primary hover:underline font-medium" target="_blank">
+                  <Link
+                    href="/privacy"
+                    className="text-primary hover:underline font-medium"
+                    target="_blank"
+                  >
                     Privacy Policy
                   </Link>
                 </label>
@@ -393,7 +420,8 @@ export default function RegisterPage() {
         {/* Footer Links */}
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            By creating an account, you agree to receive emails about events, updates, and promotional offers.
+            By creating an account, you agree to receive emails about events, updates, and
+            promotional offers.
           </p>
         </div>
       </motion.div>

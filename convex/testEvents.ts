@@ -70,10 +70,11 @@ export const createSingleTicketEvent = mutation({
     const eventId: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "Summer Stepping Social",
       eventType: "TICKETED_EVENT",
-      description: "Join us for an evening of steppin' and socializing! Perfect for beginners and experienced steppers alike. Live DJ, refreshments, and great vibes guaranteed.",
+      description:
+        "Join us for an evening of steppin' and socializing! Perfect for beginners and experienced steppers alike. Live DJ, refreshments, and great vibes guaranteed.",
       categories: ["Social", "Set"],
       startDate: addDays(14), // 2 weeks from now
-      endDate: addDays(14) + (4 * 60 * 60 * 1000), // +4 hours
+      endDate: addDays(14) + 4 * 60 * 60 * 1000, // +4 hours
       timezone: "America/Chicago",
       location: {
         venueName: "Chicago Steppers Paradise",
@@ -121,10 +122,11 @@ export const createMultiDayEvent = mutation({
     const eventId: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "Stepping Weekend Workshop",
       eventType: "TICKETED_EVENT",
-      description: "Three days of intensive stepping workshops with master instructors! Learn advanced techniques, classic moves, and connect with steppers from across the country. Each day features different workshop themes.",
+      description:
+        "Three days of intensive stepping workshops with master instructors! Learn advanced techniques, classic moves, and connect with steppers from across the country. Each day features different workshop themes.",
       categories: ["Workshop", "Class"],
       startDate: addDays(30), // 1 month from now
-      endDate: addDays(32) + (4 * 60 * 60 * 1000), // 3 days later
+      endDate: addDays(32) + 4 * 60 * 60 * 1000, // 3 days later
       timezone: "America/New_York",
       location: {
         venueName: "Atlanta Dance Complex",
@@ -188,10 +190,11 @@ export const createBundleEvent = mutation({
     const eventId: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "3-Day Stepping Festival",
       eventType: "TICKETED_EVENT",
-      description: "The ultimate stepping experience in Las Vegas! Three incredible nights of non-stop steppin' featuring live bands, celebrity DJs, and steppers from around the world. Individual day passes or save with our Festival Pass!",
+      description:
+        "The ultimate stepping experience in Las Vegas! Three incredible nights of non-stop steppin' featuring live bands, celebrity DJs, and steppers from around the world. Individual day passes or save with our Festival Pass!",
       categories: ["Festival", "Set", "Social"],
       startDate: addDays(60), // 2 months from now
-      endDate: addDays(62) + (6 * 60 * 60 * 1000), // 3 days
+      endDate: addDays(62) + 6 * 60 * 60 * 1000, // 3 days
       timezone: "America/Los_Angeles",
       location: {
         venueName: "Las Vegas Convention Center - Grand Ballroom",
@@ -216,35 +219,45 @@ export const createBundleEvent = mutation({
     });
 
     // Create 3 individual day passes
-    const day1TierId: Id<"ticketTiers"> = await ctx.runMutation(api.tickets.mutations.createTicketTier, {
-      eventId,
-      name: "Friday Night Pass",
-      description: "Opening night with live band and special performances",
-      price: 4000, // $40.00
-      quantity: 80,
-    });
+    const day1TierId: Id<"ticketTiers"> = await ctx.runMutation(
+      api.tickets.mutations.createTicketTier,
+      {
+        eventId,
+        name: "Friday Night Pass",
+        description: "Opening night with live band and special performances",
+        price: 4000, // $40.00
+        quantity: 80,
+      }
+    );
 
-    const day2TierId: Id<"ticketTiers"> = await ctx.runMutation(api.tickets.mutations.createTicketTier, {
-      eventId,
-      name: "Saturday Night Pass",
-      description: "Peak night with celebrity DJ and midnight show",
-      price: 4500, // $45.00
-      quantity: 80,
-    });
+    const day2TierId: Id<"ticketTiers"> = await ctx.runMutation(
+      api.tickets.mutations.createTicketTier,
+      {
+        eventId,
+        name: "Saturday Night Pass",
+        description: "Peak night with celebrity DJ and midnight show",
+        price: 4500, // $45.00
+        quantity: 80,
+      }
+    );
 
-    const day3TierId: Id<"ticketTiers"> = await ctx.runMutation(api.tickets.mutations.createTicketTier, {
-      eventId,
-      name: "Sunday Night Pass",
-      description: "Closing night with awards ceremony and farewell set",
-      price: 4000, // $40.00
-      quantity: 80,
-    });
+    const day3TierId: Id<"ticketTiers"> = await ctx.runMutation(
+      api.tickets.mutations.createTicketTier,
+      {
+        eventId,
+        name: "Sunday Night Pass",
+        description: "Closing night with awards ceremony and farewell set",
+        price: 4000, // $40.00
+        quantity: 80,
+      }
+    );
 
     // Create bundle - Festival Pass
     await ctx.runMutation(api.bundles.mutations.createTicketBundle, {
       eventId,
       name: "Festival Pass - All 3 Nights",
-      description: "Save $26! Access to all three nights of the festival. Best value for the ultimate stepping experience!",
+      description:
+        "Save $26! Access to all three nights of the festival. Best value for the ultimate stepping experience!",
       price: 9900, // $99.00 (save $26 vs $125 total)
       totalQuantity: 60,
       includedTiers: [
@@ -269,10 +282,11 @@ export const createEarlyBirdEvent = mutation({
     const eventId: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "New Year's Stepping Gala",
       eventType: "TICKETED_EVENT",
-      description: "Ring in the New Year with elegance and style! Black-tie stepping gala featuring champagne toast at midnight, gourmet dinner, live orchestra, and the best steppers in NYC. Limited capacity - early bird pricing available!",
+      description:
+        "Ring in the New Year with elegance and style! Black-tie stepping gala featuring champagne toast at midnight, gourmet dinner, live orchestra, and the best steppers in NYC. Limited capacity - early bird pricing available!",
       categories: ["Gala", "Set", "Special Event"],
       startDate: addDays(90), // 3 months from now
-      endDate: addDays(90) + (6 * 60 * 60 * 1000), // +6 hours
+      endDate: addDays(90) + 6 * 60 * 60 * 1000, // +6 hours
       timezone: "America/New_York",
       location: {
         venueName: "The Plaza Hotel - Grand Ballroom",
@@ -340,10 +354,11 @@ export const createSeatingChartEvent = mutation({
     const eventId: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "Elegant Dinner & Set",
       eventType: "TICKETED_EVENT",
-      description: "An intimate evening combining fine dining with exceptional stepping. Five-course gourmet meal followed by a premium stepping set with live music. Reserved table seating ensures you and your party sit together. VIP table includes premium champagne service.",
+      description:
+        "An intimate evening combining fine dining with exceptional stepping. Five-course gourmet meal followed by a premium stepping set with live music. Reserved table seating ensures you and your party sit together. VIP table includes premium champagne service.",
       categories: ["Dinner", "Set", "VIP"],
       startDate: addDays(42), // 6 weeks from now
-      endDate: addDays(42) + (5 * 60 * 60 * 1000), // +5 hours
+      endDate: addDays(42) + 5 * 60 * 60 * 1000, // +5 hours
       timezone: "America/Chicago",
       location: {
         venueName: "The Ritz Ballroom",
@@ -368,22 +383,28 @@ export const createSeatingChartEvent = mutation({
     });
 
     // Create VIP ticket tier
-    const vipTierId: Id<"ticketTiers"> = await ctx.runMutation(api.tickets.mutations.createTicketTier, {
-      eventId,
-      name: "VIP Table Seat",
-      description: "Premium seating, champagne service, upgraded menu selections",
-      price: 10000, // $100.00
-      quantity: 4, // 1 VIP table × 4 seats
-    });
+    const vipTierId: Id<"ticketTiers"> = await ctx.runMutation(
+      api.tickets.mutations.createTicketTier,
+      {
+        eventId,
+        name: "VIP Table Seat",
+        description: "Premium seating, champagne service, upgraded menu selections",
+        price: 10000, // $100.00
+        quantity: 4, // 1 VIP table × 4 seats
+      }
+    );
 
     // Create Standard ticket tier
-    const standardTierId: Id<"ticketTiers"> = await ctx.runMutation(api.tickets.mutations.createTicketTier, {
-      eventId,
-      name: "Standard Table Seat",
-      description: "Reserved seating, gourmet dinner, and access to dance floor",
-      price: 6000, // $60.00
-      quantity: 16, // 4 standard tables × 4 seats
-    });
+    const standardTierId: Id<"ticketTiers"> = await ctx.runMutation(
+      api.tickets.mutations.createTicketTier,
+      {
+        eventId,
+        name: "Standard Table Seat",
+        description: "Reserved seating, gourmet dinner, and access to dance floor",
+        price: 6000, // $60.00
+        quantity: 16, // 4 standard tables × 4 seats
+      }
+    );
 
     // Create seating chart with 5 tables
     await ctx.runMutation(api.seating.mutations.createSeatingChart, {
@@ -492,7 +513,9 @@ export const createSeatingChartEvent = mutation({
       ],
     });
 
-    console.log("   ✅ Seating Chart Event created with 5 tables (1 VIP, 4 Standard), 20 total seats");
+    console.log(
+      "   ✅ Seating Chart Event created with 5 tables (1 VIP, 4 Standard), 20 total seats"
+    );
     return { eventId, name: "Elegant Dinner & Set" };
   },
 });

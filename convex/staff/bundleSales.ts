@@ -62,9 +62,7 @@ async function checkBundleEligibility(ctx: any, staffId: any, bundleId: any) {
   const insufficientTiers: Array<{ name: string; has: number; needs: number }> = [];
 
   for (const includedTier of bundle.includedTiers) {
-    const allocation = allocations.find(
-      (a: any) => a.tierId === includedTier.tierId
-    );
+    const allocation = allocations.find((a: any) => a.tierId === includedTier.tierId);
 
     if (!allocation) {
       // Get tier name for better error message
@@ -241,10 +239,13 @@ export const createStaffBundleSale = mutation({
       // Create tickets for this tier
       for (let i = 0; i < includedTier.quantity; i++) {
         // Generate unique ticket code
-        const ticketCode = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`.toUpperCase();
+        const ticketCode =
+          `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`.toUpperCase();
 
         // Calculate pro-rated price for this ticket
-        const proRatedPrice = Math.floor(bundle.price / bundle.includedTiers.reduce((sum, t) => sum + t.quantity, 0));
+        const proRatedPrice = Math.floor(
+          bundle.price / bundle.includedTiers.reduce((sum, t) => sum + t.quantity, 0)
+        );
 
         const ticketId = await ctx.db.insert("tickets", {
           eventId: staff.eventId,
@@ -346,19 +347,14 @@ export const getStaffBundleSales = query({
     const orders = await ctx.db
       .query("orders")
       .filter((q) =>
-        q.and(
-          q.eq(q.field("soldByStaffId"), args.staffId),
-          q.eq(q.field("isBundlePurchase"), true)
-        )
+        q.and(q.eq(q.field("soldByStaffId"), args.staffId), q.eq(q.field("isBundlePurchase"), true))
       )
       .collect();
 
     // Enrich with bundle details
     const enriched = await Promise.all(
       orders.map(async (order) => {
-        const bundle = order.bundleId
-          ? await ctx.db.get(order.bundleId)
-          : null;
+        const bundle = order.bundleId ? await ctx.db.get(order.bundleId) : null;
 
         return {
           orderId: order._id,

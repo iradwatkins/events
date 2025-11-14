@@ -145,11 +145,7 @@ export default function ResetPasswordPage() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
@@ -193,33 +189,53 @@ export default function ResetPasswordPage() {
                     Password requirements:
                   </p>
                   <ul className="space-y-1 text-sm">
-                    <li className={`flex items-center gap-2 ${hasMinLength ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}>
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${hasMinLength ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}>
+                    <li
+                      className={`flex items-center gap-2 ${hasMinLength ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded-full flex items-center justify-center ${hasMinLength ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}
+                      >
                         {hasMinLength && <Check className="w-3 h-3" />}
                       </div>
                       At least 8 characters
                     </li>
-                    <li className={`flex items-center gap-2 ${hasUpperCase ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}>
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${hasUpperCase ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}>
+                    <li
+                      className={`flex items-center gap-2 ${hasUpperCase ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded-full flex items-center justify-center ${hasUpperCase ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}
+                      >
                         {hasUpperCase && <Check className="w-3 h-3" />}
                       </div>
                       One uppercase letter
                     </li>
-                    <li className={`flex items-center gap-2 ${hasLowerCase ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}>
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${hasLowerCase ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}>
+                    <li
+                      className={`flex items-center gap-2 ${hasLowerCase ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded-full flex items-center justify-center ${hasLowerCase ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}
+                      >
                         {hasLowerCase && <Check className="w-3 h-3" />}
                       </div>
                       One lowercase letter
                     </li>
-                    <li className={`flex items-center gap-2 ${hasNumber ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}>
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${hasNumber ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}>
+                    <li
+                      className={`flex items-center gap-2 ${hasNumber ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded-full flex items-center justify-center ${hasNumber ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}
+                      >
                         {hasNumber && <Check className="w-3 h-3" />}
                       </div>
                       One number
                     </li>
                     {confirmPassword && (
-                      <li className={`flex items-center gap-2 ${passwordsMatch ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}>
-                        <div className={`w-4 h-4 rounded-full flex items-center justify-center ${passwordsMatch ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}>
+                      <li
+                        className={`flex items-center gap-2 ${passwordsMatch ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-full flex items-center justify-center ${passwordsMatch ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-700"}`}
+                        >
                           {passwordsMatch && <Check className="w-3 h-3" />}
                         </div>
                         Passwords match

@@ -53,7 +53,7 @@ export const createEvent = mutation({
       ) {
         throw new Error(
           "Your account is restricted to creating Save The Date and Free Events only. " +
-          "Contact support to upgrade your account for ticketed events."
+            "Contact support to upgrade your account for ticketed events."
         );
       }
 
@@ -231,10 +231,7 @@ async function autoAssignSubSellers(
     .query("eventStaff")
     .withIndex("by_assigned_by", (q: any) => q.eq("assignedByStaffId", originalParentStaffId))
     .filter((q: any) =>
-      q.and(
-        q.eq(q.field("isActive"), true),
-        q.eq(q.field("autoAssignToNewEvents"), true)
-      )
+      q.and(q.eq(q.field("isActive"), true), q.eq(q.field("autoAssignToNewEvents"), true))
     )
     .collect();
 
@@ -289,7 +286,9 @@ async function autoAssignSubSellers(
       updatedAt: Date.now(),
     });
 
-    console.log(`[autoAssignSubSellers] Auto-assigned sub-seller ${subSeller.name} (Level ${subSeller.hierarchyLevel}) to event`);
+    console.log(
+      `[autoAssignSubSellers] Auto-assigned sub-seller ${subSeller.name} (Level ${subSeller.hierarchyLevel}) to event`
+    );
 
     // Recursively assign this sub-seller's own sub-sellers
     await autoAssignSubSellers(ctx, subSeller._id, newSubSellerId, eventId, organizerId);
@@ -408,7 +407,6 @@ export const publishEvent = mutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
 
@@ -468,9 +466,9 @@ export const updateEvent = mutation({
     // RESTRICTION: Prevent date/time changes if tickets have been sold
     if (ticketsSold > 0 && (args.startDate || args.endDate)) {
       throw new Error(
-        `Cannot change event date/time after ${ticketsSold} ticket${ticketsSold === 1 ? ' has' : 's have'} been sold. ` +
-        `This would affect customers who already purchased tickets. ` +
-        `If you must reschedule, please cancel this event and create a new one.`
+        `Cannot change event date/time after ${ticketsSold} ticket${ticketsSold === 1 ? " has" : "s have"} been sold. ` +
+          `This would affect customers who already purchased tickets. ` +
+          `If you must reschedule, please cancel this event and create a new one.`
       );
     }
 
@@ -502,7 +500,7 @@ export const updateEvent = mutation({
       if (ticketsSold > 0 && args.capacity < ticketsSold) {
         throw new Error(
           `Cannot reduce capacity to ${args.capacity} because ${ticketsSold} tickets have already been sold. ` +
-          `Capacity must be at least ${ticketsSold}.`
+            `Capacity must be at least ${ticketsSold}.`
         );
       }
       updates.capacity = args.capacity;
@@ -531,7 +529,9 @@ export const updateEventStatus = mutation({
     // Verify event ownership
     const { event } = await requireEventOwnership(ctx, args.eventId);
 
-    console.log(`[updateEventStatus] Changing event ${args.eventId} status from ${event.status} to ${args.status}`);
+    console.log(
+      `[updateEventStatus] Changing event ${args.eventId} status from ${event.status} to ${args.status}`
+    );
 
     // Update event status
     await ctx.db.patch(args.eventId, {
@@ -814,7 +814,7 @@ export const bulkDeleteEvents = mutation({
         if (totalTicketsSold > 0) {
           failedEvents.push({
             eventId,
-            reason: `Cannot delete - ${totalTicketsSold} ticket${totalTicketsSold === 1 ? ' has' : 's have'} been sold`
+            reason: `Cannot delete - ${totalTicketsSold} ticket${totalTicketsSold === 1 ? " has" : "s have"} been sold`,
           });
           continue;
         }
@@ -902,17 +902,18 @@ export const bulkDeleteEvents = mutation({
         await ctx.db.delete(eventId);
         deletedEvents.push(eventId);
         console.log(`[bulkDeleteEvents] Successfully deleted event ${eventId}`);
-
       } catch (error) {
         console.error(`[bulkDeleteEvents] Error deleting event ${eventId}:`, error);
         failedEvents.push({
           eventId,
-          reason: error instanceof Error ? error.message : "Unknown error"
+          reason: error instanceof Error ? error.message : "Unknown error",
         });
       }
     }
 
-    console.log(`[bulkDeleteEvents] Completed: ${deletedEvents.length} deleted, ${failedEvents.length} failed`);
+    console.log(
+      `[bulkDeleteEvents] Completed: ${deletedEvents.length} deleted, ${failedEvents.length} failed`
+    );
 
     return {
       success: true,

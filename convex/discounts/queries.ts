@@ -97,7 +97,10 @@ export const validateDiscountCode = query({
         .collect();
 
       if (userUsageCount.length >= discountCode.maxUsesPerUser) {
-        return { valid: false, error: "You have already used this discount code the maximum number of times" };
+        return {
+          valid: false,
+          error: "You have already used this discount code the maximum number of times",
+        };
       }
     }
 
@@ -177,7 +180,10 @@ export const getDiscountCodeStats = query({
       .withIndex("by_code", (q) => q.eq("discountCodeId", args.discountCodeId))
       .collect();
 
-    const totalDiscountGiven = usageRecords.reduce((sum, record) => sum + record.discountAmountCents, 0);
+    const totalDiscountGiven = usageRecords.reduce(
+      (sum, record) => sum + record.discountAmountCents,
+      0
+    );
 
     return {
       usedCount: discountCode.usedCount,

@@ -20,11 +20,7 @@ export function Skeleton({ className = "", width, height, count = 1 }: SkeletonP
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className={`seating-skeleton ${className}`}
-          style={style}
-        />
+        <div key={i} className={`seating-skeleton ${className}`} style={style} />
       ))}
     </>
   );
@@ -89,16 +85,20 @@ export function TableLibrarySkeleton() {
   );
 }
 
-export function LoadingSpinner({ size = "md", className = "" }: { size?: "sm" | "md" | "lg"; className?: string }) {
+export function LoadingSpinner({
+  size = "md",
+  className = "",
+}: {
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}) {
   const sizeClasses = {
     sm: "w-6 h-6 border-2",
     md: "w-10 h-10 border-4",
     lg: "w-16 h-16 border-4",
   };
 
-  return (
-    <div className={`seating-spinner ${sizeClasses[size]} ${className}`} />
-  );
+  return <div className={`seating-spinner ${sizeClasses[size]} ${className}`} />;
 }
 
 export function FullPageLoader({ message = "Loading..." }: { message?: string }) {

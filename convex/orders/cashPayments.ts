@@ -41,10 +41,12 @@ export const createCashOrder = mutation({
     buyerName: v.string(),
     buyerPhone: v.string(), // Phone required, email optional for cash orders
     buyerEmail: v.optional(v.string()),
-    tickets: v.array(v.object({
-      tierId: v.id("ticketTiers"),
-      quantity: v.number(),
-    })),
+    tickets: v.array(
+      v.object({
+        tierId: v.id("ticketTiers"),
+        quantity: v.number(),
+      })
+    ),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -112,13 +114,16 @@ export const createCashOrder = mutation({
       updatedAt: now,
     });
 
-    console.log(`[createCashOrder] Order created: ${orderId}, expires at: ${new Date(holdExpiresAt).toISOString()}`);
+    console.log(
+      `[createCashOrder] Order created: ${orderId}, expires at: ${new Date(holdExpiresAt).toISOString()}`
+    );
 
     // Create ticket placeholders (not activated yet)
     const ticketIds = [];
     for (const detail of ticketDetails) {
       for (let i = 0; i < detail.quantity; i++) {
-        const ticketCode = `CASH-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`.toUpperCase();
+        const ticketCode =
+          `CASH-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`.toUpperCase();
 
         const ticketId = await ctx.db.insert("tickets", {
           eventId: args.eventId,
@@ -263,7 +268,9 @@ export const approveCashOrder = mutation({
       createdAt: now,
     });
 
-    console.log(`[approveCashOrder] Order approved: ${args.orderId}, ${ticketCount} tickets activated`);
+    console.log(
+      `[approveCashOrder] Order approved: ${args.orderId}, ${ticketCount} tickets activated`
+    );
 
     return {
       success: true,
@@ -286,7 +293,9 @@ export const generateCashActivationCode = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    console.log(`[generateCashActivationCode] Staff ${args.staffId} generating code for order ${args.orderId}`);
+    console.log(
+      `[generateCashActivationCode] Staff ${args.staffId} generating code for order ${args.orderId}`
+    );
 
     // Get order
     const order = await ctx.db.get(args.orderId);
@@ -338,7 +347,9 @@ export const generateCashActivationCode = mutation({
       updatedAt: now,
     });
 
-    console.log(`[generateCashActivationCode] Code generated: ${activationCode} for ${tickets.length} tickets`);
+    console.log(
+      `[generateCashActivationCode] Code generated: ${activationCode} for ${tickets.length} tickets`
+    );
 
     return {
       success: true,

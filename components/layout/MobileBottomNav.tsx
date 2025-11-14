@@ -5,15 +5,16 @@ import Link from "next/link";
 import { Home, Calendar, ShoppingBag, Ticket, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
 
   // Hide on certain pages (organizer, admin, staff sections have their own navigation)
   // Also hide on checkout pages for cleaner payment experience
-  const hideOnPaths = ['/organizer', '/admin', '/staff', '/login', '/scan', '/checkout'];
-  const shouldHide = hideOnPaths.some(path => pathname?.startsWith(path) || pathname?.includes('/checkout'));
+  const hideOnPaths = ["/organizer", "/admin", "/staff", "/login", "/scan", "/checkout"];
+  const shouldHide = hideOnPaths.some(
+    (path) => pathname?.startsWith(path) || pathname?.includes("/checkout")
+  );
 
   if (shouldHide) {
     return null;
@@ -24,37 +25,37 @@ export function MobileBottomNav() {
       href: "/",
       icon: Home,
       label: "Home",
-      activePatterns: [/^\/$/]
+      activePatterns: [/^\/$/],
     },
     {
       href: "/events",
       icon: Calendar,
       label: "Events",
-      activePatterns: [/^\/events/]
+      activePatterns: [/^\/events/],
     },
     {
       href: "/shop",
       icon: ShoppingBag,
       label: "Shop",
-      activePatterns: [/^\/shop/]
+      activePatterns: [/^\/shop/],
     },
     {
       href: "/my-tickets",
       icon: Ticket,
       label: "Tickets",
       activePatterns: [/^\/my-tickets/],
-      requiresAuth: true
+      requiresAuth: true,
     },
     {
       href: isAuthenticated ? "/organizer/events" : "/login",
       icon: User,
       label: "Account",
-      activePatterns: [/^\/my-tickets/, /^\/organizer\/events/]
-    }
+      activePatterns: [/^\/my-tickets/, /^\/organizer\/events/],
+    },
   ];
 
   const isActive = (patterns: RegExp[]) => {
-    return patterns.some(pattern => pattern.test(pathname || ''));
+    return patterns.some((pattern) => pattern.test(pathname || ""));
   };
 
   return (
@@ -78,9 +79,7 @@ export function MobileBottomNav() {
               <div className="relative">
                 <Icon
                   className={`w-6 h-6 transition-colors ${
-                    active
-                      ? "text-primary"
-                      : "text-gray-500 dark:text-gray-400"
+                    active ? "text-primary" : "text-gray-500 dark:text-gray-400"
                   }`}
                 />
                 {active && (
@@ -89,9 +88,7 @@ export function MobileBottomNav() {
               </div>
               <span
                 className={`text-xs mt-1 transition-colors ${
-                  active
-                    ? "text-primary font-medium"
-                    : "text-gray-500 dark:text-gray-400"
+                  active ? "text-primary font-medium" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 {item.label}

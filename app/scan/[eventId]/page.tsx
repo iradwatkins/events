@@ -5,16 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import QrScanner from "qr-scanner";
-import {
-  QrCode,
-  ArrowLeft,
-  CheckCircle,
-  XCircle,
-  Camera,
-  Clock,
-  Play,
-  Square,
-} from "lucide-react";
+import { QrCode, ArrowLeft, CheckCircle, XCircle, Camera, Clock, Play, Square } from "lucide-react";
 import { format } from "date-fns";
 
 export default function EventScanningPage() {
@@ -34,7 +25,10 @@ export default function EventScanningPage() {
   const scannerRef = useRef<QrScanner | null>(null);
 
   const stats = useQuery(api.scanning.queries.getEventScanStats, { eventId: eventId as any });
-  const recentScans = useQuery(api.scanning.queries.getRecentScans, { eventId: eventId as any, limit: 10 });
+  const recentScans = useQuery(api.scanning.queries.getRecentScans, {
+    eventId: eventId as any,
+    limit: 10,
+  });
   const scanTicket = useMutation(api.scanning.mutations.scanTicket);
 
   const processTicket = async (ticketCode: string) => {
@@ -81,7 +75,7 @@ export default function EventScanningPage() {
 
     try {
       // Set worker path for Next.js
-      QrScanner.WORKER_PATH = '/qr-scanner-worker.min.js';
+      QrScanner.WORKER_PATH = "/qr-scanner-worker.min.js";
       console.log("=== QR SCANNER DIAGNOSTICS ===");
       console.log("Worker path:", QrScanner.WORKER_PATH);
 
@@ -102,9 +96,9 @@ export default function EventScanningPage() {
       // Set video element attributes before initializing scanner
       if (videoRef.current) {
         console.log("Setting video attributes...");
-        videoRef.current.setAttribute('autoplay', '');
-        videoRef.current.setAttribute('muted', '');
-        videoRef.current.setAttribute('playsinline', '');
+        videoRef.current.setAttribute("autoplay", "");
+        videoRef.current.setAttribute("muted", "");
+        videoRef.current.setAttribute("playsinline", "");
         console.log("Video element before init:", videoRef.current);
       }
 
@@ -154,7 +148,7 @@ export default function EventScanningPage() {
       scannerRef.current = scanner;
 
       // Expose scanner to window for debugging
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         (window as any).scanner = scanner;
         console.log("Scanner exposed to window.scanner for debugging");
       }
@@ -170,7 +164,8 @@ export default function EventScanningPage() {
       let errorMessage = "Failed to start camera.";
 
       if (error.name === "NotAllowedError") {
-        errorMessage = "Camera permission denied. Please allow camera access in your browser settings.";
+        errorMessage =
+          "Camera permission denied. Please allow camera access in your browser settings.";
       } else if (error.name === "NotFoundError") {
         errorMessage = "No camera found on this device.";
       } else if (error.name === "NotReadableError") {
@@ -277,7 +272,7 @@ export default function EventScanningPage() {
             </h2>
 
             {/* Video Preview - Simplified like demo */}
-            <div className="relative bg-black rounded-xl mb-4" style={{ minHeight: '300px' }}>
+            <div className="relative bg-black rounded-xl mb-4" style={{ minHeight: "300px" }}>
               {!isScanning && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
@@ -292,10 +287,10 @@ export default function EventScanningPage() {
                   ref={videoRef}
                   id="qr-video"
                   style={{
-                    width: '100%',
-                    maxHeight: '400px',
-                    objectFit: 'cover',
-                    borderRadius: '0.75rem',
+                    width: "100%",
+                    maxHeight: "400px",
+                    objectFit: "cover",
+                    borderRadius: "0.75rem",
                   }}
                 />
               </div>
@@ -340,7 +335,9 @@ export default function EventScanningPage() {
 
               {scannerError && (
                 <div className="bg-red-500/20 border border-red-500 rounded-lg p-4">
-                  <p className="text-white text-sm text-center font-semibold mb-2">{scannerError}</p>
+                  <p className="text-white text-sm text-center font-semibold mb-2">
+                    {scannerError}
+                  </p>
                   <p className="text-white/80 text-xs text-center">
                     Make sure you're using HTTPS and have granted camera permissions.
                   </p>
@@ -351,7 +348,9 @@ export default function EventScanningPage() {
 
           {/* Manual Entry */}
           <div className="bg-primary rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-xl font-bold text-white mb-4 text-center">Or Enter Code Manually</h3>
+            <h3 className="text-xl font-bold text-white mb-4 text-center">
+              Or Enter Code Manually
+            </h3>
             <div className="space-y-3">
               <input
                 type="text"
@@ -374,11 +373,11 @@ export default function EventScanningPage() {
 
           {/* Full-Screen Scan Result Flash */}
           {lastScanResult && (
-            <div className={`fixed inset-0 z-50 flex items-center justify-center animate-in fade-in ${
-              lastScanResult.success
-                ? "bg-green-500"
-                : "bg-red-500"
-            }`}>
+            <div
+              className={`fixed inset-0 z-50 flex items-center justify-center animate-in fade-in ${
+                lastScanResult.success ? "bg-green-500" : "bg-red-500"
+              }`}
+            >
               <div className="text-center px-6 max-w-md">
                 {lastScanResult.success ? (
                   <CheckCircle className="w-32 h-32 text-white mx-auto mb-6 animate-in zoom-in" />
@@ -412,21 +411,14 @@ export default function EventScanningPage() {
               </h3>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {recentScans.map((scan, index) => (
-                  <div
-                    key={index}
-                    className="bg-black/50 rounded p-3 text-sm"
-                  >
+                  <div key={index} className="bg-black/50 rounded p-3 text-sm">
                     <div className="flex items-center justify-between">
-                      <div className="text-white font-medium">
-                        {scan.attendeeName}
-                      </div>
+                      <div className="text-white font-medium">{scan.attendeeName}</div>
                       <div className="text-white/60 text-xs">
                         {scan.scannedAt && format(scan.scannedAt, "h:mm a")}
                       </div>
                     </div>
-                    <div className="text-white/40 text-xs mt-1">
-                      {scan.tierName}
-                    </div>
+                    <div className="text-white/40 text-xs mt-1">{scan.tierName}</div>
                     {scan.soldByStaffName && (
                       <div className="text-primary/80 text-xs mt-1 flex items-center gap-1">
                         <span>👤</span>

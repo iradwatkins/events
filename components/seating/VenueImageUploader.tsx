@@ -104,9 +104,9 @@ export default function VenueImageUploader({
   };
 
   const scrollToCanvas = () => {
-    const canvas = document.getElementById('seating-canvas');
+    const canvas = document.getElementById("seating-canvas");
     if (canvas) {
-      canvas.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      canvas.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -138,7 +138,11 @@ export default function VenueImageUploader({
             className="p-1 hover:bg-gray-200 rounded transition-colors"
             title={isExpanded ? "Collapse" : "Expand preview"}
           >
-            {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
+            {isExpanded ? (
+              <ChevronUp className="w-4 h-4 text-gray-600" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-600" />
+            )}
           </button>
           <button
             onClick={handleRemove}
@@ -170,9 +174,13 @@ export default function VenueImageUploader({
       {!compact && (
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">Step 1: Venue Floor Plan (Optional)</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Step 1: Venue Floor Plan (Optional)
+            </h3>
             <p className="text-sm text-gray-600 mt-1">
-              {preview ? "Upload a venue image or floor plan to place sections visually" : "You can design on a blank canvas below, or upload a floor plan image"}
+              {preview
+                ? "Upload a venue image or floor plan to place sections visually"
+                : "You can design on a blank canvas below, or upload a floor plan image"}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -206,11 +214,7 @@ export default function VenueImageUploader({
             exit={{ opacity: 0, scale: 0.95 }}
             className="relative rounded-lg border-2 border-gray-300 overflow-hidden bg-gray-50"
           >
-            <img
-              src={preview}
-              alt="Venue floor plan"
-              className="w-full h-64 object-contain"
-            />
+            <img src={preview} alt="Venue floor plan" className="w-full h-64 object-contain" />
             {isUploading && (
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                 <div className="bg-white rounded-lg p-4 flex items-center gap-3">
@@ -265,9 +269,7 @@ export default function VenueImageUploader({
               <p className="text-sm font-medium text-primary">
                 Scroll down to start designing on a blank canvas →
               </p>
-              <p className="text-xs text-gray-500 mt-2">
-                Supports PNG, JPG, and SVG files
-              </p>
+              <p className="text-xs text-gray-500 mt-2">Supports PNG, JPG, and SVG files</p>
             </div>
 
             <input

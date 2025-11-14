@@ -12,11 +12,9 @@ export default defineSchema({
     // Authentication
     passwordHash: v.optional(v.string()), // bcrypt hash for classic login
     googleId: v.optional(v.string()), // Google OAuth user ID
-    authProvider: v.optional(v.union(
-      v.literal("password"),
-      v.literal("magic_link"),
-      v.literal("google")
-    )), // Which auth method was used
+    authProvider: v.optional(
+      v.union(v.literal("password"), v.literal("magic_link"), v.literal("google"))
+    ), // Which auth method was used
     // Magic Link fields
     magicLinkToken: v.optional(v.string()), // Hashed token for magic link login
     magicLinkExpiry: v.optional(v.number()), // Expiration timestamp (15 minutes)
@@ -61,12 +59,14 @@ export default defineSchema({
     organizerName: v.optional(v.string()),
 
     // Event type
-    eventType: v.optional(v.union(
-      v.literal("SAVE_THE_DATE"),
-      v.literal("FREE_EVENT"),
-      v.literal("TICKETED_EVENT"),
-      v.literal("SEATED_EVENT")
-    )),
+    eventType: v.optional(
+      v.union(
+        v.literal("SAVE_THE_DATE"),
+        v.literal("FREE_EVENT"),
+        v.literal("TICKETED_EVENT"),
+        v.literal("SEATED_EVENT")
+      )
+    ),
 
     // Date/time - Literal Storage (NO TIMEZONE CONVERSIONS)
     // These fields store EXACTLY what the user enters
@@ -82,17 +82,19 @@ export default defineSchema({
     timezone: v.optional(v.string()),
 
     // Location (supports both object and legacy string format)
-    location: v.optional(v.union(
-      v.object({
-        venueName: v.optional(v.string()),
-        address: v.optional(v.string()),
-        city: v.string(),
-        state: v.string(),
-        zipCode: v.optional(v.string()),
-        country: v.string(),
-      }),
-      v.string() // Legacy format: plain string address
-    )),
+    location: v.optional(
+      v.union(
+        v.object({
+          venueName: v.optional(v.string()),
+          address: v.optional(v.string()),
+          city: v.string(),
+          state: v.string(),
+          zipCode: v.optional(v.string()),
+          country: v.string(),
+        }),
+        v.string() // Legacy format: plain string address
+      )
+    ),
 
     // Media
     images: v.optional(v.array(v.id("_storage"))),
@@ -102,12 +104,14 @@ export default defineSchema({
     categories: v.optional(v.array(v.string())),
 
     // Status
-    status: v.optional(v.union(
-      v.literal("DRAFT"),
-      v.literal("PUBLISHED"),
-      v.literal("CANCELLED"),
-      v.literal("COMPLETED")
-    )),
+    status: v.optional(
+      v.union(
+        v.literal("DRAFT"),
+        v.literal("PUBLISHED"),
+        v.literal("CANCELLED"),
+        v.literal("COMPLETED")
+      )
+    ),
 
     // Payment & ticketing visibility
     ticketsVisible: v.optional(v.boolean()),
@@ -187,11 +191,11 @@ export default defineSchema({
 
     // Payment model - Updated with clearer names (includes legacy for migration)
     paymentModel: v.union(
-      v.literal("PREPAY"),         // Formerly PRE_PURCHASE - Pay upfront for tickets
-      v.literal("CONSIGNMENT"),    // NEW - Float tickets, settle day-of/morning-of
-      v.literal("CREDIT_CARD"),    // Formerly PAY_AS_SELL - Standard online payments
-      v.literal("PRE_PURCHASE"),   // Legacy - will be migrated to PREPAY
-      v.literal("PAY_AS_SELL")     // Legacy - will be migrated to CREDIT_CARD
+      v.literal("PREPAY"), // Formerly PRE_PURCHASE - Pay upfront for tickets
+      v.literal("CONSIGNMENT"), // NEW - Float tickets, settle day-of/morning-of
+      v.literal("CREDIT_CARD"), // Formerly PAY_AS_SELL - Standard online payments
+      v.literal("PRE_PURCHASE"), // Legacy - will be migrated to PREPAY
+      v.literal("PAY_AS_SELL") // Legacy - will be migrated to CREDIT_CARD
     ),
 
     // Status
@@ -205,13 +209,13 @@ export default defineSchema({
     ticketsAllocated: v.optional(v.number()),
 
     // CONSIGNMENT specific fields (NEW)
-    consignmentSettlementDue: v.optional(v.number()),      // When settlement is due (event date or morning of)
-    consignmentSettled: v.optional(v.boolean()),           // Whether consignment has been settled
-    consignmentSettledAt: v.optional(v.number()),          // When settlement was completed
-    consignmentSettlementAmount: v.optional(v.number()),   // Amount owed in cents
-    consignmentFloatedTickets: v.optional(v.number()),     // Number of tickets floated
-    consignmentSoldTickets: v.optional(v.number()),        // Number of consignment tickets sold
-    consignmentNotes: v.optional(v.string()),              // Settlement notes
+    consignmentSettlementDue: v.optional(v.number()), // When settlement is due (event date or morning of)
+    consignmentSettled: v.optional(v.boolean()), // Whether consignment has been settled
+    consignmentSettledAt: v.optional(v.number()), // When settlement was completed
+    consignmentSettlementAmount: v.optional(v.number()), // Amount owed in cents
+    consignmentFloatedTickets: v.optional(v.number()), // Number of tickets floated
+    consignmentSoldTickets: v.optional(v.number()), // Number of consignment tickets sold
+    consignmentNotes: v.optional(v.string()), // Settlement notes
 
     // CREDIT_CARD fee structure (formerly Pay-as-sell)
     platformFeePercent: v.number(), // 3.7% or discounted
@@ -238,12 +242,16 @@ export default defineSchema({
     price: v.number(), // Base price in cents (used if no pricingTiers)
 
     // Early Bird Pricing - time-based pricing tiers
-    pricingTiers: v.optional(v.array(v.object({
-      name: v.string(), // "Early Bird", "Regular", "Last Chance"
-      price: v.number(), // Price in cents for this tier
-      availableFrom: v.number(), // Start timestamp
-      availableUntil: v.optional(v.number()), // End timestamp (optional for last tier)
-    }))),
+    pricingTiers: v.optional(
+      v.array(
+        v.object({
+          name: v.string(), // "Early Bird", "Regular", "Last Chance"
+          price: v.number(), // Price in cents for this tier
+          availableFrom: v.number(), // Start timestamp
+          availableUntil: v.optional(v.number()), // End timestamp (optional for last tier)
+        })
+      )
+    ),
     // If pricingTiers exists, system uses current tier price based on date
     // Otherwise falls back to base price field
 
@@ -260,21 +268,27 @@ export default defineSchema({
     // When isTablePackage=true, price is for entire table, not per seat
 
     // Mixed Allocation - Support both tables AND individual tickets in same tier
-    allocationMode: v.optional(v.union(
-      v.literal("individual"), // Default: sell individual tickets only
-      v.literal("table"),      // Sell entire tables only
-      v.literal("mixed")       // Sell BOTH tables AND individual tickets
-    )),
+    allocationMode: v.optional(
+      v.union(
+        v.literal("individual"), // Default: sell individual tickets only
+        v.literal("table"), // Sell entire tables only
+        v.literal("mixed") // Sell BOTH tables AND individual tickets
+      )
+    ),
     tableQuantity: v.optional(v.number()), // LEGACY: Number of tables available (for table/mixed mode)
-    tableSold: v.optional(v.number()),     // Number of tables sold (for table/mixed mode)
+    tableSold: v.optional(v.number()), // Number of tables sold (for table/mixed mode)
     individualQuantity: v.optional(v.number()), // Individual tickets available (for mixed mode)
-    individualSold: v.optional(v.number()),     // Individual tickets sold (for mixed mode)
+    individualSold: v.optional(v.number()), // Individual tickets sold (for mixed mode)
     // Multiple Table Groups - Support different table sizes in same tier
-    tableGroups: v.optional(v.array(v.object({
-      seatsPerTable: v.number(),     // Seats in this table size (e.g., 4, 8)
-      numberOfTables: v.number(),    // How many tables of this size (e.g., 5)
-      sold: v.optional(v.number()),  // How many tables of this group sold
-    }))),
+    tableGroups: v.optional(
+      v.array(
+        v.object({
+          seatsPerTable: v.number(), // Seats in this table size (e.g., 4, 8)
+          numberOfTables: v.number(), // How many tables of this size (e.g., 5)
+          sold: v.optional(v.number()), // How many tables of this group sold
+        })
+      )
+    ),
     // Total capacity = sum(each group: numberOfTables × seatsPerTable) + individualQuantity
 
     // First sale tracking - used to determine when tickets go "live"
@@ -282,16 +296,12 @@ export default defineSchema({
 
     createdAt: v.number(),
     updatedAt: v.number(),
-  })
-    .index("by_event", ["eventId"]),
+  }).index("by_event", ["eventId"]),
 
   // Ticket Bundles - Package multiple tickets together
   ticketBundles: defineTable({
     // Bundle type: single event or multi-event
-    bundleType: v.optional(v.union(
-      v.literal("SINGLE_EVENT"),
-      v.literal("MULTI_EVENT")
-    )), // Default: SINGLE_EVENT for backward compatibility
+    bundleType: v.optional(v.union(v.literal("SINGLE_EVENT"), v.literal("MULTI_EVENT"))), // Default: SINGLE_EVENT for backward compatibility
 
     // For single-event bundles (legacy & new)
     eventId: v.optional(v.id("events")), // Primary event (required for single-event, optional for multi-event)
@@ -304,14 +314,16 @@ export default defineSchema({
     price: v.number(), // Bundle price in cents
 
     // Which ticket tiers are included in this bundle
-    includedTiers: v.array(v.object({
-      tierId: v.id("ticketTiers"),
-      tierName: v.string(), // Cache tier name for display
-      quantity: v.number(), // Usually 1, but could be multiple
-      // For multi-event bundles: track which event this tier belongs to
-      eventId: v.optional(v.id("events")),
-      eventName: v.optional(v.string()), // Cache event name for display
-    })),
+    includedTiers: v.array(
+      v.object({
+        tierId: v.id("ticketTiers"),
+        tierName: v.string(), // Cache tier name for display
+        quantity: v.number(), // Usually 1, but could be multiple
+        // For multi-event bundles: track which event this tier belongs to
+        eventId: v.optional(v.id("events")),
+        eventName: v.optional(v.string()), // Cache event name for display
+      })
+    ),
 
     totalQuantity: v.number(), // Total bundles available
     sold: v.number(), // Number of bundles sold
@@ -338,8 +350,7 @@ export default defineSchema({
     ticketTierId: v.id("ticketTiers"),
     priceCents: v.number(),
     createdAt: v.number(),
-  })
-    .index("by_order", ["orderId"]),
+  }).index("by_order", ["orderId"]),
 
   // Individual ticket instances (generated after payment)
   tickets: defineTable({
@@ -352,13 +363,15 @@ export default defineSchema({
     attendeeEmail: v.optional(v.string()),
     attendeeName: v.optional(v.string()),
     ticketCode: v.optional(v.string()), // unique code for this ticket
-    status: v.optional(v.union(
-      v.literal("VALID"),
-      v.literal("SCANNED"),
-      v.literal("CANCELLED"),
-      v.literal("REFUNDED"),
-      v.literal("PENDING_ACTIVATION") // For cash sales awaiting customer activation
-    )),
+    status: v.optional(
+      v.union(
+        v.literal("VALID"),
+        v.literal("SCANNED"),
+        v.literal("CANCELLED"),
+        v.literal("REFUNDED"),
+        v.literal("PENDING_ACTIVATION") // For cash sales awaiting customer activation
+      )
+    ),
     scannedAt: v.optional(v.number()),
     scannedBy: v.optional(v.id("users")),
     createdAt: v.number(),
@@ -375,13 +388,15 @@ export default defineSchema({
     // Staff tracking
     soldByStaffId: v.optional(v.id("eventStaff")), // Which staff member sold this ticket
     staffCommissionAmount: v.optional(v.number()), // Commission earned on this ticket in cents
-    paymentMethod: v.optional(v.union(
-      v.literal("ONLINE"),
-      v.literal("CASH"),
-      v.literal("CASH_APP"),
-      v.literal("SQUARE"),
-      v.literal("STRIPE")
-    )),
+    paymentMethod: v.optional(
+      v.union(
+        v.literal("ONLINE"),
+        v.literal("CASH"),
+        v.literal("CASH_APP"),
+        v.literal("SQUARE"),
+        v.literal("STRIPE")
+      )
+    ),
 
     // Bundle support for grouping tickets
     bundleId: v.optional(v.string()), // ID for grouping tickets together
@@ -485,13 +500,15 @@ export default defineSchema({
     saleAmount: v.optional(v.number()), // in cents - Legacy field
     commissionAmount: v.number(), // in cents
     commissionPercent: v.optional(v.number()), // Legacy field
-    paymentMethod: v.optional(v.union(
-      v.literal("ONLINE"),
-      v.literal("CASH"),
-      v.literal("CASH_APP"),
-      v.literal("SQUARE"),
-      v.literal("STRIPE")
-    )),
+    paymentMethod: v.optional(
+      v.union(
+        v.literal("ONLINE"),
+        v.literal("CASH"),
+        v.literal("CASH_APP"),
+        v.literal("SQUARE"),
+        v.literal("STRIPE")
+      )
+    ),
     createdAt: v.number(),
     soldAt: v.optional(v.number()), // Legacy field
   })
@@ -518,16 +535,16 @@ export default defineSchema({
 
     // Transfer status
     status: v.union(
-      v.literal("PENDING"),    // Waiting for recipient to accept
-      v.literal("ACCEPTED"),   // Transfer completed
-      v.literal("REJECTED"),   // Recipient declined
-      v.literal("CANCELLED"),  // Sender cancelled
+      v.literal("PENDING"), // Waiting for recipient to accept
+      v.literal("ACCEPTED"), // Transfer completed
+      v.literal("REJECTED"), // Recipient declined
+      v.literal("CANCELLED"), // Sender cancelled
       v.literal("AUTO_EXPIRED") // System expired after timeout
     ),
 
     // Transfer details
     reason: v.optional(v.string()), // Why the transfer is being made
-    notes: v.optional(v.string()),  // Additional notes from sender
+    notes: v.optional(v.string()), // Additional notes from sender
     rejectionReason: v.optional(v.string()), // Why recipient rejected
 
     // Audit trail
@@ -594,19 +611,23 @@ export default defineSchema({
     userId: v.optional(v.id("users")),
 
     // Seat selection (for reserved seating events)
-    selectedSeats: v.optional(v.array(v.object({
-      sectionId: v.string(),
-      sectionName: v.string(),
-      // Row-based seating (optional)
-      rowId: v.optional(v.string()),
-      rowLabel: v.optional(v.string()),
-      // Table-based seating (optional)
-      tableId: v.optional(v.string()),
-      tableNumber: v.optional(v.union(v.string(), v.number())),
-      // Common fields
-      seatId: v.string(),
-      seatNumber: v.string(),
-    }))),
+    selectedSeats: v.optional(
+      v.array(
+        v.object({
+          sectionId: v.string(),
+          sectionName: v.string(),
+          // Row-based seating (optional)
+          rowId: v.optional(v.string()),
+          rowLabel: v.optional(v.string()),
+          // Table-based seating (optional)
+          tableId: v.optional(v.string()),
+          tableNumber: v.optional(v.union(v.string(), v.number())),
+          // Common fields
+          seatId: v.string(),
+          seatNumber: v.string(),
+        })
+      )
+    ),
 
     // Timestamps
     createdAt: v.number(),
@@ -742,11 +763,13 @@ export default defineSchema({
     name: v.string(), // e.g., "Main Hall", "VIP Section"
 
     // Seating style (NEW - for table-based vs row-based layouts)
-    seatingStyle: v.optional(v.union(
-      v.literal("ROW_BASED"),    // Traditional theater/stadium rows
-      v.literal("TABLE_BASED"),  // Tables for weddings/galas/banquets
-      v.literal("MIXED")         // Hybrid: both rows and tables
-    )),
+    seatingStyle: v.optional(
+      v.union(
+        v.literal("ROW_BASED"), // Traditional theater/stadium rows
+        v.literal("TABLE_BASED"), // Tables for weddings/galas/banquets
+        v.literal("MIXED") // Hybrid: both rows and tables
+      )
+    ),
 
     // Venue image overlay (NEW - for visual seating chart placement)
     venueImageId: v.optional(v.id("_storage")), // Uploaded floor plan/venue image
@@ -755,102 +778,132 @@ export default defineSchema({
     imageRotation: v.optional(v.number()), // Rotation in degrees
 
     // Chart configuration
-    sections: v.array(v.object({
-      id: v.string(),
-      name: v.string(), // e.g., "Section A", "VIP", "Balcony"
-      color: v.optional(v.string()), // Hex color for visualization
-      // Visual positioning (NEW - for drag-drop placement on venue image)
-      x: v.optional(v.number()), // X coordinate on canvas
-      y: v.optional(v.number()), // Y coordinate on canvas
-      width: v.optional(v.number()), // Section width
-      height: v.optional(v.number()), // Section height
-      rotation: v.optional(v.number()), // Section rotation in degrees
-
-      // Container type (NEW - determines if section uses rows or tables)
-      containerType: v.optional(v.union(
-        v.literal("ROWS"),   // Traditional row-based seating
-        v.literal("TABLES")  // Table-based seating
-      )),
-
-      // ROW-BASED: Rows with seats (existing)
-      rows: v.optional(v.array(v.object({
+    sections: v.array(
+      v.object({
         id: v.string(),
-        label: v.string(), // e.g., "A", "B", "1", "2"
-        curved: v.optional(v.boolean()), // For curved theater rows
-        seats: v.array(v.object({
-          id: v.string(),
-          number: v.string(), // e.g., "1", "2", "A1"
-          type: v.union(
-            v.literal("STANDARD"),
-            v.literal("WHEELCHAIR"),
-            v.literal("COMPANION"),
-            v.literal("VIP"),
-            v.literal("BLOCKED"),
-            v.literal("STANDING"),
-            v.literal("PARKING"),
-            v.literal("TENT")
-          ),
-          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE"), v.literal("BLOCKED")),
-          // Session-based temporary holds (for shopping cart)
-          sessionId: v.optional(v.string()),      // Temporary session holding this seat
-          sessionExpiry: v.optional(v.number()),  // Unix timestamp when hold expires
-        })),
-      }))),
+        name: v.string(), // e.g., "Section A", "VIP", "Balcony"
+        color: v.optional(v.string()), // Hex color for visualization
+        // Visual positioning (NEW - for drag-drop placement on venue image)
+        x: v.optional(v.number()), // X coordinate on canvas
+        y: v.optional(v.number()), // Y coordinate on canvas
+        width: v.optional(v.number()), // Section width
+        height: v.optional(v.number()), // Section height
+        rotation: v.optional(v.number()), // Section rotation in degrees
 
-      // TABLE-BASED: Tables with seats (NEW)
-      tables: v.optional(v.array(v.object({
-        id: v.string(),
-        number: v.union(v.string(), v.number()), // Table number or name (e.g., 1, "VIP 1", "Head Table")
-        shape: v.union(
-          v.literal("ROUND"),
-          v.literal("RECTANGULAR"),
-          v.literal("SQUARE"),
-          v.literal("CUSTOM")
+        // Container type (NEW - determines if section uses rows or tables)
+        containerType: v.optional(
+          v.union(
+            v.literal("ROWS"), // Traditional row-based seating
+            v.literal("TABLES") // Table-based seating
+          )
         ),
-        // Position on canvas
-        x: v.number(),
-        y: v.number(),
-        // Table dimensions
-        width: v.number(),  // Diameter for round, width for rect/square
-        height: v.number(), // Same as width for round, height for rect/square
-        rotation: v.optional(v.number()), // Rotation in degrees
-        // Custom polygon points (for CUSTOM shape)
-        customPath: v.optional(v.string()), // SVG path data
-        // Seat arc configuration (for crescent/cabaret seating on round tables)
-        seatArc: v.optional(v.object({
-          startAngle: v.optional(v.number()), // Starting angle in degrees (0-360)
-          arcDegrees: v.optional(v.number()), // Arc span in degrees (e.g., 180 for half circle, 135 for crescent)
-        })),
-        // Capacity and seats
-        capacity: v.number(), // Max seats at this table
-        seats: v.array(v.object({
-          id: v.string(),
-          number: v.string(), // Seat number at table (e.g., "1", "2", "3")
-          type: v.union(
-            v.literal("STANDARD"),
-            v.literal("WHEELCHAIR"),
-            v.literal("COMPANION"),
-            v.literal("VIP"),
-            v.literal("BLOCKED"),
-            v.literal("STANDING"),
-            v.literal("PARKING"),
-            v.literal("TENT")
-          ),
-          status: v.union(v.literal("AVAILABLE"), v.literal("RESERVED"), v.literal("UNAVAILABLE"), v.literal("BLOCKED")),
-          // Seat position relative to table (for visual rendering)
-          position: v.optional(v.object({
-            angle: v.optional(v.number()),     // Angle around table (0-360) for round/custom tables
-            side: v.optional(v.string()),      // "top", "bottom", "left", "right" for rectangular tables
-            offset: v.optional(v.number()),    // Distance from table edge
-          })),
-          // Session-based temporary holds (for shopping cart)
-          sessionId: v.optional(v.string()),      // Temporary session holding this seat
-          sessionExpiry: v.optional(v.number()),  // Unix timestamp when hold expires
-        }))
-      }))),
 
-      ticketTierId: v.optional(v.id("ticketTiers")), // Link section to tier pricing
-    })),
+        // ROW-BASED: Rows with seats (existing)
+        rows: v.optional(
+          v.array(
+            v.object({
+              id: v.string(),
+              label: v.string(), // e.g., "A", "B", "1", "2"
+              curved: v.optional(v.boolean()), // For curved theater rows
+              seats: v.array(
+                v.object({
+                  id: v.string(),
+                  number: v.string(), // e.g., "1", "2", "A1"
+                  type: v.union(
+                    v.literal("STANDARD"),
+                    v.literal("WHEELCHAIR"),
+                    v.literal("COMPANION"),
+                    v.literal("VIP"),
+                    v.literal("BLOCKED"),
+                    v.literal("STANDING"),
+                    v.literal("PARKING"),
+                    v.literal("TENT")
+                  ),
+                  status: v.union(
+                    v.literal("AVAILABLE"),
+                    v.literal("RESERVED"),
+                    v.literal("UNAVAILABLE"),
+                    v.literal("BLOCKED")
+                  ),
+                  // Session-based temporary holds (for shopping cart)
+                  sessionId: v.optional(v.string()), // Temporary session holding this seat
+                  sessionExpiry: v.optional(v.number()), // Unix timestamp when hold expires
+                })
+              ),
+            })
+          )
+        ),
+
+        // TABLE-BASED: Tables with seats (NEW)
+        tables: v.optional(
+          v.array(
+            v.object({
+              id: v.string(),
+              number: v.union(v.string(), v.number()), // Table number or name (e.g., 1, "VIP 1", "Head Table")
+              shape: v.union(
+                v.literal("ROUND"),
+                v.literal("RECTANGULAR"),
+                v.literal("SQUARE"),
+                v.literal("CUSTOM")
+              ),
+              // Position on canvas
+              x: v.number(),
+              y: v.number(),
+              // Table dimensions
+              width: v.number(), // Diameter for round, width for rect/square
+              height: v.number(), // Same as width for round, height for rect/square
+              rotation: v.optional(v.number()), // Rotation in degrees
+              // Custom polygon points (for CUSTOM shape)
+              customPath: v.optional(v.string()), // SVG path data
+              // Seat arc configuration (for crescent/cabaret seating on round tables)
+              seatArc: v.optional(
+                v.object({
+                  startAngle: v.optional(v.number()), // Starting angle in degrees (0-360)
+                  arcDegrees: v.optional(v.number()), // Arc span in degrees (e.g., 180 for half circle, 135 for crescent)
+                })
+              ),
+              // Capacity and seats
+              capacity: v.number(), // Max seats at this table
+              seats: v.array(
+                v.object({
+                  id: v.string(),
+                  number: v.string(), // Seat number at table (e.g., "1", "2", "3")
+                  type: v.union(
+                    v.literal("STANDARD"),
+                    v.literal("WHEELCHAIR"),
+                    v.literal("COMPANION"),
+                    v.literal("VIP"),
+                    v.literal("BLOCKED"),
+                    v.literal("STANDING"),
+                    v.literal("PARKING"),
+                    v.literal("TENT")
+                  ),
+                  status: v.union(
+                    v.literal("AVAILABLE"),
+                    v.literal("RESERVED"),
+                    v.literal("UNAVAILABLE"),
+                    v.literal("BLOCKED")
+                  ),
+                  // Seat position relative to table (for visual rendering)
+                  position: v.optional(
+                    v.object({
+                      angle: v.optional(v.number()), // Angle around table (0-360) for round/custom tables
+                      side: v.optional(v.string()), // "top", "bottom", "left", "right" for rectangular tables
+                      offset: v.optional(v.number()), // Distance from table edge
+                    })
+                  ),
+                  // Session-based temporary holds (for shopping cart)
+                  sessionId: v.optional(v.string()), // Temporary session holding this seat
+                  sessionExpiry: v.optional(v.number()), // Unix timestamp when hold expires
+                })
+              ),
+            })
+          )
+        ),
+
+        ticketTierId: v.optional(v.id("ticketTiers")), // Link section to tier pricing
+      })
+    ),
 
     // Total capacity
     totalSeats: v.number(),
@@ -887,11 +940,7 @@ export default defineSchema({
     seatNumber: v.string(), // Full seat identifier e.g., "Section A, Row 1, Seat 5" or "Table 5, Seat 3"
 
     // Reservation status
-    status: v.union(
-      v.literal("RESERVED"),
-      v.literal("RELEASED"),
-      v.literal("CANCELLED")
-    ),
+    status: v.union(v.literal("RESERVED"), v.literal("RELEASED"), v.literal("CANCELLED")),
 
     // Timestamps
     reservedAt: v.number(),
@@ -963,11 +1012,7 @@ export default defineSchema({
     isSystemTemplate: v.optional(v.boolean()), // Built-in templates (cannot be deleted)
 
     // Seating configuration
-    seatingStyle: v.union(
-      v.literal("ROW_BASED"),
-      v.literal("TABLE_BASED"),
-      v.literal("MIXED")
-    ),
+    seatingStyle: v.union(v.literal("ROW_BASED"), v.literal("TABLE_BASED"), v.literal("MIXED")),
     estimatedCapacity: v.number(),
 
     // Template data (JSON structure matching seating chart sections)
@@ -1037,11 +1082,13 @@ export default defineSchema({
     email: v.optional(v.string()),
 
     // Social media
-    socialMedia: v.optional(v.object({
-      instagram: v.optional(v.string()),
-      facebook: v.optional(v.string()),
-      twitter: v.optional(v.string()),
-    })),
+    socialMedia: v.optional(
+      v.object({
+        instagram: v.optional(v.string()),
+        facebook: v.optional(v.string()),
+        twitter: v.optional(v.string()),
+      })
+    ),
 
     // Professional info
     role: v.optional(v.string()), // "Event Coordinator", "Promoter", "DJ", etc.
@@ -1090,17 +1137,22 @@ export default defineSchema({
 
     // Variants (e.g., sizes, colors)
     hasVariants: v.boolean(),
-    variants: v.optional(v.array(v.object({
-      id: v.string(), // Unique variant ID
-      name: v.string(), // "Size: M, Color: Blue"
-      options: v.object({ // e.g., { size: "M", color: "Blue" }
-        size: v.optional(v.string()),
-        color: v.optional(v.string()),
-      }),
-      price: v.optional(v.number()), // Override base price
-      sku: v.optional(v.string()),
-      inventoryQuantity: v.number(),
-    }))),
+    variants: v.optional(
+      v.array(
+        v.object({
+          id: v.string(), // Unique variant ID
+          name: v.string(), // "Size: M, Color: Blue"
+          options: v.object({
+            // e.g., { size: "M", color: "Blue" }
+            size: v.optional(v.string()),
+            color: v.optional(v.string()),
+          }),
+          price: v.optional(v.number()), // Override base price
+          sku: v.optional(v.string()),
+          inventoryQuantity: v.number(),
+        })
+      )
+    ),
 
     // Shipping
     requiresShipping: v.boolean(),
@@ -1108,11 +1160,7 @@ export default defineSchema({
     shippingPrice: v.optional(v.number()), // Shipping cost in cents
 
     // Status
-    status: v.union(
-      v.literal("ACTIVE"),
-      v.literal("DRAFT"),
-      v.literal("ARCHIVED")
-    ),
+    status: v.union(v.literal("ACTIVE"), v.literal("DRAFT"), v.literal("ARCHIVED")),
 
     // SEO
     seoTitle: v.optional(v.string()),
@@ -1154,26 +1202,30 @@ export default defineSchema({
     }),
 
     // Billing address (if different)
-    billingAddress: v.optional(v.object({
-      name: v.string(),
-      address1: v.string(),
-      address2: v.optional(v.string()),
-      city: v.string(),
-      state: v.string(),
-      zipCode: v.string(),
-      country: v.string(),
-    })),
+    billingAddress: v.optional(
+      v.object({
+        name: v.string(),
+        address1: v.string(),
+        address2: v.optional(v.string()),
+        city: v.string(),
+        state: v.string(),
+        zipCode: v.string(),
+        country: v.string(),
+      })
+    ),
 
     // Order items
-    items: v.array(v.object({
-      productId: v.id("products"),
-      productName: v.string(),
-      variantId: v.optional(v.string()),
-      variantName: v.optional(v.string()),
-      quantity: v.number(),
-      price: v.number(), // Price per item in cents
-      totalPrice: v.number(), // quantity * price
-    })),
+    items: v.array(
+      v.object({
+        productId: v.id("products"),
+        productName: v.string(),
+        variantId: v.optional(v.string()),
+        variantName: v.optional(v.string()),
+        quantity: v.number(),
+        price: v.number(), // Price per item in cents
+        totalPrice: v.number(), // quantity * price
+      })
+    ),
 
     // Pricing
     subtotal: v.number(), // Sum of all items in cents

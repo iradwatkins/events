@@ -14,7 +14,9 @@ export default function SeedPage() {
     try {
       // We'll need to create the mutation, but for now show instructions
       setStatus("success");
-      setMessage("To seed sample events, run this command in your terminal:\n\nnpx convex run seed:createSampleEvents");
+      setMessage(
+        "To seed sample events, run this command in your terminal:\n\nnpx convex run seed:createSampleEvents"
+      );
     } catch (err) {
       setStatus("error");
       setMessage("Failed to seed data");

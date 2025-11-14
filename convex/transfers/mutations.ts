@@ -65,7 +65,7 @@ export const initiateTransfer = mutation({
       status: "PENDING",
       transferToken,
       initiatedAt: Date.now(),
-      expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000), // 7 days
+      expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     return { success: true, transferId, transferToken };

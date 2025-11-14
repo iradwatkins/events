@@ -43,7 +43,10 @@ export const getPublishedEvents = query({
         (e) =>
           e.name.toLowerCase().includes(searchLower) ||
           e.description.toLowerCase().includes(searchLower) ||
-          (e.location && typeof e.location === "object" && e.location.city && e.location.city.toLowerCase().includes(searchLower))
+          (e.location &&
+            typeof e.location === "object" &&
+            e.location.city &&
+            e.location.city.toLowerCase().includes(searchLower))
       );
     }
 
@@ -139,7 +142,10 @@ export const getPastEvents = query({
         (e) =>
           e.name.toLowerCase().includes(searchLower) ||
           e.description.toLowerCase().includes(searchLower) ||
-          (e.location && typeof e.location === "object" && e.location.city && e.location.city.toLowerCase().includes(searchLower))
+          (e.location &&
+            typeof e.location === "object" &&
+            e.location.city &&
+            e.location.city.toLowerCase().includes(searchLower))
       );
     }
 
@@ -221,19 +227,23 @@ export const getPublicEventDetails = query({
       ticketTiers = tiers.map((tier) => {
         let currentPrice = tier.price;
         let currentTierName: string | undefined = undefined;
-        let nextPriceChange: { date: number; price: number; tierName: string } | undefined = undefined;
+        let nextPriceChange: { date: number; price: number; tierName: string } | undefined =
+          undefined;
         let isEarlyBird = false;
 
         // Calculate current price based on pricing tiers
         if (tier.pricingTiers && tier.pricingTiers.length > 0) {
           // Sort pricing tiers by date
-          const sortedTiers = [...tier.pricingTiers].sort((a, b) => a.availableFrom - b.availableFrom);
+          const sortedTiers = [...tier.pricingTiers].sort(
+            (a, b) => a.availableFrom - b.availableFrom
+          );
 
           // Find current active tier
           for (let i = 0; i < sortedTiers.length; i++) {
             const pricingTier = sortedTiers[i];
-            const isActive = now >= pricingTier.availableFrom &&
-                           (!pricingTier.availableUntil || now <= pricingTier.availableUntil);
+            const isActive =
+              now >= pricingTier.availableFrom &&
+              (!pricingTier.availableUntil || now <= pricingTier.availableUntil);
 
             if (isActive) {
               currentPrice = pricingTier.price;
@@ -298,17 +308,19 @@ export const getPublicEventDetails = query({
       const now = Date.now();
       bundles = activeBundles
         .filter((bundle) => {
-          const saleActive = (!bundle.saleStart || now >= bundle.saleStart) &&
-                           (!bundle.saleEnd || now <= bundle.saleEnd);
+          const saleActive =
+            (!bundle.saleStart || now >= bundle.saleStart) &&
+            (!bundle.saleEnd || now <= bundle.saleEnd);
           const hasStock = bundle.totalQuantity - bundle.sold > 0;
           return saleActive && hasStock;
         })
         .map((bundle) => ({
           ...bundle,
           available: bundle.totalQuantity - bundle.sold,
-          percentageSavings: bundle.regularPrice && bundle.regularPrice > 0
-            ? Math.round((bundle.savings! / bundle.regularPrice) * 100)
-            : 0,
+          percentageSavings:
+            bundle.regularPrice && bundle.regularPrice > 0
+              ? Math.round((bundle.savings! / bundle.regularPrice) * 100)
+              : 0,
         }));
     }
 
@@ -357,8 +369,14 @@ export const searchEvents = query({
       (e) =>
         e.name.toLowerCase().includes(searchLower) ||
         e.description.toLowerCase().includes(searchLower) ||
-        (e.location && typeof e.location === "object" && e.location.city && e.location.city.toLowerCase().includes(searchLower)) ||
-        (e.location && typeof e.location === "object" && e.location.state && e.location.state.toLowerCase().includes(searchLower)) ||
+        (e.location &&
+          typeof e.location === "object" &&
+          e.location.city &&
+          e.location.city.toLowerCase().includes(searchLower)) ||
+        (e.location &&
+          typeof e.location === "object" &&
+          e.location.state &&
+          e.location.state.toLowerCase().includes(searchLower)) ||
         (e.categories && e.categories.some((c) => c.toLowerCase().includes(searchLower)))
     );
 
@@ -409,13 +427,21 @@ export const getEventsByLocation = query({
 
     if (args.city) {
       filtered = filtered.filter(
-        (e) => e.location && typeof e.location === "object" && e.location.city && e.location.city.toLowerCase() === args.city!.toLowerCase()
+        (e) =>
+          e.location &&
+          typeof e.location === "object" &&
+          e.location.city &&
+          e.location.city.toLowerCase() === args.city!.toLowerCase()
       );
     }
 
     if (args.state) {
       filtered = filtered.filter(
-        (e) => e.location && typeof e.location === "object" && e.location.state && e.location.state.toLowerCase() === args.state!.toLowerCase()
+        (e) =>
+          e.location &&
+          typeof e.location === "object" &&
+          e.location.state &&
+          e.location.state.toLowerCase() === args.state!.toLowerCase()
       );
     }
 

@@ -63,9 +63,7 @@ export function ListView({ events }: ListViewProps) {
               </div>
 
               {/* Description Preview */}
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                {event.description}
-              </p>
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
 
               {/* Meta Info */}
               <div className="space-y-2">

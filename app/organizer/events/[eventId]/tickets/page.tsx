@@ -19,7 +19,10 @@ import {
 import Link from "next/link";
 import { format } from "date-fns";
 import { CapacityProgressBar } from "@/components/events/CapacityProgressBar";
-import { CapacityAwareTicketEditor, TicketTier as EditorTicketTier } from "@/components/events/CapacityAwareTicketEditor";
+import {
+  CapacityAwareTicketEditor,
+  TicketTier as EditorTicketTier,
+} from "@/components/events/CapacityAwareTicketEditor";
 import { FirstEventCongratsModal } from "@/components/organizer/FirstEventCongratsModal";
 
 export default function TicketTiersPage() {
@@ -62,7 +65,8 @@ export default function TicketTiersPage() {
     ) {
       // Check if this is the first event AND user has 1000 free credits
       const isFirstEvent = myEvents.length === 1 && myEvents[0]._id === eventId;
-      const hasFreeCredits = creditBalance.creditsRemaining === 1000 && !creditBalance.firstEventFreeUsed;
+      const hasFreeCredits =
+        creditBalance.creditsRemaining === 1000 && !creditBalance.firstEventFreeUsed;
 
       if (isFirstEvent && hasFreeCredits) {
         setShowCongratsModal(true);
@@ -94,13 +98,15 @@ export default function TicketTiersPage() {
 
   const handleOpenAddTier = () => {
     // Initialize with one empty tier
-    setNewTiers([{
-      id: `tier-${Date.now()}`,
-      name: "",
-      description: "",
-      price: "",
-      quantity: "",
-    }]);
+    setNewTiers([
+      {
+        id: `tier-${Date.now()}`,
+        name: "",
+        description: "",
+        price: "",
+        quantity: "",
+      },
+    ]);
     setShowAddTier(true);
   };
 
@@ -168,7 +174,7 @@ export default function TicketTiersPage() {
       const quantity = parseInt(tier.quantity);
 
       // Convert pricing tiers to Convex format if they exist
-      const pricingTiers = tier.pricingTiers?.map(pt => ({
+      const pricingTiers = tier.pricingTiers?.map((pt) => ({
         id: pt.id,
         name: pt.name,
         price: Math.round(parseFloat(pt.price) * 100), // Convert to cents
@@ -261,7 +267,7 @@ export default function TicketTiersPage() {
                 // Simple capacity calculation
                 const qty = tier.quantity || 0;
                 if (tier.isTablePackage && tier.tableCapacity) {
-                  return sum + (qty * tier.tableCapacity); // Tables × seats per table
+                  return sum + qty * tier.tableCapacity; // Tables × seats per table
                 }
                 return sum + qty; // Individual tickets
               }, 0)}
@@ -269,20 +275,21 @@ export default function TicketTiersPage() {
                 // Simple sold calculation
                 const sold = tier.sold || 0;
                 if (tier.isTablePackage && tier.tableCapacity) {
-                  return sum + (sold * tier.tableCapacity); // Tables sold × seats per table
+                  return sum + sold * tier.tableCapacity; // Tables sold × seats per table
                 }
                 return sum + sold; // Individual tickets sold
               }, 0)}
               showBreakdown={tiers.length <= 6}
               breakdown={tiers.map((tier, index) => {
                 const qty = tier.quantity || 0;
-                const seats = tier.isTablePackage && tier.tableCapacity
-                  ? qty * tier.tableCapacity
-                  : qty;
+                const seats =
+                  tier.isTablePackage && tier.tableCapacity ? qty * tier.tableCapacity : qty;
                 return {
                   name: tier.name,
                   quantity: seats,
-                  color: ["#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#6366F1"][index % 6],
+                  color: ["#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#6366F1"][
+                    index % 6
+                  ],
                 };
               })}
             />
@@ -297,7 +304,9 @@ export default function TicketTiersPage() {
             <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
               <Ticket className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No ticket tiers yet</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              No ticket tiers yet
+            </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Create ticket tiers to start selling tickets for this event
             </p>
@@ -315,12 +324,10 @@ export default function TicketTiersPage() {
               // Simple capacity calculation
               const qty = tier.quantity || 0;
               const sold = tier.sold || 0;
-              const totalCapacity = tier.isTablePackage && tier.tableCapacity
-                ? qty * tier.tableCapacity
-                : qty;
-              const totalSold = tier.isTablePackage && tier.tableCapacity
-                ? sold * tier.tableCapacity
-                : sold;
+              const totalCapacity =
+                tier.isTablePackage && tier.tableCapacity ? qty * tier.tableCapacity : qty;
+              const totalSold =
+                tier.isTablePackage && tier.tableCapacity ? sold * tier.tableCapacity : sold;
 
               const soldOut = totalSold >= totalCapacity;
               const saleActive = !tier.saleStart || tier.saleStart <= Date.now();
@@ -334,7 +341,9 @@ export default function TicketTiersPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{tier.name}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                          {tier.name}
+                        </h3>
                         {tier.isTablePackage && (
                           <span className="px-3 py-1 text-xs font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full">
                             TABLE PACKAGE
@@ -442,7 +451,9 @@ export default function TicketTiersPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Create Ticket Tier</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Create Ticket Tier
+              </h2>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Configure your ticket type with flexible options
               </p>

@@ -77,7 +77,9 @@ export default function MySubSellersPage() {
         email: formData.email,
         phone: formData.phone || undefined,
         role: "SELLER",
-        allocatedTickets: formData.allocatedTickets ? parseInt(formData.allocatedTickets) : undefined,
+        allocatedTickets: formData.allocatedTickets
+          ? parseInt(formData.allocatedTickets)
+          : undefined,
         parentCommissionPercent: parentPercent,
         subSellerCommissionPercent: subSellerPercent,
       });
@@ -120,7 +122,9 @@ export default function MySubSellersPage() {
   }
 
   const canAssignSubSellers = selectedPosition?.canAssignSubSellers;
-  const availableTickets = selectedPosition ? selectedPosition.allocatedTickets - selectedPosition.ticketsSold : 0;
+  const availableTickets = selectedPosition
+    ? selectedPosition.allocatedTickets - selectedPosition.ticketsSold
+    : 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -167,8 +171,8 @@ export default function MySubSellersPage() {
             <div>
               <h3 className="font-semibold text-yellow-900 mb-1">Permission Required</h3>
               <p className="text-yellow-800">
-                You don't have permission to assign sub-sellers for this event.
-                Please contact the event organizer to enable this feature.
+                You don't have permission to assign sub-sellers for this event. Please contact the
+                event organizer to enable this feature.
               </p>
             </div>
           </div>
@@ -275,13 +279,19 @@ export default function MySubSellersPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-gray-900">{subSeller.allocatedTickets || 0}</span>
+                          <span className="text-sm text-gray-900">
+                            {subSeller.allocatedTickets || 0}
+                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-semibold text-gray-900">{subSeller.ticketsSold}</span>
+                          <span className="text-sm font-semibold text-gray-900">
+                            {subSeller.ticketsSold}
+                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm text-gray-900">{subSeller.availableTickets}</span>
+                          <span className="text-sm text-gray-900">
+                            {subSeller.availableTickets}
+                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
@@ -400,8 +410,9 @@ export default function MySubSellersPage() {
                 <div className="bg-accent border border-border rounded-lg p-4">
                   <h3 className="font-semibold text-foreground mb-3">Commission Split</h3>
                   <p className="text-sm text-accent-foreground mb-4">
-                    Configure how commissions are split between you and the sub-seller.
-                    Your current commission: {selectedPosition?.commissionPercent || selectedPosition?.commissionValue}
+                    Configure how commissions are split between you and the sub-seller. Your current
+                    commission:{" "}
+                    {selectedPosition?.commissionPercent || selectedPosition?.commissionValue}
                     {selectedPosition?.commissionType === "PERCENTAGE" ? "%" : " cents"}
                   </p>
 
@@ -448,10 +459,13 @@ export default function MySubSellersPage() {
                   {formData.parentCommissionPercent && formData.subSellerCommissionPercent && (
                     <div className="mt-3 text-sm">
                       <p className="text-gray-700">
-                        Total: {parseFloat(formData.parentCommissionPercent) + parseFloat(formData.subSellerCommissionPercent)}%
-                        {parseFloat(formData.parentCommissionPercent) + parseFloat(formData.subSellerCommissionPercent) > 100 && (
-                          <span className="text-red-600 ml-2">(Exceeds 100%)</span>
-                        )}
+                        Total:{" "}
+                        {parseFloat(formData.parentCommissionPercent) +
+                          parseFloat(formData.subSellerCommissionPercent)}
+                        %
+                        {parseFloat(formData.parentCommissionPercent) +
+                          parseFloat(formData.subSellerCommissionPercent) >
+                          100 && <span className="text-red-600 ml-2">(Exceeds 100%)</span>}
                       </p>
                     </div>
                   )}

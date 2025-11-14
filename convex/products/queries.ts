@@ -16,10 +16,7 @@ export const getAllProducts = query({
       return products;
     }
 
-    const products = await ctx.db
-      .query("products")
-      .order("desc")
-      .collect();
+    const products = await ctx.db.query("products").order("desc").collect();
     return products;
   },
 });

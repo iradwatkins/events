@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { CanvasItem, Position, TableItem, RowSectionItem, StageItem, DanceFloorItem } from "./types";
+import {
+  CanvasItem,
+  Position,
+  TableItem,
+  RowSectionItem,
+  StageItem,
+  DanceFloorItem,
+} from "./types";
 import { isPointInItem, snapToGrid } from "./utils";
 import ChairRenderer from "./ChairRenderer";
 import { getChairPositions } from "./chairUtils";
@@ -67,9 +74,7 @@ export default function Canvas({
     const clickPoint = getCanvasPosition(e.clientX, e.clientY);
 
     // Find clicked item (iterate in reverse to get topmost item)
-    const clickedItem = [...items].reverse().find(item =>
-      isPointInItem(clickPoint, item)
-    );
+    const clickedItem = [...items].reverse().find((item) => isPointInItem(clickPoint, item));
 
     onSelectionChange(clickedItem?.id || null);
   };
@@ -110,7 +115,7 @@ export default function Canvas({
   const handleItemDragStart = (e: React.MouseEvent<HTMLDivElement>, itemId: string) => {
     e.stopPropagation();
 
-    const item = items.find(i => i.id === itemId);
+    const item = items.find((i) => i.id === itemId);
     if (!item) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -130,16 +135,17 @@ export default function Canvas({
     if (!draggingItemId || !canvasRef.current) return;
 
     const canvasPos = getCanvasPosition(e.clientX, e.clientY);
-    const newPosition = snapToGrid({
-      x: canvasPos.x - dragOffset.x,
-      y: canvasPos.y - dragOffset.y,
-    }, gridSize);
+    const newPosition = snapToGrid(
+      {
+        x: canvasPos.x - dragOffset.x,
+        y: canvasPos.y - dragOffset.y,
+      },
+      gridSize
+    );
 
     // Update item position
-    const updatedItems = items.map(item =>
-      item.id === draggingItemId
-        ? { ...item, position: newPosition }
-        : item
+    const updatedItems = items.map((item) =>
+      item.id === draggingItemId ? { ...item, position: newPosition } : item
     );
 
     onItemsChange(updatedItems);
@@ -211,7 +217,7 @@ export default function Canvas({
           }}
         >
           {/* Render all items */}
-          {items.map(item => (
+          {items.map((item) => (
             <CanvasItemRenderer
               key={item.id}
               item={item}
@@ -225,11 +231,25 @@ export default function Canvas({
           {items.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center text-gray-400">
-                <svg className="w-16 h-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                <svg
+                  className="w-16 h-16 mx-auto mb-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
                 </svg>
-                <p className="text-lg font-medium">Drag items from the toolbar to start designing</p>
-                <p className="text-sm mt-1">Add tables and row sections to build your room layout</p>
+                <p className="text-lg font-medium">
+                  Drag items from the toolbar to start designing
+                </p>
+                <p className="text-sm mt-1">
+                  Add tables and row sections to build your room layout
+                </p>
               </div>
             </div>
           )}
@@ -249,15 +269,48 @@ interface CanvasItemRendererProps {
   onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-function CanvasItemRenderer({ item, isSelected, isDragging, onDragStart }: CanvasItemRendererProps) {
+function CanvasItemRenderer({
+  item,
+  isSelected,
+  isDragging,
+  onDragStart,
+}: CanvasItemRendererProps) {
   if (item.type === "TABLE") {
-    return <TableRenderer table={item} isSelected={isSelected} isDragging={isDragging} onDragStart={onDragStart} />;
+    return (
+      <TableRenderer
+        table={item}
+        isSelected={isSelected}
+        isDragging={isDragging}
+        onDragStart={onDragStart}
+      />
+    );
   } else if (item.type === "ROW_SECTION") {
-    return <RowSectionRenderer rowSection={item} isSelected={isSelected} isDragging={isDragging} onDragStart={onDragStart} />;
+    return (
+      <RowSectionRenderer
+        rowSection={item}
+        isSelected={isSelected}
+        isDragging={isDragging}
+        onDragStart={onDragStart}
+      />
+    );
   } else if (item.type === "STAGE") {
-    return <StageRenderer stage={item} isSelected={isSelected} isDragging={isDragging} onDragStart={onDragStart} />;
+    return (
+      <StageRenderer
+        stage={item}
+        isSelected={isSelected}
+        isDragging={isDragging}
+        onDragStart={onDragStart}
+      />
+    );
   } else if (item.type === "DANCE_FLOOR") {
-    return <DanceFloorRenderer danceFloor={item} isSelected={isSelected} isDragging={isDragging} onDragStart={onDragStart} />;
+    return (
+      <DanceFloorRenderer
+        danceFloor={item}
+        isSelected={isSelected}
+        isDragging={isDragging}
+        onDragStart={onDragStart}
+      />
+    );
   }
   return null;
 }
@@ -286,7 +339,7 @@ function TableRenderer({ table, isSelected, isDragging, onDragStart }: TableRend
   );
 
   // Convert to positions relative to table container
-  const chairs = chairsAbsolute.map(chair => ({
+  const chairs = chairsAbsolute.map((chair) => ({
     ...chair,
     x: chair.x - position.x,
     y: chair.y - position.y,
@@ -416,7 +469,12 @@ interface RowSectionRendererProps {
   onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-function RowSectionRenderer({ rowSection, isSelected, isDragging, onDragStart }: RowSectionRendererProps) {
+function RowSectionRenderer({
+  rowSection,
+  isSelected,
+  isDragging,
+  onDragStart,
+}: RowSectionRendererProps) {
   const { position, size, rowCount, seatsPerRow, label, color } = rowSection;
 
   // Enhanced seat dimensions for theater-style seats
@@ -428,7 +486,9 @@ function RowSectionRenderer({ rowSection, isSelected, isDragging, onDragStart }:
   // Theater color scheme
   const theaterColor = color || "oklch(0.5777 0.2216 25.3381)"; // Rich red - red-600
   const seatColor = isSelected ? "oklch(0.7533 0.1538 69.6831)" : "oklch(0.4595 0.2095 26.8401)"; // Amber when selected, dark red default
-  const seatColorLight = isSelected ? "oklch(0.8760 0.1254 85.8740)" : "oklch(0.6324 0.2573 29.2339)";
+  const seatColorLight = isSelected
+    ? "oklch(0.8760 0.1254 85.8740)"
+    : "oklch(0.6324 0.2573 29.2339)";
 
   return (
     <div
@@ -456,7 +516,8 @@ function RowSectionRenderer({ rowSection, isSelected, isDragging, onDragStart }:
             🎭 {label || "Theater Section"}
           </div>
           <div className="text-xs font-medium" style={{ color: `${theaterColor}cc` }}>
-            {rowCount} rows × {seatsPerRow} seats = <span className="font-bold">{rowCount * seatsPerRow}</span> total
+            {rowCount} rows × {seatsPerRow} seats ={" "}
+            <span className="font-bold">{rowCount * seatsPerRow}</span> total
           </div>
         </div>
 
@@ -540,14 +601,7 @@ function RowSectionRenderer({ rowSection, isSelected, isDragging, onDragStart }:
                         opacity="0.8"
                       />
                       {/* Highlight for depth */}
-                      <ellipse
-                        cx="8"
-                        cy="6"
-                        rx="3"
-                        ry="1.5"
-                        fill="white"
-                        opacity="0.2"
-                      />
+                      <ellipse cx="8" cy="6" rx="3" ry="1.5" fill="white" opacity="0.2" />
                     </svg>
                   </div>
                 ))}
@@ -567,7 +621,7 @@ function RowSectionRenderer({ rowSection, isSelected, isDragging, onDragStart }:
               className="text-center text-xs mt-2 font-medium py-1 rounded"
               style={{
                 color: theaterColor,
-                backgroundColor: `${theaterColor}10`
+                backgroundColor: `${theaterColor}10`,
               }}
             >
               + {rowCount - 8} more rows
@@ -613,7 +667,9 @@ function StageRenderer({ stage, isSelected, isDragging, onDragStart }: StageRend
         className="w-full h-full rounded-lg shadow-xl hover:shadow-2xl transition-all flex flex-col items-center justify-center"
         style={{
           background: `linear-gradient(135deg, ${color || "oklch(0.6279 0.2578 27.3251)"} 0%, color-mix(in oklch, ${color || "oklch(0.6279 0.2578 27.3251)"}, transparent 13%) 100%)`,
-          border: isSelected ? `3px solid ${color || "oklch(0.6279 0.2578 27.3251)"}` : "3px solid transparent",
+          border: isSelected
+            ? `3px solid ${color || "oklch(0.6279 0.2578 27.3251)"}`
+            : "3px solid transparent",
           boxShadow: `
             inset 0 2px 4px oklch(1 0 0 / 0.3),
             inset 0 -2px 4px oklch(0 0 0 / 0.2),
@@ -623,9 +679,7 @@ function StageRenderer({ stage, isSelected, isDragging, onDragStart }: StageRend
       >
         {/* Stage icon/label */}
         <div className="text-white text-center">
-          <div className="text-2xl font-bold drop-shadow-lg mb-1">
-            🎭
-          </div>
+          <div className="text-2xl font-bold drop-shadow-lg mb-1">🎭</div>
           <div className="text-sm font-semibold drop-shadow-md uppercase tracking-wide">
             {label || "Stage"}
           </div>
@@ -660,7 +714,12 @@ interface DanceFloorRendererProps {
   onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-function DanceFloorRenderer({ danceFloor, isSelected, isDragging, onDragStart }: DanceFloorRendererProps) {
+function DanceFloorRenderer({
+  danceFloor,
+  isSelected,
+  isDragging,
+  onDragStart,
+}: DanceFloorRendererProps) {
   const { position, size, label, color } = danceFloor;
 
   return (
@@ -678,7 +737,9 @@ function DanceFloorRenderer({ danceFloor, isSelected, isDragging, onDragStart }:
       <div
         className="w-full h-full rounded-lg shadow-lg hover:shadow-xl transition-all overflow-hidden relative"
         style={{
-          border: isSelected ? `3px solid ${color || "oklch(0.6714 0.2144 343.6716)"}` : "3px solid transparent",
+          border: isSelected
+            ? `3px solid ${color || "oklch(0.6714 0.2144 343.6716)"}`
+            : "3px solid transparent",
         }}
       >
         {/* Checkered pattern */}
@@ -691,9 +752,11 @@ function DanceFloorRenderer({ danceFloor, isSelected, isDragging, onDragStart }:
               linear-gradient(45deg, transparent 75%, color-mix(in oklch, ${color || "oklch(0.6714 0.2144 343.6716)"}, transparent 80%) 75%),
               linear-gradient(-45deg, transparent 75%, color-mix(in oklch, ${color || "oklch(0.6714 0.2144 343.6716)"}, transparent 80%) 75%)
             `,
-            backgroundSize: '40px 40px',
-            backgroundPosition: '0 0, 0 20px, 20px -20px, -20px 0px',
-            backgroundColor: color ? `color-mix(in oklch, ${color}, transparent 93%)` : "color-mix(in oklch, oklch(0.6714 0.2144 343.6716), transparent 93%)",
+            backgroundSize: "40px 40px",
+            backgroundPosition: "0 0, 0 20px, 20px -20px, -20px 0px",
+            backgroundColor: color
+              ? `color-mix(in oklch, ${color}, transparent 93%)`
+              : "color-mix(in oklch, oklch(0.6714 0.2144 343.6716), transparent 93%)",
           }}
         />
 
@@ -708,9 +771,7 @@ function DanceFloorRenderer({ danceFloor, isSelected, isDragging, onDragStart }:
         {/* Label */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-3xl mb-2 drop-shadow-lg">
-              💃
-            </div>
+            <div className="text-3xl mb-2 drop-shadow-lg">💃</div>
             <div
               className="text-sm font-bold uppercase tracking-wider drop-shadow-md px-3 py-1 rounded bg-white/90"
               style={{

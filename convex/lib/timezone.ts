@@ -9,24 +9,35 @@ export function getTimezoneFromLocation(city: string, state: string): string {
 
   // Eastern Time (ET)
   const easternStates = [
-    "CT", "DE", "FL", "GA", "ME", "MD", "MA", "NH", "NJ", "NY",
-    "NC", "OH", "PA", "RI", "SC", "VT", "VA", "WV", "DC"
+    "CT",
+    "DE",
+    "FL",
+    "GA",
+    "ME",
+    "MD",
+    "MA",
+    "NH",
+    "NJ",
+    "NY",
+    "NC",
+    "OH",
+    "PA",
+    "RI",
+    "SC",
+    "VT",
+    "VA",
+    "WV",
+    "DC",
   ];
 
   // Central Time (CT)
-  const centralStates = [
-    "AL", "AR", "IL", "IA", "LA", "MN", "MS", "MO", "OK", "WI"
-  ];
+  const centralStates = ["AL", "AR", "IL", "IA", "LA", "MN", "MS", "MO", "OK", "WI"];
 
   // Mountain Time (MT)
-  const mountainStates = [
-    "CO", "MT", "NM", "UT", "WY"
-  ];
+  const mountainStates = ["CO", "MT", "NM", "UT", "WY"];
 
   // Pacific Time (PT)
-  const pacificStates = [
-    "CA", "NV", "OR", "WA"
-  ];
+  const pacificStates = ["CA", "NV", "OR", "WA"];
 
   // Alaska Time (AKT)
   if (stateUpper === "AK") {
@@ -41,10 +52,15 @@ export function getTimezoneFromLocation(city: string, state: string): string {
   // Indiana - most cities are Eastern, but some are Central
   if (stateUpper === "IN") {
     const centralIndianaCities = [
-      "evansville", "jasper", "vincennes", "tell city",
-      "gary", "hammond", "east chicago"
+      "evansville",
+      "jasper",
+      "vincennes",
+      "tell city",
+      "gary",
+      "hammond",
+      "east chicago",
     ];
-    if (centralIndianaCities.some(c => cityLower.includes(c))) {
+    if (centralIndianaCities.some((c) => cityLower.includes(c))) {
       return "America/Chicago";
     }
     return "America/New_York";
@@ -52,10 +68,8 @@ export function getTimezoneFromLocation(city: string, state: string): string {
 
   // Kentucky - split between Eastern and Central
   if (stateUpper === "KY") {
-    const centralKentuckyCities = [
-      "louisville", "owensboro", "bowling green", "hopkinsville"
-    ];
-    if (centralKentuckyCities.some(c => cityLower.includes(c))) {
+    const centralKentuckyCities = ["louisville", "owensboro", "bowling green", "hopkinsville"];
+    if (centralKentuckyCities.some((c) => cityLower.includes(c))) {
       return "America/Chicago";
     }
     return "America/New_York";
@@ -63,10 +77,8 @@ export function getTimezoneFromLocation(city: string, state: string): string {
 
   // Tennessee - split between Eastern and Central
   if (stateUpper === "TN") {
-    const easternTennesseeCities = [
-      "knoxville", "chattanooga", "bristol", "johnson city"
-    ];
-    if (easternTennesseeCities.some(c => cityLower.includes(c))) {
+    const easternTennesseeCities = ["knoxville", "chattanooga", "bristol", "johnson city"];
+    if (easternTennesseeCities.some((c) => cityLower.includes(c))) {
       return "America/New_York";
     }
     return "America/Chicago";
@@ -75,7 +87,7 @@ export function getTimezoneFromLocation(city: string, state: string): string {
   // Michigan - most is Eastern, but Upper Peninsula has some Central
   if (stateUpper === "MI") {
     const centralMichiganCities = ["ironwood", "wakefield", "iron mountain"];
-    if (centralMichiganCities.some(c => cityLower.includes(c))) {
+    if (centralMichiganCities.some((c) => cityLower.includes(c))) {
       return "America/Chicago";
     }
     return "America/New_York";
@@ -88,7 +100,7 @@ export function getTimezoneFromLocation(city: string, state: string): string {
 
   if (stateUpper === "NE") {
     const mountainNebraskaCities = ["scottsbluff", "sidney"];
-    if (mountainNebraskaCities.some(c => cityLower.includes(c))) {
+    if (mountainNebraskaCities.some((c) => cityLower.includes(c))) {
       return "America/Denver";
     }
     return "America/Chicago";
@@ -96,7 +108,7 @@ export function getTimezoneFromLocation(city: string, state: string): string {
 
   if (stateUpper === "KS") {
     const mountainKansasCities = ["goodland", "sharon springs"];
-    if (mountainKansasCities.some(c => cityLower.includes(c))) {
+    if (mountainKansasCities.some((c) => cityLower.includes(c))) {
       return "America/Denver";
     }
     return "America/Chicago";
@@ -104,7 +116,7 @@ export function getTimezoneFromLocation(city: string, state: string): string {
 
   if (stateUpper === "TX") {
     const mountainTexasCities = ["el paso", "hudspeth"];
-    if (mountainTexasCities.some(c => cityLower.includes(c))) {
+    if (mountainTexasCities.some((c) => cityLower.includes(c))) {
       return "America/Denver";
     }
     return "America/Chicago";
@@ -113,7 +125,7 @@ export function getTimezoneFromLocation(city: string, state: string): string {
   // Oregon - most is Pacific, but Malheur County is Mountain
   if (stateUpper === "OR") {
     const mountainOregonCities = ["ontario", "nyssa", "vale"];
-    if (mountainOregonCities.some(c => cityLower.includes(c))) {
+    if (mountainOregonCities.some((c) => cityLower.includes(c))) {
       return "America/Denver";
     }
     return "America/Los_Angeles";
@@ -122,7 +134,7 @@ export function getTimezoneFromLocation(city: string, state: string): string {
   // Idaho - split between Mountain and Pacific
   if (stateUpper === "ID") {
     const pacificIdahoCities = ["lewiston", "moscow", "coeur d'alene"];
-    if (pacificIdahoCities.some(c => cityLower.includes(c))) {
+    if (pacificIdahoCities.some((c) => cityLower.includes(c))) {
       return "America/Los_Angeles";
     }
     return "America/Denver";
@@ -169,23 +181,26 @@ export function parseEventDateTime(
     // Examples: "JULY 31 - AUG 2 2026" → "JULY 31, 2026"
     //           "March 30 - April 2, 2026" → "March 30, 2026"
     //           "DEC 28 - JAN 3, 2026" → "DEC 28, 2026"
-    const crossMonthRangePattern = /(\w+\s+\d+(?:ST|ND|RD|TH)?)\s*[-–]\s*(\w+\s+\d+(?:ST|ND|RD|TH)?)\s*(,?\s*\d{4})?/i;
+    const crossMonthRangePattern =
+      /(\w+\s+\d+(?:ST|ND|RD|TH)?)\s*[-–]\s*(\w+\s+\d+(?:ST|ND|RD|TH)?)\s*(,?\s*\d{4})?/i;
     if (crossMonthRangePattern.test(processedDateString)) {
       const match = processedDateString.match(crossMonthRangePattern);
       if (match) {
         // Extract: start month+day, and year (if present)
         const startDate = match[1]; // e.g., "JULY 31"
-        const yearPart = match[3] || ''; // e.g., ", 2026" or " 2026"
+        const yearPart = match[3] || ""; // e.g., ", 2026" or " 2026"
 
         // Ensure there's a comma before the year if year exists and doesn't already have one
-        if (yearPart && !yearPart.startsWith(',')) {
+        if (yearPart && !yearPart.startsWith(",")) {
           processedDateString = `${startDate}, ${yearPart.trim()}`;
         } else if (yearPart) {
           processedDateString = `${startDate}${yearPart}`;
         } else {
           processedDateString = startDate;
         }
-        console.log(`[parseEventDateTime] Extracted start date from cross-month range: "${processedDateString}"`);
+        console.log(
+          `[parseEventDateTime] Extracted start date from cross-month range: "${processedDateString}"`
+        );
       }
     }
     // Otherwise, extract START date from SAME-MONTH date ranges
@@ -195,7 +210,7 @@ export function parseEventDateTime(
     else if (processedDateString.match(/\d+-\d+/)) {
       // Has a range like "12-15" or "20-23TH"
       // Match: (start number)-(end number)(optional suffix like TH, ST, RD, ND)(rest of string)
-      processedDateString = processedDateString.replace(/(\d+)-\d+([A-Z]{0,2})/, '$1$2');
+      processedDateString = processedDateString.replace(/(\d+)-\d+([A-Z]{0,2})/, "$1$2");
       // "March 12-15, 2026" → "March 12, 2026"
       // "NOVEMBER 20-23TH, 2025" → "NOVEMBER 20TH, 2025"
       // "Jan 8-11" → "Jan 8"
@@ -206,26 +221,43 @@ export function parseEventDateTime(
     // Examples: "1ST SATURDAY NOV. 1ST, 2025" → "NOV. 1ST, 2025"
     //           "FRIDAY, DECEMBER 25, 2025" → "DECEMBER 25, 2025"
     //           "2ND WEDNESDAY APRIL 10, 2025" → "APRIL 10, 2025"
-    const dayOfWeekPattern = /\b(\d+(ST|ND|RD|TH)?\s+)?(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY|MON|TUE|WED|THU|FRI|SAT|SUN)[,\s]*/gi;
-    processedDateString = processedDateString.replace(dayOfWeekPattern, '');
+    const dayOfWeekPattern =
+      /\b(\d+(ST|ND|RD|TH)?\s+)?(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY|MON|TUE|WED|THU|FRI|SAT|SUN)[,\s]*/gi;
+    processedDateString = processedDateString.replace(dayOfWeekPattern, "");
 
     // 2. Remove ordinal suffixes (TH, ST, RD, ND)
-    processedDateString = processedDateString.replace(/(\d+)(ST|ND|RD|TH)\b/gi, '$1');
+    processedDateString = processedDateString.replace(/(\d+)(ST|ND|RD|TH)\b/gi, "$1");
     // "NOVEMBER 20TH, 2025" → "NOVEMBER 20, 2025"
 
     // 3. Convert uppercase month names to proper case
     const monthMap: Record<string, string> = {
-      'JANUARY': 'January', 'FEBRUARY': 'February', 'MARCH': 'March',
-      'APRIL': 'April', 'MAY': 'May', 'JUNE': 'June',
-      'JULY': 'July', 'AUGUST': 'August', 'SEPTEMBER': 'September',
-      'OCTOBER': 'October', 'NOVEMBER': 'November', 'DECEMBER': 'December',
-      'JAN': 'Jan', 'FEB': 'Feb', 'MAR': 'Mar', 'APR': 'Apr',
-      'JUN': 'Jun', 'JUL': 'Jul', 'AUG': 'Aug', 'SEP': 'Sep',
-      'OCT': 'Oct', 'NOV': 'Nov', 'DEC': 'Dec'
+      JANUARY: "January",
+      FEBRUARY: "February",
+      MARCH: "March",
+      APRIL: "April",
+      MAY: "May",
+      JUNE: "June",
+      JULY: "July",
+      AUGUST: "August",
+      SEPTEMBER: "September",
+      OCTOBER: "October",
+      NOVEMBER: "November",
+      DECEMBER: "December",
+      JAN: "Jan",
+      FEB: "Feb",
+      MAR: "Mar",
+      APR: "Apr",
+      JUN: "Jun",
+      JUL: "Jul",
+      AUG: "Aug",
+      SEP: "Sep",
+      OCT: "Oct",
+      NOV: "Nov",
+      DEC: "Dec",
     };
 
     for (const [upper, proper] of Object.entries(monthMap)) {
-      const regex = new RegExp(`\\b${upper}\\b`, 'gi');
+      const regex = new RegExp(`\\b${upper}\\b`, "gi");
       processedDateString = processedDateString.replace(regex, proper);
     }
     // "NOVEMBER 20, 2025" → "November 20, 2025"
@@ -249,10 +281,14 @@ export function parseEventDateTime(
         // If the event month has already passed this year, use next year
         if (eventMonth < currentMonth) {
           processedDateString = `${processedDateString}, ${currentYear + 1}`;
-          console.log(`[parseEventDateTime] Year not specified - month ${eventMonth + 1} has passed, using ${currentYear + 1}`);
+          console.log(
+            `[parseEventDateTime] Year not specified - month ${eventMonth + 1} has passed, using ${currentYear + 1}`
+          );
         } else {
           processedDateString = testDateStr;
-          console.log(`[parseEventDateTime] Year not specified - month ${eventMonth + 1} hasn't passed, using ${currentYear}`);
+          console.log(
+            `[parseEventDateTime] Year not specified - month ${eventMonth + 1} hasn't passed, using ${currentYear}`
+          );
         }
       } else {
         // Fallback: just add current year if parsing fails
@@ -277,20 +313,22 @@ export function parseEventDateTime(
     const date = new Date(dateTimeStr);
 
     if (isNaN(date.getTime())) {
-      console.warn(`[parseEventDateTime] Invalid date: "${dateTimeStr}" (original: "${dateString}")`);
+      console.warn(
+        `[parseEventDateTime] Invalid date: "${dateTimeStr}" (original: "${dateString}")`
+      );
       return undefined;
     }
 
     // Get the timezone offset in hours for the event's timezone
     // These are standard offsets - DST adjustments should be handled by the display layer
     const timezoneOffsets: Record<string, number> = {
-      "America/New_York": -5,    // EST
-      "America/Chicago": -6,     // CST
-      "America/Denver": -7,      // MST
+      "America/New_York": -5, // EST
+      "America/Chicago": -6, // CST
+      "America/Denver": -7, // MST
       "America/Los_Angeles": -8, // PST
-      "America/Phoenix": -7,     // MST (no DST)
-      "America/Anchorage": -9,   // AKST
-      "Pacific/Honolulu": -10,   // HST
+      "America/Phoenix": -7, // MST (no DST)
+      "America/Anchorage": -9, // AKST
+      "Pacific/Honolulu": -10, // HST
     };
 
     // Get the offset for this timezone (default to EST if not found)
@@ -309,13 +347,18 @@ export function parseEventDateTime(
     const offsetDifference = timezoneOffset - localOffset;
 
     // Adjust the timestamp by the offset difference
-    const adjustedTimestamp = date.getTime() - (offsetDifference * 60 * 60 * 1000);
+    const adjustedTimestamp = date.getTime() - offsetDifference * 60 * 60 * 1000;
 
-    console.log(`[parseEventDateTime] Parsed "${dateTimeStr}" in ${timezone}: ${new Date(adjustedTimestamp).toISOString()}`);
+    console.log(
+      `[parseEventDateTime] Parsed "${dateTimeStr}" in ${timezone}: ${new Date(adjustedTimestamp).toISOString()}`
+    );
 
     return adjustedTimestamp;
   } catch (error) {
-    console.error(`[parseEventDateTime] Error parsing date: "${dateString}" with time: "${timeString}"`, error);
+    console.error(
+      `[parseEventDateTime] Error parsing date: "${dateString}" with time: "${timeString}"`,
+      error
+    );
     return undefined;
   }
 }

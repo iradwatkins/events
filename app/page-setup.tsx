@@ -13,12 +13,8 @@ export default function Home() {
             <Link href="/" className="flex items-center gap-2">
               <Calendar className="w-8 h-8 text-primary" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  SteppersLife Events
-                </h1>
-                <p className="text-sm text-gray-500">
-                  Discover amazing stepping events
-                </p>
+                <h1 className="text-2xl font-bold text-gray-900">SteppersLife Events</h1>
+                <p className="text-sm text-gray-500">Discover amazing stepping events</p>
               </div>
             </Link>
 
@@ -48,14 +44,12 @@ export default function Home() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <Terminal className="w-8 h-8 text-primary" />
-              <h2 className="text-2xl font-bold text-gray-900">
-                Setup Required
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900">Setup Required</h2>
             </div>
 
             <p className="text-gray-700 mb-6">
-              The frontend is ready, but the backend needs to be initialized.
-              Complete the Convex setup to see the full application.
+              The frontend is ready, but the backend needs to be initialized. Complete the Convex
+              setup to see the full application.
             </p>
 
             {/* Status Checklist */}
@@ -72,7 +66,9 @@ export default function Home() {
                 <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-gray-900">Frontend Components Built</p>
-                  <p className="text-sm text-gray-600">Homepage, search, filters, and masonry grid</p>
+                  <p className="text-sm text-gray-600">
+                    Homepage, search, filters, and masonry grid
+                  </p>
                 </div>
               </div>
 
@@ -95,29 +91,29 @@ export default function Home() {
 
             {/* Setup Instructions */}
             <div className="bg-accent border border-border rounded-lg p-6">
-              <h3 className="font-semibold text-foreground mb-3">
-                Quick Setup (2 minutes)
-              </h3>
+              <h3 className="font-semibold text-foreground mb-3">Quick Setup (2 minutes)</h3>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-foreground mb-2">Step 1: Open New Terminal</p>
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    Step 1: Open New Terminal
+                  </p>
                   <div className="bg-blue-900 text-blue-50 rounded p-3 font-mono text-sm">
                     cd "/Users/irawatkins/Desktop/File Cabinet/event.stepperslife.com"
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-foreground mb-2">Step 2: Run Convex Setup</p>
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    Step 2: Run Convex Setup
+                  </p>
                   <div className="bg-blue-900 text-blue-50 rounded p-3 font-mono text-sm">
                     npx convex dev
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm text-accent-foreground">
-                    This will:
-                  </p>
+                  <p className="text-sm text-accent-foreground">This will:</p>
                   <ul className="text-sm text-accent-foreground list-disc list-inside ml-2 mt-2 space-y-1">
                     <li>Connect to your Convex account</li>
                     <li>Generate API files in convex/_generated/</li>
@@ -127,16 +123,23 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-foreground mb-2">Step 3: Keep Both Running</p>
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    Step 3: Keep Both Running
+                  </p>
                   <p className="text-sm text-accent-foreground">
-                    Terminal 1: <code className="bg-accent px-2 py-0.5 rounded">npm run dev</code> (already running ✓)
+                    Terminal 1: <code className="bg-accent px-2 py-0.5 rounded">npm run dev</code>{" "}
+                    (already running ✓)
                     <br />
-                    Terminal 2: <code className="bg-accent px-2 py-0.5 rounded">npx convex dev</code> (needs to start)
+                    Terminal 2:{" "}
+                    <code className="bg-accent px-2 py-0.5 rounded">npx convex dev</code> (needs to
+                    start)
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-foreground mb-2">Step 4: Refresh Browser</p>
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    Step 4: Refresh Browser
+                  </p>
                   <p className="text-sm text-accent-foreground">
                     Once Convex is running, refresh this page to see the full application
                   </p>
@@ -147,9 +150,7 @@ export default function Home() {
 
           {/* What's Built */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              What's Already Built
-            </h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">What's Already Built</h3>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -198,7 +199,8 @@ export default function Home() {
           <div className="text-center text-sm text-gray-500">
             <p>&copy; 2025 SteppersLife Events. All rights reserved.</p>
             <p className="mt-2">
-              See <code className="bg-gray-100 px-2 py-1 rounded text-xs">SETUP_GUIDE.md</code> for detailed instructions
+              See <code className="bg-gray-100 px-2 py-1 rounded text-xs">SETUP_GUIDE.md</code> for
+              detailed instructions
             </p>
           </div>
         </div>

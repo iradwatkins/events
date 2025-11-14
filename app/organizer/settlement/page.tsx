@@ -101,7 +101,11 @@ export default function SettlementDashboard() {
         <label className="text-sm font-medium text-gray-700">Filter by Event:</label>
         <select
           value={selectedEventId || "all"}
-          onChange={(e) => setSelectedEventId(e.target.value === "all" ? undefined : e.target.value as Id<"events">)}
+          onChange={(e) =>
+            setSelectedEventId(
+              e.target.value === "all" ? undefined : (e.target.value as Id<"events">)
+            )
+          }
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
         >
           <option value="all">All Events</option>
@@ -217,7 +221,9 @@ export default function SettlementDashboard() {
                     <div className="flex gap-6 mt-3 text-sm">
                       <div>
                         <span className="text-gray-600">Tickets Sold:</span>
-                        <span className="font-semibold text-gray-900 ml-2">{staff.totalTickets}</span>
+                        <span className="font-semibold text-gray-900 ml-2">
+                          {staff.totalTickets}
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-600">Commission:</span>
@@ -274,7 +280,9 @@ export default function SettlementDashboard() {
                       )}
                       <button
                         onClick={() =>
-                          setExpandedStaffId(expandedStaffId === staff.staffId ? null : staff.staffId)
+                          setExpandedStaffId(
+                            expandedStaffId === staff.staffId ? null : staff.staffId
+                          )
                         }
                         className="px-3 py-1 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 transition-colors flex items-center gap-1"
                       >
@@ -321,8 +329,7 @@ export default function SettlementDashboard() {
                       <div className="mt-3 p-3 bg-green-50 rounded-lg">
                         <p className="text-sm text-green-800">
                           <CheckCircle2 className="w-4 h-4 inline mr-1" />
-                          Marked as paid on{" "}
-                          {new Date(staff.settlementPaidAt).toLocaleDateString()}
+                          Marked as paid on {new Date(staff.settlementPaidAt).toLocaleDateString()}
                         </p>
                       </div>
                     )}
@@ -342,7 +349,8 @@ export default function SettlementDashboard() {
             <h3 className="font-semibold text-foreground mb-2">How Settlement Works</h3>
             <ul className="text-sm text-accent-foreground space-y-1">
               <li>
-                • <strong>Commission Earned:</strong> Total commission from all ticket sales (cash + credit)
+                • <strong>Commission Earned:</strong> Total commission from all ticket sales (cash +
+                credit)
               </li>
               <li>
                 • <strong>Cash Collected:</strong> Total cash received by staff for cash sales
@@ -350,12 +358,8 @@ export default function SettlementDashboard() {
               <li>
                 • <strong>Net Settlement = Commission - Cash Collected</strong>
               </li>
-              <li>
-                • If positive (red): You owe the staff member money
-              </li>
-              <li>
-                • If negative (green): The staff member owes you money
-              </li>
+              <li>• If positive (red): You owe the staff member money</li>
+              <li>• If negative (green): The staff member owes you money</li>
             </ul>
           </div>
         </div>

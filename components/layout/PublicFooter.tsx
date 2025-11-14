@@ -18,9 +18,10 @@ export function PublicFooter() {
       title: "About",
       content: (
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          SteppersLife Events is your premier platform for discovering and attending stepping events.
+          SteppersLife Events is your premier platform for discovering and attending stepping
+          events.
         </p>
-      )
+      ),
     },
     {
       id: "organizers",
@@ -28,8 +29,8 @@ export function PublicFooter() {
       links: [
         { href: "/organizer/events/create", label: "Create Event" },
         { href: "/pricing", label: "Pricing" },
-        { href: "/help", label: "Help Center" }
-      ]
+        { href: "/help", label: "Help Center" },
+      ],
     },
     {
       id: "resources",
@@ -37,17 +38,17 @@ export function PublicFooter() {
       links: [
         { href: "/", label: "Browse Events" },
         { href: "/shop", label: "Shop" },
-        { href: "/my-tickets", label: "My Tickets" }
-      ]
+        { href: "/my-tickets", label: "My Tickets" },
+      ],
     },
     {
       id: "legal",
       title: "Legal",
       links: [
         { href: "/privacy", label: "Privacy Policy" },
-        { href: "/terms", label: "Terms of Service" }
-      ]
-    }
+        { href: "/terms", label: "Terms of Service" },
+      ],
+    },
   ];
 
   return (
@@ -70,9 +71,7 @@ export function PublicFooter() {
               </button>
               <React.Fragment>
                 {openSection === section.id && (
-                  <div
-                    className="overflow-hidden"
-                  >
+                  <div className="overflow-hidden">
                     <div className="pb-3">
                       {section.content ? (
                         section.content
@@ -104,7 +103,8 @@ export function PublicFooter() {
           <div>
             <h3 className="font-semibold text-gray-900 dark:text-white mb-3">About</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              SteppersLife Events is your premier platform for discovering and attending stepping events.
+              SteppersLife Events is your premier platform for discovering and attending stepping
+              events.
             </p>
           </div>
 
@@ -113,7 +113,10 @@ export function PublicFooter() {
             <h3 className="font-semibold text-gray-900 dark:text-white mb-3">For Organizers</h3>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <li>
-                <Link href="/organizer/events/create" className="hover:text-primary transition-colors">
+                <Link
+                  href="/organizer/events/create"
+                  className="hover:text-primary transition-colors"
+                >
                   Create Event
                 </Link>
               </li>
@@ -177,7 +180,8 @@ export function PublicFooter() {
               &copy; {currentYear} SteppersLife Events. All rights reserved.
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-              Made with <Heart className="w-4 h-4 text-red-500 fill-current" /> for the stepping community
+              Made with <Heart className="w-4 h-4 text-red-500 fill-current" /> for the stepping
+              community
             </p>
           </div>
         </div>

@@ -80,11 +80,13 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
 
     const newSeats = table.seats.map((seat, i) => ({
       ...seat,
-      position: positions[i] ? {
-        angle: positions[i].angle,
-        side: positions[i].side,
-        offset: positions[i].offset,
-      } : undefined,
+      position: positions[i]
+        ? {
+            angle: positions[i].angle,
+            side: positions[i].side,
+            offset: positions[i].offset,
+          }
+        : undefined,
     }));
 
     onUpdate({ seats: newSeats });
@@ -95,7 +97,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
     onUpdate({ rotation: newRotation });
   };
 
-  const handleResize = (dimension: 'width' | 'height', value: number) => {
+  const handleResize = (dimension: "width" | "height", value: number) => {
     const newValue = Math.max(60, value);
     onUpdate({ [dimension]: newValue });
   };
@@ -113,10 +115,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
         <div className="bg-primary px-6 py-4 text-white sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Edit Table</h2>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-white/20 rounded transition-colors"
-            >
+            <button onClick={onClose} className="p-1 hover:bg-white/20 rounded transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -143,9 +142,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
 
           {/* Shape Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Table Shape
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Table Shape</label>
             <TableShapePalette
               currentShape={table.shape}
               onShapeSelect={handleShapeChange}
@@ -155,9 +152,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
 
           {/* Capacity */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Seating Capacity
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Seating Capacity</label>
             <div className="relative">
               <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
@@ -169,13 +164,14 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
                 className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Number of seats around this table (1-100)
-            </p>
+            <p className="text-xs text-gray-500 mt-1">Number of seats around this table (1-100)</p>
             {parseInt(localCapacity) > 50 && (
               <div className="flex items-start gap-2 mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
                 <span className="text-amber-600">⚠️</span>
-                <span>Large tables (50+ seats) work best with King's Table or long rectangular configurations</span>
+                <span>
+                  Large tables (50+ seats) work best with King's Table or long rectangular
+                  configurations
+                </span>
               </div>
             )}
           </div>
@@ -188,10 +184,15 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
               </label>
               <select
                 value={
-                  table.seatArc?.arcDegrees === 360 || !table.seatArc ? "full" :
-                  table.seatArc?.arcDegrees === 270 ? "three-quarter" :
-                  table.seatArc?.arcDegrees === 180 ? "half" :
-                  table.seatArc?.arcDegrees === 135 ? "crescent" : "full"
+                  table.seatArc?.arcDegrees === 360 || !table.seatArc
+                    ? "full"
+                    : table.seatArc?.arcDegrees === 270
+                      ? "three-quarter"
+                      : table.seatArc?.arcDegrees === 180
+                        ? "half"
+                        : table.seatArc?.arcDegrees === 135
+                          ? "crescent"
+                          : "full"
                 }
                 onChange={(e) => {
                   const arcMap = {
@@ -210,7 +211,8 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
                 <option value="crescent">Crescent/Cabaret (135°)</option>
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                Cabaret/Crescent style seats guests on one side only, perfect for viewing a stage or presentation
+                Cabaret/Crescent style seats guests on one side only, perfect for viewing a stage or
+                presentation
               </p>
             </div>
           )}
@@ -236,7 +238,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
                   type="number"
                   min="60"
                   value={Math.round(table.width)}
-                  onChange={(e) => handleResize('width', parseInt(e.target.value) || 100)}
+                  onChange={(e) => handleResize("width", parseInt(e.target.value) || 100)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
@@ -246,7 +248,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
                   type="number"
                   min="60"
                   value={Math.round(table.height)}
-                  onChange={(e) => handleResize('height', parseInt(e.target.value) || 100)}
+                  onChange={(e) => handleResize("height", parseInt(e.target.value) || 100)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
@@ -285,9 +287,7 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
 
           {/* Rotation */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Rotation
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Rotation</label>
             <div className="flex items-center gap-3">
               <input
                 type="range"
@@ -326,13 +326,13 @@ export default function TableEditor({ table, onUpdate, onDelete, onClose }: Tabl
               <div className="flex items-center justify-between">
                 <span>Available:</span>
                 <span className="font-medium text-green-700">
-                  {table.seats.filter(s => s.status === "AVAILABLE").length}
+                  {table.seats.filter((s) => s.status === "AVAILABLE").length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Reserved:</span>
                 <span className="font-medium text-orange-700">
-                  {table.seats.filter(s => s.status === "RESERVED").length}
+                  {table.seats.filter((s) => s.status === "RESERVED").length}
                 </span>
               </div>
             </div>

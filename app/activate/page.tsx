@@ -69,12 +69,8 @@ export default function ActivatePage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
               <Check className="w-10 h-10 text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Ticket Activated!
-            </h1>
-            <p className="text-gray-600">
-              Your ticket has been successfully activated
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Ticket Activated!</h1>
+            <p className="text-gray-600">Your ticket has been successfully activated</p>
           </div>
 
           {/* QR Code */}
@@ -99,9 +95,7 @@ export default function ActivatePage() {
             {ticketData.eventDate && (
               <div>
                 <p className="text-sm text-gray-500">Date</p>
-                <p className="font-medium text-gray-900">
-                  {formatDate(ticketData.eventDate)}
-                </p>
+                <p className="font-medium text-gray-900">{formatDate(ticketData.eventDate)}</p>
               </div>
             )}
             <div>
@@ -117,8 +111,8 @@ export default function ActivatePage() {
           {/* Instructions */}
           <div className="bg-accent border border-border rounded-lg p-4 mb-6">
             <p className="text-sm text-foreground">
-              <strong>Important:</strong> Save this QR code! You'll need it to enter the event.
-              A confirmation email has been sent to <strong>{ticketData.attendeeEmail}</strong>.
+              <strong>Important:</strong> Save this QR code! You'll need it to enter the event. A
+              confirmation email has been sent to <strong>{ticketData.attendeeEmail}</strong>.
             </p>
           </div>
 
@@ -150,12 +144,8 @@ export default function ActivatePage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-accent rounded-full mb-4">
             <Ticket className="w-10 h-10 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Activate Your Ticket
-          </h1>
-          <p className="text-gray-600">
-            Enter the 4-digit code provided by your ticket seller
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Activate Your Ticket</h1>
+          <p className="text-gray-600">Enter the 4-digit code provided by your ticket seller</p>
         </div>
 
         {/* Error Alert */}
@@ -187,9 +177,7 @@ export default function ActivatePage() {
               required
               autoFocus
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Enter the 4-digit code from your receipt
-            </p>
+            <p className="mt-1 text-xs text-gray-500">Enter the 4-digit code from your receipt</p>
           </div>
 
           {/* Email Input */}
@@ -206,9 +194,7 @@ export default function ActivatePage() {
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
               required
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Your ticket will be sent to this email
-            </p>
+            <p className="mt-1 text-xs text-gray-500">Your ticket will be sent to this email</p>
           </div>
 
           {/* Name Input (Optional) */}

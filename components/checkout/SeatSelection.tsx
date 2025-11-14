@@ -104,13 +104,15 @@ export default function SeatSelection({
     });
 
     if (isSelected) {
-      setSelectedSeats(selectedSeats.filter((s) => {
-        if (s.rowId) {
-          return `${s.sectionId}-row-${s.rowId}-${s.seatId}` !== seatKey;
-        } else {
-          return `${s.sectionId}-table-${s.tableId}-${s.seatId}` !== seatKey;
-        }
-      }));
+      setSelectedSeats(
+        selectedSeats.filter((s) => {
+          if (s.rowId) {
+            return `${s.sectionId}-row-${s.rowId}-${s.seatId}` !== seatKey;
+          } else {
+            return `${s.sectionId}-table-${s.tableId}-${s.seatId}` !== seatKey;
+          }
+        })
+      );
     } else {
       if (selectedSeats.length < requiredSeats) {
         setSelectedSeats([
@@ -180,9 +182,7 @@ export default function SeatSelection({
     const availableSeats = seats.filter((s) => s.status === "AVAILABLE");
     if (availableSeats.length === 0) return false;
 
-    return availableSeats.every((seat) =>
-      isSeatSelected(sectionId, seat.id, undefined, tableId)
-    );
+    return availableSeats.every((seat) => isSeatSelected(sectionId, seat.id, undefined, tableId));
   };
 
   const getAvailableSeatCount = () => {
@@ -248,9 +248,13 @@ export default function SeatSelection({
                     >
                       {seat.sectionName} -{" "}
                       {seat.rowId ? (
-                        <>Row {seat.rowLabel}, Seat {seat.seatNumber}</>
+                        <>
+                          Row {seat.rowLabel}, Seat {seat.seatNumber}
+                        </>
                       ) : (
-                        <>Table {seat.tableNumber}, Seat {seat.seatNumber}</>
+                        <>
+                          Table {seat.tableNumber}, Seat {seat.seatNumber}
+                        </>
                       )}
                     </span>
                   ))}
@@ -300,76 +304,76 @@ export default function SeatSelection({
               {section.rows && section.rows.length > 0 && (
                 <div className="space-y-2 overflow-x-auto pb-2">
                   {section.rows.map((row) => (
-                  <div key={row.id} className="flex items-center gap-2 min-w-max">
-                    <span className="w-12 text-sm font-medium text-gray-600 text-right flex-shrink-0">
-                      Row {row.label}
-                    </span>
-                    <div className="flex gap-1">
-                      {row.seats.map((seat) => {
-                        const isSelected = isSeatSelected(section.id, seat.id, row.id);
-                        const isAvailable = seat.status === "AVAILABLE";
-                        const isReserved = seat.status === "RESERVED";
-                        const isWheelchair = seat.type === "WHEELCHAIR";
+                    <div key={row.id} className="flex items-center gap-2 min-w-max">
+                      <span className="w-12 text-sm font-medium text-gray-600 text-right flex-shrink-0">
+                        Row {row.label}
+                      </span>
+                      <div className="flex gap-1">
+                        {row.seats.map((seat) => {
+                          const isSelected = isSeatSelected(section.id, seat.id, row.id);
+                          const isAvailable = seat.status === "AVAILABLE";
+                          const isReserved = seat.status === "RESERVED";
+                          const isWheelchair = seat.type === "WHEELCHAIR";
 
-                        const isVIP = seat.type === "VIP";
-                        const isCompanion = seat.type === "COMPANION";
+                          const isVIP = seat.type === "VIP";
+                          const isCompanion = seat.type === "COMPANION";
 
-                        return (
-                          <button
-                            key={seat.id}
-                            onClick={() => {
-                              if (isAvailable) {
-                                toggleSeat(
-                                  section.id,
-                                  section.name,
-                                  seat.id,
-                                  seat.number,
-                                  row.id,
-                                  row.label
-                                );
+                          return (
+                            <button
+                              key={seat.id}
+                              onClick={() => {
+                                if (isAvailable) {
+                                  toggleSeat(
+                                    section.id,
+                                    section.name,
+                                    seat.id,
+                                    seat.number,
+                                    row.id,
+                                    row.label
+                                  );
+                                }
+                              }}
+                              disabled={!isAvailable}
+                              className={`w-10 h-10 rounded flex items-center justify-center text-xs font-medium transition-all border-2 ${
+                                isSelected
+                                  ? "bg-green-600 text-white border-green-700 scale-110"
+                                  : isReserved
+                                    ? "bg-gray-300 text-gray-600 border-gray-400 cursor-not-allowed"
+                                    : isWheelchair
+                                      ? "bg-white text-black border-black hover:bg-green-50 cursor-pointer"
+                                      : isVIP
+                                        ? "bg-white text-black border-yellow-600 hover:bg-green-50 cursor-pointer"
+                                        : isCompanion
+                                          ? "bg-white text-black border-black hover:bg-green-50 cursor-pointer"
+                                          : "bg-white text-gray-900 border-gray-900 hover:bg-green-50 cursor-pointer"
+                              }`}
+                              title={
+                                isReserved
+                                  ? "Reserved"
+                                  : isWheelchair
+                                    ? `Wheelchair Accessible Seat ${seat.number}`
+                                    : isVIP
+                                      ? `VIP Seat ${seat.number}`
+                                      : isCompanion
+                                        ? `Companion Seat ${seat.number}`
+                                        : `Seat ${seat.number}`
                               }
-                            }}
-                            disabled={!isAvailable}
-                            className={`w-10 h-10 rounded flex items-center justify-center text-xs font-medium transition-all border-2 ${
-                              isSelected
-                                ? "bg-green-600 text-white border-green-700 scale-110"
-                                : isReserved
-                                ? "bg-gray-300 text-gray-600 border-gray-400 cursor-not-allowed"
-                                : isWheelchair
-                                ? "bg-white text-black border-black hover:bg-green-50 cursor-pointer"
-                                : isVIP
-                                ? "bg-white text-black border-yellow-600 hover:bg-green-50 cursor-pointer"
-                                : isCompanion
-                                ? "bg-white text-black border-black hover:bg-green-50 cursor-pointer"
-                                : "bg-white text-gray-900 border-gray-900 hover:bg-green-50 cursor-pointer"
-                            }`}
-                            title={
-                              isReserved
-                                ? "Reserved"
-                                : isWheelchair
-                                ? `Wheelchair Accessible Seat ${seat.number}`
-                                : isVIP
-                                ? `VIP Seat ${seat.number}`
-                                : isCompanion
-                                ? `Companion Seat ${seat.number}`
-                                : `Seat ${seat.number}`
-                            }
-                          >
-                            {isWheelchair ? (
-                              <Accessibility className="w-4 h-4" />
-                            ) : isVIP ? (
-                              <Crown className="w-4 h-4" />
-                            ) : isCompanion ? (
-                              <Users className="w-4 h-4" />
-                            ) : (
-                              <span>{seat.number}</span>
-                            )}
-                          </button>
-                        );
-                      })}
+                            >
+                              {isWheelchair ? (
+                                <Accessibility className="w-4 h-4" />
+                              ) : isVIP ? (
+                                <Crown className="w-4 h-4" />
+                              ) : isCompanion ? (
+                                <Users className="w-4 h-4" />
+                              ) : (
+                                <span>{seat.number}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
               )}
 
@@ -383,161 +387,179 @@ export default function SeatSelection({
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {section.tables.map((table) => {
-                      const availableSeatsAtTable = table.seats.filter(s => s.status === "AVAILABLE").length;
-                      const tableSelected = isEntireTableSelected(section.id, table.id, table.seats);
+                      const availableSeatsAtTable = table.seats.filter(
+                        (s) => s.status === "AVAILABLE"
+                      ).length;
+                      const tableSelected = isEntireTableSelected(
+                        section.id,
+                        table.id,
+                        table.seats
+                      );
                       const tableFullyAvailable = availableSeatsAtTable === table.seats.length;
 
                       return (
-                      <div
-                        key={table.id}
-                        className={`border-2 rounded-lg p-4 transition-all ${
-                          isTablePackage
-                            ? tableSelected
-                              ? "border-green-500 bg-green-50"
-                              : "border-gray-200 bg-gray-50 hover:border-primary/40"
-                            : "border-gray-200 bg-gray-50 hover:border-border"
-                        }`}
-                      >
-                        <h4 className="font-semibold text-gray-900 mb-3 text-center">
-                          Table {table.number}
-                        </h4>
+                        <div
+                          key={table.id}
+                          className={`border-2 rounded-lg p-4 transition-all ${
+                            isTablePackage
+                              ? tableSelected
+                                ? "border-green-500 bg-green-50"
+                                : "border-gray-200 bg-gray-50 hover:border-primary/40"
+                              : "border-gray-200 bg-gray-50 hover:border-border"
+                          }`}
+                        >
+                          <h4 className="font-semibold text-gray-900 mb-3 text-center">
+                            Table {table.number}
+                          </h4>
 
-                        {isTablePackage ? (
-                          /* Table Package Mode - Show "Buy This Table" Button */
-                          <div className="space-y-3">
-                            <div className="bg-white rounded-lg p-3 border border-gray-200">
-                              <p className="text-sm text-gray-600 text-center mb-1">
-                                {table.seats.length} seats
-                              </p>
-                              <p className="text-xs text-center">
-                                {availableSeatsAtTable === table.seats.length ? (
-                                  <span className="text-green-600 font-medium">All seats available</span>
-                                ) : availableSeatsAtTable === 0 ? (
-                                  <span className="text-red-600 font-medium">No seats available</span>
-                                ) : (
-                                  <span className="text-yellow-600 font-medium">
-                                    Only {availableSeatsAtTable} seats available
-                                  </span>
-                                )}
-                              </p>
-                            </div>
+                          {isTablePackage ? (
+                            /* Table Package Mode - Show "Buy This Table" Button */
+                            <div className="space-y-3">
+                              <div className="bg-white rounded-lg p-3 border border-gray-200">
+                                <p className="text-sm text-gray-600 text-center mb-1">
+                                  {table.seats.length} seats
+                                </p>
+                                <p className="text-xs text-center">
+                                  {availableSeatsAtTable === table.seats.length ? (
+                                    <span className="text-green-600 font-medium">
+                                      All seats available
+                                    </span>
+                                  ) : availableSeatsAtTable === 0 ? (
+                                    <span className="text-red-600 font-medium">
+                                      No seats available
+                                    </span>
+                                  ) : (
+                                    <span className="text-yellow-600 font-medium">
+                                      Only {availableSeatsAtTable} seats available
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
 
-                            <button
-                              onClick={() => {
-                                if (tableFullyAvailable) {
-                                  selectEntireTable(
-                                    section.id,
-                                    section.name,
-                                    table.id,
-                                    table.number,
-                                    table.seats
-                                  );
-                                }
-                              }}
-                              disabled={!tableFullyAvailable}
-                              className={`w-full py-3 rounded-lg font-semibold transition-all ${
-                                tableFullyAvailable
-                                  ? tableSelected
-                                    ? "bg-green-600 text-white hover:bg-green-700"
-                                    : "bg-primary text-white hover:bg-primary/90"
-                                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              }`}
-                            >
-                              {tableSelected ? (
-                                <>
-                                  <Check className="w-4 h-4 inline mr-2" />
-                                  Table Selected
-                                </>
-                              ) : tableFullyAvailable ? (
-                                `Buy This Table`
-                              ) : (
-                                "Table Unavailable"
-                              )}
-                            </button>
-
-                            {ticketTier?.price && tableFullyAvailable && (
-                              <p className="text-xs text-center text-gray-600">
-                                ${(ticketTier.price / 100).toFixed(2)} for {table.seats.length} seats
-                                <br />
-                                (${((ticketTier.price / 100) / table.seats.length).toFixed(2)} per seat)
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          /* Normal Mode - Show Individual Seats */
-                          <div className="flex flex-wrap gap-2 justify-center">
-                          {table.seats.map((seat) => {
-                            const isSelected = isSeatSelected(section.id, seat.id, undefined, table.id);
-                            const isAvailable = seat.status === "AVAILABLE";
-                            const isReserved = seat.status === "RESERVED";
-                            const isWheelchair = seat.type === "WHEELCHAIR";
-                            const isVIP = seat.type === "VIP";
-                            const isCompanion = seat.type === "COMPANION";
-
-                            return (
                               <button
-                                key={seat.id}
                                 onClick={() => {
-                                  if (isAvailable) {
-                                    toggleSeat(
+                                  if (tableFullyAvailable) {
+                                    selectEntireTable(
                                       section.id,
                                       section.name,
-                                      seat.id,
-                                      seat.number,
-                                      undefined,
-                                      undefined,
                                       table.id,
-                                      table.number
+                                      table.number,
+                                      table.seats
                                     );
                                   }
                                 }}
-                                disabled={!isAvailable}
-                                className={`w-12 h-12 rounded-full flex items-center justify-center text-xs font-medium transition-all border-2 ${
-                                  isSelected
-                                    ? "bg-green-600 text-white border-green-700 scale-110"
-                                    : isReserved
-                                    ? "bg-gray-300 text-gray-600 border-gray-400 cursor-not-allowed"
-                                    : isWheelchair
-                                    ? "bg-white text-black border-black hover:bg-green-50 cursor-pointer"
-                                    : isVIP
-                                    ? "bg-white text-black border-yellow-600 hover:bg-green-50 cursor-pointer"
-                                    : isCompanion
-                                    ? "bg-white text-black border-black hover:bg-green-50 cursor-pointer"
-                                    : "bg-white text-gray-900 border-gray-900 hover:bg-green-50 cursor-pointer"
+                                disabled={!tableFullyAvailable}
+                                className={`w-full py-3 rounded-lg font-semibold transition-all ${
+                                  tableFullyAvailable
+                                    ? tableSelected
+                                      ? "bg-green-600 text-white hover:bg-green-700"
+                                      : "bg-primary text-white hover:bg-primary/90"
+                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
                                 }`}
-                                title={
-                                  isReserved
-                                    ? "Reserved"
-                                    : isWheelchair
-                                    ? `Wheelchair Accessible Seat ${seat.number}`
-                                    : isVIP
-                                    ? `VIP Seat ${seat.number}`
-                                    : isCompanion
-                                    ? `Companion Seat ${seat.number}`
-                                    : `Seat ${seat.number}`
-                                }
                               >
-                                {isWheelchair ? (
-                                  <Accessibility className="w-4 h-4" />
-                                ) : isVIP ? (
-                                  <Crown className="w-4 h-4" />
-                                ) : isCompanion ? (
-                                  <Users className="w-4 h-4" />
+                                {tableSelected ? (
+                                  <>
+                                    <Check className="w-4 h-4 inline mr-2" />
+                                    Table Selected
+                                  </>
+                                ) : tableFullyAvailable ? (
+                                  `Buy This Table`
                                 ) : (
-                                  <span>{seat.number}</span>
+                                  "Table Unavailable"
                                 )}
                               </button>
-                            );
-                          })}
-                          </div>
-                        )}
 
-                        {!isTablePackage && (
-                          <p className="text-xs text-gray-600 text-center mt-3">
-                            {table.seats.filter(s => s.status === "AVAILABLE").length} of {table.seats.length} available
-                          </p>
-                        )}
-                      </div>
+                              {ticketTier?.price && tableFullyAvailable && (
+                                <p className="text-xs text-center text-gray-600">
+                                  ${(ticketTier.price / 100).toFixed(2)} for {table.seats.length}{" "}
+                                  seats
+                                  <br />
+                                  (${(ticketTier.price / 100 / table.seats.length).toFixed(2)} per
+                                  seat)
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            /* Normal Mode - Show Individual Seats */
+                            <div className="flex flex-wrap gap-2 justify-center">
+                              {table.seats.map((seat) => {
+                                const isSelected = isSeatSelected(
+                                  section.id,
+                                  seat.id,
+                                  undefined,
+                                  table.id
+                                );
+                                const isAvailable = seat.status === "AVAILABLE";
+                                const isReserved = seat.status === "RESERVED";
+                                const isWheelchair = seat.type === "WHEELCHAIR";
+                                const isVIP = seat.type === "VIP";
+                                const isCompanion = seat.type === "COMPANION";
+
+                                return (
+                                  <button
+                                    key={seat.id}
+                                    onClick={() => {
+                                      if (isAvailable) {
+                                        toggleSeat(
+                                          section.id,
+                                          section.name,
+                                          seat.id,
+                                          seat.number,
+                                          undefined,
+                                          undefined,
+                                          table.id,
+                                          table.number
+                                        );
+                                      }
+                                    }}
+                                    disabled={!isAvailable}
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center text-xs font-medium transition-all border-2 ${
+                                      isSelected
+                                        ? "bg-green-600 text-white border-green-700 scale-110"
+                                        : isReserved
+                                          ? "bg-gray-300 text-gray-600 border-gray-400 cursor-not-allowed"
+                                          : isWheelchair
+                                            ? "bg-white text-black border-black hover:bg-green-50 cursor-pointer"
+                                            : isVIP
+                                              ? "bg-white text-black border-yellow-600 hover:bg-green-50 cursor-pointer"
+                                              : isCompanion
+                                                ? "bg-white text-black border-black hover:bg-green-50 cursor-pointer"
+                                                : "bg-white text-gray-900 border-gray-900 hover:bg-green-50 cursor-pointer"
+                                    }`}
+                                    title={
+                                      isReserved
+                                        ? "Reserved"
+                                        : isWheelchair
+                                          ? `Wheelchair Accessible Seat ${seat.number}`
+                                          : isVIP
+                                            ? `VIP Seat ${seat.number}`
+                                            : isCompanion
+                                              ? `Companion Seat ${seat.number}`
+                                              : `Seat ${seat.number}`
+                                    }
+                                  >
+                                    {isWheelchair ? (
+                                      <Accessibility className="w-4 h-4" />
+                                    ) : isVIP ? (
+                                      <Crown className="w-4 h-4" />
+                                    ) : isCompanion ? (
+                                      <Users className="w-4 h-4" />
+                                    ) : (
+                                      <span>{seat.number}</span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {!isTablePackage && (
+                            <p className="text-xs text-gray-600 text-center mt-3">
+                              {table.seats.filter((s) => s.status === "AVAILABLE").length} of{" "}
+                              {table.seats.length} available
+                            </p>
+                          )}
+                        </div>
                       );
                     })}
                   </div>

@@ -30,10 +30,7 @@ export default function OrdersManagementPage() {
 
   const updateFulfillmentStatus = useMutation(api.products.orders.updateFulfillmentStatus);
 
-  const handleStatusChange = async (
-    orderId: Id<"productOrders">,
-    newStatus: FulfillmentStatus
-  ) => {
+  const handleStatusChange = async (orderId: Id<"productOrders">, newStatus: FulfillmentStatus) => {
     try {
       await updateFulfillmentStatus({
         orderId,
@@ -237,8 +234,8 @@ export default function OrdersManagementPage() {
                           order.paymentStatus === "PAID"
                             ? "bg-green-100 text-green-800"
                             : order.paymentStatus === "PENDING"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                         }`}
                       >
                         {order.paymentStatus === "PAID" && <CheckCircle2 className="w-3 h-3" />}
@@ -251,12 +248,12 @@ export default function OrdersManagementPage() {
                           order.fulfillmentStatus === "DELIVERED"
                             ? "bg-green-100 text-green-800"
                             : order.fulfillmentStatus === "SHIPPED"
-                            ? "bg-accent text-accent-foreground"
-                            : order.fulfillmentStatus === "PROCESSING"
-                            ? "bg-accent text-accent-foreground"
-                            : order.fulfillmentStatus === "CANCELLED"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-yellow-100 text-yellow-800"
+                              ? "bg-accent text-accent-foreground"
+                              : order.fulfillmentStatus === "PROCESSING"
+                                ? "bg-accent text-accent-foreground"
+                                : order.fulfillmentStatus === "CANCELLED"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
                         {order.fulfillmentStatus}
@@ -325,9 +322,7 @@ export default function OrdersManagementPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tracking URL
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Tracking URL</label>
                 <input
                   type="url"
                   value={trackingInfo.url}

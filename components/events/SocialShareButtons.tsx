@@ -10,14 +10,19 @@ interface SocialShareButtonsProps {
   hasTickets?: boolean;
 }
 
-export function SocialShareButtons({ eventName, eventUrl, eventDate, hasTickets }: SocialShareButtonsProps) {
+export function SocialShareButtons({
+  eventName,
+  eventUrl,
+  eventDate,
+  hasTickets,
+}: SocialShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
   const callToAction = hasTickets
     ? "Buy Tickets on SteppersLife.com"
     : "Find more events on SteppersLife.com";
 
-  const shareText = `${eventName}${eventDate ? ' - ' + eventDate : ''}. ${callToAction}`;
+  const shareText = `${eventName}${eventDate ? " - " + eventDate : ""}. ${callToAction}`;
   const encodedUrl = encodeURIComponent(eventUrl);
   const encodedText = encodeURIComponent(shareText);
 
@@ -27,7 +32,7 @@ export function SocialShareButtons({ eventName, eventUrl, eventDate, hasTickets 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy link:', err);
+      console.error("Failed to copy link:", err);
     }
   };
 
@@ -44,7 +49,7 @@ export function SocialShareButtons({ eventName, eventUrl, eventDate, hasTickets 
 
     window.open(
       shareUrls[platform],
-      '_blank',
+      "_blank",
       `width=${width},height=${height},left=${left},top=${top}`
     );
   };
@@ -53,7 +58,7 @@ export function SocialShareButtons({ eventName, eventUrl, eventDate, hasTickets 
     // Instagram doesn't have a direct share URL for web
     // Copy link and show message for user to paste in Instagram
     handleCopyLink();
-    alert('Link copied! Open Instagram and paste the link in your story or post.');
+    alert("Link copied! Open Instagram and paste the link in your story or post.");
   };
 
   return (
@@ -61,7 +66,7 @@ export function SocialShareButtons({ eventName, eventUrl, eventDate, hasTickets 
       <span className="text-sm font-medium text-gray-600 mr-2">Share:</span>
 
       <button
-        onClick={() => handleShare('facebook')}
+        onClick={() => handleShare("facebook")}
         className="flex items-center gap-2 px-3 py-2 bg-[#1877F2] text-white rounded-lg hover:bg-[#166fe5] transition-colors text-sm font-medium"
         aria-label="Share on Facebook"
       >
@@ -70,7 +75,7 @@ export function SocialShareButtons({ eventName, eventUrl, eventDate, hasTickets 
       </button>
 
       <button
-        onClick={() => handleShare('twitter')}
+        onClick={() => handleShare("twitter")}
         className="flex items-center gap-2 px-3 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
         aria-label="Share on X (Twitter)"
       >
@@ -90,9 +95,7 @@ export function SocialShareButtons({ eventName, eventUrl, eventDate, hasTickets 
       <button
         onClick={handleCopyLink}
         className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
-          copied
-            ? 'bg-green-500 text-white'
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          copied ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
         }`}
         aria-label="Copy link"
       >

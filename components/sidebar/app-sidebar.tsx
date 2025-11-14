@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import * as React from 'react'
+import * as React from "react";
 import {
   Calendar,
   LayoutDashboard,
@@ -10,9 +10,9 @@ import {
   Users,
   BarChart3,
   Gift,
-} from 'lucide-react'
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
+} from "lucide-react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 import {
   Sidebar,
@@ -26,44 +26,44 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-} from '@/components/ui/sidebar'
+} from "@/components/ui/sidebar";
 
 // Navigation items configuration for event organizers
 const navItems = [
   {
-    title: 'Dashboard',
-    url: '/organizer/dashboard',
+    title: "Dashboard",
+    url: "/organizer/dashboard",
     icon: LayoutDashboard,
   },
   {
-    title: 'My Events',
-    url: '/organizer/events',
+    title: "My Events",
+    url: "/organizer/events",
     icon: Calendar,
   },
   {
-    title: 'Claim Events',
-    url: '/organizer/claim-events',
+    title: "Claim Events",
+    url: "/organizer/claim-events",
     icon: Gift,
   },
   {
-    title: 'Create Event',
-    url: '/organizer/events/create',
+    title: "Create Event",
+    url: "/organizer/events/create",
     icon: Plus,
   },
   {
-    title: 'Analytics',
-    url: '/organizer/analytics',
+    title: "Analytics",
+    url: "/organizer/analytics",
     icon: BarChart3,
   },
   {
-    title: 'Settings',
-    url: '/organizer/settings',
+    title: "Settings",
+    url: "/organizer/settings",
     icon: Settings,
   },
-]
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -73,7 +73,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
             <Ticket className="h-5 w-5" />
           </div>
-          <span className="font-semibold text-lg group-data-[state=collapsed]/sidebar-wrapper:hidden">SteppersLife</span>
+          <span className="font-semibold text-lg group-data-[state=collapsed]/sidebar-wrapper:hidden">
+            SteppersLife
+          </span>
         </Link>
       </SidebarHeader>
 
@@ -116,5 +118,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

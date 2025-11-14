@@ -10,10 +10,32 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Clock, ArrowUpRight, ArrowDownLeft, CheckCircle, XCircle, AlertCircle, Users, Package } from "lucide-react";
+import {
+  Clock,
+  ArrowUpRight,
+  ArrowDownLeft,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Users,
+  Package,
+} from "lucide-react";
 import { format } from "date-fns";
 
 export default function StaffTransfersPage() {
@@ -47,7 +69,7 @@ export default function StaffTransfersPage() {
   const cancelTransfer = useMutation(api.staff.transfers.cancelTransfer);
 
   // Get current user's balance for selected event
-  const myStaffRecord = myStaffEvents?.find(e => e.eventId === selectedEvent);
+  const myStaffRecord = myStaffEvents?.find((e) => e.eventId === selectedEvent);
   const myBalance = myStaffRecord?.allocatedTickets || 0;
 
   const handleRequestTransfer = async () => {
@@ -87,7 +109,9 @@ export default function StaffTransfersPage() {
   const handleAcceptTransfer = async (transferId: Id<"staffTicketTransfers">) => {
     try {
       const result = await acceptTransfer({ transferId });
-      toast.success(`Received ${result.ticketsReceived} tickets. New balance: ${result.newBalance}`);
+      toast.success(
+        `Received ${result.ticketsReceived} tickets. New balance: ${result.newBalance}`
+      );
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -121,15 +145,40 @@ export default function StaffTransfersPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
-        return <Badge variant="outline" className="bg-yellow-50"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+        return (
+          <Badge variant="outline" className="bg-yellow-50">
+            <Clock className="w-3 h-3 mr-1" />
+            Pending
+          </Badge>
+        );
       case "ACCEPTED":
-        return <Badge variant="outline" className="bg-green-50 text-green-700"><CheckCircle className="w-3 h-3 mr-1" />Accepted</Badge>;
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Accepted
+          </Badge>
+        );
       case "REJECTED":
-        return <Badge variant="outline" className="bg-red-50 text-red-700"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+        return (
+          <Badge variant="outline" className="bg-red-50 text-red-700">
+            <XCircle className="w-3 h-3 mr-1" />
+            Rejected
+          </Badge>
+        );
       case "CANCELLED":
-        return <Badge variant="outline" className="bg-gray-50"><XCircle className="w-3 h-3 mr-1" />Cancelled</Badge>;
+        return (
+          <Badge variant="outline" className="bg-gray-50">
+            <XCircle className="w-3 h-3 mr-1" />
+            Cancelled
+          </Badge>
+        );
       case "AUTO_EXPIRED":
-        return <Badge variant="outline" className="bg-gray-50"><AlertCircle className="w-3 h-3 mr-1" />Expired</Badge>;
+        return (
+          <Badge variant="outline" className="bg-gray-50">
+            <AlertCircle className="w-3 h-3 mr-1" />
+            Expired
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -154,7 +203,10 @@ export default function StaffTransfersPage() {
           <CardDescription>Choose an event to manage ticket transfers</CardDescription>
         </CardHeader>
         <CardContent>
-          <Select value={selectedEvent || ""} onValueChange={(value) => setSelectedEvent(value as Id<"events">)}>
+          <Select
+            value={selectedEvent || ""}
+            onValueChange={(value) => setSelectedEvent(value as Id<"events">)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select an event" />
             </SelectTrigger>
@@ -199,14 +251,10 @@ export default function StaffTransfersPage() {
             {pendingCounts && (
               <div className="flex gap-4 mt-2">
                 {pendingCounts.incoming > 0 && (
-                  <Badge variant="default">
-                    {pendingCounts.incoming} incoming pending
-                  </Badge>
+                  <Badge variant="default">{pendingCounts.incoming} incoming pending</Badge>
                 )}
                 {pendingCounts.outgoing > 0 && (
-                  <Badge variant="outline">
-                    {pendingCounts.outgoing} outgoing pending
-                  </Badge>
+                  <Badge variant="outline">{pendingCounts.outgoing} outgoing pending</Badge>
                 )}
               </div>
             )}
@@ -229,9 +277,7 @@ export default function StaffTransfersPage() {
             <TabsContent value={selectedTab} className="mt-6">
               <div className="space-y-4">
                 {myTransfers?.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    No transfers found
-                  </div>
+                  <div className="text-center py-8 text-gray-500">No transfers found</div>
                 ) : (
                   myTransfers?.map((transfer) => (
                     <div
@@ -260,14 +306,13 @@ export default function StaffTransfersPage() {
                               <span className="mx-2">•</span>
                               <span>{transfer.eventName}</span>
                             </div>
-                            {transfer.reason && (
-                              <div>Reason: {transfer.reason}</div>
-                            )}
+                            {transfer.reason && <div>Reason: {transfer.reason}</div>}
                             {transfer.notes && (
                               <div className="italic">Notes: {transfer.notes}</div>
                             )}
                             <div className="text-xs text-gray-400">
-                              Requested: {format(new Date(transfer.requestedAt), "MMM d, yyyy h:mm a")}
+                              Requested:{" "}
+                              {format(new Date(transfer.requestedAt), "MMM d, yyyy h:mm a")}
                             </div>
                           </div>
                         </div>
@@ -325,7 +370,10 @@ export default function StaffTransfersPage() {
             {/* Recipient Selection */}
             <div>
               <label className="text-sm font-medium mb-2 block">Recipient</label>
-              <Select value={selectedRecipient || ""} onValueChange={(value) => setSelectedRecipient(value as Id<"eventStaff">)}>
+              <Select
+                value={selectedRecipient || ""}
+                onValueChange={(value) => setSelectedRecipient(value as Id<"eventStaff">)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select staff member" />
                 </SelectTrigger>
@@ -338,7 +386,10 @@ export default function StaffTransfersPage() {
                           <div className="text-xs text-gray-500">{staff.email}</div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant={staff.role === "SELLER" ? "default" : "secondary"} className="text-xs">
+                          <Badge
+                            variant={staff.role === "SELLER" ? "default" : "secondary"}
+                            className="text-xs"
+                          >
                             {staff.role}
                           </Badge>
                           <Badge variant="outline" className="text-xs">
@@ -352,35 +403,41 @@ export default function StaffTransfersPage() {
               </Select>
 
               {/* Show recipient's current balance after selection */}
-              {selectedRecipient && availableRecipients && (() => {
-                const recipient = availableRecipients.find(s => s._id === selectedRecipient);
-                const recipientBalance = recipient?.allocatedTickets || 0;
-                const transferQty = parseInt(transferQuantity) || 0;
-                const newRecipientBalance = recipientBalance + transferQty;
+              {selectedRecipient &&
+                availableRecipients &&
+                (() => {
+                  const recipient = availableRecipients.find((s) => s._id === selectedRecipient);
+                  const recipientBalance = recipient?.allocatedTickets || 0;
+                  const transferQty = parseInt(transferQuantity) || 0;
+                  const newRecipientBalance = recipientBalance + transferQty;
 
-                return (
-                  <div className="mt-3 p-3 bg-accent rounded-lg border border-border">
-                    <div className="text-sm font-medium text-foreground mb-2">Recipient Balance Preview</div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-primary">Current Balance:</span>
-                      <span className="font-semibold text-foreground">{recipientBalance} tickets</span>
-                    </div>
-                    {transferQty > 0 && (
-                      <div className="flex items-center justify-between text-sm mt-1">
-                        <span className="text-primary">After Transfer:</span>
-                        <span className="font-bold text-green-600">{newRecipientBalance} tickets</span>
+                  return (
+                    <div className="mt-3 p-3 bg-accent rounded-lg border border-border">
+                      <div className="text-sm font-medium text-foreground mb-2">
+                        Recipient Balance Preview
                       </div>
-                    )}
-                  </div>
-                );
-              })()}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-primary">Current Balance:</span>
+                        <span className="font-semibold text-foreground">
+                          {recipientBalance} tickets
+                        </span>
+                      </div>
+                      {transferQty > 0 && (
+                        <div className="flex items-center justify-between text-sm mt-1">
+                          <span className="text-primary">After Transfer:</span>
+                          <span className="font-bold text-green-600">
+                            {newRecipientBalance} tickets
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
             </div>
 
             {/* Quantity */}
             <div>
-              <label className="text-sm font-medium mb-2 block">
-                Quantity (Max: {myBalance})
-              </label>
+              <label className="text-sm font-medium mb-2 block">Quantity (Max: {myBalance})</label>
               <Input
                 type="number"
                 min="1"
@@ -393,16 +450,20 @@ export default function StaffTransfersPage() {
               {/* Your balance after transfer */}
               {transferQuantity && parseInt(transferQuantity) > 0 && (
                 <div className="mt-2 p-2 bg-amber-50 rounded border border-amber-200">
-                  <div className="text-xs font-medium text-amber-900 mb-1">Your Balance After Transfer</div>
+                  <div className="text-xs font-medium text-amber-900 mb-1">
+                    Your Balance After Transfer
+                  </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-amber-700">Current:</span>
                     <span className="font-semibold">{myBalance} tickets</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-amber-700">After:</span>
-                    <span className={`font-bold ${myBalance - parseInt(transferQuantity) < 10 ? 'text-red-600' : 'text-amber-900'}`}>
+                    <span
+                      className={`font-bold ${myBalance - parseInt(transferQuantity) < 10 ? "text-red-600" : "text-amber-900"}`}
+                    >
                       {myBalance - parseInt(transferQuantity)} tickets
-                      {myBalance - parseInt(transferQuantity) < 10 && ' ⚠️'}
+                      {myBalance - parseInt(transferQuantity) < 10 && " ⚠️"}
                     </span>
                   </div>
                 </div>
@@ -411,9 +472,7 @@ export default function StaffTransfersPage() {
 
             {/* Reason */}
             <div>
-              <label className="text-sm font-medium mb-2 block">
-                Reason (Optional)
-              </label>
+              <label className="text-sm font-medium mb-2 block">Reason (Optional)</label>
               <Input
                 value={transferReason}
                 onChange={(e) => setTransferReason(e.target.value)}
@@ -423,9 +482,7 @@ export default function StaffTransfersPage() {
 
             {/* Notes */}
             <div>
-              <label className="text-sm font-medium mb-2 block">
-                Notes (Optional)
-              </label>
+              <label className="text-sm font-medium mb-2 block">Notes (Optional)</label>
               <Textarea
                 value={transferNotes}
                 onChange={(e) => setTransferNotes(e.target.value)}
@@ -439,9 +496,7 @@ export default function StaffTransfersPage() {
             <Button variant="outline" onClick={() => setShowNewTransferDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleRequestTransfer}>
-              Send Transfer Request
-            </Button>
+            <Button onClick={handleRequestTransfer}>Send Transfer Request</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

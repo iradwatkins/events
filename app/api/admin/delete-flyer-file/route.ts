@@ -11,10 +11,7 @@ export async function POST(request: NextRequest) {
     const { filepath } = await request.json();
 
     if (!filepath) {
-      return NextResponse.json(
-        { error: "No filepath provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No filepath provided" }, { status: 400 });
     }
 
     // Extract filename from filepath
@@ -22,10 +19,10 @@ export async function POST(request: NextRequest) {
     // Old: /STEPFILES/event-flyers/filename.jpg
     // New: /api/flyers/filename.jpg
     let filename: string;
-    if (filepath.includes('/api/flyers/')) {
-      filename = filepath.split('/api/flyers/')[1];
-    } else if (filepath.includes('/STEPFILES/event-flyers/')) {
-      filename = filepath.split('/STEPFILES/event-flyers/')[1];
+    if (filepath.includes("/api/flyers/")) {
+      filename = filepath.split("/api/flyers/")[1];
+    } else if (filepath.includes("/STEPFILES/event-flyers/")) {
+      filename = filepath.split("/STEPFILES/event-flyers/")[1];
     } else {
       filename = path.basename(filepath);
     }
@@ -42,7 +39,7 @@ export async function POST(request: NextRequest) {
       console.log(`✅ Successfully deleted physical file: ${fullPath}`);
 
       // Verify file is actually gone
-      const { existsSync } = require('fs');
+      const { existsSync } = require("fs");
       if (existsSync(fullPath)) {
         console.error(`⚠️ File still exists after deletion attempt: ${fullPath}`);
         throw new Error("File deletion verification failed - file still exists");
@@ -57,7 +54,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (unlinkError: any) {
       // If file doesn't exist, that's okay - it's already gone
-      if (unlinkError.code === 'ENOENT') {
+      if (unlinkError.code === "ENOENT") {
         console.log(`ℹ️ File already deleted or doesn't exist: ${fullPath}`);
         return NextResponse.json({
           success: true,

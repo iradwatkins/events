@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Ticket, TrendingUp, ShoppingCart } from 'lucide-react'
-import Link from 'next/link'
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Ticket, TrendingUp, ShoppingCart } from "lucide-react";
+import Link from "next/link";
 
 export function CreditBalanceCard() {
-  const creditBalance = useQuery(api.payments.queries.getCreditBalance)
+  const creditBalance = useQuery(api.payments.queries.getCreditBalance);
 
   if (!creditBalance) {
     return (
@@ -20,11 +20,11 @@ export function CreditBalanceCard() {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  const { creditsRemaining, creditsTotal, creditsUsed } = creditBalance
-  const usagePercentage = creditsTotal > 0 ? (creditsUsed / creditsTotal) * 100 : 0
+  const { creditsRemaining, creditsTotal, creditsUsed } = creditBalance;
+  const usagePercentage = creditsTotal > 0 ? (creditsUsed / creditsTotal) * 100 : 0;
 
   return (
     <Card className="border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5">
@@ -123,5 +123,5 @@ export function CreditBalanceCard() {
         </p>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -48,8 +48,8 @@ export default function EditTemplatePage() {
     try {
       // Determine seating style based on sections
       let seatingStyle: "ROW_BASED" | "TABLE_BASED" | "MIXED" = "MIXED";
-      const hasTables = sections.some(s => s.tables && s.tables.length > 0);
-      const hasRows = sections.some(s => s.rows && s.rows.length > 0);
+      const hasTables = sections.some((s) => s.tables && s.tables.length > 0);
+      const hasRows = sections.some((s) => s.rows && s.rows.length > 0);
 
       if (hasTables && !hasRows) {
         seatingStyle = "TABLE_BASED";
@@ -152,9 +152,7 @@ export default function EditTemplatePage() {
             Back to Templates
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Edit Template: {template.name}
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900">Edit Template: {template.name}</h1>
             <p className="text-gray-600 mt-1">{template.description}</p>
           </div>
         </div>
@@ -162,11 +160,7 @@ export default function EditTemplatePage() {
 
       {/* Template Builder */}
       <div className="h-[calc(100vh-140px)]">
-        <TemplateBuilder
-          initialItems={initialItems}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
+        <TemplateBuilder initialItems={initialItems} onSave={handleSave} onCancel={handleCancel} />
       </div>
     </div>
   );

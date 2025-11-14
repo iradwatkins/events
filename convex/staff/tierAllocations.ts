@@ -267,9 +267,7 @@ export const getStaffAvailableTiers = query({
       .collect();
 
     // Filter to only tiers with remaining quantity
-    const available = allocations.filter(
-      (a) => a.remainingQuantity > 0
-    );
+    const available = allocations.filter((a) => a.remainingQuantity > 0);
 
     // Enrich with tier details
     const enriched = await Promise.all(

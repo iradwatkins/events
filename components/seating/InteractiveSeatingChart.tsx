@@ -52,7 +52,9 @@ export default function InteractiveSeatingChart({
   const [hoveredSeat, setHoveredSeat] = useState<string | null>(null);
   const [hoveredTable, setHoveredTable] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId] = useState(
+    () => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  );
   const cleanupIntervalRef = useRef<NodeJS.Timeout>();
 
   // Accessibility filters
@@ -143,9 +145,13 @@ export default function InteractiveSeatingChart({
   };
 
   // Buy entire table handler
-  const handleBuyTable = async (tableId: string, tableNumber: string | number, availableSeats: any[]) => {
+  const handleBuyTable = async (
+    tableId: string,
+    tableNumber: string | number,
+    availableSeats: any[]
+  ) => {
     try {
-      const seatHolds = availableSeats.map(seat => ({
+      const seatHolds = availableSeats.map((seat) => ({
         tableId,
         seatNumber: seat.number,
       }));
@@ -158,7 +164,7 @@ export default function InteractiveSeatingChart({
 
       // Add all seats to selection
       const seatPrice = getSeatPrice(tableId);
-      availableSeats.forEach(seat => {
+      availableSeats.forEach((seat) => {
         const seatId = `${tableId}-${seat.number}`;
         onSeatSelect({
           id: seatId,
@@ -179,9 +185,7 @@ export default function InteractiveSeatingChart({
     if (!seatingChart || !ticketTiers) return 0;
 
     // Find the section this table belongs to
-    const section = seatingChart.sections?.find(s =>
-      s.tables?.some(t => t.id === tableId)
-    );
+    const section = seatingChart.sections?.find((s) => s.tables?.some((t) => t.id === tableId));
 
     if (!section?.ticketTierId) {
       console.warn(`No tier assigned to section for table ${tableId}`);
@@ -189,7 +193,7 @@ export default function InteractiveSeatingChart({
     }
 
     // Find the tier and get its price
-    const tier = ticketTiers.find(t => t._id === section.ticketTierId);
+    const tier = ticketTiers.find((t) => t._id === section.ticketTierId);
     if (!tier) {
       console.warn(`Tier ${section.ticketTierId} not found`);
       return 0;
@@ -265,10 +269,7 @@ export default function InteractiveSeatingChart({
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Accessibility Filters Sidebar */}
         <div className="lg:col-span-1">
-          <AccessibilityFilters
-            filters={seatFilters}
-            onFilterChange={setSeatFilters}
-          />
+          <AccessibilityFilters filters={seatFilters} onFilterChange={setSeatFilters} />
         </div>
 
         {/* Main Seating Chart */}
@@ -298,166 +299,186 @@ export default function InteractiveSeatingChart({
             </p>
           </div>
 
-      {/* Canvas */}
-      <div className="relative p-4 md:p-8 touch-pan-x touch-pan-y" style={{ minHeight: "400px", minWidth: "100%" }}>
-        <svg width="100%" height="100%" style={{ minHeight: "600px" }}>
-          {renderData.map(({ tableId, tableNumber, table, seats }) => (
-            <g key={tableId}>
-              {/* Table outline */}
-              {table.shape === "ROUND" ? (
-                <>
-                  <circle
-                    cx={table.x + table.width / 2}
-                    cy={table.y + table.height / 2}
-                    r={table.width / 2}
-                    fill="none"
-                    stroke="#2c3e50"
-                    strokeWidth="3"
-                  />
-                  <circle
-                    cx={table.x + table.width / 2}
-                    cy={table.y + table.height / 2}
-                    r={table.width / 2 - 15}
-                    fill="#f8f9fa"
-                    stroke="#2c3e50"
-                    strokeWidth="2"
-                  />
-                  <text
-                    x={table.x + table.width / 2}
-                    y={table.y + table.height / 2}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fill="#2c3e50"
-                    fontWeight="700"
-                    fontSize="14"
-                  >
-                    Table {tableNumber}
-                  </text>
-                </>
-              ) : (
-                <>
-                  <rect
+          {/* Canvas */}
+          <div
+            className="relative p-4 md:p-8 touch-pan-x touch-pan-y"
+            style={{ minHeight: "400px", minWidth: "100%" }}
+          >
+            <svg width="100%" height="100%" style={{ minHeight: "600px" }}>
+              {renderData.map(({ tableId, tableNumber, table, seats }) => (
+                <g key={tableId}>
+                  {/* Table outline */}
+                  {table.shape === "ROUND" ? (
+                    <>
+                      <circle
+                        cx={table.x + table.width / 2}
+                        cy={table.y + table.height / 2}
+                        r={table.width / 2}
+                        fill="none"
+                        stroke="#2c3e50"
+                        strokeWidth="3"
+                      />
+                      <circle
+                        cx={table.x + table.width / 2}
+                        cy={table.y + table.height / 2}
+                        r={table.width / 2 - 15}
+                        fill="#f8f9fa"
+                        stroke="#2c3e50"
+                        strokeWidth="2"
+                      />
+                      <text
+                        x={table.x + table.width / 2}
+                        y={table.y + table.height / 2}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="#2c3e50"
+                        fontWeight="700"
+                        fontSize="14"
+                      >
+                        Table {tableNumber}
+                      </text>
+                    </>
+                  ) : (
+                    <>
+                      <rect
+                        x={table.x}
+                        y={table.y}
+                        width={table.width}
+                        height={table.height}
+                        fill="#f8f9fa"
+                        stroke="#2c3e50"
+                        strokeWidth="3"
+                        rx="4"
+                      />
+                      <text
+                        x={table.x + table.width / 2}
+                        y={table.y + table.height / 2}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="#2c3e50"
+                        fontWeight="700"
+                        fontSize="14"
+                      >
+                        Table {tableNumber}
+                      </text>
+                    </>
+                  )}
+
+                  {/* Table Capacity Indicator */}
+                  <TableCapacityIndicator
+                    filledSeats={seats.filter((s) => s.status !== "available").length}
+                    totalSeats={seats.length}
                     x={table.x}
                     y={table.y}
                     width={table.width}
-                    height={table.height}
-                    fill="#f8f9fa"
-                    stroke="#2c3e50"
-                    strokeWidth="3"
-                    rx="4"
                   />
-                  <text
-                    x={table.x + table.width / 2}
-                    y={table.y + table.height / 2}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fill="#2c3e50"
-                    fontWeight="700"
-                    fontSize="14"
-                  >
-                    Table {tableNumber}
-                  </text>
-                </>
-              )}
 
-              {/* Table Capacity Indicator */}
-              <TableCapacityIndicator
-                filledSeats={seats.filter(s => s.status !== "available").length}
-                totalSeats={seats.length}
-                x={table.x}
-                y={table.y}
-                width={table.width}
-              />
+                  {/* Seats */}
+                  {seats.map((seat) => {
+                    const seatColor =
+                      seat.status === "available"
+                        ? "#4CAF50"
+                        : seat.status === "selected"
+                          ? "#FFC107"
+                          : seat.status === "reserved"
+                            ? "#64B5F6"
+                            : "#999";
 
-              {/* Seats */}
-              {seats.map((seat) => {
-                const seatColor =
-                  seat.status === "available"
-                    ? "#4CAF50"
-                    : seat.status === "selected"
-                    ? "#FFC107"
-                    : seat.status === "reserved"
-                    ? "#64B5F6"
-                    : "#999";
+                    const isClickable = seat.status === "available" || seat.status === "selected";
 
-                const isClickable = seat.status === "available" || seat.status === "selected";
+                    return (
+                      <g key={seat.id}>
+                        <circle
+                          cx={seat.x}
+                          cy={seat.y}
+                          r="12"
+                          fill={seatColor}
+                          stroke={seat.status === "selected" ? "#2c3e50" : "#2c3e50"}
+                          strokeWidth={seat.status === "selected" ? "3" : "2"}
+                          opacity={seat.status === "sold" ? "0.5" : "1"}
+                          className={
+                            isClickable
+                              ? "cursor-pointer hover:opacity-80 transition-opacity"
+                              : "cursor-not-allowed"
+                          }
+                          onClick={() =>
+                            handleSeatClick(
+                              tableId,
+                              tableNumber,
+                              seat.number,
+                              seat.type,
+                              seat.status,
+                              seat.price
+                            )
+                          }
+                          onMouseEnter={(e) => handleSeatHover(seat.id, e)}
+                          onMouseLeave={() => setHoveredSeat(null)}
+                        />
+                        <text
+                          x={seat.x}
+                          y={seat.y + 4}
+                          textAnchor="middle"
+                          fill="white"
+                          fontSize="9"
+                          fontWeight="bold"
+                          pointerEvents="none"
+                        >
+                          {seat.number}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </g>
+              ))}
+            </svg>
 
-                return (
-                  <g key={seat.id}>
-                    <circle
-                      cx={seat.x}
-                      cy={seat.y}
-                      r="12"
-                      fill={seatColor}
-                      stroke={seat.status === "selected" ? "#2c3e50" : "#2c3e50"}
-                      strokeWidth={seat.status === "selected" ? "3" : "2"}
-                      opacity={seat.status === "sold" ? "0.5" : "1"}
-                      className={isClickable ? "cursor-pointer hover:opacity-80 transition-opacity" : "cursor-not-allowed"}
-                      onClick={() =>
-                        handleSeatClick(tableId, tableNumber, seat.number, seat.type, seat.status, seat.price)
-                      }
-                      onMouseEnter={(e) => handleSeatHover(seat.id, e)}
-                      onMouseLeave={() => setHoveredSeat(null)}
-                    />
-                    <text
-                      x={seat.x}
-                      y={seat.y + 4}
-                      textAnchor="middle"
-                      fill="white"
-                      fontSize="9"
-                      fontWeight="bold"
-                      pointerEvents="none"
-                    >
-                      {seat.number}
-                    </text>
-                  </g>
-                );
-              })}
-            </g>
-          ))}
-        </svg>
+            {/* Buy Table Buttons - Positioned below canvas */}
+            {renderData.length > 0 && (
+              <div className="mt-6 space-y-3">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">Quick Actions</h3>
+                <div className="flex flex-wrap gap-3">
+                  {renderData.map(({ tableId, tableNumber, table, seats }) => {
+                    const availableSeats = seats.filter((s) => s.status === "available");
+                    if (availableSeats.length === 0) return null;
 
-        {/* Buy Table Buttons - Positioned below canvas */}
-        {renderData.length > 0 && (
-          <div className="mt-6 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Quick Actions</h3>
-            <div className="flex flex-wrap gap-3">
-              {renderData.map(({ tableId, tableNumber, table, seats }) => {
-                const availableSeats = seats.filter(s => s.status === "available");
-                if (availableSeats.length === 0) return null;
+                    return (
+                      <BuyTableButton
+                        key={tableId}
+                        tableNumber={tableNumber}
+                        availableSeats={availableSeats.length}
+                        totalSeats={seats.length}
+                        pricePerSeat={getSeatPrice(tableId)}
+                        onBuyTable={() =>
+                          handleBuyTable(
+                            tableId,
+                            tableNumber,
+                            table.seats.filter((s: any) => {
+                              const seatId = `${tableId}-${s.number}`;
+                              const renderSeat = seats.find((rs) => rs.id === seatId);
+                              return renderSeat?.status === "available";
+                            })
+                          )
+                        }
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-                return (
-                  <BuyTableButton
-                    key={tableId}
-                    tableNumber={tableNumber}
-                    availableSeats={availableSeats.length}
-                    totalSeats={seats.length}
-                    pricePerSeat={getSeatPrice(tableId)}
-                    onBuyTable={() => handleBuyTable(tableId, tableNumber, table.seats.filter((s: any) => {
-                      const seatId = `${tableId}-${s.number}`;
-                      const renderSeat = seats.find(rs => rs.id === seatId);
-                      return renderSeat?.status === "available";
-                    }))}
-                  />
-                );
-              })}
-            </div>
+            {/* Tooltip */}
+            {hoveredSeat && (
+              <div
+                className="fixed z-50 bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-lg pointer-events-none"
+                style={{
+                  left: tooltipPos.x + 10,
+                  top: tooltipPos.y + 10,
+                }}
+              >
+                {hoveredSeat}
+              </div>
+            )}
           </div>
-        )}
-
-        {/* Tooltip */}
-        {hoveredSeat && (
-          <div
-            className="fixed z-50 bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-lg pointer-events-none"
-            style={{
-              left: tooltipPos.x + 10,
-              top: tooltipPos.y + 10,
-            }}
-          >
-            {hoveredSeat}
-          </div>
-        )}
-      </div>
 
           {/* Empty state */}
           {renderData.length === 0 && (

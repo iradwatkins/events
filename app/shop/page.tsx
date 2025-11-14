@@ -25,18 +25,21 @@ export default function ShopPage() {
     <>
       <PublicHeader />
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">SteppersLife Shop</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Official merchandise and products</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              Official merchandise and products
+            </p>
           </div>
 
           {products.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
               <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Coming Soon!</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Coming Soon!
+              </h2>
               <p className="text-gray-600 dark:text-gray-400">
                 Our shop is currently being stocked with amazing products. Check back soon!
               </p>

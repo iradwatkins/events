@@ -258,7 +258,12 @@ export const getStaffSettlementDetails = query({
         cashCollected: staffMember.cashCollected || 0,
         commissionEarned: staffMember.commissionEarned,
         netAmount: netSettlement,
-        direction: netSettlement > 0 ? "ORGANIZER_OWES_STAFF" : netSettlement < 0 ? "STAFF_OWES_ORGANIZER" : "SETTLED",
+        direction:
+          netSettlement > 0
+            ? "ORGANIZER_OWES_STAFF"
+            : netSettlement < 0
+              ? "STAFF_OWES_ORGANIZER"
+              : "SETTLED",
         status: staffMember.settlementStatus || "PENDING",
         paidAt: staffMember.settlementPaidAt,
       },

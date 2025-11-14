@@ -218,9 +218,7 @@ export default function ProductOptionsManager({
       {options.length === 0 && !isAddingOption && (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
           <Square className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No product options yet
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No product options yet</h3>
           <p className="text-gray-600 mb-6">
             Add options to let customers customize their purchase
           </p>
@@ -296,9 +294,7 @@ function OptionCard({
               {typeInfo.label}
             </span>
           </div>
-          {option.description && (
-            <p className="text-sm text-gray-600 mt-1">{option.description}</p>
-          )}
+          {option.description && <p className="text-sm text-gray-600 mt-1">{option.description}</p>}
         </div>
 
         <div className="flex items-center gap-2">
@@ -335,8 +331,7 @@ function OptionCard({
             <div className="text-sm">
               <span className="font-medium text-gray-700">Price: </span>
               <span className="text-gray-900">
-                {option.priceModifier >= 0 ? "+" : ""}$
-                {(option.priceModifier / 100).toFixed(2)}
+                {option.priceModifier >= 0 ? "+" : ""}${(option.priceModifier / 100).toFixed(2)}
               </span>
             </div>
           )}
@@ -499,10 +494,7 @@ function AddOptionForm({
   };
 
   const addChoice = () => {
-    setChoices([
-      ...choices,
-      { label: "", priceModifier: 0, default: choices.length === 0 },
-    ]);
+    setChoices([...choices, { label: "", priceModifier: 0, default: choices.length === 0 }]);
   };
 
   const updateChoice = (index: number, field: keyof Choice, value: any) => {
@@ -521,9 +513,7 @@ function AddOptionForm({
       <div className="space-y-4">
         {/* Option Type Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Option Type *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Option Type *</label>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {(Object.keys(OPTION_TYPE_INFO) as OptionType[]).map((type) => {
               const info = OPTION_TYPE_INFO[type];
@@ -549,9 +539,7 @@ function AddOptionForm({
 
         {/* Option Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Option Name *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Option Name *</label>
           <input
             type="text"
             required
@@ -594,9 +582,7 @@ function AddOptionForm({
         {typeInfo.hasChoices && (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Choices *
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Choices *</label>
               <button
                 type="button"
                 onClick={addChoice}
@@ -668,9 +654,7 @@ function AddOptionForm({
                 placeholder="0.00"
                 className="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
-              <span className="text-sm text-gray-600">
-                Additional fee for this option
-              </span>
+              <span className="text-sm text-gray-600">Additional fee for this option</span>
             </div>
           </div>
         )}
@@ -684,9 +668,7 @@ function AddOptionForm({
             <input
               type="text"
               value={formData.placeholder}
-              onChange={(e) =>
-                setFormData({ ...formData, placeholder: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, placeholder: e.target.value })}
               placeholder="e.g., Enter your message here..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             />
@@ -881,10 +863,7 @@ function EditOptionForm({
   };
 
   const addChoice = () => {
-    setChoices([
-      ...choices,
-      { label: "", priceModifier: 0, default: choices.length === 0 },
-    ]);
+    setChoices([...choices, { label: "", priceModifier: 0, default: choices.length === 0 }]);
   };
 
   const updateChoice = (index: number, field: keyof Choice, value: any) => {
@@ -899,15 +878,11 @@ function EditOptionForm({
 
   return (
     <div className="border border-primary rounded-lg bg-white p-6">
-      <h4 className="text-lg font-semibold text-gray-900 mb-4">
-        Edit Option: {option.name}
-      </h4>
+      <h4 className="text-lg font-semibold text-gray-900 mb-4">Edit Option: {option.name}</h4>
       <div className="space-y-4">
         {/* Option Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Option Name *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Option Name *</label>
           <input
             type="text"
             required
@@ -1033,9 +1008,7 @@ function EditOptionForm({
             <input
               type="text"
               value={formData.placeholder}
-              onChange={(e) =>
-                setFormData({ ...formData, placeholder: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, placeholder: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>

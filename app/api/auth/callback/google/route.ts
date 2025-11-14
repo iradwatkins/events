@@ -30,18 +30,14 @@ export async function GET(request: NextRequest) {
 
     // Validate required params
     if (!code || !state) {
-      return NextResponse.redirect(
-        new URL("/login?error=missing_params", request.url)
-      );
+      return NextResponse.redirect(new URL("/login?error=missing_params", request.url));
     }
 
     // Verify state for CSRF protection
     const storedState = request.cookies.get("oauth_state")?.value;
     if (!storedState || storedState !== state) {
       console.error("[Google OAuth] State mismatch");
-      return NextResponse.redirect(
-        new URL("/login?error=invalid_state", request.url)
-      );
+      return NextResponse.redirect(new URL("/login?error=invalid_state", request.url));
     }
 
     // Get callback URL from cookie
@@ -84,7 +80,10 @@ export async function GET(request: NextRequest) {
     // Redirect to callback URL with session
     // Use the proper base URL from environment or request headers (for production behind Nginx)
     const protocol = request.headers.get("x-forwarded-proto") || "https";
-    const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "events.stepperslife.com";
+    const host =
+      request.headers.get("x-forwarded-host") ||
+      request.headers.get("host") ||
+      "events.stepperslife.com";
     const baseUrl = `${protocol}://${host}`;
     const response = NextResponse.redirect(new URL(callbackUrl, baseUrl));
 

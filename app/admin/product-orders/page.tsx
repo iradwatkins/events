@@ -19,7 +19,7 @@ export default function AdminProductOrdersPage() {
     status: "PENDING" as "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED",
     trackingNumber: "",
     trackingUrl: "",
-    internalNote: ""
+    internalNote: "",
   });
 
   const handleUpdateFulfillment = async (e: React.FormEvent) => {
@@ -41,7 +41,7 @@ export default function AdminProductOrdersPage() {
         status: "PENDING",
         trackingNumber: "",
         trackingUrl: "",
-        internalNote: ""
+        internalNote: "",
       });
     } catch (error) {
       console.error("Failed to update order:", error);
@@ -51,7 +51,7 @@ export default function AdminProductOrdersPage() {
     }
   };
 
-  const filteredOrders = orders?.filter(order => {
+  const filteredOrders = orders?.filter((order) => {
     const matchesSearch =
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -64,12 +64,18 @@ export default function AdminProductOrdersPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "PENDING": return "bg-yellow-100 text-yellow-800";
-      case "PROCESSING": return "bg-accent text-foreground";
-      case "SHIPPED": return "bg-accent text-foreground";
-      case "DELIVERED": return "bg-green-100 text-green-800";
-      case "CANCELLED": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800";
+      case "PROCESSING":
+        return "bg-accent text-foreground";
+      case "SHIPPED":
+        return "bg-accent text-foreground";
+      case "DELIVERED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -130,19 +136,20 @@ export default function AdminProductOrdersPage() {
             <p className="text-gray-600">Try adjusting your search or filters</p>
           </div>
         ) : (
-          filteredOrders?.map(order => (
+          filteredOrders?.map((order) => (
             <div key={order._id} className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Order #{order.orderNumber}
-                  </h3>
+                  <h3 className="text-lg font-bold text-gray-900">Order #{order.orderNumber}</h3>
                   <p className="text-sm text-gray-600">
-                    {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}
+                    {new Date(order.createdAt).toLocaleDateString()} at{" "}
+                    {new Date(order.createdAt).toLocaleTimeString()}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.fulfillmentStatus)}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.fulfillmentStatus)}`}
+                  >
                     {order.fulfillmentStatus}
                   </span>
                   <button
@@ -152,7 +159,7 @@ export default function AdminProductOrdersPage() {
                         status: order.fulfillmentStatus,
                         trackingNumber: order.trackingNumber || "",
                         trackingUrl: order.trackingUrl || "",
-                        internalNote: order.internalNote || ""
+                        internalNote: order.internalNote || "",
                       });
                     }}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -179,7 +186,8 @@ export default function AdminProductOrdersPage() {
                     <p className="text-sm text-gray-900">{order.shippingAddress.address2}</p>
                   )}
                   <p className="text-sm text-gray-900">
-                    {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}
+                    {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
+                    {order.shippingAddress.zipCode}
                   </p>
                 </div>
               </div>
@@ -192,8 +200,10 @@ export default function AdminProductOrdersPage() {
                     <div key={idx} className="flex justify-between text-sm">
                       <span className="text-gray-600">
                         {item.productName}
-                        {item.variantName && <span className="text-gray-500"> - {item.variantName}</span>}
-                        {" "}× {item.quantity}
+                        {item.variantName && (
+                          <span className="text-gray-500"> - {item.variantName}</span>
+                        )}{" "}
+                        × {item.quantity}
                       </span>
                       <span className="font-semibold text-gray-900">
                         ${(item.totalPrice / 100).toFixed(2)}
@@ -212,7 +222,9 @@ export default function AdminProductOrdersPage() {
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-gray-600">Shipping:</span>
                   <span className="text-gray-900">
-                    {order.shippingCost === 0 ? "FREE" : `$${(order.shippingCost / 100).toFixed(2)}`}
+                    {order.shippingCost === 0
+                      ? "FREE"
+                      : `$${(order.shippingCost / 100).toFixed(2)}`}
                   </span>
                 </div>
                 <div className="flex justify-between font-bold text-lg">
@@ -260,7 +272,9 @@ export default function AdminProductOrdersPage() {
                   </label>
                   <select
                     value={fulfillmentData.status}
-                    onChange={(e) => setFulfillmentData({...fulfillmentData, status: e.target.value as any})}
+                    onChange={(e) =>
+                      setFulfillmentData({ ...fulfillmentData, status: e.target.value as any })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   >
@@ -280,7 +294,9 @@ export default function AdminProductOrdersPage() {
                   <input
                     type="text"
                     value={fulfillmentData.trackingNumber}
-                    onChange={(e) => setFulfillmentData({...fulfillmentData, trackingNumber: e.target.value})}
+                    onChange={(e) =>
+                      setFulfillmentData({ ...fulfillmentData, trackingNumber: e.target.value })
+                    }
                     placeholder="e.g., 1Z999AA10123456784"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
@@ -294,7 +310,9 @@ export default function AdminProductOrdersPage() {
                   <input
                     type="url"
                     value={fulfillmentData.trackingUrl}
-                    onChange={(e) => setFulfillmentData({...fulfillmentData, trackingUrl: e.target.value})}
+                    onChange={(e) =>
+                      setFulfillmentData({ ...fulfillmentData, trackingUrl: e.target.value })
+                    }
                     placeholder="https://..."
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
@@ -307,7 +325,9 @@ export default function AdminProductOrdersPage() {
                   </label>
                   <textarea
                     value={fulfillmentData.internalNote}
-                    onChange={(e) => setFulfillmentData({...fulfillmentData, internalNote: e.target.value})}
+                    onChange={(e) =>
+                      setFulfillmentData({ ...fulfillmentData, internalNote: e.target.value })
+                    }
                     rows={3}
                     placeholder="Add notes about this order..."
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"

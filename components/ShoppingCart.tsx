@@ -1,26 +1,20 @@
 "use client";
 
-import { useCart } from '@/contexts/CartContext';
-import { X, Trash2, Plus, Minus, ShoppingBag, Package } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useCart } from "@/contexts/CartContext";
+import { X, Trash2, Plus, Minus, ShoppingBag, Package } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function ShoppingCart() {
-  const {
-    items,
-    removeFromCart,
-    updateQuantity,
-    getSubtotal,
-    isCartOpen,
-    setIsCartOpen
-  } = useCart();
+  const { items, removeFromCart, updateQuantity, getSubtotal, isCartOpen, setIsCartOpen } =
+    useCart();
 
   const router = useRouter();
 
   const handleCheckout = () => {
     setIsCartOpen(false);
-    router.push('/shop/checkout');
+    router.push("/shop/checkout");
   };
 
   if (!isCartOpen) return null;
@@ -39,9 +33,7 @@ export function ShoppingCart() {
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3">
             <ShoppingBag className="w-6 h-6 text-primary" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Shopping Cart
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Shopping Cart</h2>
           </div>
           <button
             onClick={() => setIsCartOpen(false)}

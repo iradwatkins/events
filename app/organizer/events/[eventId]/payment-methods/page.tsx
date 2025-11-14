@@ -121,9 +121,17 @@ export default function PaymentMethodsPage() {
             <div className="text-sm text-foreground">
               <p className="font-semibold mb-1">Payment Hierarchy:</p>
               <ul className="list-disc list-inside space-y-1 text-foreground">
-                <li><strong>Organizer Level (This Page):</strong> Choose merchant processor and enable/disable online payment methods</li>
-                <li><strong>Staff Level:</strong> Individual staff can toggle accepting cash payments in-person only</li>
-                <li><strong>Cash payments do not require merchant account setup</strong></li>
+                <li>
+                  <strong>Organizer Level (This Page):</strong> Choose merchant processor and
+                  enable/disable online payment methods
+                </li>
+                <li>
+                  <strong>Staff Level:</strong> Individual staff can toggle accepting cash payments
+                  in-person only
+                </li>
+                <li>
+                  <strong>Cash payments do not require merchant account setup</strong>
+                </li>
               </ul>
             </div>
           </div>
@@ -148,9 +156,7 @@ export default function PaymentMethodsPage() {
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-2xl font-bold">Square</span>
-                {selectedProcessor === "SQUARE" && (
-                  <Check className="w-6 h-6 text-primary" />
-                )}
+                {selectedProcessor === "SQUARE" && <Check className="w-6 h-6 text-primary" />}
               </div>
               <p className="text-sm text-gray-600">
                 Industry-leading payment processing with simple pricing
@@ -168,9 +174,7 @@ export default function PaymentMethodsPage() {
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-2xl font-bold">Stripe</span>
-                {selectedProcessor === "STRIPE" && (
-                  <Check className="w-6 h-6 text-primary" />
-                )}
+                {selectedProcessor === "STRIPE" && <Check className="w-6 h-6 text-primary" />}
               </div>
               <p className="text-sm text-gray-600">
                 Developer-friendly payments with powerful features
@@ -188,9 +192,7 @@ export default function PaymentMethodsPage() {
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-2xl font-bold">PayPal</span>
-                {selectedProcessor === "PAYPAL" && (
-                  <Check className="w-6 h-6 text-primary" />
-                )}
+                {selectedProcessor === "PAYPAL" && <Check className="w-6 h-6 text-primary" />}
               </div>
               <p className="text-sm text-gray-600">
                 Trusted by millions worldwide for online payments
@@ -267,7 +269,8 @@ export default function PaymentMethodsPage() {
                     Managed by individual staff members on their settings page
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Staff can toggle this option to accept cash payments when selling tickets in person
+                    Staff can toggle this option to accept cash payments when selling tickets in
+                    person
                   </p>
                 </div>
               </div>

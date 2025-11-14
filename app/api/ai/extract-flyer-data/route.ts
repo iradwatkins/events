@@ -7,10 +7,7 @@ export async function POST(request: NextRequest) {
     const { filepath } = await request.json();
 
     if (!filepath) {
-      return NextResponse.json(
-        { error: "No filepath provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No filepath provided" }, { status: 400 });
     }
 
     // Ollama runs locally - no API key needed
@@ -19,8 +16,8 @@ export async function POST(request: NextRequest) {
     // Extract filename from filepath (handles both old and new format)
     // Old format: /STEPFILES/event-flyers/filename.jpg
     // New format: /api/flyers/filename.jpg
-    const filename = filepath.includes('/api/flyers/')
-      ? filepath.split('/api/flyers/')[1]
+    const filename = filepath.includes("/api/flyers/")
+      ? filepath.split("/api/flyers/")[1]
       : path.basename(filepath);
 
     // Read the flyer image from disk
@@ -635,7 +632,7 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
         options: {
           temperature: 0.1, // Lower temperature for more consistent extraction
           num_predict: 4096, // Allow longer responses for comprehensive extraction
-        }
+        },
       }),
     });
 
@@ -679,11 +676,18 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
 
       // Post-processing: If description contains literal newlines instead of \n escape sequences,
       // this could have been parsed correctly by JSON.parse. Let's verify it has proper structure.
-      if (extractedData && extractedData.description && typeof extractedData.description === 'string') {
+      if (
+        extractedData &&
+        extractedData.description &&
+        typeof extractedData.description === "string"
+      ) {
         // The description should already have \n characters from proper JSON
         // No need to modify it - JSON.parse handles this correctly
-        console.log('[AI Extraction] Description length:', extractedData.description.length);
-        console.log('[AI Extraction] Description contains line breaks:', extractedData.description.includes('\n'));
+        console.log("[AI Extraction] Description length:", extractedData.description.length);
+        console.log(
+          "[AI Extraction] Description contains line breaks:",
+          extractedData.description.includes("\n")
+        );
       }
 
       // Check if AI returned an error response
@@ -694,7 +698,8 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
         const partialData = extractedData.partialData || {};
 
         // For Save the Date flyers, only eventName and eventDate are required
-        const isSaveTheDate = partialData.containsSaveTheDateText === true || partialData.eventType === "SAVE_THE_DATE";
+        const isSaveTheDate =
+          partialData.containsSaveTheDateText === true || partialData.eventType === "SAVE_THE_DATE";
 
         if (isSaveTheDate) {
           // Save the Date flyers only need name and date
@@ -705,33 +710,45 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
               success: true,
               extractedData: partialData,
               provider: "ollama-llama3.2-vision",
-              warning: "Save the Date flyer - missing venue/time details (expected)"
+              warning: "Save the Date flyer - missing venue/time details (expected)",
             });
           } else if (!partialData.eventDate) {
             // CRITICAL ERROR: Save the Date flyer without a date
             console.error("🚨 CRITICAL: Save the Date flyer is MISSING THE DATE!");
-            console.error("This is unacceptable - the DATE is the most important field on Save the Date flyers.");
+            console.error(
+              "This is unacceptable - the DATE is the most important field on Save the Date flyers."
+            );
             console.error("Partial data found:", partialData);
-            return NextResponse.json({
-              success: false,
-              error: "SAVE_THE_DATE_MISSING_DATE",
-              message: "This is a Save the Date flyer but THE DATE IS MISSING. The date is the most critical piece of information and MUST be found on the flyer.",
-              partialData: partialData,
-              suggestion: "Please retry extraction. The AI must search the entire flyer more carefully to find the date."
-            }, { status: 400 });
+            return NextResponse.json(
+              {
+                success: false,
+                error: "SAVE_THE_DATE_MISSING_DATE",
+                message:
+                  "This is a Save the Date flyer but THE DATE IS MISSING. The date is the most critical piece of information and MUST be found on the flyer.",
+                partialData: partialData,
+                suggestion:
+                  "Please retry extraction. The AI must search the entire flyer more carefully to find the date.",
+              },
+              { status: 400 }
+            );
           }
         }
 
         // For regular flyers, this is an error
-        return NextResponse.json({
-          success: false,
-          error: "INCOMPLETE_FLYER_DATA",
-          message: extractedData.message || "The flyer is missing required information. Please ensure the flyer includes: event name, date, time, venue name, city, and state.",
-          partialData: partialData,
-          suggestion: isSaveTheDate
-            ? "Save the Date flyer is missing event name or date."
-            : "This may be a Save the Date flyer. Consider adding missing information manually, or upload a complete event flyer with all details."
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: "INCOMPLETE_FLYER_DATA",
+            message:
+              extractedData.message ||
+              "The flyer is missing required information. Please ensure the flyer includes: event name, date, time, venue name, city, and state.",
+            partialData: partialData,
+            suggestion: isSaveTheDate
+              ? "Save the Date flyer is missing event name or date."
+              : "This may be a Save the Date flyer. Consider adding missing information manually, or upload a complete event flyer with all details.",
+          },
+          { status: 400 }
+        );
       }
 
       // Validate required fields are present
@@ -741,13 +758,15 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
       const isSaveTheDate =
         extractedData.containsSaveTheDateText === true ||
         extractedData.eventType === "SAVE_THE_DATE" ||
-        (extractedData.description && extractedData.description.toLowerCase().includes("save the date")) ||
-        (extractedData.description && extractedData.description.toLowerCase().includes("details to follow"));
+        (extractedData.description &&
+          extractedData.description.toLowerCase().includes("save the date")) ||
+        (extractedData.description &&
+          extractedData.description.toLowerCase().includes("details to follow"));
 
       const requiredFields = isSaveTheDate
         ? ["description", "eventName", "eventDate"]
         : ["description", "eventName", "eventDate", "eventTime", "venueName", "city", "state"];
-      const missingFields = requiredFields.filter(field => !extractedData[field]);
+      const missingFields = requiredFields.filter((field) => !extractedData[field]);
 
       if (missingFields.length > 0) {
         console.error("⚠️ MISSING REQUIRED FIELDS:", missingFields);
@@ -757,20 +776,32 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
         if (missingFields.includes("eventDate")) {
           console.error("🚨 CRITICAL: DATE IS MISSING from extraction!");
           if (isSaveTheDate) {
-            console.error("🚨 THIS IS A SAVE THE DATE FLYER - THE DATE IS THE MOST IMPORTANT FIELD!");
-            console.error("The AI MUST search the ENTIRE flyer for the date. Look everywhere: top, bottom, center, corners, watermarks, fine print.");
-            throw new Error(`❌ SAVE THE DATE FLYER MISSING DATE: This is unacceptable. The DATE is the PRIMARY purpose of a Save the Date flyer. AI must search the entire image more carefully.`);
+            console.error(
+              "🚨 THIS IS A SAVE THE DATE FLYER - THE DATE IS THE MOST IMPORTANT FIELD!"
+            );
+            console.error(
+              "The AI MUST search the ENTIRE flyer for the date. Look everywhere: top, bottom, center, corners, watermarks, fine print."
+            );
+            throw new Error(
+              `❌ SAVE THE DATE FLYER MISSING DATE: This is unacceptable. The DATE is the PRIMARY purpose of a Save the Date flyer. AI must search the entire image more carefully.`
+            );
           } else {
             console.error("The AI must search the entire flyer for date/time information.");
-            throw new Error(`❌ MANDATORY FIELD MISSING: eventDate. The date is REQUIRED - extraction cannot proceed without it.`);
+            throw new Error(
+              `❌ MANDATORY FIELD MISSING: eventDate. The date is REQUIRED - extraction cannot proceed without it.`
+            );
           }
         }
 
         // Check for missing time (only required for non-Save the Date events)
         if (missingFields.includes("eventTime") && !isSaveTheDate) {
           console.error("🚨 CRITICAL: Time is MISSING from extraction!");
-          console.error("This is MANDATORY information for regular events. The AI must search the entire flyer for time.");
-          throw new Error(`❌ MANDATORY FIELD MISSING: eventTime. Time is REQUIRED for regular events.`);
+          console.error(
+            "This is MANDATORY information for regular events. The AI must search the entire flyer for time."
+          );
+          throw new Error(
+            `❌ MANDATORY FIELD MISSING: eventTime. Time is REQUIRED for regular events.`
+          );
         }
 
         throw new Error(`AI failed to extract required fields: ${missingFields.join(", ")}`);
@@ -799,18 +830,24 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
       }
     } catch (parseError) {
       console.error("❌ FAILED TO PARSE GEMINI RESPONSE");
-      console.error("Parse error:", parseError instanceof Error ? parseError.message : String(parseError));
+      console.error(
+        "Parse error:",
+        parseError instanceof Error ? parseError.message : String(parseError)
+      );
       console.error("Raw response (first 1000 chars):", cleanedText.substring(0, 1000));
-      console.error("Raw response (last 1000 chars):", cleanedText.substring(Math.max(0, cleanedText.length - 1000)));
+      console.error(
+        "Raw response (last 1000 chars):",
+        cleanedText.substring(Math.max(0, cleanedText.length - 1000))
+      );
 
       // Check for common JSON formatting issues
-      if (cleanedText.includes('\n') && !cleanedText.includes('\\n')) {
+      if (cleanedText.includes("\n") && !cleanedText.includes("\\n")) {
         console.error("🚨 DETECTED: AI used actual newlines instead of \\n escape sequences");
         console.error("This is the most common cause of JSON parsing failures");
       }
 
       // Log character positions around the error if available
-      if (parseError instanceof Error && parseError.message.includes('position')) {
+      if (parseError instanceof Error && parseError.message.includes("position")) {
         const match = parseError.message.match(/position (\d+)/);
         if (match) {
           const pos = parseInt(match[1]);

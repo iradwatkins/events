@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Gift, Sparkles, Ticket, DollarSign } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Gift, Sparkles, Ticket, DollarSign } from "lucide-react";
 
 interface WelcomePopupProps {
-  open: boolean
-  onClose: () => void
-  creditsRemaining: number
+  open: boolean;
+  onClose: () => void;
+  creditsRemaining: number;
 }
 
 export function WelcomePopup({ open, onClose, creditsRemaining }: WelcomePopupProps) {
-  const creditValue = (creditsRemaining * 0.3).toFixed(2)
+  const creditValue = (creditsRemaining * 0.3).toFixed(2);
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -30,9 +30,7 @@ export function WelcomePopup({ open, onClose, creditsRemaining }: WelcomePopupPr
             <h3 className="text-3xl font-bold text-primary mb-2">
               {creditsRemaining.toLocaleString()} FREE Tickets!
             </h3>
-            <p className="text-sm text-gray-600">
-              Worth ${creditValue} to help you get started
-            </p>
+            <p className="text-sm text-gray-600">Worth ${creditValue} to help you get started</p>
           </div>
 
           {/* What You Get */}
@@ -44,7 +42,9 @@ export function WelcomePopup({ open, onClose, creditsRemaining }: WelcomePopupPr
             <ul className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold mt-0.5">•</span>
-                <span>Create your first event completely <strong>FREE</strong></span>
+                <span>
+                  Create your first event completely <strong>FREE</strong>
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold mt-0.5">•</span>
@@ -52,7 +52,9 @@ export function WelcomePopup({ open, onClose, creditsRemaining }: WelcomePopupPr
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold mt-0.5">•</span>
-                <span>Collect <strong>100% of ticket sales</strong> revenue</span>
+                <span>
+                  Collect <strong>100% of ticket sales</strong> revenue
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary font-bold mt-0.5">•</span>
@@ -68,9 +70,9 @@ export function WelcomePopup({ open, onClose, creditsRemaining }: WelcomePopupPr
               How Free Tickets Work:
             </h4>
             <p className="text-sm text-gray-700 leading-relaxed">
-              Your free tickets will be automatically applied when you create an event.
-              Once used, you can purchase more tickets at just <strong>$0.30 each</strong> to
-              continue hosting events with zero transaction fees.
+              Your free tickets will be automatically applied when you create an event. Once used,
+              you can purchase more tickets at just <strong>$0.30 each</strong> to continue hosting
+              events with zero transaction fees.
             </p>
           </div>
 
@@ -88,5 +90,5 @@ export function WelcomePopup({ open, onClose, creditsRemaining }: WelcomePopupPr
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

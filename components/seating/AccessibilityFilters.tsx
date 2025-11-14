@@ -73,9 +73,7 @@ export default function AccessibilityFilters({
               className="w-3.5 h-3.5 text-primary border-gray-300 rounded focus:ring-primary disabled:opacity-50"
             />
             <Crown className="w-3.5 h-3.5 text-yellow-600" />
-            <span className="text-xs text-gray-600 group-hover:text-gray-800">
-              Show VIP Seats
-            </span>
+            <span className="text-xs text-gray-600 group-hover:text-gray-800">Show VIP Seats</span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer group">

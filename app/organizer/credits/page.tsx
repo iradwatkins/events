@@ -33,14 +33,14 @@ export default function CreditsPage() {
 
   // Fetch current user ID
   useEffect(() => {
-    fetch('/api/auth/me', { credentials: 'same-origin' })
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/auth/me", { credentials: "same-origin" })
+      .then((res) => res.json())
+      .then((data) => {
         if (data.user && data.user._id) {
           setUserId(data.user._id);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Failed to fetch user:", err);
       });
   }, []);
@@ -53,18 +53,19 @@ export default function CreditsPage() {
     );
   }
 
-  const percentageUsed = credits.creditsTotal > 0
-    ? (credits.creditsUsed / credits.creditsTotal) * 100
-    : 0;
+  const percentageUsed =
+    credits.creditsTotal > 0 ? (credits.creditsUsed / credits.creditsTotal) * 100 : 0;
 
   // Calculate total tickets allocated across all events
-  const totalTicketsAllocated = events?.reduce((sum, event) => {
-    return sum + (event.totalTickets || 0);
-  }, 0) || 0;
+  const totalTicketsAllocated =
+    events?.reduce((sum, event) => {
+      return sum + (event.totalTickets || 0);
+    }, 0) || 0;
 
-  const totalTicketsSold = events?.reduce((sum, event) => {
-    return sum + (event.ticketsSold || 0);
-  }, 0) || 0;
+  const totalTicketsSold =
+    events?.reduce((sum, event) => {
+      return sum + (event.ticketsSold || 0);
+    }, 0) || 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -114,15 +115,16 @@ export default function CreditsPage() {
                 <div className="text-6xl font-bold mb-2">
                   {credits.creditsRemaining.toLocaleString()}
                 </div>
-                <p className="text-xl text-white/90">
-                  tickets available
-                </p>
+                <p className="text-xl text-white/90">tickets available</p>
               </div>
 
               {/* Progress Bar */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span>Usage: {credits.creditsUsed.toLocaleString()} / {credits.creditsTotal.toLocaleString()}</span>
+                  <span>
+                    Usage: {credits.creditsUsed.toLocaleString()} /{" "}
+                    {credits.creditsTotal.toLocaleString()}
+                  </span>
                   <span>{percentageUsed.toFixed(1)}% used</span>
                 </div>
                 <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-3">
@@ -141,7 +143,8 @@ export default function CreditsPage() {
                     <span className="font-semibold">Welcome Bonus Active!</span>
                   </div>
                   <p className="text-sm text-white/90 mt-1">
-                    You have 300 free tickets to get started. No payment required until you use them all!
+                    You have 300 free tickets to get started. No payment required until you use them
+                    all!
                   </p>
                 </div>
               )}
@@ -162,7 +165,9 @@ export default function CreditsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Allocated</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalTicketsAllocated.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {totalTicketsAllocated.toLocaleString()}
+                  </p>
                 </div>
               </div>
               <p className="text-xs text-gray-500">Tickets created across all events</p>
@@ -175,7 +180,9 @@ export default function CreditsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Tickets Sold</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalTicketsSold.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {totalTicketsSold.toLocaleString()}
+                  </p>
                 </div>
               </div>
               <p className="text-xs text-gray-500">Successful ticket sales</p>
@@ -216,9 +223,7 @@ export default function CreditsPage() {
                     {credits.creditsTotal.toLocaleString()}
                   </div>
                   <p className="text-sm font-medium text-gray-700 mb-1">Total Credits</p>
-                  <p className="text-xs text-gray-500">
-                    Lifetime allocation
-                  </p>
+                  <p className="text-xs text-gray-500">Lifetime allocation</p>
                 </div>
 
                 <div className="text-center p-6 bg-red-50 rounded-lg">
@@ -226,9 +231,7 @@ export default function CreditsPage() {
                     {credits.creditsUsed.toLocaleString()}
                   </div>
                   <p className="text-sm font-medium text-gray-700 mb-1">Credits Used</p>
-                  <p className="text-xs text-gray-500">
-                    Allocated to ticket tiers
-                  </p>
+                  <p className="text-xs text-gray-500">Allocated to ticket tiers</p>
                 </div>
 
                 <div className="text-center p-6 bg-green-50 rounded-lg">
@@ -236,9 +239,7 @@ export default function CreditsPage() {
                     {credits.creditsRemaining.toLocaleString()}
                   </div>
                   <p className="text-sm font-medium text-gray-700 mb-1">Credits Remaining</p>
-                  <p className="text-xs text-gray-500">
-                    Available for new tiers
-                  </p>
+                  <p className="text-xs text-gray-500">Available for new tiers</p>
                 </div>
               </div>
 
@@ -256,19 +257,19 @@ export default function CreditsPage() {
                       <div>
                         <p className="text-gray-600 mb-1">Value of remaining credits:</p>
                         <p className="font-semibold text-gray-900">
-                          ${(credits.creditsRemaining * 0.30).toFixed(2)} USD
+                          ${(credits.creditsRemaining * 0.3).toFixed(2)} USD
                         </p>
                       </div>
                       <div>
                         <p className="text-gray-600 mb-1">Total invested:</p>
                         <p className="font-semibold text-gray-900">
-                          ${(credits.creditsUsed * 0.30).toFixed(2)} USD
+                          ${(credits.creditsUsed * 0.3).toFixed(2)} USD
                         </p>
                       </div>
                       <div>
                         <p className="text-gray-600 mb-1">Lifetime value:</p>
                         <p className="font-semibold text-gray-900">
-                          ${(credits.creditsTotal * 0.30).toFixed(2)} USD
+                          ${(credits.creditsTotal * 0.3).toFixed(2)} USD
                         </p>
                       </div>
                     </div>
@@ -321,9 +322,7 @@ export default function CreditsPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">
-                          {event.totalTickets || 0}
-                        </p>
+                        <p className="text-2xl font-bold text-primary">{event.totalTickets || 0}</p>
                         <p className="text-xs text-gray-500">credits used</p>
                       </div>
                     </div>
@@ -348,7 +347,8 @@ export default function CreditsPage() {
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-2">Running Low on Credits</h3>
                   <p className="text-white/90 mb-4">
-                    You have less than 100 credits remaining. Purchase more now to continue creating ticket tiers without interruption.
+                    You have less than 100 credits remaining. Purchase more now to continue creating
+                    ticket tiers without interruption.
                   </p>
                   <button
                     onClick={() => setShowPurchaseModal(true)}

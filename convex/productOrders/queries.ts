@@ -5,10 +5,7 @@ import { v } from "convex/values";
 export const getAllOrders = query({
   args: {},
   handler: async (ctx) => {
-    const orders = await ctx.db
-      .query("productOrders")
-      .order("desc")
-      .collect();
+    const orders = await ctx.db.query("productOrders").order("desc").collect();
     return orders;
   },
 });
@@ -27,9 +24,7 @@ export const getOrdersByStatus = query({
   handler: async (ctx, args) => {
     const orders = await ctx.db
       .query("productOrders")
-      .withIndex("by_fulfillment_status", (q) =>
-        q.eq("fulfillmentStatus", args.fulfillmentStatus)
-      )
+      .withIndex("by_fulfillment_status", (q) => q.eq("fulfillmentStatus", args.fulfillmentStatus))
       .order("desc")
       .collect();
     return orders;

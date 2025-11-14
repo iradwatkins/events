@@ -77,7 +77,9 @@ export function sectionsToCanvasItems(sections: any[]): CanvasItem[] {
 /**
  * Group consecutive rows that have the same seat count into row sections
  */
-function groupConsecutiveRows(rows: any[]): Array<{ rows: any[]; seatsPerRow: number; label?: string }> {
+function groupConsecutiveRows(
+  rows: any[]
+): Array<{ rows: any[]; seatsPerRow: number; label?: string }> {
   if (!rows || rows.length === 0) return [];
 
   const groups: Array<{ rows: any[]; seatsPerRow: number; label?: string }> = [];

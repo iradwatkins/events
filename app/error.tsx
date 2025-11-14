@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function Error({
   error,
@@ -12,8 +12,8 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error boundary caught:', error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error boundary caught:", error);
     }
   }, [error]);
 
@@ -35,30 +35,20 @@ export default function Error({
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Something went wrong
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
         <p className="text-gray-600 mb-6">
           We apologize for the inconvenience. An error occurred while processing your request.
         </p>
-        {process.env.NODE_ENV === 'development' && error.message && (
+        {process.env.NODE_ENV === "development" && error.message && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-left">
-            <p className="text-sm font-mono text-red-800 break-words">
-              {error.message}
-            </p>
+            <p className="text-sm font-mono text-red-800 break-words">{error.message}</p>
           </div>
         )}
         <div className="flex gap-3 justify-center">
-          <Button
-            onClick={() => reset()}
-            className="px-6"
-          >
+          <Button onClick={() => reset()} className="px-6">
             Try again
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => window.location.href = '/'}
-          >
+          <Button variant="outline" onClick={() => (window.location.href = "/")}>
             Go home
           </Button>
         </div>

@@ -28,7 +28,10 @@ interface EventCardProps {
 
 export function EventCard({ event }: EventCardProps) {
   // Use imageUrl from event, fallback to Unsplash random images
-  const imageUrl = event.imageUrl || (event.images && event.images[0]) || `https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80`;
+  const imageUrl =
+    event.imageUrl ||
+    (event.images && event.images[0]) ||
+    `https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80`;
 
   return (
     <Link href={`/events/${event._id}`} className="group block cursor-pointer">

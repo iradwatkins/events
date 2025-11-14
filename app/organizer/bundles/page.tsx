@@ -33,12 +33,8 @@ export default function BundlesRedirectPage() {
 
           {/* Description */}
           <div className="text-lg text-gray-600 mb-8 space-y-4">
-            <p>
-              Ticket bundles are now managed within each event's settings.
-            </p>
-            <p className="text-base">
-              To create or manage ticket bundles:
-            </p>
+            <p>Ticket bundles are now managed within each event's settings.</p>
+            <p className="text-base">To create or manage ticket bundles:</p>
           </div>
 
           {/* Steps */}
@@ -58,7 +54,10 @@ export default function BundlesRedirectPage() {
               </li>
               <li className="flex items-start">
                 <span className="font-semibold text-primary mr-2">4.</span>
-                <span>Bundle multiple tickets together (e.g., "Weekend Pass" = Friday + Saturday + Sunday)</span>
+                <span>
+                  Bundle multiple tickets together (e.g., "Weekend Pass" = Friday + Saturday +
+                  Sunday)
+                </span>
               </li>
             </ol>
           </div>

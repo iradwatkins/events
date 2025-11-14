@@ -21,7 +21,9 @@ export const testMultiEventBundlePurchase = mutation({
     const multiEventBundle = allBundles.find((b) => b.bundleType === "MULTI_EVENT");
 
     if (!multiEventBundle) {
-      throw new Error("No multi-event bundle found. Please create one first using createMultiEventBundle.");
+      throw new Error(
+        "No multi-event bundle found. Please create one first using createMultiEventBundle."
+      );
     }
 
     console.log(`Found multi-event bundle: ${multiEventBundle.name}`);
@@ -116,9 +118,13 @@ export const testMultiEventBundlePurchase = mutation({
     console.log(`   - All have ticket codes: ${tickets.every((t) => !!t.ticketCode)}`);
 
     if (uniqueEventIds.size > 1) {
-      console.log(`   ✅ SUCCESS: Tickets are correctly assigned to ${uniqueEventIds.size} different events!`);
+      console.log(
+        `   ✅ SUCCESS: Tickets are correctly assigned to ${uniqueEventIds.size} different events!`
+      );
     } else {
-      console.log(`   ⚠️  WARNING: All tickets are for the same event (bundle may be single-event)`);
+      console.log(
+        `   ⚠️  WARNING: All tickets are for the same event (bundle may be single-event)`
+      );
     }
 
     if (tickets.every((t) => !!t.ticketCode)) {

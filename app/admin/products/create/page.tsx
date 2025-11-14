@@ -86,9 +86,9 @@ export default function CreateProductPage() {
 
     try {
       const uploadPromises = acceptedFiles.map(async (file, index) => {
-        setUploadProgress(prev => ({ ...prev, [`additional-${index}`]: true }));
+        setUploadProgress((prev) => ({ ...prev, [`additional-${index}`]: true }));
         const url = await uploadImage(file);
-        setUploadProgress(prev => ({ ...prev, [`additional-${index}`]: false }));
+        setUploadProgress((prev) => ({ ...prev, [`additional-${index}`]: false }));
         return url;
       });
 
@@ -193,9 +193,7 @@ export default function CreateProductPage() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Name *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>
               <input
                 type="text"
                 required
@@ -207,9 +205,7 @@ export default function CreateProductPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
               <textarea
                 required
                 rows={4}
@@ -314,14 +310,17 @@ export default function CreateProductPage() {
                 onChange={(e) => setFormData({ ...formData, hasVariants: e.target.checked })}
                 className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-ring"
               />
-              <span className="text-sm text-gray-700">This product has variants (colors/sizes)</span>
+              <span className="text-sm text-gray-700">
+                This product has variants (colors/sizes)
+              </span>
             </label>
           </div>
 
           {formData.hasVariants && (
             <div className="mt-4 p-4 bg-accent border border-primary/30 rounded-lg">
               <p className="text-sm text-foreground">
-                <strong>Note:</strong> After creating this product, you'll be able to generate and manage variants (color/size combinations) on the edit page.
+                <strong>Note:</strong> After creating this product, you'll be able to generate and
+                manage variants (color/size combinations) on the edit page.
               </p>
             </div>
           )}
@@ -430,7 +429,10 @@ export default function CreateProductPage() {
               {uploadedImages.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   {uploadedImages.map((url, index) => (
-                    <div key={index} className="relative w-full aspect-square border-2 border-gray-200 rounded-lg overflow-hidden group">
+                    <div
+                      key={index}
+                      className="relative w-full aspect-square border-2 border-gray-200 rounded-lg overflow-hidden group"
+                    >
                       <Image
                         src={url}
                         alt={`Product image ${index + 1}`}
@@ -471,7 +473,8 @@ export default function CreateProductPage() {
                 } ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <input {...additionalDropzone.getInputProps()} />
-                {isUploading && Object.keys(uploadProgress).some(k => k.startsWith("additional-")) ? (
+                {isUploading &&
+                Object.keys(uploadProgress).some((k) => k.startsWith("additional-")) ? (
                   <div className="text-center">
                     <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-2" />
                     <p className="text-sm text-gray-600">Uploading images...</p>
@@ -534,7 +537,9 @@ export default function CreateProductPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent"
                     placeholder="5.99"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Delivery shipping cost (pickup is free)</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Delivery shipping cost (pickup is free)
+                  </p>
                 </div>
               </div>
             )}

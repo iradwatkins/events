@@ -11,7 +11,7 @@ function getStoragePath() {
   }
 
   // Then check NODE_ENV at runtime
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     return "/root/websites/events-stepperslife/STEPFILES/product-images";
   }
 
@@ -32,12 +32,9 @@ export async function GET(
     console.log(`[Product Image] NODE_ENV: ${process.env.NODE_ENV}`);
 
     // Security: Only allow .jpg files and prevent directory traversal
-    if (!filename.endsWith('.jpg') || filename.includes('..') || filename.includes('/')) {
+    if (!filename.endsWith(".jpg") || filename.includes("..") || filename.includes("/")) {
       console.error(`[Product Image] Invalid filename: ${filename}`);
-      return NextResponse.json(
-        { error: "Invalid filename" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
     }
 
     const filepath = path.join(storagePath, filename);
@@ -63,7 +60,10 @@ export async function GET(
   } catch (error) {
     console.error("[Product Image] Error serving image:", error);
     return NextResponse.json(
-      { error: "Failed to load image", details: error instanceof Error ? error.message : String(error) },
+      {
+        error: "Failed to load image",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }

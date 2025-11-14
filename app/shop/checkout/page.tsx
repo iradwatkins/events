@@ -5,14 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useCart } from "@/contexts/CartContext";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Loader2,
-  Package,
-  MapPin,
-  Truck
-} from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Package, MapPin, Truck } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import Script from "next/script";
@@ -52,7 +45,7 @@ export default function CheckoutPage() {
     city: "Chicago",
     state: "IL",
     zipCode: "",
-    country: "USA"
+    country: "USA",
   });
 
   const createProductOrder = useMutation(api.productOrders.mutations.createProductOrder);
@@ -77,7 +70,7 @@ export default function CheckoutPage() {
 
   const initializeSquare = async () => {
     if (!window.Square) {
-      console.error('Square.js failed to load');
+      console.error("Square.js failed to load");
       return;
     }
 
@@ -85,30 +78,30 @@ export default function CheckoutPage() {
       const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID;
       const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
 
-      console.log('Initializing Square with:', { appId, locationId });
+      console.log("Initializing Square with:", { appId, locationId });
 
       if (!appId || !locationId) {
-        console.error('Missing Square credentials');
+        console.error("Missing Square credentials");
         return;
       }
 
       const payments = window.Square.payments(appId, locationId);
 
       const cardInstance = await payments.card();
-      await cardInstance.attach('#card-container');
+      await cardInstance.attach("#card-container");
       setCard(cardInstance);
-      console.log('Square payment form initialized successfully');
+      console.log("Square payment form initialized successfully");
     } catch (e) {
-      console.error('Failed to initialize Square payment form:', e);
+      console.error("Failed to initialize Square payment form:", e);
       // Show user-friendly error
-      toast.error('Payment form initialization failed. Please contact support.');
+      toast.error("Payment form initialization failed. Please contact support.");
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -116,20 +109,22 @@ export default function CheckoutPage() {
     e.preventDefault();
 
     if (items.length === 0) {
-      toast.error('Your cart is empty');
+      toast.error("Your cart is empty");
       return;
     }
 
     // Validate form
-    const requiredFields = ['email', 'firstName', 'lastName', 'phone'];
+    const requiredFields = ["email", "firstName", "lastName", "phone"];
     if (shippingMethod === "DELIVERY") {
-      requiredFields.push('address1', 'city', 'state', 'zipCode');
+      requiredFields.push("address1", "city", "state", "zipCode");
     }
 
-    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+    const missingFields = requiredFields.filter(
+      (field) => !formData[field as keyof typeof formData]
+    );
 
     if (missingFields.length > 0) {
-      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      toast.error(`Please fill in all required fields: ${missingFields.join(", ")}`);
       return;
     }
 
@@ -141,16 +136,16 @@ export default function CheckoutPage() {
       // Get payment token from Square
       if (card) {
         const result = await card.tokenize();
-        if (result.status === 'OK') {
+        if (result.status === "OK") {
           paymentToken = result.token;
         } else {
-          throw new Error(result.errors?.[0]?.message || 'Payment tokenization failed');
+          throw new Error(result.errors?.[0]?.message || "Payment tokenization failed");
         }
       }
 
       // Create order
       const result = await createProductOrder({
-        items: items.map(item => ({
+        items: items.map((item) => ({
           productId: item.productId,
           productName: item.productName,
           variantId: item.variantId,
@@ -184,7 +179,9 @@ export default function CheckoutPage() {
       setOrderComplete(true);
     } catch (error) {
       console.error("Order creation error:", error);
-      toast.error(`Failed to create order: ${error instanceof Error ? error.message : "Unknown error"}`);
+      toast.error(
+        `Failed to create order: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -197,7 +194,9 @@ export default function CheckoutPage() {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md w-full text-center">
             <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Your cart is empty</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Your cart is empty
+            </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Add some products to your cart before checking out.
             </p>
@@ -220,57 +219,62 @@ export default function CheckoutPage() {
         <PublicHeader />
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h2>
-          <p className="text-gray-600 mb-4">
-            Thank you for your order. We'll send you an email confirmation shortly{shippingMethod === "PICKUP" ? " with pickup details" : ""}.
-          </p>
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-600 mb-1">Order Number</p>
-            <p className="text-lg font-bold text-primary font-mono">{orderNumber}</p>
-          </div>
-          {shippingMethod === "PICKUP" ? (
-            <div className="bg-accent/50 border border-border rounded-lg p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <div className="text-left">
-                  <h3 className="font-semibold text-foreground mb-1">Pickup Location</h3>
-                  <p className="text-sm text-primary">
-                    {formData.pickupLocation.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} - Details will be sent via email
-                  </p>
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h2>
+            <p className="text-gray-600 mb-4">
+              Thank you for your order. We'll send you an email confirmation shortly
+              {shippingMethod === "PICKUP" ? " with pickup details" : ""}.
+            </p>
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <p className="text-sm text-gray-600 mb-1">Order Number</p>
+              <p className="text-lg font-bold text-primary font-mono">{orderNumber}</p>
+            </div>
+            {shippingMethod === "PICKUP" ? (
+              <div className="bg-accent/50 border border-border rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div className="text-left">
+                    <h3 className="font-semibold text-foreground mb-1">Pickup Location</h3>
+                    <p className="text-sm text-primary">
+                      {formData.pickupLocation
+                        .split("-")
+                        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                        .join(" ")}{" "}
+                      - Details will be sent via email
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <Truck className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <div className="text-left">
-                  <h3 className="font-semibold text-green-900 mb-1">Delivery Address</h3>
-                  <p className="text-sm text-green-700">
-                    {formData.address1}, {formData.city}, {formData.state} {formData.zipCode}
-                  </p>
+            ) : (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <Truck className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-left">
+                    <h3 className="font-semibold text-green-900 mb-1">Delivery Address</h3>
+                    <p className="text-sm text-green-700">
+                      {formData.address1}, {formData.city}, {formData.state} {formData.zipCode}
+                    </p>
+                  </div>
                 </div>
               </div>
+            )}
+            <div className="space-y-3">
+              <Link
+                href="/shop"
+                className="block w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Continue Shopping
+              </Link>
+              <Link
+                href="/"
+                className="block w-full px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Back to Home
+              </Link>
             </div>
-          )}
-          <div className="space-y-3">
-            <Link
-              href="/shop"
-              className="block w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              Continue Shopping
-            </Link>
-            <Link
-              href="/"
-              className="block w-full px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              Back to Home
-            </Link>
           </div>
-        </div>
         </div>
         <PublicFooter />
       </>
@@ -281,9 +285,10 @@ export default function CheckoutPage() {
     <>
       {/* Load Square Web Payments SDK */}
       <Script
-        src={process.env.NEXT_PUBLIC_SQUARE_ENVIRONMENT === 'production'
-          ? "https://web.squarecdn.com/v1/square.js"
-          : "https://sandbox.web.squarecdn.com/v1/square.js"
+        src={
+          process.env.NEXT_PUBLIC_SQUARE_ENVIRONMENT === "production"
+            ? "https://web.squarecdn.com/v1/square.js"
+            : "https://sandbox.web.squarecdn.com/v1/square.js"
         }
         strategy="lazyOnload"
         onLoad={() => setSquareLoaded(true)}
@@ -384,7 +389,9 @@ export default function CheckoutPage() {
                           : "border-gray-300 hover:border-gray-400"
                       }`}
                     >
-                      <MapPin className={`w-8 h-8 mx-auto mb-2 ${shippingMethod === "PICKUP" ? "text-primary" : "text-gray-400"}`} />
+                      <MapPin
+                        className={`w-8 h-8 mx-auto mb-2 ${shippingMethod === "PICKUP" ? "text-primary" : "text-gray-400"}`}
+                      />
                       <p className="font-semibold">Pickup</p>
                       <p className="text-sm text-gray-600">Free</p>
                     </button>
@@ -397,7 +404,9 @@ export default function CheckoutPage() {
                           : "border-gray-300 hover:border-gray-400"
                       }`}
                     >
-                      <Truck className={`w-8 h-8 mx-auto mb-2 ${shippingMethod === "DELIVERY" ? "text-primary" : "text-gray-400"}`} />
+                      <Truck
+                        className={`w-8 h-8 mx-auto mb-2 ${shippingMethod === "DELIVERY" ? "text-primary" : "text-gray-400"}`}
+                      />
                       <p className="font-semibold">Delivery</p>
                       <p className="text-sm text-gray-600">Calculated by admin</p>
                     </button>
@@ -413,7 +422,8 @@ export default function CheckoutPage() {
                     </h2>
                     <div className="bg-accent/50 border border-border rounded-lg p-4 mb-4">
                       <p className="text-sm text-primary">
-                        All orders are available for pickup in Chicago. Select your preferred pickup location below.
+                        All orders are available for pickup in Chicago. Select your preferred pickup
+                        location below.
                       </p>
                     </div>
                     <select
@@ -436,7 +446,8 @@ export default function CheckoutPage() {
                     </h2>
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
                       <p className="text-sm text-amber-700">
-                        Shipping cost will be calculated based on the products in your cart and confirmed after order placement.
+                        Shipping cost will be calculated based on the products in your cart and
+                        confirmed after order placement.
                       </p>
                     </div>
                     <div className="space-y-4">
@@ -534,9 +545,7 @@ export default function CheckoutPage() {
                       Processing...
                     </>
                   ) : (
-                    <>
-                      Place Order - ${((getSubtotal() + shippingCost) / 100).toFixed(2)}
-                    </>
+                    <>Place Order - ${((getSubtotal() + shippingCost) / 100).toFixed(2)}</>
                   )}
                 </button>
               </form>
@@ -550,7 +559,10 @@ export default function CheckoutPage() {
                 {/* Cart Items */}
                 <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
                   {items.map((item) => (
-                    <div key={`${item.productId}-${item.variantId || 'default'}`} className="flex gap-3 pb-4 border-b border-gray-200">
+                    <div
+                      key={`${item.productId}-${item.variantId || "default"}`}
+                      className="flex gap-3 pb-4 border-b border-gray-200"
+                    >
                       {item.productImage ? (
                         <div className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                           <Image
@@ -570,9 +582,7 @@ export default function CheckoutPage() {
                           {item.productName}
                         </h3>
                         {item.variantName && (
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            {item.variantName}
-                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">{item.variantName}</p>
                         )}
                         <p className="text-sm text-gray-600 mt-1">
                           Qty: {item.quantity} × ${(item.productPrice / 100).toFixed(2)}
@@ -593,7 +603,9 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
-                    <span className={shippingMethod === "PICKUP" ? "text-green-600 font-semibold" : ""}>
+                    <span
+                      className={shippingMethod === "PICKUP" ? "text-green-600 font-semibold" : ""}
+                    >
                       {shippingMethod === "PICKUP" ? "FREE" : "TBD"}
                     </span>
                   </div>

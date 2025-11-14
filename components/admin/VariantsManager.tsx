@@ -35,7 +35,7 @@ export default function VariantsManager({
   basePrice,
   baseSku,
   variants = [],
-  onVariantsChange
+  onVariantsChange,
 }: Props) {
   const [colors, setColors] = useState("");
   const [sizes, setSizes] = useState("");
@@ -53,8 +53,14 @@ export default function VariantsManager({
       return;
     }
 
-    const colorArray = colors.split(",").map(c => c.trim()).filter(Boolean);
-    const sizeArray = sizes.split(",").map(s => s.trim()).filter(Boolean);
+    const colorArray = colors
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean);
+    const sizeArray = sizes
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     if (colorArray.length === 0 || sizeArray.length === 0) {
       alert("Please enter valid colors and sizes");
@@ -80,7 +86,9 @@ export default function VariantsManager({
       setColors("");
       setSizes("");
     } catch (error) {
-      alert(`Failed to generate variants: ${error instanceof Error ? error.message : String(error)}`);
+      alert(
+        `Failed to generate variants: ${error instanceof Error ? error.message : String(error)}`
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -231,8 +239,10 @@ export default function VariantsManager({
 
         {colors.trim() && sizes.trim() && (
           <p className="text-sm text-gray-600 mt-3">
-            Will generate {colors.split(",").filter(Boolean).length} × {sizes.split(",").filter(Boolean).length} ={" "}
-            {colors.split(",").filter(Boolean).length * sizes.split(",").filter(Boolean).length} variants
+            Will generate {colors.split(",").filter(Boolean).length} ×{" "}
+            {sizes.split(",").filter(Boolean).length} ={" "}
+            {colors.split(",").filter(Boolean).length * sizes.split(",").filter(Boolean).length}{" "}
+            variants
           </p>
         )}
       </div>
@@ -253,12 +263,24 @@ export default function VariantsManager({
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Variant</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inventory</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Image
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Variant
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Price
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    SKU
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Inventory
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -312,7 +334,13 @@ export default function VariantsManager({
                           type="number"
                           step="0.01"
                           value={(editedValues[variant.id]?.price ?? variant.price) / 100}
-                          onChange={(e) => updateEditedValue(variant.id, "price", Math.round(parseFloat(e.target.value) * 100))}
+                          onChange={(e) =>
+                            updateEditedValue(
+                              variant.id,
+                              "price",
+                              Math.round(parseFloat(e.target.value) * 100)
+                            )
+                          }
                           className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
                         />
                       ) : (
@@ -339,8 +367,16 @@ export default function VariantsManager({
                       {editingVariant === variant.id ? (
                         <input
                           type="number"
-                          value={editedValues[variant.id]?.inventoryQuantity ?? variant.inventoryQuantity}
-                          onChange={(e) => updateEditedValue(variant.id, "inventoryQuantity", parseInt(e.target.value))}
+                          value={
+                            editedValues[variant.id]?.inventoryQuantity ?? variant.inventoryQuantity
+                          }
+                          onChange={(e) =>
+                            updateEditedValue(
+                              variant.id,
+                              "inventoryQuantity",
+                              parseInt(e.target.value)
+                            )
+                          }
                           className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
                         />
                       ) : (

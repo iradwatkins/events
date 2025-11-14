@@ -47,7 +47,8 @@ export default function TicketValidationPage() {
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Ticket Not Found</h1>
               <p className="text-gray-600 mb-6">
-                The ticket code <span className="font-mono font-semibold">{ticketCode}</span> could not be found.
+                The ticket code <span className="font-mono font-semibold">{ticketCode}</span> could
+                not be found.
               </p>
               <Link
                 href="/"
@@ -86,11 +87,11 @@ export default function TicketValidationPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Ticket Status Banner */}
-          <div className={`rounded-lg p-6 mb-6 ${
-            isValid
-              ? "bg-primary text-white"
-              : "bg-primary text-white"
-          }`}>
+          <div
+            className={`rounded-lg p-6 mb-6 ${
+              isValid ? "bg-primary text-white" : "bg-primary text-white"
+            }`}
+          >
             <div className="flex items-center gap-4">
               {isValid ? (
                 <CheckCircle className="w-12 h-12 flex-shrink-0" />
@@ -127,9 +128,7 @@ export default function TicketValidationPage() {
                 <div className="p-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">{event.name}</h2>
 
-                  {event.description && (
-                    <p className="text-gray-600 mb-6">{event.description}</p>
-                  )}
+                  {event.description && <p className="text-gray-600 mb-6">{event.description}</p>}
 
                   <div className="space-y-3">
                     {event.startDate && (
@@ -147,12 +146,14 @@ export default function TicketValidationPage() {
                       </div>
                     )}
 
-                    {event.location && typeof event.location === 'object' && (
+                    {event.location && typeof event.location === "object" && (
                       <div className="flex items-start gap-3">
                         <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                         <div>
                           {event.location.venueName && (
-                            <p className="font-semibold text-gray-900">{event.location.venueName}</p>
+                            <p className="font-semibold text-gray-900">
+                              {event.location.venueName}
+                            </p>
                           )}
                           <p className="text-sm text-gray-600">
                             {event.location.address && `${event.location.address}, `}
@@ -172,7 +173,9 @@ export default function TicketValidationPage() {
                   <div className="space-y-2">
                     <div>
                       <p className="text-sm text-gray-500">Name</p>
-                      <p className="font-semibold text-gray-900">{attendee.name || "Not provided"}</p>
+                      <p className="font-semibold text-gray-900">
+                        {attendee.name || "Not provided"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Email</p>
@@ -198,9 +201,7 @@ export default function TicketValidationPage() {
                     />
                   </div>
                 </div>
-                <p className="text-center text-sm text-gray-500">
-                  Scan at event entrance
-                </p>
+                <p className="text-center text-sm text-gray-500">Scan at event entrance</p>
               </div>
 
               {/* Ticket Details */}
@@ -209,7 +210,9 @@ export default function TicketValidationPage() {
                 <dl className="space-y-3">
                   <div>
                     <dt className="text-sm text-gray-500">Ticket Code</dt>
-                    <dd className="font-mono text-lg font-bold text-gray-900">{ticket.ticketCode}</dd>
+                    <dd className="font-mono text-lg font-bold text-gray-900">
+                      {ticket.ticketCode}
+                    </dd>
                   </div>
 
                   {tier && (
@@ -243,9 +246,7 @@ export default function TicketValidationPage() {
 
                   <div>
                     <dt className="text-sm text-gray-500">Status</dt>
-                    <dd className={`font-semibold ${
-                      isValid ? "text-green-600" : "text-red-600"
-                    }`}>
+                    <dd className={`font-semibold ${isValid ? "text-green-600" : "text-red-600"}`}>
                       {ticket.status}
                     </dd>
                   </div>

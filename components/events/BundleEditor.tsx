@@ -56,7 +56,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
 
   // Fetch ticket tiers for this event (for single-event mode)
   const tiers = useQuery(api.events.queries.getEventTicketTiers, {
-    eventId
+    eventId,
   }) as TicketTier[] | undefined;
 
   // Fetch existing bundles
@@ -99,12 +99,16 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
     setEditingBundleId(null);
   };
 
-  const addTierToBundle = (tierId: Id<"ticketTiers">, eventIdParam?: Id<"events">, eventNameParam?: string) => {
-    const tier = availableTiers?.find(t => t._id === tierId);
+  const addTierToBundle = (
+    tierId: Id<"ticketTiers">,
+    eventIdParam?: Id<"events">,
+    eventNameParam?: string
+  ) => {
+    const tier = availableTiers?.find((t) => t._id === tierId);
     if (!tier) return;
 
     // Check if tier already added
-    if (formData.includedTiers.some(it => it.tierId === tierId)) {
+    if (formData.includedTiers.some((it) => it.tierId === tierId)) {
       alert("This tier is already included in the bundle");
       return;
     }
@@ -123,26 +127,23 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
 
     setFormData({
       ...formData,
-      includedTiers: [
-        ...formData.includedTiers,
-        newTier
-      ]
+      includedTiers: [...formData.includedTiers, newTier],
     });
   };
 
   const removeTierFromBundle = (tierId: Id<"ticketTiers">) => {
     setFormData({
       ...formData,
-      includedTiers: formData.includedTiers.filter(it => it.tierId !== tierId)
+      includedTiers: formData.includedTiers.filter((it) => it.tierId !== tierId),
     });
   };
 
   const updateTierQuantity = (tierId: Id<"ticketTiers">, quantity: number) => {
     setFormData({
       ...formData,
-      includedTiers: formData.includedTiers.map(it =>
+      includedTiers: formData.includedTiers.map((it) =>
         it.tierId === tierId ? { ...it, quantity } : it
-      )
+      ),
     });
   };
 
@@ -150,7 +151,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
     if (!availableTiers) return 0;
     let total = 0;
     for (const includedTier of formData.includedTiers) {
-      const tier = availableTiers.find(t => t._id === includedTier.tierId);
+      const tier = availableTiers.find((t) => t._id === includedTier.tierId);
       if (tier) {
         total += tier.price * includedTier.quantity;
       }
@@ -234,8 +235,8 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
       price: (bundle.price / 100).toFixed(2),
       includedTiers: bundle.includedTiers,
       totalQuantity: bundle.totalQuantity.toString(),
-      saleStart: bundle.saleStart ? new Date(bundle.saleStart).toISOString().split('T')[0] : "",
-      saleEnd: bundle.saleEnd ? new Date(bundle.saleEnd).toISOString().split('T')[0] : "",
+      saleStart: bundle.saleStart ? new Date(bundle.saleStart).toISOString().split("T")[0] : "",
+      saleEnd: bundle.saleEnd ? new Date(bundle.saleEnd).toISOString().split("T")[0] : "",
     });
     setEditingBundleId(bundle._id);
     setIsCreating(true);
@@ -271,9 +272,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
         <Package className="w-12 h-12 text-gray-400 mx-auto mb-3" />
         <p className="text-gray-600 mb-2">No ticket tiers available</p>
-        <p className="text-sm text-gray-500">
-          Create ticket tiers first before creating bundles
-        </p>
+        <p className="text-sm text-gray-500">Create ticket tiers first before creating bundles</p>
       </div>
     );
   }
@@ -302,16 +301,15 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
 
       {/* Create/Edit Form */}
       {isCreating && (
-        <form onSubmit={handleSubmit} className="bg-accent border-2 border-primary/30 rounded-lg p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-accent border-2 border-primary/30 rounded-lg p-6"
+        >
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-semibold text-gray-900">
               {editingBundleId ? "Edit Bundle" : "Create New Bundle"}
             </h4>
-            <button
-              type="button"
-              onClick={resetForm}
-              className="text-gray-600 hover:text-gray-800"
-            >
+            <button type="button" onClick={resetForm} className="text-gray-600 hover:text-gray-800">
               Cancel
             </button>
           </div>
@@ -319,9 +317,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
           <div className="space-y-4">
             {/* Bundle Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Bundle Name *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Bundle Name *</label>
               <input
                 type="text"
                 value={formData.name}
@@ -355,9 +351,12 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
               {formData.includedTiers.length > 0 ? (
                 <div className="space-y-2 mb-3">
                   {formData.includedTiers.map((includedTier) => {
-                    const tier = availableTiers?.find(t => t._id === includedTier.tierId);
+                    const tier = availableTiers?.find((t) => t._id === includedTier.tierId);
                     return (
-                      <div key={includedTier.tierId} className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg p-3">
+                      <div
+                        key={includedTier.tierId}
+                        className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg p-3"
+                      >
                         <div className="flex-1">
                           <div className="font-medium text-gray-900">{includedTier.tierName}</div>
                           <div className="text-sm text-gray-600">
@@ -375,7 +374,9 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                             type="number"
                             min="1"
                             value={includedTier.quantity}
-                            onChange={(e) => updateTierQuantity(includedTier.tierId, parseInt(e.target.value) || 1)}
+                            onChange={(e) =>
+                              updateTierQuantity(includedTier.tierId, parseInt(e.target.value) || 1)
+                            }
                             className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
                           />
                         </div>
@@ -400,7 +401,9 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
               <select
                 onChange={(e) => {
                   if (e.target.value) {
-                    const selectedTier = availableTiers?.find(t => t._id === e.target.value as Id<"ticketTiers">);
+                    const selectedTier = availableTiers?.find(
+                      (t) => t._id === (e.target.value as Id<"ticketTiers">)
+                    );
                     if (selectedTier) {
                       const evtId = (selectedTier as any).eventId;
                       const evtName = (selectedTier as any).eventName;
@@ -414,8 +417,8 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
               >
                 <option value="">+ Add Ticket Type</option>
                 {availableTiers
-                  ?.filter(tier => !formData.includedTiers.some(it => it.tierId === tier._id))
-                  .map(tier => (
+                  ?.filter((tier) => !formData.includedTiers.some((it) => it.tierId === tier._id))
+                  .map((tier) => (
                     <option key={tier._id} value={tier._id}>
                       {tier.name} - ${(tier.price / 100).toFixed(2)} ({tier.available} available)
                     </option>
@@ -464,9 +467,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
 
               {/* Savings */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Savings
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Savings</label>
                 <div className="relative">
                   <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
                   <input
@@ -553,7 +554,7 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
             <div
               key={bundle._id}
               className={`border rounded-lg p-4 ${
-                bundle.isActive ? 'bg-white border-gray-200' : 'bg-gray-50 border-gray-300'
+                bundle.isActive ? "bg-white border-gray-200" : "bg-gray-50 border-gray-300"
               }`}
             >
               <div className="flex items-start justify-between">
@@ -592,7 +593,9 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                     </div>
                     <div>
                       <span className="text-gray-500">Available:</span>{" "}
-                      <span className="font-medium">{bundle.available} / {bundle.totalQuantity}</span>
+                      <span className="font-medium">
+                        {bundle.available} / {bundle.totalQuantity}
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-500">Sold:</span>{" "}
@@ -627,11 +630,11 @@ export function BundleEditor({ eventId }: BundleEditorProps) {
                     onClick={() => handleToggleActive(bundle)}
                     className={`px-3 py-1 text-sm rounded ${
                       bundle.isActive
-                        ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                        : "bg-green-100 text-green-700 hover:bg-green-200"
                     }`}
                   >
-                    {bundle.isActive ? 'Deactivate' : 'Activate'}
+                    {bundle.isActive ? "Deactivate" : "Activate"}
                   </button>
                   {bundle.sold === 0 && (
                     <button

@@ -5,14 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import {
-  ArrowLeft,
-  Calendar,
-  MapPin,
-  FileText,
-  Save,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, FileText, Save, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ImageUpload } from "@/components/upload/ImageUpload";
 import { getTimezoneFromLocation, getTimezoneName } from "@/lib/timezone";
@@ -40,13 +33,13 @@ export default function EditEventPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch("/api/auth/me");
         if (response.ok) {
           const data = await response.json();
           setCurrentUser(data.user);
         }
       } catch (error) {
-        console.error('Failed to fetch user:', error);
+        console.error("Failed to fetch user:", error);
       }
     };
     fetchUser();
@@ -164,10 +157,10 @@ export default function EditEventPage() {
   }
 
   // Debug logging
-  console.log('[Edit Page] Current User:', currentUser);
-  console.log('[Edit Page] Event Organizer ID:', event.organizerId);
-  console.log('[Edit Page] User ID:', currentUser._id);
-  console.log('[Edit Page] Role:', currentUser.role);
+  console.log("[Edit Page] Current User:", currentUser);
+  console.log("[Edit Page] Event Organizer ID:", event.organizerId);
+  console.log("[Edit Page] User ID:", currentUser._id);
+  console.log("[Edit Page] Role:", currentUser.role);
 
   // Check if user is the organizer (removed for now to allow access)
   // TEMPORARY: Commenting out permission check to debug
@@ -240,9 +233,7 @@ export default function EditEventPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Categories
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Categories</label>
                   <div className="flex flex-wrap gap-2">
                     {EVENT_CATEGORIES.map((category) => (
                       <button
@@ -306,9 +297,7 @@ export default function EditEventPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Venue Name
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Venue Name</label>
                   <input
                     type="text"
                     value={venueName}
@@ -331,9 +320,7 @@ export default function EditEventPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      City *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
                     <input
                       type="text"
                       value={city}
@@ -344,9 +331,7 @@ export default function EditEventPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      State *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
                     <input
                       type="text"
                       value={state}
@@ -357,9 +342,7 @@ export default function EditEventPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Zip Code
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Zip Code</label>
                     <input
                       type="text"
                       value={zipCode}
@@ -377,7 +360,8 @@ export default function EditEventPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Capacity {event.eventType === "TICKETED_EVENT" && <span className="text-red-500">*</span>}
+                  Event Capacity{" "}
+                  {event.eventType === "TICKETED_EVENT" && <span className="text-red-500">*</span>}
                 </label>
                 <input
                   type="number"
@@ -408,9 +392,7 @@ export default function EditEventPage() {
                   />
                 </div>
               )}
-              <ImageUpload
-                onImageUploaded={(storageId) => setUploadedImageId(storageId)}
-              />
+              <ImageUpload onImageUploaded={(storageId) => setUploadedImageId(storageId)} />
               <p className="text-sm text-gray-500 mt-2">
                 Upload a new image to replace the current one
               </p>

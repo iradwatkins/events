@@ -8,10 +8,10 @@
  * - Security badges and trust indicators
  */
 
-import { ReactNode } from 'react';
-import { Shield, Lock, CheckCircle2 } from 'lucide-react';
+import { ReactNode } from "react";
+import { Shield, Lock, CheckCircle2 } from "lucide-react";
 
-export type CheckoutStep = 'contact' | 'payment' | 'confirmation';
+export type CheckoutStep = "contact" | "payment" | "confirmation";
 
 export interface CheckoutLayoutProps {
   /** Current step in checkout flow */
@@ -27,16 +27,16 @@ export interface CheckoutLayoutProps {
 }
 
 const STEPS: Array<{ key: CheckoutStep; label: string }> = [
-  { key: 'contact', label: 'Contact Info' },
-  { key: 'payment', label: 'Payment' },
-  { key: 'confirmation', label: 'Confirmation' },
+  { key: "contact", label: "Contact Info" },
+  { key: "payment", label: "Payment" },
+  { key: "confirmation", label: "Confirmation" },
 ];
 
 /**
  * Get step index for progress calculation
  */
 function getStepIndex(step: CheckoutStep): number {
-  return STEPS.findIndex(s => s.key === step);
+  return STEPS.findIndex((s) => s.key === step);
 }
 
 export function CheckoutLayout({
@@ -87,30 +87,26 @@ export function CheckoutLayout({
                 return (
                   <div
                     key={step.key}
-                    className={`flex items-center ${index < STEPS.length - 1 ? 'flex-1' : ''}`}
+                    className={`flex items-center ${index < STEPS.length - 1 ? "flex-1" : ""}`}
                   >
                     <div className="flex flex-col items-center">
                       <div
                         className={`
                           w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm
                           transition-colors
-                          ${isActive ? 'bg-primary text-white' : ''}
-                          ${isCompleted ? 'bg-green-500 text-white' : ''}
-                          ${!isActive && !isCompleted ? 'bg-gray-200 text-gray-600' : ''}
+                          ${isActive ? "bg-primary text-white" : ""}
+                          ${isCompleted ? "bg-green-500 text-white" : ""}
+                          ${!isActive && !isCompleted ? "bg-gray-200 text-gray-600" : ""}
                         `}
                       >
-                        {isCompleted ? (
-                          <CheckCircle2 className="w-5 h-5" />
-                        ) : (
-                          index + 1
-                        )}
+                        {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
                       </div>
                       <span
                         className={`
                           mt-1 text-xs font-medium hidden sm:block
-                          ${isActive ? 'text-primary' : ''}
-                          ${isCompleted ? 'text-green-600' : ''}
-                          ${!isActive && !isCompleted ? 'text-gray-500' : ''}
+                          ${isActive ? "text-primary" : ""}
+                          ${isCompleted ? "text-green-600" : ""}
+                          ${!isActive && !isCompleted ? "text-gray-500" : ""}
                         `}
                       >
                         {step.label}
@@ -120,7 +116,7 @@ export function CheckoutLayout({
                       <div className="flex-1 h-1 bg-gray-200 mx-2 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all ${
-                            isCompleted ? 'bg-green-500 w-full' : 'bg-gray-200 w-0'
+                            isCompleted ? "bg-green-500 w-full" : "bg-gray-200 w-0"
                           }`}
                         />
                       </div>

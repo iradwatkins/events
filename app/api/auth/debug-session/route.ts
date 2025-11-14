@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     if (!sessionToken) {
       return NextResponse.json({
         error: "No session token found",
-        hasSession: false
+        hasSession: false,
       });
     }
 
@@ -23,19 +23,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         hasSession: true,
         payload: payload,
-        tokenLength: sessionToken.value.length
+        tokenLength: sessionToken.value.length,
       });
     } catch (error) {
       return NextResponse.json({
         hasSession: true,
         error: "Invalid token",
-        errorDetails: error instanceof Error ? error.message : String(error)
+        errorDetails: error instanceof Error ? error.message : String(error),
       });
     }
   } catch (error) {
-    return NextResponse.json({
-      error: "Server error",
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Server error",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
   }
 }

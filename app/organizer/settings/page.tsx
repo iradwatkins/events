@@ -29,9 +29,9 @@ export default function SettingsPage() {
 
   // Fetch user data from API instead of Convex
   useEffect(() => {
-    fetch('/api/auth/me', { credentials: 'same-origin' })
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/auth/me", { credentials: "same-origin" })
+      .then((res) => res.json())
+      .then((data) => {
         if (data.user) {
           setCurrentUser(data.user);
         }
@@ -47,7 +47,9 @@ export default function SettingsPage() {
       setIsProcessing(true);
       // In production, this would redirect to Stripe Connect OAuth flow
       // For now, show alert that feature is coming soon
-      alert("Stripe Connect integration coming soon! You'll be redirected to complete Stripe setup.");
+      alert(
+        "Stripe Connect integration coming soon! You'll be redirected to complete Stripe setup."
+      );
     } catch (error) {
       console.error("Error connecting Stripe:", error);
       alert("Failed to connect Stripe account");
@@ -70,7 +72,11 @@ export default function SettingsPage() {
   };
 
   const handleDisconnectProcessor = async (processor: "stripe" | "paypal") => {
-    if (!confirm(`Are you sure you want to disconnect ${processor === "stripe" ? "Stripe" : "PayPal"}?`)) {
+    if (
+      !confirm(
+        `Are you sure you want to disconnect ${processor === "stripe" ? "Stripe" : "PayPal"}?`
+      )
+    ) {
       return;
     }
 
@@ -156,7 +162,9 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
               <div className="px-4 py-3 border border-gray-200 rounded-lg bg-gray-50">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-accent text-accent-foreground">
-                  {currentUser.role === "organizer" ? "Event Organizer" : currentUser.role || "User"}
+                  {currentUser.role === "organizer"
+                    ? "Event Organizer"
+                    : currentUser.role || "User"}
                 </span>
               </div>
             </div>
@@ -308,10 +316,7 @@ export default function SettingsPage() {
                   <p className="text-sm text-primary">Available Credits</p>
                   <p className="text-2xl font-bold text-foreground">0</p>
                 </div>
-                <Link
-                  href="/pricing"
-                  className="text-sm text-primary hover:underline"
-                >
+                <Link href="/pricing" className="text-sm text-primary hover:underline">
                   Purchase Credits
                 </Link>
               </div>

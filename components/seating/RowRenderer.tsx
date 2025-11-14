@@ -119,7 +119,7 @@ export default function RowRenderer({
   // Calculate total width for hit zone
   const totalSeats = row.seats.length;
   const aisleCount = row.aisleAfter?.length || 0;
-  const totalWidth = labelOffset + (totalSeats * seatSpacing) + (aisleCount * aisleGap);
+  const totalWidth = labelOffset + totalSeats * seatSpacing + aisleCount * aisleGap;
 
   return (
     <g

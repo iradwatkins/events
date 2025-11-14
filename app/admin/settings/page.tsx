@@ -17,7 +17,9 @@ import {
 import { useState } from "react";
 
 export default function AdminSettingsPage() {
-  const [activeTab, setActiveTab] = useState<"general" | "payments" | "notifications" | "security">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "payments" | "notifications" | "security">(
+    "general"
+  );
 
   const tabs = [
     { id: "general", name: "General", icon: SettingsIcon },
@@ -272,7 +274,10 @@ function PaymentSettings() {
         <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-yellow-800">
           <p className="font-medium mb-1">Testing Mode Active</p>
-          <p>Payment processing is currently bypassed for testing. No real charges will be made. Disable testing mode in production.</p>
+          <p>
+            Payment processing is currently bypassed for testing. No real charges will be made.
+            Disable testing mode in production.
+          </p>
         </div>
       </div>
     </div>
@@ -295,7 +300,10 @@ function NotificationSettings() {
           <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div className="text-sm text-accent-foreground">
             <p className="font-medium mb-1">Email System Not Configured</p>
-            <p>Email notifications are currently disabled. Configure an email service provider (e.g., SendGrid, Mailgun) to enable automated emails.</p>
+            <p>
+              Email notifications are currently disabled. Configure an email service provider (e.g.,
+              SendGrid, Mailgun) to enable automated emails.
+            </p>
           </div>
         </div>
       </div>
@@ -461,7 +469,10 @@ function SecuritySettings() {
         <Shield className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-red-800">
           <p className="font-medium mb-1">Security Notice</p>
-          <p>Admin dashboard access control is currently disabled for testing. Re-enable authentication before deploying to production to prevent unauthorized access.</p>
+          <p>
+            Admin dashboard access control is currently disabled for testing. Re-enable
+            authentication before deploying to production to prevent unauthorized access.
+          </p>
         </div>
       </div>
     </div>

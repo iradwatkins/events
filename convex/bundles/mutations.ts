@@ -7,10 +7,7 @@ import { mutation } from "../_generated/server";
 export const createTicketBundle = mutation({
   args: {
     // Bundle type
-    bundleType: v.optional(v.union(
-      v.literal("SINGLE_EVENT"),
-      v.literal("MULTI_EVENT")
-    )),
+    bundleType: v.optional(v.union(v.literal("SINGLE_EVENT"), v.literal("MULTI_EVENT"))),
 
     // For single-event bundles (legacy support)
     eventId: v.optional(v.id("events")),
@@ -23,20 +20,28 @@ export const createTicketBundle = mutation({
     price: v.number(), // Bundle price in cents
 
     // For single-event bundles (legacy format)
-    includedTiers: v.optional(v.array(v.object({
-      tierId: v.id("ticketTiers"),
-      tierName: v.string(),
-      quantity: v.number(),
-    }))),
+    includedTiers: v.optional(
+      v.array(
+        v.object({
+          tierId: v.id("ticketTiers"),
+          tierName: v.string(),
+          quantity: v.number(),
+        })
+      )
+    ),
 
     // For multi-event bundles (new format with event info)
-    includedTiersWithEvents: v.optional(v.array(v.object({
-      tierId: v.id("ticketTiers"),
-      tierName: v.string(),
-      quantity: v.number(),
-      eventId: v.id("events"),
-      eventName: v.string(),
-    }))),
+    includedTiersWithEvents: v.optional(
+      v.array(
+        v.object({
+          tierId: v.id("ticketTiers"),
+          tierName: v.string(),
+          quantity: v.number(),
+          eventId: v.id("events"),
+          eventName: v.string(),
+        })
+      )
+    ),
 
     totalQuantity: v.number(),
     saleStart: v.optional(v.number()),
@@ -71,9 +76,7 @@ export const createTicketBundle = mutation({
     }
 
     // Verify event ownership
-    const eventsToCheck = bundleType === "SINGLE_EVENT"
-      ? [args.eventId!]
-      : args.eventIds!;
+    const eventsToCheck = bundleType === "SINGLE_EVENT" ? [args.eventId!] : args.eventIds!;
 
     const user = await ctx.db
       .query("users")
@@ -94,9 +97,7 @@ export const createTicketBundle = mutation({
     }
 
     // Verify all events exist
-    const eventsToVerify = bundleType === "SINGLE_EVENT"
-      ? [args.eventId!]
-      : args.eventIds!;
+    const eventsToVerify = bundleType === "SINGLE_EVENT" ? [args.eventId!] : args.eventIds!;
 
     for (const eventId of eventsToVerify) {
       const event = await ctx.db.get(eventId);
@@ -122,7 +123,9 @@ export const createTicketBundle = mutation({
       if (bundleType === "MULTI_EVENT") {
         const tierWithEvent = includedTier as any;
         if (tier.eventId !== tierWithEvent.eventId) {
-          throw new Error(`Ticket tier ${includedTier.tierName} does not belong to event ${tierWithEvent.eventName}`);
+          throw new Error(
+            `Ticket tier ${includedTier.tierName} does not belong to event ${tierWithEvent.eventName}`
+          );
         }
       }
 
@@ -133,14 +136,15 @@ export const createTicketBundle = mutation({
     const savings = regularPrice - args.price;
 
     // Normalize includedTiers format
-    const normalizedTiers = bundleType === "SINGLE_EVENT"
-      ? args.includedTiers!.map(tier => ({
-          tierId: tier.tierId,
-          tierName: tier.tierName,
-          quantity: tier.quantity,
-          eventId: args.eventId,
-        }))
-      : args.includedTiersWithEvents!;
+    const normalizedTiers =
+      bundleType === "SINGLE_EVENT"
+        ? args.includedTiers!.map((tier) => ({
+            tierId: tier.tierId,
+            tierName: tier.tierName,
+            quantity: tier.quantity,
+            eventId: args.eventId,
+          }))
+        : args.includedTiersWithEvents!;
 
     // Create the bundle
     const bundleId = await ctx.db.insert("ticketBundles", {
@@ -211,17 +215,17 @@ export const updateTicketBundle = mutation({
     // SAFEGUARD: Cannot reduce quantity below sold count
     if (args.totalQuantity !== undefined && args.totalQuantity < bundle.sold) {
       throw new Error(
-        `Cannot reduce quantity to ${args.totalQuantity} because ${bundle.sold} bundle${bundle.sold === 1 ? ' has' : 's have'} already been sold. ` +
-        `Quantity must be at least ${bundle.sold}.`
+        `Cannot reduce quantity to ${args.totalQuantity} because ${bundle.sold} bundle${bundle.sold === 1 ? " has" : "s have"} already been sold. ` +
+          `Quantity must be at least ${bundle.sold}.`
       );
     }
 
     // SAFEGUARD: Cannot change price after bundles sold (creates pricing inconsistency)
     if (bundle.sold > 0 && args.price !== undefined && args.price !== bundle.price) {
       throw new Error(
-        `Cannot change bundle price after ${bundle.sold} bundle${bundle.sold === 1 ? ' has' : 's have'} been sold. ` +
-        `This would create pricing inconsistency for customers who already purchased at $${(bundle.price / 100).toFixed(2)}. ` +
-        `If you need different pricing, please create a new bundle.`
+        `Cannot change bundle price after ${bundle.sold} bundle${bundle.sold === 1 ? " has" : "s have"} been sold. ` +
+          `This would create pricing inconsistency for customers who already purchased at $${(bundle.price / 100).toFixed(2)}. ` +
+          `If you need different pricing, please create a new bundle.`
       );
     }
 
@@ -285,7 +289,7 @@ export const createBundlePurchase = mutation({
     // Check availability
     const available = bundle.totalQuantity - bundle.sold;
     if (available < args.quantity) {
-      throw new Error(`Only ${available} bundle${available === 1 ? '' : 's'} available`);
+      throw new Error(`Only ${available} bundle${available === 1 ? "" : "s"} available`);
     }
 
     // Update bundle sold count

@@ -42,9 +42,9 @@ export const activateAllTickets = mutation({
           paymentModel: "PREPAY",
           isActive: true,
           activatedAt: Date.now(),
-          platformFeePercent: 0,       // No platform fee for prepay
-          platformFeeFixed: 0,         // No fixed fee for prepay
-          processingFeePercent: 2.9,   // Only Stripe processing fee if using cards
+          platformFeePercent: 0, // No platform fee for prepay
+          platformFeeFixed: 0, // No fixed fee for prepay
+          processingFeePercent: 2.9, // Only Stripe processing fee if using cards
           charityDiscount: false,
           lowPriceDiscount: false,
           createdAt: Date.now(),
@@ -66,7 +66,9 @@ export const activateAllTickets = mutation({
       }
     }
 
-    console.log(`[activateAllTickets] Complete: ${updated} events updated, ${paymentConfigsCreated} payment configs created/activated`);
+    console.log(
+      `[activateAllTickets] Complete: ${updated} events updated, ${paymentConfigsCreated} payment configs created/activated`
+    );
 
     return {
       success: true,

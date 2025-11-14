@@ -20,10 +20,7 @@ export const joinWaitlist = mutation({
       .filter((q) =>
         q.and(
           q.eq(q.field("eventId"), args.eventId),
-          q.or(
-            q.eq(q.field("status"), "ACTIVE"),
-            q.eq(q.field("status"), "NOTIFIED")
-          )
+          q.or(q.eq(q.field("status"), "ACTIVE"), q.eq(q.field("status"), "NOTIFIED"))
         )
       )
       .first();
@@ -56,7 +53,7 @@ export const joinWaitlist = mutation({
       name: args.name,
       quantity: args.quantity,
       status: "ACTIVE",
-      expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
+      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
       joinedAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -84,7 +81,11 @@ export const leaveWaitlist = mutation({
         .withIndex("by_email", (q) => q.eq("email", identity.email!))
         .first();
 
-      if (user && waitlist.userId !== user._id && waitlist.email.toLowerCase() !== user.email.toLowerCase()) {
+      if (
+        user &&
+        waitlist.userId !== user._id &&
+        waitlist.email.toLowerCase() !== user.email.toLowerCase()
+      ) {
         throw new Error("Not authorized to cancel this waitlist entry");
       }
     }

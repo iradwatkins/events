@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  Armchair,
-  Accessibility,
-  Users,
-  Crown,
-  Ban,
-  User,
-  Car,
-  Tent,
-  Info
-} from "lucide-react";
+import { Armchair, Accessibility, Users, Crown, Ban, User, Car, Tent, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
 export type SeatType =
@@ -168,12 +158,8 @@ export default function SeatTypePalette({
               )}
 
               <span className={`${seatType.color} mb-2`}>{seatType.icon}</span>
-              <span className="text-xs font-semibold text-gray-900 mb-1">
-                {seatType.label}
-              </span>
-              <span className="text-xs text-gray-600 text-center">
-                {seatType.description}
-              </span>
+              <span className="text-xs font-semibold text-gray-900 mb-1">{seatType.label}</span>
+              <span className="text-xs text-gray-600 text-center">{seatType.description}</span>
             </motion.button>
           );
         })}

@@ -94,9 +94,7 @@ export default function SeatingChartBuilderPage() {
         <div className="mb-4">
           <Grid className="w-16 h-16 text-gray-400 mx-auto" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Seating Chart Builder Coming Soon
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Seating Chart Builder Coming Soon</h1>
         <p className="text-gray-600 mb-6">
           The visual seating chart builder is currently being enhanced and will be available soon.
         </p>
@@ -110,5 +108,4 @@ export default function SeatingChartBuilderPage() {
       </div>
     </div>
   );
-
 }

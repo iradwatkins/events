@@ -15,11 +15,11 @@ export const bulkDeleteUsers = internalMutation({
     // Get all users
     const allUsers = await ctx.db.query("users").collect();
 
-    const emailsToKeepLower = args.emailsToKeep.map(e => e.toLowerCase());
+    const emailsToKeepLower = args.emailsToKeep.map((e) => e.toLowerCase());
 
     // Filter users to delete
     const usersToDelete = allUsers.filter(
-      user => !emailsToKeepLower.includes(user.email.toLowerCase())
+      (user) => !emailsToKeepLower.includes(user.email.toLowerCase())
     );
 
     console.log(`Found ${allUsers.length} total users`);

@@ -118,12 +118,8 @@ export default function TableShapePalette({
               )}
 
               <span className={`${tableShape.color} mb-2`}>{tableShape.icon}</span>
-              <span className="text-xs font-semibold text-gray-900 mb-1">
-                {tableShape.label}
-              </span>
-              <span className="text-xs text-gray-600 text-center">
-                {tableShape.description}
-              </span>
+              <span className="text-xs font-semibold text-gray-900 mb-1">{tableShape.label}</span>
+              <span className="text-xs text-gray-600 text-center">{tableShape.description}</span>
             </motion.button>
           );
         })}

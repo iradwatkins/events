@@ -1,6 +1,14 @@
 "use client";
 
-import { Circle, Square, RectangleHorizontal, Pentagon, MousePointer, Hand, Grid3x3, } from "lucide-react";
+import {
+  Circle,
+  Square,
+  RectangleHorizontal,
+  Pentagon,
+  MousePointer,
+  Hand,
+  Grid3x3,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -146,9 +154,7 @@ export default function ToolPalette({
           >
             <div className="bg-gray-900 text-white px-3 py-1.5 rounded-lg shadow-lg text-xs font-medium whitespace-nowrap">
               {tool.label}
-              {tool.shortcut && (
-                <span className="ml-2 opacity-70">({tool.shortcut})</span>
-              )}
+              {tool.shortcut && <span className="ml-2 opacity-70">({tool.shortcut})</span>}
               <div className="absolute right-full top-1/2 -translate-y-1/2 mr-[-1px]">
                 <div className="w-2 h-2 bg-gray-900 transform rotate-45" />
               </div>
@@ -165,25 +171,19 @@ export default function ToolPalette({
       style={{ width: "64px" }}
     >
       {/* Selection Tools */}
-      <div className="space-y-2">
-        {selectionTools.map(renderToolButton)}
-      </div>
+      <div className="space-y-2">{selectionTools.map(renderToolButton)}</div>
 
       {/* Divider */}
       <div className="my-3 h-px bg-gray-300" />
 
       {/* Table Tools */}
-      <div className="space-y-2">
-        {tableTools.map(renderToolButton)}
-      </div>
+      <div className="space-y-2">{tableTools.map(renderToolButton)}</div>
 
       {/* Divider */}
       <div className="my-3 h-px bg-gray-300" />
 
       {/* Section Tools */}
-      <div className="space-y-2">
-        {sectionTools.map(renderToolButton)}
-      </div>
+      <div className="space-y-2">{sectionTools.map(renderToolButton)}</div>
 
       {/* Spacer */}
       <div className="flex-1" />

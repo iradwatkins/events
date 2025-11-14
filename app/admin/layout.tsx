@@ -40,11 +40,7 @@ const navigation = [
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const currentUser = useQuery(api.users.queries.getCurrentUser);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -160,7 +156,9 @@ export default function AdminLayout({
               `}
               title={sidebarCollapsed && !isMobile ? item.name : undefined}
             >
-              <Icon className={`flex-shrink-0 ${sidebarCollapsed && !isMobile ? "w-6 h-6" : "w-5 h-5"}`} />
+              <Icon
+                className={`flex-shrink-0 ${sidebarCollapsed && !isMobile ? "w-6 h-6" : "w-5 h-5"}`}
+              />
               <AnimatePresence mode="wait">
                 {(!sidebarCollapsed || isMobile) && (
                   <motion.span
@@ -372,9 +370,7 @@ export default function AdminLayout({
         )}
 
         {/* Page Content */}
-        <main className="flex-1 px-4 md:px-6 py-6 md:py-8 overflow-y-auto">
-          {children}
-        </main>
+        <main className="flex-1 px-4 md:px-6 py-6 md:py-8 overflow-y-auto">{children}</main>
       </motion.div>
     </div>
   );

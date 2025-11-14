@@ -17,26 +17,90 @@ export default function Toolbar({ className = "" }: ToolbarProps) {
     capacity: number;
     color: string;
   }> = [
-    { label: "Round 2", icon: <Circle className="w-4 h-4" />, shape: "ROUND", capacity: 2, color: "#3B82F6" },
-    { label: "Round 4", icon: <Circle className="w-6 h-6" />, shape: "ROUND", capacity: 4, color: "#3B82F6" },
-    { label: "Round 6", icon: <Circle className="w-8 h-8" />, shape: "ROUND", capacity: 6, color: "#3B82F6" },
-    { label: "Round 8", icon: <Circle className="w-10 h-10" />, shape: "ROUND", capacity: 8, color: "#3B82F6" },
-    { label: "Round 10", icon: <Circle className="w-12 h-12" />, shape: "ROUND", capacity: 10, color: "#3B82F6" },
-    { label: "Rect 2", icon: <RectangleHorizontal className="w-6 h-4" />, shape: "RECTANGULAR", capacity: 2, color: "#10B981" },
-    { label: "Rect 6", icon: <RectangleHorizontal className="w-8 h-6" />, shape: "RECTANGULAR", capacity: 6, color: "#10B981" },
-    { label: "Rect 8", icon: <RectangleHorizontal className="w-10 h-6" />, shape: "RECTANGULAR", capacity: 8, color: "#10B981" },
-    { label: "Square 2", icon: <Square className="w-4 h-4" />, shape: "SQUARE", capacity: 2, color: "#F59E0B" },
-    { label: "Square 4", icon: <Square className="w-6 h-6" />, shape: "SQUARE", capacity: 4, color: "#F59E0B" },
-    { label: "Square 8", icon: <Square className="w-8 h-8" />, shape: "SQUARE", capacity: 8, color: "#F59E0B" },
+    {
+      label: "Round 2",
+      icon: <Circle className="w-4 h-4" />,
+      shape: "ROUND",
+      capacity: 2,
+      color: "#3B82F6",
+    },
+    {
+      label: "Round 4",
+      icon: <Circle className="w-6 h-6" />,
+      shape: "ROUND",
+      capacity: 4,
+      color: "#3B82F6",
+    },
+    {
+      label: "Round 6",
+      icon: <Circle className="w-8 h-8" />,
+      shape: "ROUND",
+      capacity: 6,
+      color: "#3B82F6",
+    },
+    {
+      label: "Round 8",
+      icon: <Circle className="w-10 h-10" />,
+      shape: "ROUND",
+      capacity: 8,
+      color: "#3B82F6",
+    },
+    {
+      label: "Round 10",
+      icon: <Circle className="w-12 h-12" />,
+      shape: "ROUND",
+      capacity: 10,
+      color: "#3B82F6",
+    },
+    {
+      label: "Rect 2",
+      icon: <RectangleHorizontal className="w-6 h-4" />,
+      shape: "RECTANGULAR",
+      capacity: 2,
+      color: "#10B981",
+    },
+    {
+      label: "Rect 6",
+      icon: <RectangleHorizontal className="w-8 h-6" />,
+      shape: "RECTANGULAR",
+      capacity: 6,
+      color: "#10B981",
+    },
+    {
+      label: "Rect 8",
+      icon: <RectangleHorizontal className="w-10 h-6" />,
+      shape: "RECTANGULAR",
+      capacity: 8,
+      color: "#10B981",
+    },
+    {
+      label: "Square 2",
+      icon: <Square className="w-4 h-4" />,
+      shape: "SQUARE",
+      capacity: 2,
+      color: "#F59E0B",
+    },
+    {
+      label: "Square 4",
+      icon: <Square className="w-6 h-6" />,
+      shape: "SQUARE",
+      capacity: 4,
+      color: "#F59E0B",
+    },
+    {
+      label: "Square 8",
+      icon: <Square className="w-8 h-8" />,
+      shape: "SQUARE",
+      capacity: 8,
+      color: "#F59E0B",
+    },
   ];
 
   const rowTemplates: Array<{
     label: string;
     rowCount: number;
     seatsPerRow: number;
-  }> = [
-    { label: "Row Section", rowCount: 5, seatsPerRow: 10 },
-  ];
+  }> = [{ label: "Row Section", rowCount: 5, seatsPerRow: 10 }];
 
   const specialAreaTemplates: Array<{
     label: string;
@@ -45,14 +109,33 @@ export default function Toolbar({ className = "" }: ToolbarProps) {
     size: { width: number; height: number };
     color: string;
   }> = [
-    { label: "Stage", icon: <BoxSelect className="w-8 h-8" />, type: "STAGE", size: { width: 200, height: 100 }, color: "#EF4444" },
-    { label: "Dance Floor", icon: <Sparkles className="w-8 h-8" />, type: "DANCE_FLOOR", size: { width: 180, height: 180 }, color: "#EC4899" },
+    {
+      label: "Stage",
+      icon: <BoxSelect className="w-8 h-8" />,
+      type: "STAGE",
+      size: { width: 200, height: 100 },
+      color: "#EF4444",
+    },
+    {
+      label: "Dance Floor",
+      icon: <Sparkles className="w-8 h-8" />,
+      type: "DANCE_FLOOR",
+      size: { width: 180, height: 180 },
+      color: "#EC4899",
+    },
   ];
 
   /**
    * Handle drag start for toolbar items
    */
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, item: Partial<TableItem> | Partial<RowSectionItem> | Partial<StageItem> | Partial<DanceFloorItem>) => {
+  const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    item:
+      | Partial<TableItem>
+      | Partial<RowSectionItem>
+      | Partial<StageItem>
+      | Partial<DanceFloorItem>
+  ) => {
     e.dataTransfer.effectAllowed = "copy";
     e.dataTransfer.setData("application/json", JSON.stringify(item));
   };
@@ -82,9 +165,7 @@ export default function Toolbar({ className = "" }: ToolbarProps) {
               }
               className="flex flex-col items-center justify-center p-3 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-move hover:bg-accent hover:border-border transition-all group"
             >
-              <div className="text-gray-600 group-hover:text-primary mb-1">
-                {template.icon}
-              </div>
+              <div className="text-gray-600 group-hover:text-primary mb-1">{template.icon}</div>
               <span className="text-xs font-medium text-gray-700 group-hover:text-primary">
                 {template.label}
               </span>
@@ -125,7 +206,8 @@ export default function Toolbar({ className = "" }: ToolbarProps) {
                 <Rows3 className="w-4 h-4 text-gray-600 group-hover:text-primary" />
               </div>
               <span className="text-xs text-gray-500">
-                {template.rowCount} rows × {template.seatsPerRow} seats = {template.rowCount * template.seatsPerRow} total
+                {template.rowCount} rows × {template.seatsPerRow} seats ={" "}
+                {template.rowCount * template.seatsPerRow} total
               </span>
             </div>
           ))}
@@ -153,9 +235,7 @@ export default function Toolbar({ className = "" }: ToolbarProps) {
               }
               className="flex flex-col items-center justify-center p-3 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-move hover:bg-pink-50 hover:border-pink-300 transition-all group"
             >
-              <div className="text-gray-600 group-hover:text-pink-600 mb-1">
-                {template.icon}
-              </div>
+              <div className="text-gray-600 group-hover:text-pink-600 mb-1">{template.icon}</div>
               <span className="text-xs font-medium text-gray-700 group-hover:text-pink-700">
                 {template.label}
               </span>
@@ -167,7 +247,8 @@ export default function Toolbar({ className = "" }: ToolbarProps) {
       {/* Instructions */}
       <div className="mt-6 p-3 bg-accent border border-border rounded-lg">
         <p className="text-xs text-accent-foreground">
-          <strong>Tip:</strong> Drag items onto the canvas to place them. Click to select and edit properties.
+          <strong>Tip:</strong> Drag items onto the canvas to place them. Click to select and edit
+          properties.
         </p>
       </div>
     </div>

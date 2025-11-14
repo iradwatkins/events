@@ -57,7 +57,7 @@ export default function PaymentSetupPage() {
       await configurePayment({
         eventId,
         model: "PREPAY",
-        ticketPrice: 0.30,
+        ticketPrice: 0.3,
       });
 
       alert("Payment configured successfully using your free credits!");
@@ -92,7 +92,7 @@ export default function PaymentSetupPage() {
           platformFeePercent: 3.7,
           platformFeeFixed: 1.79,
           stripeFeePercent: 2.9,
-          stripeFeeFixed: 0.30,
+          stripeFeeFixed: 0.3,
         });
 
         // Redirect to Stripe Connect onboarding flow
@@ -111,7 +111,7 @@ export default function PaymentSetupPage() {
       await configurePayment({
         eventId,
         model: "PREPAY",
-        ticketPrice: 0.30,
+        ticketPrice: 0.3,
       });
 
       alert("Payment configured successfully! Redirecting to dashboard...");
@@ -161,13 +161,15 @@ export default function PaymentSetupPage() {
             <div className="bg-accent border border-border rounded-lg p-4">
               <p className="font-semibold text-gray-900">Current Model:</p>
               <p className="text-lg text-primary font-bold mt-1">
-                {paymentConfig.paymentModel === "PREPAY" ? "Pre-Purchase Credits" : paymentConfig.paymentModel === "CREDIT_CARD" ? "Credit Card (Pay-As-You-Sell)" : "Consignment"}
+                {paymentConfig.paymentModel === "PREPAY"
+                  ? "Pre-Purchase Credits"
+                  : paymentConfig.paymentModel === "CREDIT_CARD"
+                    ? "Credit Card (Pay-As-You-Sell)"
+                    : "Consignment"}
               </p>
 
               {paymentConfig.paymentModel === "PREPAY" && (
-                <p className="text-sm text-gray-600 mt-2">
-                  Cost: $0.30 per ticket
-                </p>
+                <p className="text-sm text-gray-600 mt-2">Cost: $0.30 per ticket</p>
               )}
 
               {paymentConfig.paymentModel === "CREDIT_CARD" && (
@@ -184,9 +186,9 @@ export default function PaymentSetupPage() {
 
   // Calculate example costs for a $50 ticket
   const exampleTicketPrice = 50;
-  const prePurchaseCost = 0.30;
-  const payAsSellPlatformFee = (exampleTicketPrice * 0.037) + 1.79;
-  const payAsSellStripeFee = (exampleTicketPrice * 0.029) + 0.30;
+  const prePurchaseCost = 0.3;
+  const payAsSellPlatformFee = exampleTicketPrice * 0.037 + 1.79;
+  const payAsSellStripeFee = exampleTicketPrice * 0.029 + 0.3;
   const payAsSellTotalFee = payAsSellPlatformFee + payAsSellStripeFee;
   const payAsSellNetAmount = exampleTicketPrice - payAsSellTotalFee;
 
@@ -211,7 +213,7 @@ export default function PaymentSetupPage() {
             eventId={eventId}
             eventName={event.name}
             estimatedTickets={100} // Default estimate, could be made configurable
-            pricePerTicket={0.30}
+            pricePerTicket={0.3}
             onPaymentSuccess={handlePrepaymentSuccess}
             onCancel={handlePrepaymentCancel}
           />
@@ -232,9 +234,7 @@ export default function PaymentSetupPage() {
         </Link>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Choose Your Payment Model
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Choose Your Payment Model</h1>
           <p className="text-gray-600">
             Select how you want to handle ticket sales for "{event.name}"
           </p>
@@ -255,9 +255,7 @@ export default function PaymentSetupPage() {
           <button
             onClick={() => handleModelSelection("PREPAY")}
             className={`relative bg-white rounded-lg border-2 p-6 text-left transition-all hover:shadow-lg ${
-              selectedModel === "PREPAY"
-                ? "border-primary shadow-lg"
-                : "border-gray-200"
+              selectedModel === "PREPAY" ? "border-primary shadow-lg" : "border-gray-200"
             }`}
           >
             {selectedModel === "PREPAY" && (
@@ -293,20 +291,17 @@ export default function PaymentSetupPage() {
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-gray-700">
-                  Pay upfront with <span className="font-semibold">CashApp</span> or <span className="font-semibold">Square</span>
+                  Pay upfront with <span className="font-semibold">CashApp</span> or{" "}
+                  <span className="font-semibold">Square</span>
                 </p>
               </div>
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700">
-                  No percentage-based fees
-                </p>
+                <p className="text-sm text-gray-700">No percentage-based fees</p>
               </div>
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700">
-                  Best for high-volume events
-                </p>
+                <p className="text-sm text-gray-700">Best for high-volume events</p>
               </div>
             </div>
 
@@ -314,7 +309,8 @@ export default function PaymentSetupPage() {
               <div className="flex items-start gap-2">
                 <DollarSign className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-accent-foreground">
-                  <span className="font-semibold">How it works:</span> Pay platform fee upfront, then collect 100% of ticket sales
+                  <span className="font-semibold">How it works:</span> Pay platform fee upfront,
+                  then collect 100% of ticket sales
                 </p>
               </div>
             </div>
@@ -338,8 +334,8 @@ export default function PaymentSetupPage() {
               !hasStripeConnected
                 ? "opacity-60 cursor-not-allowed border-gray-200"
                 : selectedModel === "CREDIT_CARD"
-                ? "border-primary shadow-lg hover:shadow-lg"
-                : "border-gray-200 hover:shadow-lg"
+                  ? "border-primary shadow-lg hover:shadow-lg"
+                  : "border-gray-200 hover:shadow-lg"
             }`}
           >
             {selectedModel === "CREDIT_CARD" && (
@@ -370,7 +366,8 @@ export default function PaymentSetupPage() {
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-orange-800">
-                    <span className="font-semibold">Stripe Connect Required:</span> Connect your Stripe account to use this payment model
+                    <span className="font-semibold">Stripe Connect Required:</span> Connect your
+                    Stripe account to use this payment model
                   </p>
                 </div>
               </div>
@@ -385,9 +382,7 @@ export default function PaymentSetupPage() {
               </div>
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700">
-                  Fees auto-deducted from each sale
-                </p>
+                <p className="text-sm text-gray-700">Fees auto-deducted from each sale</p>
               </div>
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -397,9 +392,7 @@ export default function PaymentSetupPage() {
               </div>
               <div className="flex items-start gap-2">
                 <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700">
-                  Best for trying out the platform
-                </p>
+                <p className="text-sm text-gray-700">Best for trying out the platform</p>
               </div>
             </div>
 
@@ -407,7 +400,10 @@ export default function PaymentSetupPage() {
               <div className="flex items-start gap-2">
                 <Info className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-primary">
-                  <span className="font-semibold">Requires Stripe Connect:</span> {hasStripeConnected ? 'Your Stripe account is connected and ready!' : 'You\'ll be guided to connect your Stripe account'}
+                  <span className="font-semibold">Requires Stripe Connect:</span>{" "}
+                  {hasStripeConnected
+                    ? "Your Stripe account is connected and ready!"
+                    : "You'll be guided to connect your Stripe account"}
                 </p>
               </div>
             </div>
@@ -440,7 +436,9 @@ export default function PaymentSetupPage() {
             <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm text-gray-700">
-                <span className="font-semibold">Need help deciding?</span> Pre-Purchase is best for established events expecting high sales. Pay-As-You-Sell is perfect for new events or when you want to test the platform with no upfront cost.
+                <span className="font-semibold">Need help deciding?</span> Pre-Purchase is best for
+                established events expecting high sales. Pay-As-You-Sell is perfect for new events
+                or when you want to test the platform with no upfront cost.
               </p>
             </div>
           </div>

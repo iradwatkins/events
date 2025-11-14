@@ -76,8 +76,10 @@ export const notifyOnlineTicketSale = action({
     totalCents: v.number(),
     ticketCount: v.number(),
   },
-  handler: async (ctx, args): Promise<{success: boolean; sent: number}> => {
-    console.log(`[notifyOnlineTicketSale] Notifying staff ${args.staffId} about online sale: ${args.orderId}`);
+  handler: async (ctx, args): Promise<{ success: boolean; sent: number }> => {
+    console.log(
+      `[notifyOnlineTicketSale] Notifying staff ${args.staffId} about online sale: ${args.orderId}`
+    );
 
     const totalDollars = (args.totalCents / 100).toFixed(2);
     const ticketText = args.ticketCount === 1 ? "ticket" : "tickets";
@@ -159,7 +161,9 @@ export const sendToStaff = internalMutation({
     });
 
     if (enabledSubscriptions.length === 0) {
-      console.log(`[sendToStaff] No active subscriptions with enabled preferences for staff: ${args.staffId}`);
+      console.log(
+        `[sendToStaff] No active subscriptions with enabled preferences for staff: ${args.staffId}`
+      );
       return { success: true, sent: 0 };
     }
 
@@ -242,7 +246,7 @@ export const sendTestNotification = action({
   args: {
     staffId: v.id("eventStaff"),
   },
-  handler: async (ctx, args): Promise<{success: boolean; sent: number; failed: number}> => {
+  handler: async (ctx, args): Promise<{ success: boolean; sent: number; failed: number }> => {
     console.log(`[sendTestNotification] Sending test notification to staff: ${args.staffId}`);
 
     const result = await ctx.runMutation(internal.notifications.pushNotifications.sendToStaff, {

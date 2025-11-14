@@ -19,7 +19,10 @@ export default function TransferAcceptancePage() {
   const acceptTransfer = useMutation(api.transfers.mutations.acceptTransfer);
 
   const [isAccepting, setIsAccepting] = useState(false);
-  const [acceptanceResult, setAcceptanceResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [acceptanceResult, setAcceptanceResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   const handleAcceptTransfer = async () => {
     if (!currentUser) {
@@ -63,9 +66,7 @@ export default function TransferAcceptancePage() {
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md text-center">
           <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Transfer Not Found</h1>
-          <p className="text-gray-600 mb-6">
-            This transfer link is invalid or has expired.
-          </p>
+          <p className="text-gray-600 mb-6">This transfer link is invalid or has expired.</p>
           <Link
             href="/"
             className="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
@@ -147,9 +148,7 @@ export default function TransferAcceptancePage() {
                 <Ticket className="w-8 h-8" />
                 <h1 className="text-2xl font-bold">Ticket Transfer</h1>
               </div>
-              <p className="text-white/80">
-                {transfer.fromName} wants to transfer a ticket to you
-              </p>
+              <p className="text-white/80">{transfer.fromName} wants to transfer a ticket to you</p>
             </div>
 
             {/* Content */}
@@ -160,7 +159,9 @@ export default function TransferAcceptancePage() {
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-yellow-900">Transfer {transfer.status.toLowerCase()}</p>
+                      <p className="font-semibold text-yellow-900">
+                        Transfer {transfer.status.toLowerCase()}
+                      </p>
                       <p className="text-sm text-yellow-700 mt-1">
                         This transfer has already been {transfer.status.toLowerCase()}.
                       </p>
@@ -176,7 +177,8 @@ export default function TransferAcceptancePage() {
                     <div>
                       <p className="font-semibold text-red-900">Transfer Expired</p>
                       <p className="text-sm text-red-700 mt-1">
-                        This transfer expired on {format(transfer.expiresAt, "MMM d, yyyy 'at' h:mm a")}
+                        This transfer expired on{" "}
+                        {format(transfer.expiresAt, "MMM d, yyyy 'at' h:mm a")}
                       </p>
                     </div>
                   </div>
@@ -203,7 +205,8 @@ export default function TransferAcceptancePage() {
                     <div>
                       <p className="text-sm text-gray-600">Location</p>
                       <p className="font-medium text-gray-900">
-                        {transfer.event.location.venueName && `${transfer.event.location.venueName}, `}
+                        {transfer.event.location.venueName &&
+                          `${transfer.event.location.venueName}, `}
                         {transfer.event.location.city}, {transfer.event.location.state}
                       </p>
                     </div>

@@ -26,10 +26,10 @@ export const migrateStaffRoles = internalMutation({
 
     let migratedCount = 0;
     const migrationMap: Record<string, string> = {
-      "SELLER": "TEAM_MEMBERS",
-      "SCANNER": "STAFF",
-      "SUPPORT_STAFF": "TEAM_MEMBERS",
-      "SUB_RESELLER": "ASSOCIATES",
+      SELLER: "TEAM_MEMBERS",
+      SCANNER: "STAFF",
+      SUPPORT_STAFF: "TEAM_MEMBERS",
+      SUB_RESELLER: "ASSOCIATES",
     };
 
     for (const staff of allStaff) {

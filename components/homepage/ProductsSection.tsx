@@ -32,10 +32,7 @@ export function ProductsSection({ products }: ProductsSectionProps) {
             Browse our exclusive stepping merchandise and products
           </p>
         </div>
-        <Link
-          href="/shop"
-          className="text-primary hover:underline font-medium"
-        >
+        <Link href="/shop" className="text-primary hover:underline font-medium">
           View All Products →
         </Link>
       </div>
@@ -86,8 +83,12 @@ export function ProductsSection({ products }: ProductsSectionProps) {
                     )}
                   </div>
                   {product.trackInventory && (
-                    <span className={`text-xs ${product.inventoryQuantity && product.inventoryQuantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {product.inventoryQuantity && product.inventoryQuantity > 0 ? `${product.inventoryQuantity} in stock` : 'Out of stock'}
+                    <span
+                      className={`text-xs ${product.inventoryQuantity && product.inventoryQuantity > 0 ? "text-green-600" : "text-red-600"}`}
+                    >
+                      {product.inventoryQuantity && product.inventoryQuantity > 0
+                        ? `${product.inventoryQuantity} in stock`
+                        : "Out of stock"}
                     </span>
                   )}
                 </div>

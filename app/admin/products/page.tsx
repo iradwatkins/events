@@ -45,7 +45,9 @@ export default function ProductsManagementPage() {
       const newProductId = await duplicateProduct({ productId });
       window.location.href = `/admin/products/${newProductId}/edit`;
     } catch (error: unknown) {
-      alert(`Failed to duplicate product: ${error instanceof Error ? error.message : String(error)}`);
+      alert(
+        `Failed to duplicate product: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   };
 
@@ -189,8 +191,8 @@ export default function ProductsManagementPage() {
                       product.status === "ACTIVE"
                         ? "bg-green-100 text-green-800"
                         : product.status === "DRAFT"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-gray-100 text-gray-800"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
                     }`}
                   >
                     {product.status}
@@ -200,7 +202,9 @@ export default function ProductsManagementPage() {
 
               {/* Product Info */}
               <div className="p-4">
-                <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-1">{product.name}</h3>
+                <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-1">
+                  {product.name}
+                </h3>
                 <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
 
                 <div className="flex items-center gap-2 mb-3">

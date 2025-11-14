@@ -1,8 +1,8 @@
 export async function GET() {
   return Response.json({
-    status: 'ok',
+    status: "ok",
     timestamp: Date.now(),
-    service: 'events-stepperslife',
-    version: process.env.npm_package_version || '1.0.0',
+    service: "events-stepperslife",
+    version: process.env.npm_package_version || "1.0.0",
   });
 }

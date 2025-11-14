@@ -153,7 +153,10 @@ export const deleteEvent = action({
   args: {
     eventId: v.id("events"),
   },
-  handler: async (ctx, args): Promise<{
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
     success: boolean;
     deleted: {
       event: boolean;
@@ -185,7 +188,7 @@ export const deleteEvent = action({
       // Delete physical flyer file first
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL || 'https://events.stepperslife.com'}/api/admin/delete-flyer-file`,
+          `${process.env.NEXT_PUBLIC_APP_URL || "https://events.stepperslife.com"}/api/admin/delete-flyer-file`,
           {
             method: "POST",
             headers: {
@@ -199,7 +202,10 @@ export const deleteEvent = action({
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.warn(`⚠️ Failed to delete physical flyer file: ${event.flyer.filepath}`, errorData);
+          console.warn(
+            `⚠️ Failed to delete physical flyer file: ${event.flyer.filepath}`,
+            errorData
+          );
         } else {
           console.log(`✅ Physical flyer file deleted: ${event.flyer.filepath}`);
         }
@@ -227,10 +233,12 @@ export const getEventForDeletion = internalQuery({
     const event = await ctx.db.get(args.eventId);
 
     // Find associated flyer
-    const flyer = event ? await ctx.db
-      .query("uploadedFlyers")
-      .filter((q) => q.eq(q.field("eventId"), args.eventId))
-      .first() : null;
+    const flyer = event
+      ? await ctx.db
+          .query("uploadedFlyers")
+          .filter((q) => q.eq(q.field("eventId"), args.eventId))
+          .first()
+      : null;
 
     return {
       event,
@@ -392,7 +400,7 @@ export const deleteEventInternal = internalMutation({
         bundles: bundles.length,
         contacts: contacts.length,
         flyer: !!args.flyerId,
-      }
+      },
     };
   },
 });
@@ -443,7 +451,9 @@ export const deleteTicket = mutation({
     // Delete the ticket
     await ctx.db.delete(args.ticketId);
 
-    console.log(`✅ Admin deleted ticket ${args.ticketId} with ${seatReservations.length} seat reservations`);
+    console.log(
+      `✅ Admin deleted ticket ${args.ticketId} with ${seatReservations.length} seat reservations`
+    );
 
     return {
       success: true,
@@ -518,7 +528,9 @@ export const deleteOrder = mutation({
     // Delete the order
     await ctx.db.delete(args.orderId);
 
-    console.log(`✅ Admin deleted order ${args.orderId} with ${tickets.length} tickets and ${orderItems.length} items`);
+    console.log(
+      `✅ Admin deleted order ${args.orderId} with ${tickets.length} tickets and ${orderItems.length} items`
+    );
 
     return {
       success: true,
@@ -690,7 +702,9 @@ export const fixEventTimestamps = mutation({
 
     console.log(`[fixEventTimestamps] Event: ${event.name}`);
     console.log(`[fixEventTimestamps] Literal date: ${event.eventDateLiteral}`);
-    console.log(`[fixEventTimestamps] Parsed startDate: ${startDate} (${startDate ? new Date(startDate).toISOString() : 'undefined'})`);
+    console.log(
+      `[fixEventTimestamps] Parsed startDate: ${startDate} (${startDate ? new Date(startDate).toISOString() : "undefined"})`
+    );
 
     // Update the event with parsed timestamps
     await ctx.db.patch(args.eventId, {
@@ -703,7 +717,7 @@ export const fixEventTimestamps = mutation({
       success: true,
       startDate,
       endDate,
-      startDateISO: startDate ? new Date(startDate).toISOString() : undefined
+      startDateISO: startDate ? new Date(startDate).toISOString() : undefined,
     };
   },
 });

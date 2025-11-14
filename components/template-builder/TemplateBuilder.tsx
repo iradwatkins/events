@@ -5,8 +5,24 @@ import { Undo2, Redo2, Save, Eye, Trash2, Info } from "lucide-react";
 import Canvas from "./Canvas";
 import Toolbar from "./Toolbar";
 import PropertyPanel from "./PropertyPanel";
-import { CanvasItem, Position, TableItem, RowSectionItem, StageItem, DanceFloorItem } from "./types";
-import { createDefaultTable, createDefaultRowSection, createDefaultStage, createDefaultDanceFloor, calculateTotalCapacity, convertToSections, calculateRowSectionSize, generateId } from "./utils";
+import {
+  CanvasItem,
+  Position,
+  TableItem,
+  RowSectionItem,
+  StageItem,
+  DanceFloorItem,
+} from "./types";
+import {
+  createDefaultTable,
+  createDefaultRowSection,
+  createDefaultStage,
+  createDefaultDanceFloor,
+  calculateTotalCapacity,
+  convertToSections,
+  calculateRowSectionSize,
+  generateId,
+} from "./utils";
 
 interface TemplateBuilderProps {
   initialItems?: CanvasItem[];
@@ -24,121 +40,136 @@ export default function TemplateBuilder({
   const [history, setHistory] = useState<CanvasItem[][]>([initialItems]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
-  const selectedItem = items.find(item => item.id === selectedItemId) || null;
+  const selectedItem = items.find((item) => item.id === selectedItemId) || null;
   const totalCapacity = calculateTotalCapacity(items);
 
   /**
    * Add item to history for undo/redo
    */
-  const addToHistory = useCallback((newItems: CanvasItem[]) => {
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(newItems);
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  }, [history, historyIndex]);
+  const addToHistory = useCallback(
+    (newItems: CanvasItem[]) => {
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(newItems);
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    },
+    [history, historyIndex]
+  );
 
   /**
    * Handle dropping new item from toolbar
    */
-  const handleDropItem = useCallback((itemData: Partial<CanvasItem>, position: Position) => {
-    let newItem: CanvasItem;
+  const handleDropItem = useCallback(
+    (itemData: Partial<CanvasItem>, position: Position) => {
+      let newItem: CanvasItem;
 
-    if (itemData.type === "TABLE") {
-      newItem = createDefaultTable(
-        position,
-        (itemData as Partial<TableItem>).shape || "ROUND",
-        (itemData as Partial<TableItem>).capacity || 8
-      );
-      if (itemData.color) {
-        newItem.color = itemData.color;
-      }
-    } else if (itemData.type === "ROW_SECTION") {
-      newItem = createDefaultRowSection(position);
-      const rowData = itemData as Partial<RowSectionItem>;
-      if (rowData.rowCount) newItem.rowCount = rowData.rowCount;
-      if (rowData.seatsPerRow) newItem.seatsPerRow = rowData.seatsPerRow;
-      if (rowData.color) newItem.color = rowData.color;
-      // Use provided size or recalculate based on rows/seats
-      if (rowData.size) {
-        newItem.size = rowData.size;
+      if (itemData.type === "TABLE") {
+        newItem = createDefaultTable(
+          position,
+          (itemData as Partial<TableItem>).shape || "ROUND",
+          (itemData as Partial<TableItem>).capacity || 8
+        );
+        if (itemData.color) {
+          newItem.color = itemData.color;
+        }
+      } else if (itemData.type === "ROW_SECTION") {
+        newItem = createDefaultRowSection(position);
+        const rowData = itemData as Partial<RowSectionItem>;
+        if (rowData.rowCount) newItem.rowCount = rowData.rowCount;
+        if (rowData.seatsPerRow) newItem.seatsPerRow = rowData.seatsPerRow;
+        if (rowData.color) newItem.color = rowData.color;
+        // Use provided size or recalculate based on rows/seats
+        if (rowData.size) {
+          newItem.size = rowData.size;
+        } else {
+          newItem.size = calculateRowSectionSize(newItem.rowCount, newItem.seatsPerRow);
+        }
+      } else if (itemData.type === "STAGE") {
+        newItem = createDefaultStage(position);
+        const stageData = itemData as Partial<StageItem>;
+        if (stageData.size) newItem.size = stageData.size;
+        if (stageData.color) newItem.color = stageData.color;
+        if (stageData.label) newItem.label = stageData.label;
+      } else if (itemData.type === "DANCE_FLOOR") {
+        newItem = createDefaultDanceFloor(position);
+        const danceFloorData = itemData as Partial<DanceFloorItem>;
+        if (danceFloorData.size) newItem.size = danceFloorData.size;
+        if (danceFloorData.color) newItem.color = danceFloorData.color;
+        if (danceFloorData.label) newItem.label = danceFloorData.label;
       } else {
-        newItem.size = calculateRowSectionSize(newItem.rowCount, newItem.seatsPerRow);
+        return;
       }
-    } else if (itemData.type === "STAGE") {
-      newItem = createDefaultStage(position);
-      const stageData = itemData as Partial<StageItem>;
-      if (stageData.size) newItem.size = stageData.size;
-      if (stageData.color) newItem.color = stageData.color;
-      if (stageData.label) newItem.label = stageData.label;
-    } else if (itemData.type === "DANCE_FLOOR") {
-      newItem = createDefaultDanceFloor(position);
-      const danceFloorData = itemData as Partial<DanceFloorItem>;
-      if (danceFloorData.size) newItem.size = danceFloorData.size;
-      if (danceFloorData.color) newItem.color = danceFloorData.color;
-      if (danceFloorData.label) newItem.label = danceFloorData.label;
-    } else {
-      return;
-    }
 
-    const newItems = [...items, newItem];
-    setItems(newItems);
-    setSelectedItemId(newItem.id);
-    addToHistory(newItems);
-  }, [items, addToHistory]);
+      const newItems = [...items, newItem];
+      setItems(newItems);
+      setSelectedItemId(newItem.id);
+      addToHistory(newItems);
+    },
+    [items, addToHistory]
+  );
 
   /**
    * Handle updating an item's properties
    */
-  const handleUpdateItem = useCallback((itemId: string, updates: Partial<CanvasItem>) => {
-    const newItems = items.map(item => {
-      if (item.id !== itemId) return item;
+  const handleUpdateItem = useCallback(
+    (itemId: string, updates: Partial<CanvasItem>) => {
+      const newItems = items.map((item) => {
+        if (item.id !== itemId) return item;
 
-      const updatedItem = { ...item, ...updates } as CanvasItem;
+        const updatedItem = { ...item, ...updates } as CanvasItem;
 
-      // Recalculate size for row sections when rowCount or seatsPerRow changes
-      if (updatedItem.type === "ROW_SECTION") {
-        const rowSection = updatedItem as RowSectionItem;
-        updatedItem.size = calculateRowSectionSize(rowSection.rowCount, rowSection.seatsPerRow);
-      }
+        // Recalculate size for row sections when rowCount or seatsPerRow changes
+        if (updatedItem.type === "ROW_SECTION") {
+          const rowSection = updatedItem as RowSectionItem;
+          updatedItem.size = calculateRowSectionSize(rowSection.rowCount, rowSection.seatsPerRow);
+        }
 
-      return updatedItem;
-    });
-    setItems(newItems);
-    addToHistory(newItems);
-  }, [items, addToHistory]);
+        return updatedItem;
+      });
+      setItems(newItems);
+      addToHistory(newItems);
+    },
+    [items, addToHistory]
+  );
 
   /**
    * Handle deleting an item
    */
-  const handleDeleteItem = useCallback((itemId: string) => {
-    const newItems = items.filter(item => item.id !== itemId);
-    setItems(newItems);
-    setSelectedItemId(null);
-    addToHistory(newItems);
-  }, [items, addToHistory]);
+  const handleDeleteItem = useCallback(
+    (itemId: string) => {
+      const newItems = items.filter((item) => item.id !== itemId);
+      setItems(newItems);
+      setSelectedItemId(null);
+      addToHistory(newItems);
+    },
+    [items, addToHistory]
+  );
 
   /**
    * Handle duplicating an item
    */
-  const handleDuplicateItem = useCallback((itemId: string) => {
-    const itemToDuplicate = items.find(item => item.id === itemId);
-    if (!itemToDuplicate) return;
+  const handleDuplicateItem = useCallback(
+    (itemId: string) => {
+      const itemToDuplicate = items.find((item) => item.id === itemId);
+      if (!itemToDuplicate) return;
 
-    // Create a duplicate with a new ID and offset position
-    const duplicatedItem = {
-      ...itemToDuplicate,
-      id: generateId(),
-      position: {
-        x: itemToDuplicate.position.x + 40,
-        y: itemToDuplicate.position.y + 40,
-      },
-    } as CanvasItem;
+      // Create a duplicate with a new ID and offset position
+      const duplicatedItem = {
+        ...itemToDuplicate,
+        id: generateId(),
+        position: {
+          x: itemToDuplicate.position.x + 40,
+          y: itemToDuplicate.position.y + 40,
+        },
+      } as CanvasItem;
 
-    const newItems = [...items, duplicatedItem];
-    setItems(newItems);
-    setSelectedItemId(duplicatedItem.id);
-    addToHistory(newItems);
-  }, [items, addToHistory]);
+      const newItems = [...items, duplicatedItem];
+      setItems(newItems);
+      setSelectedItemId(duplicatedItem.id);
+      addToHistory(newItems);
+    },
+    [items, addToHistory]
+  );
 
   /**
    * Handle undo
@@ -272,8 +303,9 @@ export default function TemplateBuilder({
         <div className="flex items-start gap-3">
           <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div className="text-sm text-accent-foreground">
-            <strong>How to use:</strong> Drag tables and row sections from the left toolbar onto the canvas.
-            Click items to select and edit their properties in the right panel. Drag items on the canvas to reposition them.
+            <strong>How to use:</strong> Drag tables and row sections from the left toolbar onto the
+            canvas. Click items to select and edit their properties in the right panel. Drag items
+            on the canvas to reposition them.
           </div>
         </div>
       </div>

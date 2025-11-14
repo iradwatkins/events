@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
+import * as React from "react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,9 +10,9 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, User, Settings } from 'lucide-react'
+} from "@/components/ui/breadcrumb";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut, User, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,82 +20,80 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export function AppHeader() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const [currentUser, setCurrentUser] = React.useState<any>(null)
-  const [loading, setLoading] = React.useState(true)
+  const pathname = usePathname();
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
 
   // Fetch user from cookie-based auth API
   React.useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch('/api/auth/me')
+        const response = await fetch("/api/auth/me");
         if (response.ok) {
-          const data = await response.json()
-          setCurrentUser(data.user)
+          const data = await response.json();
+          setCurrentUser(data.user);
         } else {
-          setCurrentUser(null)
+          setCurrentUser(null);
         }
       } catch (error) {
-        console.error('Failed to fetch user:', error)
-        setCurrentUser(null)
+        console.error("Failed to fetch user:", error);
+        setCurrentUser(null);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchUser()
-  }, [pathname])
+    fetchUser();
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-      })
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
 
       if (response.ok) {
-        router.push('/login')
-        router.refresh()
+        router.push("/login");
+        router.refresh();
       }
     } catch (error) {
-      console.error('Logout error:', error)
+      console.error("Logout error:", error);
     }
-  }
+  };
 
   // Generate breadcrumbs from pathname
   const getBreadcrumbs = () => {
-    const paths = pathname.split('/').filter(Boolean)
+    const paths = pathname.split("/").filter(Boolean);
 
-    if (paths[0] === 'organizer') {
-      if (paths.length === 1 || (paths.length === 2 && paths[1] === 'events')) {
-        return [
-          { label: 'Dashboard', href: '/organizer/events', isLast: true }
-        ]
+    if (paths[0] === "organizer") {
+      if (paths.length === 1 || (paths.length === 2 && paths[1] === "events")) {
+        return [{ label: "Dashboard", href: "/organizer/events", isLast: true }];
       }
 
-      if (paths[1] === 'events' && paths[2] === 'create') {
+      if (paths[1] === "events" && paths[2] === "create") {
         return [
-          { label: 'Dashboard', href: '/organizer/events', isLast: false },
-          { label: 'Create Event', href: '/organizer/events/create', isLast: true }
-        ]
+          { label: "Dashboard", href: "/organizer/events", isLast: false },
+          { label: "Create Event", href: "/organizer/events/create", isLast: true },
+        ];
       }
 
-      if (paths[1] === 'events' && paths[2]) {
+      if (paths[1] === "events" && paths[2]) {
         return [
-          { label: 'Dashboard', href: '/organizer/events', isLast: false },
-          { label: 'Event Details', href: pathname, isLast: true }
-        ]
+          { label: "Dashboard", href: "/organizer/events", isLast: false },
+          { label: "Event Details", href: pathname, isLast: true },
+        ];
       }
     }
 
-    return [{ label: 'Dashboard', href: '/organizer/events', isLast: true }]
-  }
+    return [{ label: "Dashboard", href: "/organizer/events", isLast: true }];
+  };
 
-  const breadcrumbs = getBreadcrumbs()
+  const breadcrumbs = getBreadcrumbs();
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-background z-10">
@@ -134,16 +132,14 @@ export function AppHeader() {
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{currentUser.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {currentUser.email}
-                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">{currentUser.email}</p>
                   <p className="text-xs leading-none text-muted-foreground capitalize">
                     Role: {currentUser.role}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push('/organizer/settings')}>
+              <DropdownMenuItem onClick={() => router.push("/organizer/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
@@ -157,5 +153,5 @@ export function AppHeader() {
         ) : null}
       </div>
     </header>
-  )
+  );
 }

@@ -32,22 +32,12 @@ export function TierCountdown({ endDate, className = "" }: TierCountdownProps) {
     <div className={`flex items-center gap-2 ${className}`}>
       <Clock className="w-4 h-4 text-orange-600" />
       <div className="flex items-center gap-1 text-sm font-medium">
-        {timeLeft.days > 0 && (
-          <span className="text-gray-900">
-            {timeLeft.days}d{" "}
-          </span>
-        )}
+        {timeLeft.days > 0 && <span className="text-gray-900">{timeLeft.days}d </span>}
         {(timeLeft.days > 0 || timeLeft.hours > 0) && (
-          <span className="text-gray-900">
-            {timeLeft.hours}h{" "}
-          </span>
+          <span className="text-gray-900">{timeLeft.hours}h </span>
         )}
-        <span className="text-gray-900">
-          {timeLeft.minutes}m{" "}
-        </span>
-        <span className="text-orange-600">
-          {timeLeft.seconds}s
-        </span>
+        <span className="text-gray-900">{timeLeft.minutes}m </span>
+        <span className="text-orange-600">{timeLeft.seconds}s</span>
         <span className="text-gray-600 ml-1">left</span>
       </div>
     </div>
@@ -89,7 +79,12 @@ interface TierAvailabilityBadgeProps {
   quantity: number;
 }
 
-export function TierAvailabilityBadge({ saleStart, saleEnd, sold, quantity }: TierAvailabilityBadgeProps) {
+export function TierAvailabilityBadge({
+  saleStart,
+  saleEnd,
+  sold,
+  quantity,
+}: TierAvailabilityBadgeProps) {
   const now = Date.now();
   const isSoldOut = sold >= quantity;
   const isNotStarted = saleStart && now < saleStart;
@@ -120,7 +115,7 @@ export function TierAvailabilityBadge({ saleStart, saleEnd, sold, quantity }: Ti
     );
   }
 
-  if (isActive && saleEnd && (saleEnd - now) < (24 * 60 * 60 * 1000)) {
+  if (isActive && saleEnd && saleEnd - now < 24 * 60 * 60 * 1000) {
     // Less than 24 hours left
     return (
       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 animate-pulse">

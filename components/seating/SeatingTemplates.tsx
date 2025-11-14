@@ -1,6 +1,16 @@
 "use client";
 
-import { Building2, Theater, Music, Users as UsersIcon, Tent as TentIcon, Grid, Heart, Sparkles, Utensils } from "lucide-react";
+import {
+  Building2,
+  Theater,
+  Music,
+  Users as UsersIcon,
+  Tent as TentIcon,
+  Grid,
+  Heart,
+  Sparkles,
+  Utensils,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 export interface SeatingTemplate {
@@ -8,14 +18,31 @@ export interface SeatingTemplate {
   name: string;
   description: string;
   icon: React.ReactNode;
-  category: "theater" | "stadium" | "concert" | "conference" | "outdoor" | "wedding" | "gala" | "banquet" | "custom";
+  category:
+    | "theater"
+    | "stadium"
+    | "concert"
+    | "conference"
+    | "outdoor"
+    | "wedding"
+    | "gala"
+    | "banquet"
+    | "custom";
   sections: any[];
   estimatedCapacity: number;
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
-type SeatType = "STANDARD" | "WHEELCHAIR" | "COMPANION" | "VIP" | "BLOCKED" | "STANDING" | "PARKING" | "TENT";
+type SeatType =
+  | "STANDARD"
+  | "WHEELCHAIR"
+  | "COMPANION"
+  | "VIP"
+  | "BLOCKED"
+  | "STANDING"
+  | "PARKING"
+  | "TENT";
 
 const generateSeats = (count: number, type: SeatType = "STANDARD") => {
   return Array.from({ length: count }, (_, i) => ({
@@ -405,7 +432,7 @@ export const seatingTemplates: SeatingTemplate[] = [
             id: generateId(),
             number: i + 1,
             shape: "ROUND" as const,
-            x: 100 + (i * 180),
+            x: 100 + i * 180,
             y: 250,
             width: 120,
             height: 120,
@@ -418,7 +445,7 @@ export const seatingTemplates: SeatingTemplate[] = [
             id: generateId(),
             number: i + 6,
             shape: "ROUND" as const,
-            x: 100 + (i * 180),
+            x: 100 + i * 180,
             y: 420,
             width: 120,
             height: 120,
@@ -431,7 +458,7 @@ export const seatingTemplates: SeatingTemplate[] = [
             id: generateId(),
             number: i + 11,
             shape: "ROUND" as const,
-            x: 100 + (i * 180),
+            x: 100 + i * 180,
             y: 590,
             width: 120,
             height: 120,
@@ -1418,10 +1445,7 @@ interface SeatingTemplatesProps {
   onClose: () => void;
 }
 
-export default function SeatingTemplates({
-  onSelectTemplate,
-  onClose,
-}: SeatingTemplatesProps) {
+export default function SeatingTemplates({ onSelectTemplate, onClose }: SeatingTemplatesProps) {
   const categories = [
     { id: "theater", name: "Theater", color: "bg-accent text-primary" },
     { id: "stadium", name: "Stadium", color: "bg-accent text-primary" },

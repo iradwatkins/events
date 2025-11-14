@@ -15,19 +15,13 @@ export async function POST(request: NextRequest) {
     const { email, callbackUrl } = await request.json();
 
     if (!email) {
-      return NextResponse.json(
-        { error: "Email is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
     // Generate secure token
@@ -48,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // Send magic link email with callback URL encoded in token
     const callbackParam = callbackUrl ? `&callbackUrl=${encodeURIComponent(callbackUrl)}` : "";
-    const verificationUrl = `${process.env.NEXTAUTH_URL || 'https://events.stepperslife.com'}/api/auth/verify-magic-link?token=${token}${callbackParam}`;
+    const verificationUrl = `${process.env.NEXTAUTH_URL || "https://events.stepperslife.com"}/api/auth/verify-magic-link?token=${token}${callbackParam}`;
 
     // Update the email to include callback URL
     await sendMagicLinkEmailWithCallback(email, verificationUrl, user?.name);

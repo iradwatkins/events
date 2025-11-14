@@ -15,10 +15,7 @@ export async function GET(request: NextRequest) {
     const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_SECRET;
     if (!JWT_SECRET) {
       console.error("[Convex Token] JWT_SECRET not configured");
-      return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
     }
 
     const secret = new TextEncoder().encode(JWT_SECRET);
@@ -51,9 +48,6 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error("[Convex Token] Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

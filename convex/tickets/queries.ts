@@ -43,7 +43,9 @@ export const getMyTickets = query({
         if (seatReservation) {
           const seatingChart = await ctx.db.get(seatReservation.seatingChartId);
           if (seatingChart) {
-            const section = seatingChart.sections.find((s: any) => s.id === seatReservation.sectionId);
+            const section = seatingChart.sections.find(
+              (s: any) => s.id === seatReservation.sectionId
+            );
             if (section) {
               const row = section.rows?.find((r: any) => r.id === seatReservation.rowId);
               seatInfo = {
@@ -61,24 +63,30 @@ export const getMyTickets = query({
           status: ticket.status,
           scannedAt: ticket.scannedAt,
           createdAt: ticket.createdAt,
-          event: event ? {
-            _id: event._id,
-            name: event.name,
-            startDate: event.startDate,
-            endDate: event.endDate,
-            location: event.location,
-            imageUrl,
-            eventType: event.eventType,
-          } : null,
-          tier: tier ? {
-            name: tier.name,
-            price: tier.price,
-          } : null,
-          order: order ? {
-            _id: order._id,
-            totalCents: order.totalCents,
-            paidAt: order.paidAt,
-          } : null,
+          event: event
+            ? {
+                _id: event._id,
+                name: event.name,
+                startDate: event.startDate,
+                endDate: event.endDate,
+                location: event.location,
+                imageUrl,
+                eventType: event.eventType,
+              }
+            : null,
+          tier: tier
+            ? {
+                name: tier.name,
+                price: tier.price,
+              }
+            : null,
+          order: order
+            ? {
+                _id: order._id,
+                totalCents: order.totalCents,
+                paidAt: order.paidAt,
+              }
+            : null,
           seat: seatInfo,
         };
       })
@@ -343,20 +351,26 @@ export const getTicketByCode = query({
         imageUrl,
         eventType: event.eventType,
       },
-      tier: tier ? {
-        name: tier.name,
-        price: tier.price,
-        description: tier.description,
-      } : null,
-      order: order ? {
-        _id: order._id,
-        totalCents: order.totalCents,
-        paidAt: order.paidAt,
-      } : null,
-      attendee: attendee ? {
-        name: attendee.name,
-        email: attendee.email,
-      } : null,
+      tier: tier
+        ? {
+            name: tier.name,
+            price: tier.price,
+            description: tier.description,
+          }
+        : null,
+      order: order
+        ? {
+            _id: order._id,
+            totalCents: order.totalCents,
+            paidAt: order.paidAt,
+          }
+        : null,
+      attendee: attendee
+        ? {
+            name: attendee.name,
+            email: attendee.email,
+          }
+        : null,
       seat: seatInfo,
     };
   },

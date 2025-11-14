@@ -29,7 +29,12 @@ import Link from "next/link";
 type StaffRole = "STAFF" | "TEAM_MEMBERS" | "ASSOCIATES";
 
 // Recursive component for hierarchy tree visualization
-function HierarchyNode({ staff, handleRemoveStaff, handleEditStaff, level = 0 }: {
+function HierarchyNode({
+  staff,
+  handleRemoveStaff,
+  handleEditStaff,
+  level = 0,
+}: {
   staff: any;
   handleRemoveStaff: (id: Id<"eventStaff">) => void;
   handleEditStaff: (staff: any) => void;
@@ -39,7 +44,7 @@ function HierarchyNode({ staff, handleRemoveStaff, handleEditStaff, level = 0 }:
   const hasSubSellers = staff.subSellers && staff.subSellers.length > 0;
 
   return (
-    <div className={`${level > 0 ? 'ml-8 border-l-2 border-gray-300 pl-4' : ''}`}>
+    <div className={`${level > 0 ? "ml-8 border-l-2 border-gray-300 pl-4" : ""}`}>
       <div className="bg-white border border-gray-200 rounded-lg p-4 mb-2 hover:shadow-md transition-shadow">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3 flex-1">
@@ -48,7 +53,7 @@ function HierarchyNode({ staff, handleRemoveStaff, handleEditStaff, level = 0 }:
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="mt-1 text-gray-400 hover:text-gray-600"
               >
-                {isExpanded ? '▼' : '▶'}
+                {isExpanded ? "▼" : "▶"}
               </button>
             )}
             <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
@@ -107,7 +112,9 @@ function HierarchyNode({ staff, handleRemoveStaff, handleEditStaff, level = 0 }:
                 <div className="flex items-center gap-2 text-sm bg-accent px-3 py-2 rounded-lg">
                   <DollarSign className="w-4 h-4 text-primary" />
                   <div className="flex flex-col">
-                    <span className="font-bold text-foreground">${(staff.commissionEarned / 100).toFixed(2)}</span>
+                    <span className="font-bold text-foreground">
+                      ${(staff.commissionEarned / 100).toFixed(2)}
+                    </span>
                     <span className="text-xs text-primary">earned</span>
                   </div>
                 </div>
@@ -123,11 +130,13 @@ function HierarchyNode({ staff, handleRemoveStaff, handleEditStaff, level = 0 }:
                   </div>
                 )}
               </div>
-              {staff.parentCommissionPercent !== undefined && staff.subSellerCommissionPercent !== undefined && (
-                <div className="mt-2 text-xs text-gray-600">
-                  Commission split: Parent {staff.parentCommissionPercent}% | Sub-seller {staff.subSellerCommissionPercent}%
-                </div>
-              )}
+              {staff.parentCommissionPercent !== undefined &&
+                staff.subSellerCommissionPercent !== undefined && (
+                  <div className="mt-2 text-xs text-gray-600">
+                    Commission split: Parent {staff.parentCommissionPercent}% | Sub-seller{" "}
+                    {staff.subSellerCommissionPercent}%
+                  </div>
+                )}
             </div>
           </div>
           <div className="flex gap-2">
@@ -180,9 +189,13 @@ export default function StaffManagementPage() {
   const [copyAllocations, setCopyAllocations] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<Set<string>>(new Set());
   const [showBulkActions, setShowBulkActions] = useState(false);
-  const [bulkAction, setBulkAction] = useState<"allocations" | "commission" | "deactivate" | null>(null);
+  const [bulkAction, setBulkAction] = useState<"allocations" | "commission" | "deactivate" | null>(
+    null
+  );
   const [bulkAllocationValue, setBulkAllocationValue] = useState("");
-  const [bulkCommissionType, setBulkCommissionType] = useState<"PERCENTAGE" | "FIXED">("PERCENTAGE");
+  const [bulkCommissionType, setBulkCommissionType] = useState<"PERCENTAGE" | "FIXED">(
+    "PERCENTAGE"
+  );
   const [bulkCommissionValue, setBulkCommissionValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<StaffRole>("TEAM_MEMBERS");
@@ -193,13 +206,13 @@ export default function StaffManagementPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch("/api/auth/me");
         if (response.ok) {
           const data = await response.json();
           setCurrentUser(data.user);
         }
       } catch (error) {
-        console.error('Failed to fetch user:', error);
+        console.error("Failed to fetch user:", error);
       }
     };
     fetchUser();
@@ -256,11 +269,11 @@ export default function StaffManagementPage() {
   }
 
   // Debug logging
-  console.log('[Staff Page] Current User:', currentUser);
-  console.log('[Staff Page] Event Organizer ID:', event.organizerId);
-  console.log('[Staff Page] User ID:', currentUser._id);
-  console.log('[Staff Page] Role:', currentUser.role);
-  console.log('[Staff Page] Match:', event.organizerId === currentUser._id);
+  console.log("[Staff Page] Current User:", currentUser);
+  console.log("[Staff Page] Event Organizer ID:", event.organizerId);
+  console.log("[Staff Page] User ID:", currentUser._id);
+  console.log("[Staff Page] Role:", currentUser.role);
+  console.log("[Staff Page] Match:", event.organizerId === currentUser._id);
 
   // Check if user is the organizer (removed for now to allow access)
   // TEMPORARY: Commenting out permission check to debug
@@ -285,9 +298,10 @@ export default function StaffManagementPage() {
       return;
     }
 
-    const commissionAmount = commissionType === "PERCENTAGE"
-      ? parseFloat(commissionValue)
-      : parseFloat(commissionValue) * 100; // Convert dollars to cents
+    const commissionAmount =
+      commissionType === "PERCENTAGE"
+        ? parseFloat(commissionValue)
+        : parseFloat(commissionValue) * 100; // Convert dollars to cents
 
     try {
       await addStaffMember({
@@ -335,7 +349,11 @@ export default function StaffManagementPage() {
     setStaffPhone(staff.phone || "");
     setCanScan(staff.canScan || false);
     setCommissionType(staff.commissionType || "PERCENTAGE");
-    setCommissionValue(staff.commissionType === "FIXED" ? (staff.commissionValue / 100).toString() : staff.commissionValue?.toString() || "");
+    setCommissionValue(
+      staff.commissionType === "FIXED"
+        ? (staff.commissionValue / 100).toString()
+        : staff.commissionValue?.toString() || ""
+    );
     setShowEditStaff(true);
   };
 
@@ -345,9 +363,10 @@ export default function StaffManagementPage() {
       return;
     }
 
-    const commissionAmount = commissionType === "PERCENTAGE"
-      ? parseFloat(commissionValue)
-      : parseFloat(commissionValue) * 100; // Convert dollars to cents
+    const commissionAmount =
+      commissionType === "PERCENTAGE"
+        ? parseFloat(commissionValue)
+        : parseFloat(commissionValue) * 100; // Convert dollars to cents
 
     try {
       await updateStaffMember({
@@ -373,7 +392,10 @@ export default function StaffManagementPage() {
     }
   };
 
-  const handleToggleSubSellerPermission = async (staffId: Id<"eventStaff">, currentValue: boolean) => {
+  const handleToggleSubSellerPermission = async (
+    staffId: Id<"eventStaff">,
+    currentValue: boolean
+  ) => {
     try {
       await updateStaffPermissions({
         staffId,
@@ -417,7 +439,7 @@ export default function StaffManagementPage() {
     if (selectedStaff.size === filteredStaff.length) {
       setSelectedStaff(new Set());
     } else {
-      setSelectedStaff(new Set(filteredStaff.map(s => s._id)));
+      setSelectedStaff(new Set(filteredStaff.map((s) => s._id)));
     }
   };
 
@@ -439,7 +461,7 @@ export default function StaffManagementPage() {
 
     try {
       const allocation = parseInt(bulkAllocationValue);
-      const promises = Array.from(selectedStaff).map(staffId =>
+      const promises = Array.from(selectedStaff).map((staffId) =>
         updateStaffMember({
           staffId: staffId as Id<"eventStaff">,
           allocatedTickets: allocation,
@@ -465,11 +487,12 @@ export default function StaffManagementPage() {
     }
 
     try {
-      const commissionAmount = bulkCommissionType === "PERCENTAGE"
-        ? parseFloat(bulkCommissionValue)
-        : parseFloat(bulkCommissionValue) * 100;
+      const commissionAmount =
+        bulkCommissionType === "PERCENTAGE"
+          ? parseFloat(bulkCommissionValue)
+          : parseFloat(bulkCommissionValue) * 100;
 
-      const promises = Array.from(selectedStaff).map(staffId =>
+      const promises = Array.from(selectedStaff).map((staffId) =>
         updateStaffMember({
           staffId: staffId as Id<"eventStaff">,
           commissionType: bulkCommissionType,
@@ -500,7 +523,7 @@ export default function StaffManagementPage() {
     }
 
     try {
-      const promises = Array.from(selectedStaff).map(staffId =>
+      const promises = Array.from(selectedStaff).map((staffId) =>
         removeStaffMember({ staffId: staffId as Id<"eventStaff"> })
       );
 
@@ -515,9 +538,10 @@ export default function StaffManagementPage() {
     }
   };
 
-  const filteredStaff = eventStaff.filter((staff) =>
-    staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    staff.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredStaff = eventStaff.filter(
+    (staff) =>
+      staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      staff.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -606,7 +630,9 @@ export default function StaffManagementPage() {
                 <label className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                   <input
                     type="checkbox"
-                    checked={selectedStaff.size === filteredStaff.length && filteredStaff.length > 0}
+                    checked={
+                      selectedStaff.size === filteredStaff.length && filteredStaff.length > 0
+                    }
                     onChange={handleSelectAll}
                     className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer"
                   />
@@ -676,7 +702,12 @@ export default function StaffManagementPage() {
             {hierarchyTree && hierarchyTree.length > 0 ? (
               <div className="space-y-4">
                 {hierarchyTree.map((staff) => (
-                  <HierarchyNode key={staff._id} staff={staff} handleRemoveStaff={handleRemoveStaff} handleEditStaff={handleEditStaff} />
+                  <HierarchyNode
+                    key={staff._id}
+                    staff={staff}
+                    handleRemoveStaff={handleRemoveStaff}
+                    handleEditStaff={handleEditStaff}
+                  />
                 ))}
               </div>
             ) : (
@@ -755,8 +786,8 @@ export default function StaffManagementPage() {
                             </>
                           ) : (
                             <>
-                              <DollarSign className="w-4 h-4" />
-                              ${((staff.commissionValue || 0) / 100).toFixed(2)} per ticket
+                              <DollarSign className="w-4 h-4" />$
+                              {((staff.commissionValue || 0) / 100).toFixed(2)} per ticket
                             </>
                           )}
                         </div>
@@ -769,7 +800,12 @@ export default function StaffManagementPage() {
                             <input
                               type="checkbox"
                               checked={staff.canAssignSubSellers || false}
-                              onChange={() => handleToggleSubSellerPermission(staff._id, staff.canAssignSubSellers || false)}
+                              onChange={() =>
+                                handleToggleSubSellerPermission(
+                                  staff._id,
+                                  staff.canAssignSubSellers || false
+                                )
+                              }
                               className="w-4 h-4 text-primary rounded focus:ring-2 focus:ring-ring"
                             />
                             <div className="flex-1">
@@ -827,14 +863,20 @@ export default function StaffManagementPage() {
             <div className="p-6 space-y-6">
               {/* Role Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Role
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Role</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { value: "STAFF", label: "Door Staff", desc: "Scans tickets at entry" },
-                    { value: "TEAM_MEMBERS", label: "Team Member", desc: "Sells tickets with commission" },
-                    { value: "ASSOCIATES", label: "Associate", desc: "Sub-seller under team member" }
+                    {
+                      value: "TEAM_MEMBERS",
+                      label: "Team Member",
+                      desc: "Sells tickets with commission",
+                    },
+                    {
+                      value: "ASSOCIATES",
+                      label: "Associate",
+                      desc: "Sub-seller under team member",
+                    },
                   ].map((role) => (
                     <button
                       key={role.value}
@@ -947,7 +989,9 @@ export default function StaffManagementPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {commissionType === "PERCENTAGE" ? "Percentage (%)" : "Amount per Ticket ($)"}
+                        {commissionType === "PERCENTAGE"
+                          ? "Percentage (%)"
+                          : "Amount per Ticket ($)"}
                       </label>
                       <div className="relative">
                         {commissionType === "FIXED" && (
@@ -1002,20 +1046,18 @@ export default function StaffManagementPage() {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b">
               <h2 className="text-2xl font-bold text-gray-900">Edit Staff Member</h2>
-              <p className="text-gray-600 mt-1">
-                Update {editingStaff.name}'s information
-              </p>
+              <p className="text-gray-600 mt-1">Update {editingStaff.name}'s information</p>
             </div>
 
             <div className="p-6 space-y-6">
               {/* Role Display (read-only) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
                 <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
                   <span className="font-semibold text-gray-900">{editingStaff.role}</span>
-                  <p className="text-xs text-gray-500 mt-1">Role cannot be changed after creation</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Role cannot be changed after creation
+                  </p>
                 </div>
               </div>
 
@@ -1111,7 +1153,9 @@ export default function StaffManagementPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {commissionType === "PERCENTAGE" ? "Percentage (%)" : "Amount per Ticket ($)"}
+                        {commissionType === "PERCENTAGE"
+                          ? "Percentage (%)"
+                          : "Amount per Ticket ($)"}
                       </label>
                       <div className="relative">
                         {commissionType === "FIXED" && (
@@ -1194,13 +1238,12 @@ export default function StaffManagementPage() {
                     ?.filter((e) => e._id !== eventId)
                     .map((e) => (
                       <option key={e._id} value={e._id}>
-                        {e.name} {e.startDate ? `(${new Date(e.startDate).toLocaleDateString()})` : ""}
+                        {e.name}{" "}
+                        {e.startDate ? `(${new Date(e.startDate).toLocaleDateString()})` : ""}
                       </option>
                     ))}
                 </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Only events you organize are shown
-                </p>
+                <p className="text-xs text-gray-500 mt-1">Only events you organize are shown</p>
               </div>
 
               {/* Preview */}
@@ -1217,7 +1260,8 @@ export default function StaffManagementPage() {
                         <li>• Permissions (scanning, sub-seller assignment)</li>
                       </ul>
                       <p className="text-sm text-gray-700 mt-3 font-medium">
-                        Note: Sales history and commission earned will NOT be copied (starts fresh for this event)
+                        Note: Sales history and commission earned will NOT be copied (starts fresh
+                        for this event)
                       </p>
                     </div>
                   </div>
@@ -1236,8 +1280,8 @@ export default function StaffManagementPage() {
                 <label htmlFor="copyAllocations" className="flex-1 cursor-pointer">
                   <div className="font-medium text-gray-900">Copy ticket allocations</div>
                   <div className="text-sm text-gray-600 mt-1">
-                    If checked, staff members will receive the same ticket allocations as the source event.
-                    If unchecked, allocations will start at 0 and you can set them manually.
+                    If checked, staff members will receive the same ticket allocations as the source
+                    event. If unchecked, allocations will start at 0 and you can set them manually.
                   </div>
                 </label>
               </div>
@@ -1246,14 +1290,25 @@ export default function StaffManagementPage() {
               {eventStaff.length > 0 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-yellow-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <svg
+                      className="w-5 h-5 text-yellow-600 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-yellow-800">Warning: This event already has staff</h4>
+                      <h4 className="font-semibold text-yellow-800">
+                        Warning: This event already has staff
+                      </h4>
                       <p className="text-sm text-yellow-700 mt-1">
-                        This event has {eventStaff.length} existing staff member{eventStaff.length !== 1 ? "s" : ""}.
-                        Copying will add new staff members from the selected event. No existing staff will be removed.
+                        This event has {eventStaff.length} existing staff member
+                        {eventStaff.length !== 1 ? "s" : ""}. Copying will add new staff members
+                        from the selected event. No existing staff will be removed.
                       </p>
                     </div>
                   </div>
@@ -1331,7 +1386,9 @@ export default function StaffManagementPage() {
                     </label>
                     <select
                       value={bulkCommissionType}
-                      onChange={(e) => setBulkCommissionType(e.target.value as "PERCENTAGE" | "FIXED")}
+                      onChange={(e) =>
+                        setBulkCommissionType(e.target.value as "PERCENTAGE" | "FIXED")
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     >
                       <option value="PERCENTAGE">Percentage (%)</option>
@@ -1368,7 +1425,11 @@ export default function StaffManagementPage() {
               {bulkAction === "deactivate" && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-red-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <svg
+                      className="w-5 h-5 text-red-600 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
                       <path
                         fillRule="evenodd"
                         d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -1376,10 +1437,10 @@ export default function StaffManagementPage() {
                       />
                     </svg>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-red-800">Warning: This action cannot be undone</h4>
-                      <p className="text-sm text-red-700 mt-1">
-                        Deactivating staff members will:
-                      </p>
+                      <h4 className="font-semibold text-red-800">
+                        Warning: This action cannot be undone
+                      </h4>
+                      <p className="text-sm text-red-700 mt-1">Deactivating staff members will:</p>
                       <ul className="text-sm text-red-700 mt-2 space-y-1 ml-4">
                         <li>• Remove them from this event</li>
                         <li>• Prevent them from selling tickets</li>

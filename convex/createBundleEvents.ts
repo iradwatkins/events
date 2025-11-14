@@ -18,7 +18,8 @@ export const createBundleEvents = mutation({
     // ========== TWO-DAY EVENT 1 ==========
     const event1 = await ctx.db.insert("events", {
       name: "Weekend Steppers Fest 2025",
-      description: "Join us for an incredible 2-day stepping extravaganza featuring live performances, workshops, and non-stop dancing! Experience Friday night's kick-off party and Saturday's grand finale.",
+      description:
+        "Join us for an incredible 2-day stepping extravaganza featuring live performances, workshops, and non-stop dancing! Experience Friday night's kick-off party and Saturday's grand finale.",
       eventType: "TICKETED_EVENT",
       startDate: new Date("2025-03-14T19:00:00").getTime(),
       endDate: new Date("2025-03-15T23:00:00").getTime(),
@@ -86,7 +87,8 @@ export const createBundleEvents = mutation({
     // ========== TWO-DAY EVENT 2 ==========
     const event2 = await ctx.db.insert("events", {
       name: "Spring Step Showcase 2025",
-      description: "Two days of elite stepping competitions, live music, and social dancing. Saturday features the preliminaries and Sunday showcases the championship finals!",
+      description:
+        "Two days of elite stepping competitions, live music, and social dancing. Saturday features the preliminaries and Sunday showcases the championship finals!",
       eventType: "TICKETED_EVENT",
       startDate: new Date("2025-04-19T18:00:00").getTime(),
       endDate: new Date("2025-04-20T22:00:00").getTime(),
@@ -152,7 +154,8 @@ export const createBundleEvents = mutation({
     // ========== THREE-DAY EVENT 1 ==========
     const event3 = await ctx.db.insert("events", {
       name: "Memorial Day Step Celebration 2025",
-      description: "3-day Memorial Day weekend celebration featuring the nation's top steppers! Friday kick-off, Saturday workshops, and Sunday grand finale with live performances!",
+      description:
+        "3-day Memorial Day weekend celebration featuring the nation's top steppers! Friday kick-off, Saturday workshops, and Sunday grand finale with live performances!",
       eventType: "TICKETED_EVENT",
       startDate: new Date("2025-05-23T17:00:00").getTime(),
       endDate: new Date("2025-05-25T23:59:00").getTime(),
@@ -231,7 +234,8 @@ export const createBundleEvents = mutation({
     // ========== THREE-DAY EVENT 2 ==========
     const event4 = await ctx.db.insert("events", {
       name: "Summer Step Summit 2025",
-      description: "The ultimate 3-day stepping experience! Master classes by day, competitions and showcases by night. Friday opening ceremony, Saturday intensive workshops, Sunday championship finals!",
+      description:
+        "The ultimate 3-day stepping experience! Master classes by day, competitions and showcases by night. Friday opening ceremony, Saturday intensive workshops, Sunday championship finals!",
       eventType: "TICKETED_EVENT",
       startDate: new Date("2025-06-13T16:00:00").getTime(),
       endDate: new Date("2025-06-15T23:59:00").getTime(),

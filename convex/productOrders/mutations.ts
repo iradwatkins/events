@@ -4,14 +4,16 @@ import { v } from "convex/values";
 // Create a new product order
 export const createProductOrder = mutation({
   args: {
-    items: v.array(v.object({
-      productId: v.id("products"),
-      productName: v.string(),
-      variantId: v.optional(v.string()),
-      variantName: v.optional(v.string()),
-      quantity: v.number(),
-      price: v.number(),
-    })),
+    items: v.array(
+      v.object({
+        productId: v.id("products"),
+        productName: v.string(),
+        variantId: v.optional(v.string()),
+        variantName: v.optional(v.string()),
+        quantity: v.number(),
+        price: v.number(),
+      })
+    ),
     customerEmail: v.string(),
     customerName: v.string(),
     customerPhone: v.optional(v.string()),
@@ -35,7 +37,7 @@ export const createProductOrder = mutation({
     const orderNumber = `ORD-${timestamp}-${random}`;
 
     // Calculate totals
-    const subtotal = args.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = args.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     // Calculate shipping cost
     let shippingCost = 0;
@@ -63,16 +65,18 @@ export const createProductOrder = mutation({
       if (product.trackInventory) {
         if (item.variantId && product.variants) {
           // Update variant inventory
-          const variantIndex = product.variants.findIndex(v => v.id === item.variantId);
+          const variantIndex = product.variants.findIndex((v) => v.id === item.variantId);
           if (variantIndex >= 0) {
             const variant = product.variants[variantIndex];
             if (variant.inventoryQuantity < item.quantity) {
-              throw new Error(`Insufficient inventory for ${item.productName} - ${item.variantName}`);
+              throw new Error(
+                `Insufficient inventory for ${item.productName} - ${item.variantName}`
+              );
             }
             const updatedVariants = [...product.variants];
             updatedVariants[variantIndex] = {
               ...variant,
-              inventoryQuantity: variant.inventoryQuantity - item.quantity
+              inventoryQuantity: variant.inventoryQuantity - item.quantity,
             };
             await ctx.db.patch(item.productId, {
               variants: updatedVariants,
@@ -99,9 +103,9 @@ export const createProductOrder = mutation({
       customerName: args.customerName,
       customerPhone: args.customerPhone,
       shippingAddress: args.shippingAddress,
-      items: args.items.map(item => ({
+      items: args.items.map((item) => ({
         ...item,
-        totalPrice: item.price * item.quantity
+        totalPrice: item.price * item.quantity,
       })),
       subtotal,
       shippingCost,
@@ -223,13 +227,13 @@ export const cancelOrder = mutation({
       if (product && product.trackInventory) {
         if (item.variantId && product.variants) {
           // Restore variant inventory
-          const variantIndex = product.variants.findIndex(v => v.id === item.variantId);
+          const variantIndex = product.variants.findIndex((v) => v.id === item.variantId);
           if (variantIndex >= 0) {
             const variant = product.variants[variantIndex];
             const updatedVariants = [...product.variants];
             updatedVariants[variantIndex] = {
               ...variant,
-              inventoryQuantity: variant.inventoryQuantity + item.quantity
+              inventoryQuantity: variant.inventoryQuantity + item.quantity,
             };
             await ctx.db.patch(item.productId, {
               variants: updatedVariants,

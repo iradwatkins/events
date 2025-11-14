@@ -12,10 +12,7 @@ export const getAllContacts = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 100;
 
-    let contacts = await ctx.db
-      .query("eventContacts")
-      .order("desc")
-      .take(limit);
+    let contacts = await ctx.db.query("eventContacts").order("desc").take(limit);
 
     // Filter by search term if provided
     if (args.search) {
@@ -118,10 +115,7 @@ export const searchContacts = query({
     const limit = args.limit ?? 50;
     const searchLower = args.query.toLowerCase();
 
-    const allContacts = await ctx.db
-      .query("eventContacts")
-      .order("desc")
-      .take(200); // Take more to search through
+    const allContacts = await ctx.db.query("eventContacts").order("desc").take(200); // Take more to search through
 
     const filtered = allContacts.filter(
       (contact) =>

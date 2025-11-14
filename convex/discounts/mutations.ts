@@ -47,7 +47,10 @@ export const createDiscountCode = mutation({
     }
 
     // Validate discount value
-    if (args.discountType === "PERCENTAGE" && (args.discountValue <= 0 || args.discountValue > 100)) {
+    if (
+      args.discountType === "PERCENTAGE" &&
+      (args.discountValue <= 0 || args.discountValue > 100)
+    ) {
       throw new Error("Percentage discount must be between 1 and 100");
     }
 
@@ -108,7 +111,7 @@ export const updateDiscountCode = mutation({
     }
 
     await ctx.db.patch(args.discountCodeId, {
-      ...( args.isActive !== undefined && { isActive: args.isActive }),
+      ...(args.isActive !== undefined && { isActive: args.isActive }),
       ...(args.maxUses !== undefined && { maxUses: args.maxUses }),
       ...(args.validUntil !== undefined && { validUntil: args.validUntil }),
       updatedAt: Date.now(),

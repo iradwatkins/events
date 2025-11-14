@@ -3,7 +3,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { Plus, LogOut, User, Ticket, Calendar, LogIn, Sun, Moon, Menu, X, ShoppingBag } from "lucide-react";
+import {
+  Plus,
+  LogOut,
+  User,
+  Ticket,
+  Calendar,
+  LogIn,
+  Sun,
+  Moon,
+  Menu,
+  X,
+  ShoppingBag,
+} from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 
@@ -14,7 +26,7 @@ interface PublicHeaderProps {
 
 export function PublicHeader({
   showCreateButton = true,
-  showNavigation = true
+  showNavigation = true,
 }: PublicHeaderProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -53,12 +65,16 @@ export function PublicHeader({
           <Link href="/" className="flex items-center">
             <div
               className="relative w-auto h-19 sm:h-[91px] md:h-[106px] lg:h-[122px]"
-              style={{ aspectRatio: '3/1' }}
+              style={{ aspectRatio: "3/1" }}
             >
               {mounted && (
                 <Image
                   key={theme}
-                  src={theme === "dark" ? "/logos/stepperslife-logo-dark.svg" : "/logos/stepperslife-logo-light.svg"}
+                  src={
+                    theme === "dark"
+                      ? "/logos/stepperslife-logo-dark.svg"
+                      : "/logos/stepperslife-logo-light.svg"
+                  }
                   alt="SteppersLife Events"
                   fill
                   className="object-contain"
@@ -135,15 +151,15 @@ export function PublicHeader({
 
                   <React.Fragment>
                     {isProfileOpen && (
-                      <div
-                        className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50"
-                      >
+                      <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
                         {/* User Info */}
                         <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                           <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {user?.name || "User"}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {user?.email}
+                          </p>
                         </div>
 
                         {/* Menu Items */}
@@ -192,9 +208,7 @@ export function PublicHeader({
 
                 {/* Create Event Button */}
                 {showCreateButton && (
-                  <div
-                    className="hidden sm:block"
-                  >
+                  <div className="hidden sm:block">
                     <Link
                       href="/organizer/events/create"
                       className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -208,9 +222,7 @@ export function PublicHeader({
             ) : (
               <>
                 {/* Logged out navigation - Single Sign In button */}
-                <div
-                  className="hidden sm:block"
-                >
+                <div className="hidden sm:block">
                   <Link
                     href="/login"
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
@@ -240,20 +252,19 @@ export function PublicHeader({
         {/* Mobile Menu */}
         <React.Fragment>
           {isMobileMenuOpen && (
-            <div
-              className="sm:hidden border-t border-gray-200 dark:border-gray-700 mt-4 pt-4 space-y-2"
-            >
+            <div className="sm:hidden border-t border-gray-200 dark:border-gray-700 mt-4 pt-4 space-y-2">
               {/* Navigation Links */}
-              {showNavigation && navigationLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {showNavigation &&
+                navigationLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
 
               {/* Theme Toggle for Mobile */}
               {mounted && (

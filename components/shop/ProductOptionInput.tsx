@@ -57,11 +57,7 @@ interface ProductOptionInputProps {
   onChange: (selectedOption: SelectedOption | undefined) => void;
 }
 
-export default function ProductOptionInput({
-  option,
-  value,
-  onChange,
-}: ProductOptionInputProps) {
+export default function ProductOptionInput({ option, value, onChange }: ProductOptionInputProps) {
   // Helper to calculate price modifier based on current selection
   const calculatePriceModifier = (
     optionType: string,
@@ -75,9 +71,7 @@ export default function ProductOptionInput({
         .reduce((sum, choice) => sum + choice.priceModifier, 0);
     } else if (selectedChoiceIds && selectedChoiceIds.length > 0 && option.choices) {
       // For single-choice options (select, radio, image_swatch)
-      const selectedChoice = option.choices.find(
-        (choice) => choice.id === selectedChoiceIds[0]
-      );
+      const selectedChoice = option.choices.find((choice) => choice.id === selectedChoiceIds[0]);
       return selectedChoice?.priceModifier || 0;
     } else if (
       (option.type === "text" ||
@@ -181,9 +175,7 @@ export default function ProductOptionInput({
           {option.name}
           {option.required && <span className="text-red-600 ml-1">*</span>}
         </label>
-        {option.description && (
-          <p className="text-sm text-gray-600 mt-1">{option.description}</p>
-        )}
+        {option.description && <p className="text-sm text-gray-600 mt-1">{option.description}</p>}
       </div>
 
       {/* Input Based on Type */}
@@ -238,9 +230,9 @@ export default function ProductOptionInput({
             <option key={choice.id} value={choice.id}>
               {choice.label}
               {choice.priceModifier !== 0 &&
-                ` (${choice.priceModifier >= 0 ? "+" : ""}$${(
-                  choice.priceModifier / 100
-                ).toFixed(2)})`}
+                ` (${choice.priceModifier >= 0 ? "+" : ""}$${(choice.priceModifier / 100).toFixed(
+                  2
+                )})`}
             </option>
           ))}
         </select>
@@ -263,13 +255,10 @@ export default function ProductOptionInput({
                 className="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
               />
               <div className="flex-1">
-                <span className="text-sm font-medium text-gray-900">
-                  {choice.label}
-                </span>
+                <span className="text-sm font-medium text-gray-900">{choice.label}</span>
                 {choice.priceModifier !== 0 && (
                   <span className="text-sm text-gray-600 ml-2">
-                    {choice.priceModifier >= 0 ? "+" : ""}$
-                    {(choice.priceModifier / 100).toFixed(2)}
+                    {choice.priceModifier >= 0 ? "+" : ""}${(choice.priceModifier / 100).toFixed(2)}
                   </span>
                 )}
               </div>
@@ -281,9 +270,7 @@ export default function ProductOptionInput({
       {option.type === "checkbox" && option.choices && (
         <div className="space-y-2">
           {option.choices.map((choice) => {
-            const isChecked = ((value?.value as string[]) || []).includes(
-              choice.id
-            );
+            const isChecked = ((value?.value as string[]) || []).includes(choice.id);
             return (
               <label
                 key={choice.id}
@@ -292,15 +279,11 @@ export default function ProductOptionInput({
                 <input
                   type="checkbox"
                   checked={isChecked}
-                  onChange={(e) =>
-                    handleCheckboxChange(choice.id, e.target.checked)
-                  }
+                  onChange={(e) => handleCheckboxChange(choice.id, e.target.checked)}
                   className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                 />
                 <div className="flex-1">
-                  <span className="text-sm font-medium text-gray-900">
-                    {choice.label}
-                  </span>
+                  <span className="text-sm font-medium text-gray-900">{choice.label}</span>
                   {choice.priceModifier !== 0 && (
                     <span className="text-sm text-gray-600 ml-2">
                       {choice.priceModifier >= 0 ? "+" : ""}$
@@ -330,17 +313,10 @@ export default function ProductOptionInput({
                 }`}
               >
                 {choice.image ? (
-                  <Image
-                    src={choice.image}
-                    alt={choice.label}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={choice.image} alt={choice.label} fill className="object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <span className="text-xs text-gray-500 text-center p-2">
-                      {choice.label}
-                    </span>
+                    <span className="text-xs text-gray-500 text-center p-2">{choice.label}</span>
                   </div>
                 )}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-2">
@@ -400,8 +376,7 @@ export default function ProductOptionInput({
       {/* Price Modifier Display */}
       {value && value.priceModifier !== 0 && (
         <div className="text-sm text-primary font-medium">
-          {value.priceModifier >= 0 ? "+" : ""}$
-          {(value.priceModifier / 100).toFixed(2)}
+          {value.priceModifier >= 0 ? "+" : ""}${(value.priceModifier / 100).toFixed(2)}
         </div>
       )}
     </div>

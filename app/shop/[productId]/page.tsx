@@ -13,7 +13,7 @@ import {
   Shield,
   CreditCard,
   Plus,
-  Minus
+  Minus,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -35,7 +35,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
-  const [selectedOptions, setSelectedOptions] = useState<{size?: string; color?: string}>({});
+  const [selectedOptions, setSelectedOptions] = useState<{ size?: string; color?: string }>({});
   const [selectedProductOptions, setSelectedProductOptions] = useState<
     Record<string, SelectedOption>
   >({});
@@ -70,17 +70,20 @@ export default function ProductDetailPage() {
   }
 
   // Get current variant if selections are complete
-  const currentVariant = product.hasVariants && product.variants && selectedOptions.size && selectedOptions.color
-    ? product.variants.find((v: any) =>
-        v.options.size === selectedOptions.size &&
-        v.options.color === selectedOptions.color
-      )
-    : null;
+  const currentVariant =
+    product.hasVariants && product.variants && selectedOptions.size && selectedOptions.color
+      ? product.variants.find(
+          (v: any) =>
+            v.options.size === selectedOptions.size && v.options.color === selectedOptions.color
+        )
+      : null;
 
   // Use variant image if available, otherwise use product images
   const allImages = currentVariant?.image
-    ? [currentVariant.image, product.primaryImage, ...(product.images || [])].filter(Boolean) as string[]
-    : [product.primaryImage, ...(product.images || [])].filter(Boolean) as string[];
+    ? ([currentVariant.image, product.primaryImage, ...(product.images || [])].filter(
+        Boolean
+      ) as string[])
+    : ([product.primaryImage, ...(product.images || [])].filter(Boolean) as string[]);
 
   const isOutOfStock = product.trackInventory && product.inventoryQuantity === 0;
   const maxQuantity = product.trackInventory ? product.inventoryQuantity : 99;
@@ -124,9 +127,9 @@ export default function ProductDetailPage() {
     let productImage = product.primaryImage;
 
     if (product.hasVariants && product.variants && selectedOptions.size && selectedOptions.color) {
-      variant = product.variants.find((v: any) =>
-        v.options.size === selectedOptions.size &&
-        v.options.color === selectedOptions.color
+      variant = product.variants.find(
+        (v: any) =>
+          v.options.size === selectedOptions.size && v.options.color === selectedOptions.color
       );
       if (variant) {
         variantPrice = variant.price || product.price;
@@ -146,12 +149,12 @@ export default function ProductDetailPage() {
       ...(variant && {
         variantId: variant.id,
         variantName: variant.name,
-        variantOptions: variant.options
+        variantOptions: variant.options,
       }),
       ...(productOptionsArray.length > 0 && {
         productOptions: productOptionsArray,
-        optionsPriceModifier: totalOptionsPriceModifier
-      })
+        optionsPriceModifier: totalOptionsPriceModifier,
+      }),
     });
   };
 
@@ -162,9 +165,9 @@ export default function ProductDetailPage() {
     let productImage = product.primaryImage;
 
     if (product.hasVariants && product.variants && selectedOptions.size && selectedOptions.color) {
-      variant = product.variants.find((v: any) =>
-        v.options.size === selectedOptions.size &&
-        v.options.color === selectedOptions.color
+      variant = product.variants.find(
+        (v: any) =>
+          v.options.size === selectedOptions.size && v.options.color === selectedOptions.color
       );
       if (variant) {
         variantPrice = variant.price || product.price;
@@ -184,14 +187,14 @@ export default function ProductDetailPage() {
       ...(variant && {
         variantId: variant.id,
         variantName: variant.name,
-        variantOptions: variant.options
+        variantOptions: variant.options,
       }),
       ...(productOptionsArray.length > 0 && {
         productOptions: productOptionsArray,
-        optionsPriceModifier: totalOptionsPriceModifier
-      })
+        optionsPriceModifier: totalOptionsPriceModifier,
+      }),
     });
-    router.push('/shop/checkout');
+    router.push("/shop/checkout");
   };
 
   return (
@@ -267,9 +270,7 @@ export default function ProductDetailPage() {
                     {product.category}
                   </span>
                 )}
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {product.name}
-                </h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
                 {product.tags && product.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {product.tags.map((tag, index) => (
@@ -290,16 +291,22 @@ export default function ProductDetailPage() {
                   <span className="text-4xl font-bold text-primary">
                     ${(finalPrice / 100).toFixed(2)}
                   </span>
-                  {product.compareAtPrice && product.compareAtPrice > (currentVariant?.price ?? product.price) && (
-                    <>
-                      <span className="text-2xl text-gray-500 line-through">
-                        ${(product.compareAtPrice / 100).toFixed(2)}
-                      </span>
-                      <span className="px-2 py-1 bg-red-600 text-white text-sm rounded-full font-semibold">
-                        {Math.round((1 - (currentVariant?.price ?? product.price) / product.compareAtPrice) * 100)}% OFF
-                      </span>
-                    </>
-                  )}
+                  {product.compareAtPrice &&
+                    product.compareAtPrice > (currentVariant?.price ?? product.price) && (
+                      <>
+                        <span className="text-2xl text-gray-500 line-through">
+                          ${(product.compareAtPrice / 100).toFixed(2)}
+                        </span>
+                        <span className="px-2 py-1 bg-red-600 text-white text-sm rounded-full font-semibold">
+                          {Math.round(
+                            (1 -
+                              (currentVariant?.price ?? product.price) / product.compareAtPrice) *
+                              100
+                          )}
+                          % OFF
+                        </span>
+                      </>
+                    )}
                 </div>
                 {currentVariant && currentVariant.price !== product.price && (
                   <p className="text-sm text-gray-600 mt-1">
@@ -348,8 +355,12 @@ export default function ProductDetailPage() {
                 <div className="space-y-4">
                   {/* Extract unique sizes and colors */}
                   {(() => {
-                    const sizes = Array.from(new Set(product.variants.map((v: any) => v.options.size).filter(Boolean)));
-                    const colors = Array.from(new Set(product.variants.map((v: any) => v.options.color).filter(Boolean)));
+                    const sizes = Array.from(
+                      new Set(product.variants.map((v: any) => v.options.size).filter(Boolean))
+                    );
+                    const colors = Array.from(
+                      new Set(product.variants.map((v: any) => v.options.color).filter(Boolean))
+                    );
 
                     return (
                       <>
@@ -357,13 +368,16 @@ export default function ProductDetailPage() {
                         {sizes.length > 0 && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Size {selectedOptions.size && <span className="text-primary">({selectedOptions.size})</span>}
+                              Size{" "}
+                              {selectedOptions.size && (
+                                <span className="text-primary">({selectedOptions.size})</span>
+                              )}
                             </label>
                             <div className="flex flex-wrap gap-2">
                               {sizes.map((size: any) => (
                                 <button
                                   key={size}
-                                  onClick={() => setSelectedOptions({...selectedOptions, size})}
+                                  onClick={() => setSelectedOptions({ ...selectedOptions, size })}
                                   className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
                                     selectedOptions.size === size
                                       ? "border-primary bg-primary text-white"
@@ -381,13 +395,16 @@ export default function ProductDetailPage() {
                         {colors.length > 0 && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Color {selectedOptions.color && <span className="text-primary">({selectedOptions.color})</span>}
+                              Color{" "}
+                              {selectedOptions.color && (
+                                <span className="text-primary">({selectedOptions.color})</span>
+                              )}
                             </label>
                             <div className="flex flex-wrap gap-2">
                               {colors.map((color: any) => (
                                 <button
                                   key={color}
-                                  onClick={() => setSelectedOptions({...selectedOptions, color})}
+                                  onClick={() => setSelectedOptions({ ...selectedOptions, color })}
                                   className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
                                     selectedOptions.color === color
                                       ? "border-primary bg-primary text-white"
@@ -402,29 +419,32 @@ export default function ProductDetailPage() {
                         )}
 
                         {/* Selected Variant Info */}
-                        {selectedOptions.size && selectedOptions.color && (() => {
-                          const variant = product.variants.find((v: any) =>
-                            v.options.size === selectedOptions.size &&
-                            v.options.color === selectedOptions.color
-                          );
-                          if (variant) {
-                            return (
-                              <div className="bg-accent/50 border border-border rounded-lg p-3">
-                                <p className="text-sm text-foreground">
-                                  <strong>{variant.name}</strong>
-                                  {variant.inventoryQuantity > 0 ? (
-                                    <span className="text-green-600 ml-2">
-                                      ({variant.inventoryQuantity} available)
-                                    </span>
-                                  ) : (
-                                    <span className="text-red-600 ml-2">(Out of stock)</span>
-                                  )}
-                                </p>
-                              </div>
+                        {selectedOptions.size &&
+                          selectedOptions.color &&
+                          (() => {
+                            const variant = product.variants.find(
+                              (v: any) =>
+                                v.options.size === selectedOptions.size &&
+                                v.options.color === selectedOptions.color
                             );
-                          }
-                          return null;
-                        })()}
+                            if (variant) {
+                              return (
+                                <div className="bg-accent/50 border border-border rounded-lg p-3">
+                                  <p className="text-sm text-foreground">
+                                    <strong>{variant.name}</strong>
+                                    {variant.inventoryQuantity > 0 ? (
+                                      <span className="text-green-600 ml-2">
+                                        ({variant.inventoryQuantity} available)
+                                      </span>
+                                    ) : (
+                                      <span className="text-red-600 ml-2">(Out of stock)</span>
+                                    )}
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                       </>
                     );
                   })()}
@@ -434,9 +454,7 @@ export default function ProductDetailPage() {
               {/* Product Options */}
               {product.options && product.options.length > 0 && (
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Customization Options
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Customization Options</h3>
                   {product.options
                     .sort((a, b) => a.displayOrder - b.displayOrder)
                     .map((option) => (
@@ -444,9 +462,7 @@ export default function ProductDetailPage() {
                         key={option.id}
                         option={option as ProductOption}
                         value={selectedProductOptions[option.id]}
-                        onChange={(selectedOption) =>
-                          handleOptionChange(option.id, selectedOption)
-                        }
+                        onChange={(selectedOption) => handleOptionChange(option.id, selectedOption)}
                       />
                     ))}
                 </div>
@@ -455,9 +471,7 @@ export default function ProductDetailPage() {
               {/* Quantity Selector */}
               {!isOutOfStock && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quantity
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center border border-gray-300 rounded-lg">
                       <button
@@ -477,7 +491,8 @@ export default function ProductDetailPage() {
                       </button>
                     </div>
                     <span className="text-sm text-gray-600">
-                      Total: <span className="font-bold text-primary text-lg">
+                      Total:{" "}
+                      <span className="font-bold text-primary text-lg">
                         ${((finalPrice * quantity) / 100).toFixed(2)}
                       </span>
                     </span>

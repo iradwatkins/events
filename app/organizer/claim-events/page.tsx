@@ -4,16 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import {
-  Search,
-  Calendar,
-  MapPin,
-  Gift,
-  Filter,
-  X,
-  Clock,
-  ChevronDown
-} from "lucide-react";
+import { Search, Calendar, MapPin, Gift, Filter, X, Clock, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { formatEventDate } from "@/lib/date-format";
@@ -51,7 +42,7 @@ export default function ClaimEventsPage() {
     "Community",
     "Educational",
     "Networking",
-    "Other"
+    "Other",
   ];
 
   // Debounced search function
@@ -138,7 +129,9 @@ export default function ClaimEventsPage() {
                   Active
                 </span>
               )}
-              <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`}
+              />
             </button>
           </div>
 
@@ -166,7 +159,9 @@ export default function ClaimEventsPage() {
                       >
                         <option value="">All Categories</option>
                         {categories.map((cat) => (
-                          <option key={cat} value={cat}>{cat}</option>
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -220,9 +215,7 @@ export default function ClaimEventsPage() {
             <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-12">
               <div className="text-center">
                 <Search className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-4 text-lg font-medium text-gray-900">
-                  Start Searching
-                </h3>
+                <h3 className="mt-4 text-lg font-medium text-gray-900">Start Searching</h3>
                 <p className="mt-2 text-sm text-gray-500">
                   Enter a search term or apply filters to find claimable events
                 </p>
@@ -245,9 +238,7 @@ export default function ClaimEventsPage() {
             <div className="bg-white rounded-lg border border-gray-200 p-12">
               <div className="text-center">
                 <Gift className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-4 text-lg font-medium text-gray-900">
-                  No Events Found
-                </h3>
+                <h3 className="mt-4 text-lg font-medium text-gray-900">No Events Found</h3>
                 <p className="mt-2 text-sm text-gray-500">
                   Try adjusting your search criteria or check back later
                 </p>
@@ -259,7 +250,7 @@ export default function ClaimEventsPage() {
           {hasActiveFilters && searchResults && searchResults.length > 0 && (
             <div>
               <p className="text-sm text-gray-600 mb-4">
-                Found {searchResults.length} claimable event{searchResults.length !== 1 ? 's' : ''}
+                Found {searchResults.length} claimable event{searchResults.length !== 1 ? "s" : ""}
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -288,9 +279,7 @@ export default function ClaimEventsPage() {
 
                     {/* Event Details */}
                     <div className="p-4">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">
-                        {event.name}
-                      </h3>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">{event.name}</h3>
 
                       {/* Event Info */}
                       <div className="space-y-2 mb-4">
@@ -305,9 +294,9 @@ export default function ClaimEventsPage() {
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <MapPin className="w-4 h-4" />
                             <span className="truncate">
-                              {typeof event.location === 'string'
+                              {typeof event.location === "string"
                                 ? event.location
-                                : `${event.location.venueName || ''} ${event.location.city}, ${event.location.state}`}
+                                : `${event.location.venueName || ""} ${event.location.city}, ${event.location.state}`}
                             </span>
                           </div>
                         )}

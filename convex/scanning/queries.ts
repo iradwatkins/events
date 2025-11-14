@@ -147,9 +147,10 @@ export const isAuthorizedScanner = query({
 
     if (staffRecord) {
       // Check if staff member is authorized to scan
-      const canScan = staffRecord.role === "STAFF" ||
-                      (staffRecord.role === "TEAM_MEMBERS" && staffRecord.canScan === true) ||
-                      (staffRecord.role === "ASSOCIATES" && staffRecord.canScan === true);
+      const canScan =
+        staffRecord.role === "STAFF" ||
+        (staffRecord.role === "TEAM_MEMBERS" && staffRecord.canScan === true) ||
+        (staffRecord.role === "ASSOCIATES" && staffRecord.canScan === true);
 
       return {
         isAuthorized: canScan,
@@ -225,9 +226,10 @@ export const getMyScannableEvents = query({
 
       for (const staff of staffRecords) {
         // Only include events where staff can scan
-        const canScan = staff.role === "STAFF" ||
-                       (staff.role === "TEAM_MEMBERS" && staff.canScan === true) ||
-                       (staff.role === "ASSOCIATES" && staff.canScan === true);
+        const canScan =
+          staff.role === "STAFF" ||
+          (staff.role === "TEAM_MEMBERS" && staff.canScan === true) ||
+          (staff.role === "ASSOCIATES" && staff.canScan === true);
 
         if (canScan) {
           if (staff.eventId) {
@@ -249,7 +251,7 @@ export const getMyScannableEvents = query({
     const events = await Promise.all(
       Array.from(eventIds).map(async (eventId) => {
         const event: any = await ctx.db.get(eventId as any);
-        if (!event || !('name' in event)) return null;
+        if (!event || !("name" in event)) return null;
 
         return {
           _id: event._id,
@@ -261,10 +263,12 @@ export const getMyScannableEvents = query({
       })
     );
 
-    return events.filter((e) => e !== null).sort((a, b) => {
-      if (!a.startDate) return 1;
-      if (!b.startDate) return -1;
-      return a.startDate - b.startDate;
-    });
+    return events
+      .filter((e) => e !== null)
+      .sort((a, b) => {
+        if (!a.startDate) return 1;
+        if (!b.startDate) return -1;
+        return a.startDate - b.startDate;
+      });
   },
 });

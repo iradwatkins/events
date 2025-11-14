@@ -35,7 +35,9 @@ export default function CRMPage() {
     try {
       await deleteContact({ contactId });
     } catch (error) {
-      alert("Failed to delete contact: " + (error instanceof Error ? error.message : "Unknown error"));
+      alert(
+        "Failed to delete contact: " + (error instanceof Error ? error.message : "Unknown error")
+      );
     }
   };
 
@@ -246,7 +248,9 @@ export default function CRMPage() {
                         <div>
                           <p className="font-medium text-gray-900">{contact.name}</p>
                           {contact.socialMedia?.instagram && (
-                            <p className="text-xs text-gray-500">@{contact.socialMedia.instagram}</p>
+                            <p className="text-xs text-gray-500">
+                              @{contact.socialMedia.instagram}
+                            </p>
                           )}
                         </div>
                       </div>

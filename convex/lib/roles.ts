@@ -80,16 +80,16 @@ export const TRANSFER_CONFIG = {
 // TypeScript types derived from constants
 
 /** User role type */
-export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
+export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 
 /** Staff role type */
-export type StaffRole = typeof STAFF_ROLES[keyof typeof STAFF_ROLES];
+export type StaffRole = (typeof STAFF_ROLES)[keyof typeof STAFF_ROLES];
 
 /** Commission type */
-export type CommissionType = typeof COMMISSION_TYPES[keyof typeof COMMISSION_TYPES];
+export type CommissionType = (typeof COMMISSION_TYPES)[keyof typeof COMMISSION_TYPES];
 
 /** Transfer status type */
-export type TransferStatus = typeof TRANSFER_STATUS[keyof typeof TRANSFER_STATUS];
+export type TransferStatus = (typeof TRANSFER_STATUS)[keyof typeof TRANSFER_STATUS];
 
 /**
  * Type guard to check if a value is a valid user role
@@ -135,7 +135,8 @@ export function getRoleDescription(role: UserRole | StaffRole): string {
     [USER_ROLES.ADMIN]: "Full platform access with ability to manage all events and users",
     [USER_ROLES.ORGANIZER]: "Create and manage events, ticket tiers, and staff members",
     [USER_ROLES.USER]: "Browse events and purchase tickets",
-    [STAFF_ROLES.STAFF]: "Scan and validate tickets at event entrance, can sell if organizer permits",
+    [STAFF_ROLES.STAFF]:
+      "Scan and validate tickets at event entrance, can sell if organizer permits",
     [STAFF_ROLES.TEAM_MEMBERS]: "Team member/partner who sells tickets and can assign associates",
     [STAFF_ROLES.ASSOCIATES]: "Receives tickets from Team Members to sell and earn commission",
   };

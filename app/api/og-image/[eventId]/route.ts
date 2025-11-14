@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import sharp from 'sharp';
+import { NextRequest, NextResponse } from "next/server";
+import sharp from "sharp";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 interface RouteParams {
   params: Promise<{
@@ -13,24 +13,21 @@ async function getEventData(eventId: string) {
   try {
     const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
     if (!convexUrl) {
-      throw new Error('NEXT_PUBLIC_CONVEX_URL is not defined');
+      throw new Error("NEXT_PUBLIC_CONVEX_URL is not defined");
     }
 
-    const response = await fetch(
-      `${convexUrl}/api/query`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          path: 'public/queries:getPublicEventDetails',
-          args: { eventId },
-          format: 'json',
-        }),
-        cache: 'no-store',
-      }
-    );
+    const response = await fetch(`${convexUrl}/api/query`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        path: "public/queries:getPublicEventDetails",
+        args: { eventId },
+        format: "json",
+      }),
+      cache: "no-store",
+    });
 
     if (!response.ok) {
       return null;
@@ -39,7 +36,7 @@ async function getEventData(eventId: string) {
     const data = await response.json();
     return data.value;
   } catch (error) {
-    console.error('Error fetching event data:', error);
+    console.error("Error fetching event data:", error);
     return null;
   }
 }
@@ -52,18 +49,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const eventDetails = await getEventData(eventId);
 
     if (!eventDetails || !eventDetails.imageUrl) {
-      return new NextResponse('Event or image not found', { status: 404 });
+      return new NextResponse("Event or image not found", { status: 404 });
     }
 
     // Fetch the original image
-    const imageUrl = eventDetails.imageUrl.startsWith('http')
+    const imageUrl = eventDetails.imageUrl.startsWith("http")
       ? eventDetails.imageUrl
       : `https://events.stepperslife.com${eventDetails.imageUrl}`;
 
     const imageResponse = await fetch(imageUrl);
 
     if (!imageResponse.ok) {
-      return new NextResponse('Failed to fetch image', { status: 404 });
+      return new NextResponse("Failed to fetch image", { status: 404 });
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();
@@ -87,7 +84,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .resize({
         width: targetWidth,
         height: targetHeight,
-        fit: 'contain',
+        fit: "contain",
         background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .toBuffer();
@@ -109,37 +106,38 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         height: targetHeight,
         channels: 3,
         background: brandBlue,
-      }
+      },
     })
-    .jpeg()
-    .toBuffer();
+      .jpeg()
+      .toBuffer();
 
     // Step 3: Calculate text area position (remaining space after flyer)
     const textStartX = actualFlyerWidth + 30; // 30px padding from flyer
     const textWidth = targetWidth - actualFlyerWidth - 60; // Available width for text
 
     // Format event information
-    const eventName = eventDetails.name || 'Event';
+    const eventName = eventDetails.name || "Event";
     const eventDate = eventDetails.startDate
-      ? new Date(eventDetails.startDate).toLocaleDateString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
+      ? new Date(eventDetails.startDate).toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
         })
-      : '';
-    const eventLocation = eventDetails.location?.city && eventDetails.location?.state
-      ? `${eventDetails.location.city}, ${eventDetails.location.state}`
-      : eventDetails.location?.city || eventDetails.location?.state || '';
+      : "";
+    const eventLocation =
+      eventDetails.location?.city && eventDetails.location?.state
+        ? `${eventDetails.location.city}, ${eventDetails.location.state}`
+        : eventDetails.location?.city || eventDetails.location?.state || "";
 
     // Escape XML special characters
     const escapeXml = (str: string) => {
       return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;');
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
     };
 
     // Determine font sizes based on available space
@@ -213,7 +211,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           input: Buffer.from(infoOverlay),
           top: 0,
           left: 0,
-        }
+        },
       ])
       .jpeg({
         quality: 90,
@@ -224,12 +222,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Return the optimized image
     return new NextResponse(resizedImage, {
       headers: {
-        'Content-Type': 'image/jpeg',
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        "Content-Type": "image/jpeg",
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (error) {
-    console.error('Error generating OG image:', error);
-    return new NextResponse('Internal server error', { status: 500 });
+    console.error("Error generating OG image:", error);
+    return new NextResponse("Internal server error", { status: 500 });
   }
 }

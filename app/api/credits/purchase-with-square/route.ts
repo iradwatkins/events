@@ -23,17 +23,17 @@
  * }
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { SquareClient, SquareEnvironment } from 'square';
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
-import { randomUUID } from 'crypto';
+import { NextRequest, NextResponse } from "next/server";
+import { SquareClient, SquareEnvironment } from "square";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { randomUUID } from "crypto";
 import {
   squareCreditPurchaseSchema,
   validateRequest,
   formatValidationError,
-} from '@/lib/validations/payment';
+} from "@/lib/validations/payment";
 import {
   calculateCreditAmount,
   logPaymentEvent,
@@ -41,25 +41,21 @@ import {
   generateRequestId,
   createSuccessResponse,
   createErrorResponse,
-} from '@/lib/utils/payment';
-import {
-  LOG_PREFIX,
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from '@/lib/constants/payment';
+} from "@/lib/utils/payment";
+import { LOG_PREFIX, ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/lib/constants/payment";
 import type {
   SquarePayment,
   PaymentSuccessResponse,
   PaymentPendingResponse,
   PaymentErrorResponse,
-} from '@/lib/types/payment';
+} from "@/lib/types/payment";
 
 // Initialize Convex client (singleton)
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 // Initialize Square client (singleton)
 const squareEnvironment =
-  process.env.SQUARE_ENVIRONMENT === 'production'
+  process.env.SQUARE_ENVIRONMENT === "production"
     ? SquareEnvironment.Production
     : SquareEnvironment.Sandbox;
 
@@ -73,11 +69,7 @@ const squareClient = new SquareClient({
  */
 export async function POST(
   request: NextRequest
-): Promise<
-  NextResponse<
-    PaymentSuccessResponse | PaymentPendingResponse | PaymentErrorResponse
-  >
-> {
+): Promise<NextResponse<PaymentSuccessResponse | PaymentPendingResponse | PaymentErrorResponse>> {
   const requestId = generateRequestId();
   const startTime = Date.now();
 
@@ -95,7 +87,7 @@ export async function POST(
 
       return NextResponse.json(
         createErrorResponse(errorMessage, {
-          code: 'VALIDATION_ERROR',
+          code: "VALIDATION_ERROR",
           fields: validation.error.errors,
         }),
         { status: 400 }
@@ -107,7 +99,7 @@ export async function POST(
     // Calculate amount using utility function
     const amountInCents = calculateCreditAmount(credits);
 
-    logPaymentEvent(LOG_PREFIX.SQUARE, 'credit_purchase_start', {
+    logPaymentEvent(LOG_PREFIX.SQUARE, "credit_purchase_start", {
       requestId,
       userId,
       credits,
@@ -121,7 +113,7 @@ export async function POST(
       idempotencyKey,
       amountMoney: {
         amount: BigInt(amountInCents),
-        currency: 'USD',
+        currency: "USD",
       },
       locationId: process.env.SQUARE_LOCATION_ID!,
       note: `Credit purchase: ${credits} tickets for user ${userId}`,
@@ -129,37 +121,31 @@ export async function POST(
       ...(verificationToken && { verificationToken }),
     };
 
-    const { result } = await squareClient.paymentsApi.createPayment(
-      paymentRequest
-    );
+    const { result } = await squareClient.paymentsApi.createPayment(paymentRequest);
 
     const payment: SquarePayment | undefined = result.payment;
 
     if (!payment) {
-      logPaymentError(
-        LOG_PREFIX.SQUARE,
-        new Error('Payment creation returned no payment object'),
-        {
-          requestId,
-          userId,
-          credits,
-        }
-      );
+      logPaymentError(LOG_PREFIX.SQUARE, new Error("Payment creation returned no payment object"), {
+        requestId,
+        userId,
+        credits,
+      });
 
       return NextResponse.json(
         createErrorResponse(ERROR_MESSAGES.PAYMENT_FAILED, {
-          code: 'NO_PAYMENT_OBJECT',
+          code: "NO_PAYMENT_OBJECT",
         }),
         { status: 500 }
       );
     }
 
     // Handle different payment statuses
-    if (payment.status === 'COMPLETED') {
+    if (payment.status === "COMPLETED") {
       // Payment successful - add credits to user account
       try {
         await convex.mutation(api.credits.mutations.purchaseCredits, {
-          userId: userId as Id<'users'>,
+          userId: userId as Id<"users">,
           credits,
           amountPaid: amountInCents,
           squarePaymentId: payment.id!,
@@ -167,7 +153,7 @@ export async function POST(
 
         const duration = Date.now() - startTime;
 
-        logPaymentEvent(LOG_PREFIX.SQUARE, 'credit_purchase_success', {
+        logPaymentEvent(LOG_PREFIX.SQUARE, "credit_purchase_success", {
           requestId,
           userId,
           credits,
@@ -187,23 +173,19 @@ export async function POST(
         );
       } catch (convexError: unknown) {
         // Payment succeeded but credit allocation failed
-        logPaymentError(
-          LOG_PREFIX.SQUARE,
-          convexError,
-          {
-            requestId,
-            userId,
-            credits,
-            paymentId: payment.id,
-            stage: 'convex_mutation_failed',
-          }
-        );
+        logPaymentError(LOG_PREFIX.SQUARE, convexError, {
+          requestId,
+          userId,
+          credits,
+          paymentId: payment.id,
+          stage: "convex_mutation_failed",
+        });
 
         return NextResponse.json(
           createErrorResponse(
-            'Payment succeeded but credit allocation failed. Please contact support.',
+            "Payment succeeded but credit allocation failed. Please contact support.",
             {
-              code: 'CREDIT_ALLOCATION_FAILED',
+              code: "CREDIT_ALLOCATION_FAILED",
               paymentId: payment.id,
               requestId,
             }
@@ -211,9 +193,9 @@ export async function POST(
           { status: 500 }
         );
       }
-    } else if (payment.status === 'PENDING') {
+    } else if (payment.status === "PENDING") {
       // Payment is pending - wait for webhook
-      logPaymentEvent(LOG_PREFIX.SQUARE, 'credit_purchase_pending', {
+      logPaymentEvent(LOG_PREFIX.SQUARE, "credit_purchase_pending", {
         requestId,
         userId,
         credits,
@@ -225,7 +207,7 @@ export async function POST(
           success: true,
           pending: true,
           paymentId: payment.id!,
-          message: 'Payment is being processed',
+          message: "Payment is being processed",
         },
         { status: 200 }
       );
@@ -245,7 +227,7 @@ export async function POST(
 
       return NextResponse.json(
         createErrorResponse(ERROR_MESSAGES.PAYMENT_FAILED, {
-          code: 'PAYMENT_DECLINED',
+          code: "PAYMENT_DECLINED",
           status: payment.status,
         }),
         { status: 400 }
@@ -257,18 +239,18 @@ export async function POST(
     logPaymentError(LOG_PREFIX.SQUARE, error, {
       requestId,
       duration,
-      type: 'credit_purchase_error',
+      type: "credit_purchase_error",
     });
 
     // Handle Square API errors specifically
-    if (error && typeof error === 'object' && 'result' in error) {
+    if (error && typeof error === "object" && "result" in error) {
       const squareError = error as { result?: { errors?: Array<{ detail?: string }> } };
       const errors = squareError.result?.errors;
-      const errorDetail = errors?.[0]?.detail || 'Unknown Square API error';
+      const errorDetail = errors?.[0]?.detail || "Unknown Square API error";
 
       return NextResponse.json(
         createErrorResponse(ERROR_MESSAGES.PAYMENT_FAILED, {
-          code: 'SQUARE_API_ERROR',
+          code: "SQUARE_API_ERROR",
           details: errorDetail,
         }),
         { status: 400 }
@@ -278,7 +260,7 @@ export async function POST(
     // Generic error
     return NextResponse.json(
       createErrorResponse(ERROR_MESSAGES.SERVER_ERROR, {
-        code: 'INTERNAL_ERROR',
+        code: "INTERNAL_ERROR",
         requestId,
       }),
       { status: 500 }

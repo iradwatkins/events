@@ -12,19 +12,19 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  display: 'swap',
+  display: "swap",
   preload: true,
   adjustFontFallback: true,
-  fallback: ['system-ui', 'arial'],
+  fallback: ["system-ui", "arial"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-  display: 'swap',
+  display: "swap",
   preload: true,
   adjustFontFallback: true,
-  fallback: ['ui-monospace', 'monospace'],
+  fallback: ["ui-monospace", "monospace"],
 });
 
 export const metadata: Metadata = {

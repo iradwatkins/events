@@ -3,7 +3,27 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Calendar, Plus, Settings, Users, TicketCheck, DollarSign, Ticket, Armchair, Package, Trash2, Gift, Sparkles, X, Edit, TrendingUp, Check, BarChart3, Eye, EyeOff } from "lucide-react";
+import {
+  Calendar,
+  Plus,
+  Settings,
+  Users,
+  TicketCheck,
+  DollarSign,
+  Ticket,
+  Armchair,
+  Package,
+  Trash2,
+  Gift,
+  Sparkles,
+  X,
+  Edit,
+  TrendingUp,
+  Check,
+  BarChart3,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { formatEventDate } from "@/lib/date-format";
@@ -19,12 +39,9 @@ export default function OrganizerEventsPage() {
 
   // Fetch events - pass userId if currentUser exists, otherwise pass undefined
   // The query will return empty array if no userId is provided
-  const events = useQuery(
-    api.events.queries.getOrganizerEvents,
-    {
-      userId: currentUser?._id,
-    }
-  );
+  const events = useQuery(api.events.queries.getOrganizerEvents, {
+    userId: currentUser?._id,
+  });
 
   const credits = useQuery(api.credits.queries.getMyCredits);
   const bulkDeleteEvents = useMutation(api.events.mutations.bulkDeleteEvents);
@@ -33,7 +50,10 @@ export default function OrganizerEventsPage() {
 
   // Helper: Check if event needs tickets
   const needsTickets = (event: any) => {
-    return event.eventType === "TICKETED_EVENT" && (!event.ticketTierCount || event.ticketTierCount === 0);
+    return (
+      event.eventType === "TICKETED_EVENT" &&
+      (!event.ticketTierCount || event.ticketTierCount === 0)
+    );
   };
 
   const [selectedEvents, setSelectedEvents] = useState<Set<Id<"events">>>(new Set());
@@ -81,7 +101,8 @@ export default function OrganizerEventsPage() {
   }
 
   // Calculate totals for dashboard
-  const totalTicketsAllocated = events?.reduce((sum, event) => sum + (event.totalTickets || 0), 0) || 0;
+  const totalTicketsAllocated =
+    events?.reduce((sum, event) => sum + (event.totalTickets || 0), 0) || 0;
   const totalTicketsSold = events?.reduce((sum, event) => sum + (event.ticketsSold || 0), 0) || 0;
   const percentageUsed = credits ? (credits.creditsUsed / credits.creditsTotal) * 100 : 0;
 
@@ -213,7 +234,9 @@ export default function OrganizerEventsPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Events</h1>
-              <p className="text-sm md:text-base text-gray-600 mt-1">Manage your events and ticket sales</p>
+              <p className="text-sm md:text-base text-gray-600 mt-1">
+                Manage your events and ticket sales
+              </p>
             </motion.div>
             <motion.div
               initial={{ x: 20, opacity: 0 }}
@@ -238,50 +261,55 @@ export default function OrganizerEventsPage() {
       {/* Main Content - Mobile Optimized */}
       <main className="container mx-auto px-4 py-4 md:py-8">
         {/* Welcome Banner for New Organizers - Mobile Optimized */}
-        {credits && credits.creditsRemaining === 300 && credits.creditsUsed === 0 && showWelcomeBanner && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-4 md:mb-6"
-          >
-            <div className="bg-accent border-2 border-primary rounded-lg p-4 md:p-6 shadow-lg">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-5 h-5 md:w-8 md:h-8 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg md:text-2xl font-bold text-gray-900 mb-1 md:mb-2 flex items-center gap-1 md:gap-2">
-                      <span className="truncate">Welcome to SteppersLife!</span>
-                      <span className="text-lg md:text-2xl">🎉</span>
-                    </h3>
-                    <p className="text-sm md:text-lg text-gray-700 mb-2 md:mb-3">
-                      You've received <span className="font-bold text-primary">300 FREE tickets</span> to get started!
-                    </p>
-                    <div className="bg-white/70 rounded-lg p-3 md:p-4 border border-primary/20">
-                      <p className="text-xs md:text-sm text-gray-600 mb-1.5 md:mb-2">
-                        <strong>Here's what you can do:</strong>
+        {credits &&
+          credits.creditsRemaining === 300 &&
+          credits.creditsUsed === 0 &&
+          showWelcomeBanner && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-4 md:mb-6"
+            >
+              <div className="bg-accent border-2 border-primary rounded-lg p-4 md:p-6 shadow-lg">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="w-10 h-10 md:w-14 md:h-14 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="w-5 h-5 md:w-8 md:h-8 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg md:text-2xl font-bold text-gray-900 mb-1 md:mb-2 flex items-center gap-1 md:gap-2">
+                        <span className="truncate">Welcome to SteppersLife!</span>
+                        <span className="text-lg md:text-2xl">🎉</span>
+                      </h3>
+                      <p className="text-sm md:text-lg text-gray-700 mb-2 md:mb-3">
+                        You've received{" "}
+                        <span className="font-bold text-primary">300 FREE tickets</span> to get
+                        started!
                       </p>
-                      <ul className="text-xs md:text-sm text-gray-700 space-y-0.5 md:space-y-1 list-disc list-inside">
-                        <li>Create your first event</li>
-                        <li>Use 300 free tickets - no charges!</li>
-                        <li>After free tickets: $0.30 per ticket</li>
-                      </ul>
+                      <div className="bg-white/70 rounded-lg p-3 md:p-4 border border-primary/20">
+                        <p className="text-xs md:text-sm text-gray-600 mb-1.5 md:mb-2">
+                          <strong>Here's what you can do:</strong>
+                        </p>
+                        <ul className="text-xs md:text-sm text-gray-700 space-y-0.5 md:space-y-1 list-disc list-inside">
+                          <li>Create your first event</li>
+                          <li>Use 300 free tickets - no charges!</li>
+                          <li>After free tickets: $0.30 per ticket</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
+                  <button
+                    onClick={() => setShowWelcomeBanner(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 p-1"
+                    aria-label="Close welcome banner"
+                  >
+                    <X className="w-4 h-4 md:w-5 md:h-5" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowWelcomeBanner(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 p-1"
-                  aria-label="Close welcome banner"
-                >
-                  <X className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
 
         {/* Credit Dashboard - Mobile Optimized */}
         {credits && (
@@ -299,7 +327,9 @@ export default function OrganizerEventsPage() {
                       <Gift className="w-5 h-5 md:w-6 md:h-6" />
                       <h2 className="text-lg md:text-2xl font-bold">Available Credits</h2>
                     </div>
-                    <p className="text-sm md:text-base text-white/90 mb-3 md:mb-4">Ready to use for ticket creation</p>
+                    <p className="text-sm md:text-base text-white/90 mb-3 md:mb-4">
+                      Ready to use for ticket creation
+                    </p>
 
                     <div className="mb-4 md:mb-6">
                       <div className="text-3xl md:text-5xl lg:text-6xl font-bold mb-1 md:mb-2">
@@ -311,7 +341,10 @@ export default function OrganizerEventsPage() {
                     {/* Progress Bar */}
                     <div className="space-y-1.5 md:space-y-2">
                       <div className="flex items-center justify-between text-xs md:text-sm">
-                        <span>Usage: {credits.creditsUsed.toLocaleString()} / {credits.creditsTotal.toLocaleString()}</span>
+                        <span>
+                          Usage: {credits.creditsUsed.toLocaleString()} /{" "}
+                          {credits.creditsTotal.toLocaleString()}
+                        </span>
                         <span>{percentageUsed.toFixed(1)}% used</span>
                       </div>
                       <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-2 md:h-3">
@@ -359,7 +392,9 @@ export default function OrganizerEventsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs md:text-sm text-gray-600">Total Allocated</p>
-                    <p className="text-xl md:text-2xl font-bold text-gray-900">{totalTicketsAllocated.toLocaleString()}</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900">
+                      {totalTicketsAllocated.toLocaleString()}
+                    </p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">Tickets created across all events</p>
@@ -372,7 +407,9 @@ export default function OrganizerEventsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs md:text-sm text-gray-600">Tickets Sold</p>
-                    <p className="text-xl md:text-2xl font-bold text-gray-900">{totalTicketsSold.toLocaleString()}</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900">
+                      {totalTicketsSold.toLocaleString()}
+                    </p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">Successful ticket sales</p>
@@ -385,7 +422,9 @@ export default function OrganizerEventsPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs md:text-sm text-gray-600">Active Events</p>
-                    <p className="text-xl md:text-2xl font-bold text-gray-900">{events?.length || 0}</p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900">
+                      {events?.length || 0}
+                    </p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">Events with ticket tiers</p>
@@ -393,7 +432,6 @@ export default function OrganizerEventsPage() {
             </motion.div>
           </div>
         )}
-
 
         {/* Delete Result Notification */}
         {deleteResult && (
@@ -412,14 +450,16 @@ export default function OrganizerEventsPage() {
                 <p className="font-semibold text-gray-900">
                   {deleteResult.deletedCount > 0 && (
                     <span className="text-green-700">
-                      Successfully deleted {deleteResult.deletedCount} event{deleteResult.deletedCount !== 1 ? "s" : ""}
+                      Successfully deleted {deleteResult.deletedCount} event
+                      {deleteResult.deletedCount !== 1 ? "s" : ""}
                     </span>
                   )}
                 </p>
                 {deleteResult.failedCount > 0 && (
                   <div className="mt-2">
                     <p className="text-sm font-semibold text-yellow-700 mb-1">
-                      Failed to delete {deleteResult.failedCount} event{deleteResult.failedCount !== 1 ? "s" : ""}:
+                      Failed to delete {deleteResult.failedCount} event
+                      {deleteResult.failedCount !== 1 ? "s" : ""}:
                     </p>
                     <ul className="text-sm text-gray-600 space-y-1">
                       {deleteResult.failedEvents.map((failed, i) => (
@@ -460,7 +500,9 @@ export default function OrganizerEventsPage() {
           {/* Quick Select Buttons - Mobile Optimized */}
           {events.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-3 md:mb-4 p-3 md:p-4 bg-white rounded-lg border border-gray-200">
-              <span className="text-xs md:text-sm font-medium text-gray-700 w-full sm:w-auto mb-1 sm:mb-0">Quick Select:</span>
+              <span className="text-xs md:text-sm font-medium text-gray-700 w-full sm:w-auto mb-1 sm:mb-0">
+                Quick Select:
+              </span>
               <button
                 onClick={selectAllEvents}
                 className="px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm bg-accent text-primary rounded-md hover:bg-primary/20 transition-colors"
@@ -505,9 +547,7 @@ export default function OrganizerEventsPage() {
               <Calendar className="w-8 h-8 text-primary" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No events yet</h3>
-            <p className="text-gray-600 mb-6">
-              Create your first event to start selling tickets
-            </p>
+            <p className="text-gray-600 mb-6">Create your first event to start selling tickets</p>
             <Link
               href="/organizer/events/create"
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -568,7 +608,9 @@ export default function OrganizerEventsPage() {
                           {event.startDate && (
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                              <span className="text-xs md:text-sm">{formatEventDate(event.startDate, event.timezone)}</span>
+                              <span className="text-xs md:text-sm">
+                                {formatEventDate(event.startDate, event.timezone)}
+                              </span>
                             </span>
                           )}
                           {event.eventType && (
@@ -735,8 +777,9 @@ export default function OrganizerEventsPage() {
                     Delete {selectedEvents.size} Event{selectedEvents.size !== 1 ? "s" : ""}?
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    This will permanently delete the selected event{selectedEvents.size !== 1 ? "s" : ""} and all
-                    associated data (tickets, staff, bundles, seating charts, etc.).
+                    This will permanently delete the selected event
+                    {selectedEvents.size !== 1 ? "s" : ""} and all associated data (tickets, staff,
+                    bundles, seating charts, etc.).
                   </p>
                   <p className="text-red-600 text-sm font-semibold mt-2">
                     This action cannot be undone!

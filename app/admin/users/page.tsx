@@ -206,8 +206,8 @@ export default function UsersManagementPage() {
                             user.role === "admin"
                               ? "bg-red-100 text-red-600"
                               : user.role === "organizer"
-                              ? "bg-accent text-primary"
-                              : "bg-gray-100 text-gray-600"
+                                ? "bg-accent text-primary"
+                                : "bg-gray-100 text-gray-600"
                           }`}
                         >
                           {user.role === "admin" ? (
@@ -230,8 +230,8 @@ export default function UsersManagementPage() {
                           user.role === "admin"
                             ? "bg-red-100 text-red-800"
                             : user.role === "organizer"
-                            ? "bg-accent text-accent-foreground"
-                            : "bg-gray-100 text-gray-800"
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {user.role || "user"}
@@ -257,7 +257,12 @@ export default function UsersManagementPage() {
                         {/* Role Change Select */}
                         <select
                           value={user.role || "user"}
-                          onChange={(e) => handleRoleChange(user._id, e.target.value as "admin" | "organizer" | "user")}
+                          onChange={(e) =>
+                            handleRoleChange(
+                              user._id,
+                              e.target.value as "admin" | "organizer" | "user"
+                            )
+                          }
                           className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent bg-white"
                         >
                           <option value="admin">Admin</option>
@@ -282,7 +287,6 @@ export default function UsersManagementPage() {
           </div>
         )}
       </div>
-
     </div>
   );
 }

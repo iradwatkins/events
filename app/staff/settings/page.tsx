@@ -4,15 +4,9 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import {
-  DollarSign,
-  Bell,
-  Check,
-  AlertCircle,
-  Settings as SettingsIcon,
-} from "lucide-react";
+import { DollarSign, Bell, Check, AlertCircle, Settings as SettingsIcon } from "lucide-react";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function StaffSettingsPage() {
   const [selectedEventId, setSelectedEventId] = useState<Id<"events"> | null>(null);
@@ -28,7 +22,10 @@ export default function StaffSettingsPage() {
   const staffMember = useQuery(
     api.staff.queries.getStaffMember,
     selectedEventId && staffPositions && staffPositions.length > 0
-      ? { staffId: staffPositions.find(pos => pos.eventId === selectedEventId)?.staffId as Id<"eventStaff"> }
+      ? {
+          staffId: staffPositions.find((pos) => pos.eventId === selectedEventId)
+            ?.staffId as Id<"eventStaff">,
+        }
       : "skip"
   );
 
@@ -53,7 +50,7 @@ export default function StaffSettingsPage() {
   const handleSave = async () => {
     if (!selectedEventId || !staffPositions) return;
 
-    const selectedPosition = staffPositions.find(pos => pos.eventId === selectedEventId);
+    const selectedPosition = staffPositions.find((pos) => pos.eventId === selectedEventId);
     if (!selectedPosition) return;
 
     setIsSaving(true);
@@ -138,11 +135,14 @@ export default function StaffSettingsPage() {
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900 mb-1">Accept Cash In-Person</h3>
               <p className="text-sm text-gray-600">
-                Enable this to receive and approve cash payment requests from customers. You'll be notified when a customer wants to pay cash.
+                Enable this to receive and approve cash payment requests from customers. You'll be
+                notified when a customer wants to pay cash.
               </p>
               <div className="bg-accent border border-primary/30 rounded-lg p-3 mt-3">
                 <p className="text-xs text-foreground">
-                  <strong>How it works:</strong> Customers can reserve tickets with a 30-minute hold. You'll receive a notification and can approve the order instantly or generate a 4-digit activation code for the customer.
+                  <strong>How it works:</strong> Customers can reserve tickets with a 30-minute
+                  hold. You'll receive a notification and can approve the order instantly or
+                  generate a 4-digit activation code for the customer.
                 </p>
               </div>
             </div>
@@ -168,7 +168,8 @@ export default function StaffSettingsPage() {
 
         <div className="bg-accent border border-primary/30 rounded-lg p-4 mb-4">
           <p className="text-sm text-foreground">
-            <strong>Enable browser notifications</strong> to receive real-time alerts when customers make purchases or cash payment requests. You'll need to grant permission when prompted.
+            <strong>Enable browser notifications</strong> to receive real-time alerts when customers
+            make purchases or cash payment requests. You'll need to grant permission when prompted.
           </p>
         </div>
 

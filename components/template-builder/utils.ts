@@ -2,7 +2,15 @@
  * Utility functions for the template builder
  */
 
-import { CanvasItem, TableItem, RowSectionItem, StageItem, DanceFloorItem, Position, Section } from "./types";
+import {
+  CanvasItem,
+  TableItem,
+  RowSectionItem,
+  StageItem,
+  DanceFloorItem,
+  Position,
+  Section,
+} from "./types";
 
 /**
  * Generate a unique ID for canvas items
@@ -21,7 +29,10 @@ export function generateSectionId(): string {
 /**
  * Get table size based on shape and capacity
  */
-export function getTableSize(shape: TableItem["shape"], capacity: number): { width: number; height: number } {
+export function getTableSize(
+  shape: TableItem["shape"],
+  capacity: number
+): { width: number; height: number } {
   // Special handling for 2-seat tables (intimate/bistro size)
   if (capacity === 2) {
     switch (shape) {
@@ -70,7 +81,11 @@ export function getTableSize(shape: TableItem["shape"], capacity: number): { wid
 /**
  * Create a default table item
  */
-export function createDefaultTable(position: Position, shape: TableItem["shape"] = "ROUND", capacity: number = 8): TableItem {
+export function createDefaultTable(
+  position: Position,
+  shape: TableItem["shape"] = "ROUND",
+  capacity: number = 8
+): TableItem {
   return {
     id: generateId(),
     type: "TABLE",
@@ -86,7 +101,10 @@ export function createDefaultTable(position: Position, shape: TableItem["shape"]
 /**
  * Calculate row section size based on configuration
  */
-export function calculateRowSectionSize(rowCount: number, seatsPerRow: number): { width: number; height: number } {
+export function calculateRowSectionSize(
+  rowCount: number,
+  seatsPerRow: number
+): { width: number; height: number } {
   // Visual constants matching Canvas.tsx rendering
   const seatWidth = 16;
   const seatHeight = 16;
@@ -98,11 +116,23 @@ export function calculateRowSectionSize(rowCount: number, seatsPerRow: number): 
   const headerHeight = 60; // Header text + border + margins
 
   // Calculate width: padding + rowLabel + gap + seats + gaps between seats + padding
-  const width = padding + rowLabelWidth + labelGap + (seatsPerRow * seatWidth) + ((seatsPerRow - 1) * seatGap) + padding;
+  const width =
+    padding +
+    rowLabelWidth +
+    labelGap +
+    seatsPerRow * seatWidth +
+    (seatsPerRow - 1) * seatGap +
+    padding;
 
   // Calculate height: padding + header + rows + gaps between rows + padding
   const displayRows = Math.min(rowCount, 8); // Only display up to 8 rows
-  const height = padding + headerHeight + (displayRows * seatHeight) + ((displayRows - 1) * rowGap) + padding + (rowCount > 8 ? 25 : 0); // Extra for "more rows" indicator
+  const height =
+    padding +
+    headerHeight +
+    displayRows * seatHeight +
+    (displayRows - 1) * rowGap +
+    padding +
+    (rowCount > 8 ? 25 : 0); // Extra for "more rows" indicator
 
   return { width, height };
 }
@@ -190,7 +220,7 @@ export function calculateTotalCapacity(items: CanvasItem[]): number {
     if (item.type === "TABLE") {
       return total + item.capacity;
     } else if (item.type === "ROW_SECTION") {
-      return total + (item.rowCount * item.seatsPerRow);
+      return total + item.rowCount * item.seatsPerRow;
     }
     return total;
   }, 0);
@@ -205,31 +235,35 @@ export function convertToSections(items: CanvasItem[], sections: Section[]): any
 
   // First, add all items to "Default" section if no sections defined
   if (sections.length === 0) {
-    return [{
-      id: "default",
-      name: "Main Area",
-      color: "#3B82F6",
-      containerType: "MIXED",
-      tables: items
-        .filter((item): item is TableItem => item.type === "TABLE")
-        .map(tableItemToBackendFormat),
-      rows: items
-        .filter((item): item is RowSectionItem => item.type === "ROW_SECTION")
-        .flatMap(rowSectionToBackendFormat),
-    }];
+    return [
+      {
+        id: "default",
+        name: "Main Area",
+        color: "#3B82F6",
+        containerType: "MIXED",
+        tables: items
+          .filter((item): item is TableItem => item.type === "TABLE")
+          .map(tableItemToBackendFormat),
+        rows: items
+          .filter((item): item is RowSectionItem => item.type === "ROW_SECTION")
+          .flatMap(rowSectionToBackendFormat),
+      },
+    ];
   }
 
   // Group items by section
-  sections.forEach(section => {
-    const sectionItems = items.filter(item => section.itemIds.includes(item.id));
+  sections.forEach((section) => {
+    const sectionItems = items.filter((item) => section.itemIds.includes(item.id));
     sectionGroups.set(section.id, sectionItems);
   });
 
   // Convert to backend format
-  return sections.map(section => {
+  return sections.map((section) => {
     const sectionItems = sectionGroups.get(section.id) || [];
     const tables = sectionItems.filter((item): item is TableItem => item.type === "TABLE");
-    const rowSections = sectionItems.filter((item): item is RowSectionItem => item.type === "ROW_SECTION");
+    const rowSections = sectionItems.filter(
+      (item): item is RowSectionItem => item.type === "ROW_SECTION"
+    );
 
     const hasRows = rowSections.length > 0;
     const hasTables = tables.length > 0;
@@ -332,6 +366,6 @@ export const SECTION_COLORS = [
  * Get next available section color
  */
 export function getNextSectionColor(usedColors: string[]): string {
-  const availableColor = SECTION_COLORS.find(color => !usedColors.includes(color));
+  const availableColor = SECTION_COLORS.find((color) => !usedColors.includes(color));
   return availableColor || SECTION_COLORS[0];
 }

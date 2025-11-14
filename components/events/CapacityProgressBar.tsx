@@ -64,9 +64,7 @@ export function CapacityProgressBar({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <StatusIcon className={`w-5 h-5 ${statusColor}`} />
-          <span className={`text-sm font-medium ${statusColor}`}>
-            {statusMessage}
-          </span>
+          <span className={`text-sm font-medium ${statusColor}`}>{statusMessage}</span>
         </div>
         <div className="text-sm font-semibold text-gray-900 dark:text-white">
           {allocated.toLocaleString()}/{capacity.toLocaleString()} tickets
@@ -176,9 +174,9 @@ export function CapacityProgressBar({
           className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3"
         >
           <p className="text-sm text-red-700 dark:text-red-400">
-            <strong>Error:</strong> Total ticket allocation ({allocated.toLocaleString()})
-            exceeds event capacity ({capacity.toLocaleString()}).
-            Please reduce ticket quantities by {(allocated - capacity).toLocaleString()} tickets.
+            <strong>Error:</strong> Total ticket allocation ({allocated.toLocaleString()}) exceeds
+            event capacity ({capacity.toLocaleString()}). Please reduce ticket quantities by{" "}
+            {(allocated - capacity).toLocaleString()} tickets.
           </p>
         </motion.div>
       )}

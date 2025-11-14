@@ -34,7 +34,8 @@ export const seedTestEvents = mutation({
     console.log("[SEED] Creating SAVE_THE_DATE event...");
     const saveTheDateId = await ctx.db.insert("events", {
       name: "SteppersLife Spring Mixer 2026 - TEST",
-      description: "Get ready for our biggest stepping event of the year! Save the date for an unforgettable night of music, dancing, and community. More details coming soon!",
+      description:
+        "Get ready for our biggest stepping event of the year! Save the date for an unforgettable night of music, dancing, and community. More details coming soon!",
       organizerId: testOrganizer!._id,
       organizerName: testOrganizer!.name,
       eventType: "SAVE_THE_DATE",
@@ -61,7 +62,8 @@ export const seedTestEvents = mutation({
     console.log("[SEED] Creating FREE_EVENT...");
     const freeEventId = await ctx.db.insert("events", {
       name: "Community Dance Night - TEST FREE",
-      description: "Join us for a free community dance night! All skill levels welcome. Come learn new steps, practice your moves, and meet fellow stepping enthusiasts. Light refreshments provided.",
+      description:
+        "Join us for a free community dance night! All skill levels welcome. Come learn new steps, practice your moves, and meet fellow stepping enthusiasts. Light refreshments provided.",
       organizerId: testOrganizer!._id,
       organizerName: testOrganizer!.name,
       eventType: "FREE_EVENT",
@@ -89,7 +91,8 @@ export const seedTestEvents = mutation({
     console.log("[SEED] Creating TICKETED_EVENT...");
     const ticketedEventId = await ctx.db.insert("events", {
       name: "SteppersLife Annual Gala - TEST PAID",
-      description: "Black tie optional stepping gala featuring live DJ, professional performances, appetizers, and cash bar. Join us for an elegant evening of stepping at its finest. VIP packages include meet & greet with featured performers.",
+      description:
+        "Black tie optional stepping gala featuring live DJ, professional performances, appetizers, and cash bar. Join us for an elegant evening of stepping at its finest. VIP packages include meet & greet with featured performers.",
       organizerId: testOrganizer!._id,
       organizerName: testOrganizer!.name,
       eventType: "TICKETED_EVENT",
@@ -199,7 +202,9 @@ export const seedTestEvents = mutation({
     console.log("[SEED] - Homepage: https://events.stepperslife.com");
     console.log("[SEED] - SAVE_THE_DATE: https://events.stepperslife.com/events/" + saveTheDateId);
     console.log("[SEED] - FREE_EVENT: https://events.stepperslife.com/events/" + freeEventId);
-    console.log("[SEED] - TICKETED_EVENT: https://events.stepperslife.com/events/" + ticketedEventId);
+    console.log(
+      "[SEED] - TICKETED_EVENT: https://events.stepperslife.com/events/" + ticketedEventId
+    );
     console.log("[SEED] ========================================");
 
     return {
@@ -248,7 +253,8 @@ export const createShowcaseEvents = mutation({
     console.log("[SHOWCASE] Creating Event 1: Jazz Night...");
     const jazzEventId = await ctx.db.insert("events", {
       name: "Intimate Jazz Night Under the Stars",
-      description: "Experience an unforgettable evening of smooth jazz in an elegant setting. Featuring Grammy-nominated saxophonist Marcus Williams and his quartet. Includes complimentary wine and cheese reception. Reserved seating ensures the perfect view of the stage. Dress code: Smart casual.",
+      description:
+        "Experience an unforgettable evening of smooth jazz in an elegant setting. Featuring Grammy-nominated saxophonist Marcus Williams and his quartet. Includes complimentary wine and cheese reception. Reserved seating ensures the perfect view of the stage. Dress code: Smart casual.",
       organizerId: testOrganizer!._id,
       organizerName: testOrganizer!.name,
       eventType: "TICKETED_EVENT",
@@ -320,7 +326,8 @@ export const createShowcaseEvents = mutation({
     console.log("[SHOWCASE] Creating Event 2: Tech Summit...");
     const techEventId = await ctx.db.insert("events", {
       name: "Tech Innovation Summit 2025",
-      description: "Join 500+ tech leaders, entrepreneurs, and innovators for a full day of keynotes, workshops, and networking. Topics include AI, Web3, Cybersecurity, and SaaS growth strategies. Includes lunch, networking mixer, and exclusive access to startup pitch competition. Early bird pricing ends Nov 1st!",
+      description:
+        "Join 500+ tech leaders, entrepreneurs, and innovators for a full day of keynotes, workshops, and networking. Topics include AI, Web3, Cybersecurity, and SaaS growth strategies. Includes lunch, networking mixer, and exclusive access to startup pitch competition. Early bird pricing ends Nov 1st!",
       organizerId: testOrganizer!._id,
       organizerName: testOrganizer!.name,
       eventType: "TICKETED_EVENT",
@@ -404,7 +411,8 @@ export const createShowcaseEvents = mutation({
     console.log("[SHOWCASE] Creating Event 3: Music Festival...");
     const festivalEventId = await ctx.db.insert("events", {
       name: "Sunset Music Festival 2026",
-      description: "3 days of non-stop music featuring 40+ artists across 5 stages! Headliners include The Electric Dreams, Luna Sky, and Basswave. General admission, VIP, and camping passes available. Food trucks, art installations, yoga sessions, and more. Rain or shine event. Ages 18+. ID required.",
+      description:
+        "3 days of non-stop music featuring 40+ artists across 5 stages! Headliners include The Electric Dreams, Luna Sky, and Basswave. General admission, VIP, and camping passes available. Food trucks, art installations, yoga sessions, and more. Rain or shine event. Ages 18+. ID required.",
       organizerId: testOrganizer!._id,
       organizerName: testOrganizer!.name,
       eventType: "TICKETED_EVENT",
@@ -488,7 +496,8 @@ export const createShowcaseEvents = mutation({
     console.log("[SHOWCASE] Creating Event 4: Wine Tasting...");
     const wineEventId = await ctx.db.insert("events", {
       name: "Executive Wine Tasting & Networking",
-      description: "An exclusive evening for professionals to connect over premium wines from Napa Valley and Sonoma. Guided tasting of 8 wines paired with artisan cheeses and charcuterie. Sommelier-led discussion on wine regions, tasting notes, and pairing principles. Perfect for wine enthusiasts and business networking. Limited to 60 guests for intimate atmosphere.",
+      description:
+        "An exclusive evening for professionals to connect over premium wines from Napa Valley and Sonoma. Guided tasting of 8 wines paired with artisan cheeses and charcuterie. Sommelier-led discussion on wine regions, tasting notes, and pairing principles. Perfect for wine enthusiasts and business networking. Limited to 60 guests for intimate atmosphere.",
       organizerId: testOrganizer!._id,
       organizerName: testOrganizer!.name,
       eventType: "TICKETED_EVENT",
@@ -618,7 +627,8 @@ export const createDollarTest = mutation({
     // Create $1 Test Event
     const testEventId = await ctx.db.insert("events", {
       name: "$1 PRODUCTION TEST - DO NOT USE",
-      description: "⚠️ This is a $1 test event for verifying the production payment system. Please use other events for actual ticket purchases.",
+      description:
+        "⚠️ This is a $1 test event for verifying the production payment system. Please use other events for actual ticket purchases.",
       organizerId: testOrganizer!._id,
       organizerName: testOrganizer!.name,
       eventType: "TICKETED_EVENT",

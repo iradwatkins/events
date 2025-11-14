@@ -6,15 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 // TESTING MODE: No authentication
 // import { useSession } from "next-auth/react";
 import { api } from "@/convex/_generated/api";
-import {
-  ArrowLeft,
-  Calendar,
-  MapPin,
-  FileText,
-  Users,
-  Info,
-  Ticket,
-} from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, FileText, Users, Info, Ticket } from "lucide-react";
 import Link from "next/link";
 import { ImageUpload } from "@/components/upload/ImageUpload";
 // Ticket editor removed - tickets created on dedicated page after event creation
@@ -189,7 +181,9 @@ export default function CreateEventPage() {
     }
 
     if (missingFields.length > 0) {
-      alert(`Please fill in the following required fields:\n\n${missingFields.map(f => `• ${f}`).join('\n')}`);
+      alert(
+        `Please fill in the following required fields:\n\n${missingFields.map((f) => `• ${f}`).join("\n")}`
+      );
       return;
     }
 
@@ -325,18 +319,12 @@ export default function CreateEventPage() {
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Basic Information
-                </h2>
-                <p className="text-gray-600">
-                  Tell us about your event
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Information</h2>
+                <p className="text-gray-600">Tell us about your event</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Name *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Event Name *</label>
                 <input
                   type="text"
                   value={eventName}
@@ -347,9 +335,7 @@ export default function CreateEventPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Event Type *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Event Type *</label>
 
                 {/* Show restriction notice if user cannot create ticketed events */}
                 {!canCreateTicketedEvents && (
@@ -359,8 +345,9 @@ export default function CreateEventPage() {
                       <div className="text-sm">
                         <p className="font-semibold text-amber-900">Account Restriction</p>
                         <p className="text-amber-700 mt-1">
-                          Your account can only create <strong>Save The Date</strong> and <strong>Free Events</strong>.
-                          Contact support to upgrade for ticketed event access.
+                          Your account can only create <strong>Save The Date</strong> and{" "}
+                          <strong>Free Events</strong>. Contact support to upgrade for ticketed
+                          event access.
                         </p>
                       </div>
                     </div>
@@ -369,32 +356,51 @@ export default function CreateEventPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
-                    canCreateTicketedEvents ? { type: "TICKETED_EVENT" as EventType, label: "Ticketed Event", desc: "Sell tickets", icon: "🎫" } : null,
+                    canCreateTicketedEvents
+                      ? {
+                          type: "TICKETED_EVENT" as EventType,
+                          label: "Ticketed Event",
+                          desc: "Sell tickets",
+                          icon: "🎫",
+                        }
+                      : null,
                     // Ballroom feature hidden
                     // canCreateTicketedEvents ? { type: "BALLROOM_EVENT" as EventType, label: "Ballroom Event", desc: "Table seating & tickets", icon: "💃" } : null,
-                    { type: "FREE_EVENT" as EventType, label: "Free Event", desc: "Free registration", icon: "🎉" },
-                    { type: "SAVE_THE_DATE" as EventType, label: "Save the Date", desc: "Coming soon", icon: "📅" },
-                  ].filter(Boolean).map((item) => {
-                    if (!item) return null;
-                    const { type, label, desc, icon } = item;
-                    return (
-                      <button
-                        key={type}
-                        onClick={() => setEventType(type)}
-                        className={`p-4 border-2 rounded-lg text-left transition-all ${
-                          eventType === type
-                            ? "border-primary bg-accent"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        <p className="font-semibold text-gray-900">
-                          <span className="mr-2">{icon}</span>
-                          {label}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1">{desc}</p>
-                      </button>
-                    );
-                  })}
+                    {
+                      type: "FREE_EVENT" as EventType,
+                      label: "Free Event",
+                      desc: "Free registration",
+                      icon: "🎉",
+                    },
+                    {
+                      type: "SAVE_THE_DATE" as EventType,
+                      label: "Save the Date",
+                      desc: "Coming soon",
+                      icon: "📅",
+                    },
+                  ]
+                    .filter(Boolean)
+                    .map((item) => {
+                      if (!item) return null;
+                      const { type, label, desc, icon } = item;
+                      return (
+                        <button
+                          key={type}
+                          onClick={() => setEventType(type)}
+                          className={`p-4 border-2 rounded-lg text-left transition-all ${
+                            eventType === type
+                              ? "border-primary bg-accent"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <p className="font-semibold text-gray-900">
+                            <span className="mr-2">{icon}</span>
+                            {label}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">{desc}</p>
+                        </button>
+                      );
+                    })}
                 </div>
               </div>
 
@@ -438,12 +444,8 @@ export default function CreateEventPage() {
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Date & Time
-                </h2>
-                <p className="text-gray-600">
-                  When is your event happening?
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Date & Time</h2>
+                <p className="text-gray-600">When is your event happening?</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -495,18 +497,12 @@ export default function CreateEventPage() {
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Location
-                </h2>
-                <p className="text-gray-600">
-                  Where is your event taking place?
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Location</h2>
+                <p className="text-gray-600">Where is your event taking place?</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Venue Name
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Venue Name</label>
                 <input
                   type="text"
                   value={venueName}
@@ -531,9 +527,7 @@ export default function CreateEventPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 md:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
                   <input
                     type="text"
                     value={city}
@@ -544,9 +538,7 @@ export default function CreateEventPage() {
                 </div>
 
                 <div className="col-span-2 md:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    State *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
                   <input
                     type="text"
                     value={state}
@@ -557,9 +549,7 @@ export default function CreateEventPage() {
                 </div>
 
                 <div className="col-span-2 md:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ZIP Code
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
                   <input
                     type="text"
                     value={zipCode}
@@ -570,9 +560,7 @@ export default function CreateEventPage() {
                 </div>
 
                 <div className="col-span-2 md:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Country
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
                   <input
                     type="text"
                     value={country}
@@ -589,17 +577,14 @@ export default function CreateEventPage() {
           {step === 4 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Additional Details
-                </h2>
-                <p className="text-gray-600">
-                  Final touches for your event
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Additional Details</h2>
+                <p className="text-gray-600">Final touches for your event</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Capacity {eventType === "TICKETED_EVENT" && <span className="text-red-500">*</span>}
+                  Event Capacity{" "}
+                  {eventType === "TICKETED_EVENT" && <span className="text-red-500">*</span>}
                   {eventType !== "TICKETED_EVENT" && "(Optional)"}
                 </label>
                 <input
@@ -656,7 +641,8 @@ export default function CreateEventPage() {
                       After creating your event, you'll be redirected to your events dashboard.
                       {eventType === "TICKETED_EVENT" && (
                         <span className="block mt-1">
-                          <strong>Important:</strong> Click the blinking "Tickets" button to create your ticket tiers.
+                          <strong>Important:</strong> Click the blinking "Tickets" button to create
+                          your ticket tiers.
                         </span>
                       )}
                     </p>
@@ -672,9 +658,7 @@ export default function CreateEventPage() {
               onClick={() => setStep(Math.max(1, step - 1))}
               disabled={step === 1}
               className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                step === 1
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-gray-700 hover:bg-gray-100"
+                step === 1 ? "text-gray-400 cursor-not-allowed" : "text-gray-700 hover:bg-gray-100"
               }`}
             >
               Previous

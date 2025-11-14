@@ -54,7 +54,7 @@ export const setupConsignment = mutation({
       // Create new config
       await ctx.db.insert("eventPaymentConfig", {
         eventId: args.eventId,
-        organizerId: event.organizerId || "test_organizer_id" as any,
+        organizerId: event.organizerId || ("test_organizer_id" as any),
         paymentModel: "CONSIGNMENT",
         isActive: true,
         activatedAt: Date.now(),
@@ -78,7 +78,9 @@ export const setupConsignment = mutation({
       });
     }
 
-    console.log(`[setupConsignment] Set up consignment for event ${args.eventId} with ${args.floatedTickets} tickets`);
+    console.log(
+      `[setupConsignment] Set up consignment for event ${args.eventId} with ${args.floatedTickets} tickets`
+    );
 
     return {
       success: true,
@@ -122,7 +124,7 @@ export const calculateSettlement = query({
 
     let totalRevenue = 0;
     for (const ticket of tickets) {
-      const tier = ticketTiers.find(t => t._id === ticket.ticketTierId);
+      const tier = ticketTiers.find((t) => t._id === ticket.ticketTierId);
       if (tier) {
         totalRevenue += tier.price;
       }
@@ -190,7 +192,7 @@ export const getConsignmentEvents = query({
 
         let totalRevenue = 0;
         for (const ticket of tickets) {
-          const tier = ticketTiers.find(t => t._id === ticket.ticketTierId);
+          const tier = ticketTiers.find((t) => t._id === ticket.ticketTierId);
           if (tier) {
             totalRevenue += tier.price;
           }
@@ -219,7 +221,7 @@ export const getConsignmentEvents = query({
       })
     );
 
-    return results.filter(r => r !== null);
+    return results.filter((r) => r !== null);
   },
 });
 
@@ -273,7 +275,7 @@ export const settleConsignment = mutation({
 
     let totalRevenue = 0;
     for (const ticket of tickets) {
-      const tier = ticketTiers.find(t => t._id === ticket.ticketTierId);
+      const tier = ticketTiers.find((t) => t._id === ticket.ticketTierId);
       if (tier) {
         totalRevenue += tier.price;
       }
@@ -296,7 +298,9 @@ export const settleConsignment = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log(`[settleConsignment] Settled consignment for event ${args.eventId}. Amount: ${settlementAmount} cents`);
+    console.log(
+      `[settleConsignment] Settled consignment for event ${args.eventId}. Amount: ${settlementAmount} cents`
+    );
 
     return {
       success: true,

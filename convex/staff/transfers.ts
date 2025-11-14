@@ -72,7 +72,9 @@ export const requestTransfer = mutation({
     const availableBalance = currentBalance - pendingOutAmount;
 
     if (availableBalance < args.ticketQuantity) {
-      throw new Error(`Insufficient tickets after pending transfers. Available: ${availableBalance}`);
+      throw new Error(
+        `Insufficient tickets after pending transfers. Available: ${availableBalance}`
+      );
     }
 
     // Get recipient user details
@@ -112,7 +114,9 @@ export const requestTransfer = mutation({
       toStaffBalanceBefore: toStaff.allocatedTickets || 0,
     });
 
-    console.log(`[requestTransfer] Created transfer request ${transferId} from ${fromStaff._id} to ${toStaff._id} for ${args.ticketQuantity} tickets`);
+    console.log(
+      `[requestTransfer] Created transfer request ${transferId} from ${fromStaff._id} to ${toStaff._id} for ${args.ticketQuantity} tickets`
+    );
 
     return {
       success: true,
@@ -219,7 +223,9 @@ export const acceptTransfer = mutation({
       toStaffBalanceAfter: newRecipientBalance,
     });
 
-    console.log(`[acceptTransfer] Transfer ${args.transferId} accepted. ${transfer.ticketQuantity} tickets transferred from ${fromStaff._id} to ${toStaff._id}`);
+    console.log(
+      `[acceptTransfer] Transfer ${args.transferId} accepted. ${transfer.ticketQuantity} tickets transferred from ${fromStaff._id} to ${toStaff._id}`
+    );
 
     return {
       success: true,
@@ -350,7 +356,7 @@ export const getMyTransfers = query({
       .withIndex("by_staff_user", (q) => q.eq("staffUserId", user._id))
       .collect();
 
-    const staffIds = staffRecords.map(s => s._id);
+    const staffIds = staffRecords.map((s) => s._id);
 
     let transfers: any[] = [];
 
@@ -362,7 +368,7 @@ export const getMyTransfers = query({
           .withIndex("by_from_staff", (q) => q.eq("fromStaffId", staffId))
           .collect();
 
-        transfers.push(...sentTransfers.map(t => ({ ...t, direction: "sent" })));
+        transfers.push(...sentTransfers.map((t) => ({ ...t, direction: "sent" })));
       }
     }
 
@@ -374,13 +380,13 @@ export const getMyTransfers = query({
           .withIndex("by_to_staff", (q) => q.eq("toStaffId", staffId))
           .collect();
 
-        transfers.push(...receivedTransfers.map(t => ({ ...t, direction: "received" })));
+        transfers.push(...receivedTransfers.map((t) => ({ ...t, direction: "received" })));
       }
     }
 
     // Filter by event if specified
     if (args.eventId) {
-      transfers = transfers.filter(t => t.eventId === args.eventId);
+      transfers = transfers.filter((t) => t.eventId === args.eventId);
     }
 
     // Get event details for each transfer
@@ -389,8 +395,8 @@ export const getMyTransfers = query({
         const event = await ctx.db.get(transfer.eventId);
         return {
           ...transfer,
-          eventName: (event && 'name' in event) ? event.name : "Unknown Event",
-          eventDate: (event && 'startDate' in event) ? event.startDate : undefined,
+          eventName: event && "name" in event ? event.name : "Unknown Event",
+          eventDate: event && "startDate" in event ? event.startDate : undefined,
         };
       })
     );
@@ -422,7 +428,7 @@ export const getPendingTransfers = query({
       .withIndex("by_staff_user", (q) => q.eq("staffUserId", user._id))
       .collect();
 
-    const staffIds = staffRecords.map(s => s._id);
+    const staffIds = staffRecords.map((s) => s._id);
 
     let incomingCount = 0;
     let outgoingCount = 0;
@@ -478,7 +484,7 @@ export const getAvailableRecipients = query({
       .collect();
 
     // Filter out the current user
-    const otherStaff = allStaff.filter(s => s.staffUserId !== user._id);
+    const otherStaff = allStaff.filter((s) => s.staffUserId !== user._id);
 
     // Get user details for each staff member
     const enrichedStaff = await Promise.all(

@@ -12,19 +12,13 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: "Please provide all required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Please provide all required fields" }, { status: 400 });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "Please provide a valid email address" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Please provide a valid email address" }, { status: 400 });
     }
 
     // Validate password strength
@@ -77,10 +71,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "Failed to create user account" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to create user account" }, { status: 500 });
     }
 
     // Initialize credits for the new user (300 welcome bonus)

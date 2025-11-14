@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   DollarSign,
@@ -16,81 +16,77 @@ import {
   Settings,
   Menu,
   X,
-} from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function StaffLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const pathname = usePathname()
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+export default function StaffLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+      setIsMobile(window.innerWidth < 768);
+    };
 
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
 
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Close mobile menu on route change
   useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [pathname])
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobile && mobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [isMobile, mobileMenuOpen])
+      document.body.style.overflow = "unset";
+    };
+  }, [isMobile, mobileMenuOpen]);
 
   const navItems = [
     {
-      title: 'Dashboard',
-      href: '/staff/dashboard',
+      title: "Dashboard",
+      href: "/staff/dashboard",
       icon: LayoutDashboard,
     },
     {
-      title: 'Register Sale',
-      href: '/staff/register-sale',
+      title: "Register Sale",
+      href: "/staff/register-sale",
       icon: DollarSign,
     },
     {
-      title: 'Cash Orders',
-      href: '/staff/cash-orders',
+      title: "Cash Orders",
+      href: "/staff/cash-orders",
       icon: Wallet,
     },
     {
-      title: 'My Team',
-      href: '/staff/my-team',
+      title: "My Team",
+      href: "/staff/my-team",
       icon: Users,
     },
     {
-      title: 'Ticket Transfers',
-      href: '/staff/transfers',
+      title: "Ticket Transfers",
+      href: "/staff/transfers",
       icon: ArrowRightLeft,
     },
     {
-      title: 'Settings',
-      href: '/staff/settings',
+      title: "Settings",
+      href: "/staff/settings",
       icon: Settings,
     },
-  ]
+  ];
 
   // Sidebar content component (reused for desktop and mobile)
   const SidebarContent = () => (
@@ -146,8 +142,8 @@ export default function StaffLayout({
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = pathname === item.href
-          const Icon = item.icon
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
 
           return (
             <Link
@@ -164,7 +160,9 @@ export default function StaffLayout({
               `}
               title={sidebarCollapsed && !isMobile ? item.title : undefined}
             >
-              <Icon className={`shrink-0 ${sidebarCollapsed && !isMobile ? "w-6 h-6" : "w-5 h-5"}`} />
+              <Icon
+                className={`shrink-0 ${sidebarCollapsed && !isMobile ? "w-6 h-6" : "w-5 h-5"}`}
+              />
               <AnimatePresence mode="wait">
                 {(!sidebarCollapsed || isMobile) && (
                   <motion.span
@@ -179,7 +177,7 @@ export default function StaffLayout({
                 )}
               </AnimatePresence>
             </Link>
-          )
+          );
         })}
       </nav>
 
@@ -224,7 +222,7 @@ export default function StaffLayout({
         )}
       </div>
     </>
-  )
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -272,8 +270,8 @@ export default function StaffLayout({
       {/* Mobile Drawer */}
       {isMobile && (
         <motion.aside
-          initial={{ x: '-100%' }}
-          animate={{ x: mobileMenuOpen ? 0 : '-100%' }}
+          initial={{ x: "-100%" }}
+          animate={{ x: mobileMenuOpen ? 0 : "-100%" }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className="bg-primary shadow-xl flex flex-col fixed h-screen z-50 w-[280px]"
         >
@@ -285,8 +283,8 @@ export default function StaffLayout({
       <motion.div
         initial={false}
         animate={{
-          marginLeft: isMobile ? 0 : (sidebarCollapsed ? 80 : 280),
-          paddingTop: isMobile ? 64 : 0
+          marginLeft: isMobile ? 0 : sidebarCollapsed ? 80 : 280,
+          paddingTop: isMobile ? 64 : 0,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className="flex-1 min-h-screen"
@@ -294,5 +292,5 @@ export default function StaffLayout({
         <main>{children}</main>
       </motion.div>
     </div>
-  )
+  );
 }

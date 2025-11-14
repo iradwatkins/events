@@ -52,37 +52,16 @@ export default function TableRenderer({
     switch (table.shape) {
       case "ROUND":
         const radius = table.width / 2;
-        return (
-          <circle
-            cx={table.width / 2}
-            cy={table.height / 2}
-            r={radius}
-            {...commonProps}
-          />
-        );
+        return <circle cx={table.width / 2} cy={table.height / 2} r={radius} {...commonProps} />;
 
       case "RECTANGULAR":
         return (
-          <rect
-            x={0}
-            y={0}
-            width={table.width}
-            height={table.height}
-            rx={8}
-            {...commonProps}
-          />
+          <rect x={0} y={0} width={table.width} height={table.height} rx={8} {...commonProps} />
         );
 
       case "SQUARE":
         return (
-          <rect
-            x={0}
-            y={0}
-            width={table.width}
-            height={table.width}
-            rx={8}
-            {...commonProps}
-          />
+          <rect x={0} y={0} width={table.width} height={table.width} rx={8} {...commonProps} />
         );
 
       case "CUSTOM":
@@ -93,18 +72,13 @@ export default function TableRenderer({
 
         // Generate pentagon points (5-sided polygon)
         const pentagonPoints = Array.from({ length: 5 }, (_, i) => {
-          const angle = (i * 2 * Math.PI / 5) - Math.PI / 2; // Start from top
+          const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2; // Start from top
           const x = customCenterX + customRadius * Math.cos(angle);
           const y = customCenterY + customRadius * Math.sin(angle);
           return `${x},${y}`;
-        }).join(' ');
+        }).join(" ");
 
-        return (
-          <polygon
-            points={pentagonPoints}
-            {...commonProps}
-          />
-        );
+        return <polygon points={pentagonPoints} {...commonProps} />;
 
       default:
         return null;
@@ -137,8 +111,12 @@ export default function TableRenderer({
           // Calculate from side (for rectangular tables)
           const offset = seat.position.offset || 15;
           const spacing = 40;
-          const sideSeats = table.seats.filter(s => s.position?.side === seat.position!.side).length;
-          const seatIndex = table.seats.filter(s => s.position?.side === seat.position!.side).indexOf(seat);
+          const sideSeats = table.seats.filter(
+            (s) => s.position?.side === seat.position!.side
+          ).length;
+          const seatIndex = table.seats
+            .filter((s) => s.position?.side === seat.position!.side)
+            .indexOf(seat);
 
           switch (seat.position.side) {
             case "top":
@@ -183,8 +161,8 @@ export default function TableRenderer({
               isReserved
                 ? "fill-gray-300 stroke-gray-600"
                 : isSpecialType
-                ? "fill-white stroke-black"
-                : "fill-white stroke-black"
+                  ? "fill-white stroke-black"
+                  : "fill-white stroke-black"
             } stroke-[1.5] ${isAvailable ? "cursor-pointer hover:fill-green-50" : ""}`}
           />
 

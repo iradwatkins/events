@@ -24,10 +24,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json(
-        { error: "No file provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     // Convert file to buffer
@@ -52,14 +49,14 @@ export async function POST(request: NextRequest) {
           isDuplicate: true,
           fileHash: fileHash,
           existingFilePath: duplicateFilePath,
-          message: "This exact flyer has already been uploaded. You can find and delete the existing flyer below if you want to re-upload it."
+          message:
+            "This exact flyer has already been uploaded. You can find and delete the existing flyer below if you want to re-upload it.",
         },
         { status: 409 }
       );
     }
 
     console.log(`✅ No duplicate found - proceeding with upload`);
-
 
     // Ensure storage directory exists
     if (!existsSync(FLYER_STORAGE_PATH)) {

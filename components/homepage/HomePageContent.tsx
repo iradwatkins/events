@@ -37,8 +37,14 @@ export function HomePageContent({ initialEvents }: HomePageContentProps) {
         (event) =>
           event.name.toLowerCase().includes(searchLower) ||
           event.description.toLowerCase().includes(searchLower) ||
-          (event.location && typeof event.location === "object" && event.location.city && event.location.city.toLowerCase().includes(searchLower)) ||
-          (event.location && typeof event.location === "object" && event.location.state && event.location.state.toLowerCase().includes(searchLower))
+          (event.location &&
+            typeof event.location === "object" &&
+            event.location.city &&
+            event.location.city.toLowerCase().includes(searchLower)) ||
+          (event.location &&
+            typeof event.location === "object" &&
+            event.location.state &&
+            event.location.state.toLowerCase().includes(searchLower))
       );
     }
 

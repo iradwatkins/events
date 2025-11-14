@@ -11,10 +11,7 @@ export const getRecentFlyers = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 8;
 
-    const flyers = await ctx.db
-      .query("uploadedFlyers")
-      .order("desc")
-      .take(limit);
+    const flyers = await ctx.db.query("uploadedFlyers").order("desc").take(limit);
 
     return flyers;
   },
@@ -72,9 +69,7 @@ export const getFlyerByHash = query({
 export const getAllFlyers = query({
   args: {},
   handler: async (ctx) => {
-    const flyers = await ctx.db
-      .query("uploadedFlyers")
-      .collect();
+    const flyers = await ctx.db.query("uploadedFlyers").collect();
 
     return flyers;
   },

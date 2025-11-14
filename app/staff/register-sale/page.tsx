@@ -4,14 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import {
-  ArrowLeft,
-  DollarSign,
-  CheckCircle2,
-  Ticket,
-  CreditCard,
-  Wallet,
-} from "lucide-react";
+import { ArrowLeft, DollarSign, CheckCircle2, Ticket, CreditCard, Wallet } from "lucide-react";
 import Link from "next/link";
 
 export default function RegisterSalePage() {
@@ -97,15 +90,18 @@ export default function RegisterSalePage() {
                 <div className="flex items-start">
                   <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-yellow-800">
-                    <p className="font-semibold mb-1">IMPORTANT: Customer Must Receive These Codes!</p>
-                    <p>These are temporary activation codes. Customers need them to claim their tickets online.</p>
+                    <p className="font-semibold mb-1">
+                      IMPORTANT: Customer Must Receive These Codes!
+                    </p>
+                    <p>
+                      These are temporary activation codes. Customers need them to claim their
+                      tickets online.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <h3 className="text-lg font-bold text-foreground mb-3">
-                Customer Activation Codes
-              </h3>
+              <h3 className="text-lg font-bold text-foreground mb-3">Customer Activation Codes</h3>
               <p className="text-sm text-gray-700 mb-4">
                 Write these codes on the receipt or text them to the customer:
               </p>
@@ -128,13 +124,19 @@ export default function RegisterSalePage() {
                   Instructions for Customer:
                 </p>
                 <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
-                  <li>Visit <span className="font-mono font-semibold text-primary">events.stepperslife.com/activate</span></li>
+                  <li>
+                    Visit{" "}
+                    <span className="font-mono font-semibold text-primary">
+                      events.stepperslife.com/activate
+                    </span>
+                  </li>
                   <li>Enter your 4-digit activation code</li>
                   <li>Provide your email address</li>
                   <li>Receive your official QR code ticket via email</li>
                 </ol>
                 <div className="mt-3 p-2 bg-gray-50 rounded text-xs text-gray-600">
-                  <strong>Note:</strong> Each code can only be used once. The customer will receive their permanent QR ticket after activation.
+                  <strong>Note:</strong> Each code can only be used once. The customer will receive
+                  their permanent QR ticket after activation.
                 </div>
               </div>
             </div>
@@ -194,26 +196,29 @@ export default function RegisterSalePage() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="font-semibold text-gray-900 mb-4">Select Your Position</h3>
             <div className="space-y-3">
-              {staffPositions.filter((p) => p.event && p.role === "SELLER").map((position) => (
-                <button
-                  key={position._id}
-                  onClick={() => {
-                    setSelectedStaffId(position._id);
-                    setSelectedEventId(position.event!._id);
-                    setSelectedTierId(null);
-                  }}
-                  className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
-                    selectedStaffId === position._id
-                      ? "border-primary bg-accent"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <p className="font-semibold text-gray-900">{position.event!.name}</p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {position.ticketsSold} sold • ${(position.commissionEarned / 100).toFixed(2)} earned
-                  </p>
-                </button>
-              ))}
+              {staffPositions
+                .filter((p) => p.event && p.role === "SELLER")
+                .map((position) => (
+                  <button
+                    key={position._id}
+                    onClick={() => {
+                      setSelectedStaffId(position._id);
+                      setSelectedEventId(position.event!._id);
+                      setSelectedTierId(null);
+                    }}
+                    className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
+                      selectedStaffId === position._id
+                        ? "border-primary bg-accent"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <p className="font-semibold text-gray-900">{position.event!.name}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {position.ticketsSold} sold • ${(position.commissionEarned / 100).toFixed(2)}{" "}
+                      earned
+                    </p>
+                  </button>
+                ))}
             </div>
           </div>
 
@@ -235,9 +240,13 @@ export default function RegisterSalePage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-semibold text-gray-900">{tier.name}</p>
-                        {tier.description && <p className="text-sm text-gray-600 mt-1">{tier.description}</p>}
+                        {tier.description && (
+                          <p className="text-sm text-gray-600 mt-1">{tier.description}</p>
+                        )}
                       </div>
-                      <p className="text-lg font-bold text-gray-900">${(tier.price / 100).toFixed(2)}</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        ${(tier.price / 100).toFixed(2)}
+                      </p>
                     </div>
                   </button>
                 ))}
@@ -333,8 +342,12 @@ export default function RegisterSalePage() {
               </h3>
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{selectedTier.name} x {quantity}</span>
-                  <span className="font-medium">${((selectedTier.price * quantity) / 100).toFixed(2)}</span>
+                  <span className="text-gray-600">
+                    {selectedTier.name} x {quantity}
+                  </span>
+                  <span className="font-medium">
+                    ${((selectedTier.price * quantity) / 100).toFixed(2)}
+                  </span>
                 </div>
                 {selectedPosition && (
                   <div className="flex justify-between text-sm">

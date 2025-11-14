@@ -10,11 +10,20 @@
  * - Different layouts for tickets vs products vs cash orders
  */
 
-import Link from 'next/link';
-import { CheckCircle2, Mail, Phone, Ticket, Package, Clock, Download, ArrowRight } from 'lucide-react';
+import Link from "next/link";
+import {
+  CheckCircle2,
+  Mail,
+  Phone,
+  Ticket,
+  Package,
+  Clock,
+  Download,
+  ArrowRight,
+} from "lucide-react";
 
-export type OrderType = 'ticket' | 'product' | 'bundle';
-export type PaymentType = 'card' | 'cashapp' | 'cash';
+export type OrderType = "ticket" | "product" | "bundle";
+export type PaymentType = "card" | "cashapp" | "cash";
 
 export interface ActionButton {
   /** Button label */
@@ -24,7 +33,7 @@ export interface ActionButton {
   /** Primary action (styled differently) */
   primary?: boolean;
   /** Optional icon */
-  icon?: 'ticket' | 'download' | 'arrow';
+  icon?: "ticket" | "download" | "arrow";
 }
 
 export interface ConfirmationDetails {
@@ -58,11 +67,11 @@ export interface PaymentSuccessProps {
  */
 function getActionIcon(icon?: string) {
   switch (icon) {
-    case 'ticket':
+    case "ticket":
       return Ticket;
-    case 'download':
+    case "download":
       return Download;
-    case 'arrow':
+    case "arrow":
       return ArrowRight;
     default:
       return ArrowRight;
@@ -74,7 +83,7 @@ function getActionIcon(icon?: string) {
  */
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp);
-  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
 export function PaymentSuccess({
@@ -84,8 +93,8 @@ export function PaymentSuccess({
   confirmationDetails,
   actions,
 }: PaymentSuccessProps) {
-  const isCashOrder = paymentType === 'cash';
-  const isTicketOrder = orderType === 'ticket' || orderType === 'bundle';
+  const isCashOrder = paymentType === "cash";
+  const isTicketOrder = orderType === "ticket" || orderType === "bundle";
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -95,12 +104,12 @@ export function PaymentSuccess({
           <CheckCircle2 className="w-12 h-12 text-green-600" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {isCashOrder ? 'Order Reserved!' : 'Payment Successful!'}
+          {isCashOrder ? "Order Reserved!" : "Payment Successful!"}
         </h1>
         <p className="text-lg text-gray-600">
           {isCashOrder
-            ? 'Your order is being held for cash payment'
-            : 'Your order has been confirmed'}
+            ? "Your order is being held for cash payment"
+            : "Your order has been confirmed"}
         </p>
       </div>
 
@@ -122,7 +131,7 @@ export function PaymentSuccess({
               <div>
                 <h3 className="font-semibold text-yellow-900 mb-1">Payment Hold</h3>
                 <p className="text-sm text-yellow-800">
-                  Your order is reserved until{' '}
+                  Your order is reserved until{" "}
                   <strong>{formatTime(confirmationDetails.holdExpiresAt)}</strong>. Please complete
                   cash payment with staff before this time.
                 </p>
@@ -157,19 +166,21 @@ export function PaymentSuccess({
               <div>
                 <div className="text-sm text-gray-600">Tickets</div>
                 <div className="font-medium text-gray-900">
-                  {confirmationDetails.ticketCount}{' '}
-                  {confirmationDetails.ticketCount === 1 ? 'ticket' : 'tickets'}
+                  {confirmationDetails.ticketCount}{" "}
+                  {confirmationDetails.ticketCount === 1 ? "ticket" : "tickets"}
                 </div>
               </div>
             </div>
           )}
 
-          {orderType === 'product' && confirmationDetails.deliveryMethod && (
+          {orderType === "product" && confirmationDetails.deliveryMethod && (
             <div className="flex items-start gap-3">
               <Package className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
               <div>
                 <div className="text-sm text-gray-600">Delivery</div>
-                <div className="font-medium text-gray-900">{confirmationDetails.deliveryMethod}</div>
+                <div className="font-medium text-gray-900">
+                  {confirmationDetails.deliveryMethod}
+                </div>
               </div>
             </div>
           )}
@@ -201,8 +212,8 @@ export function PaymentSuccess({
                 <span className="text-primary font-bold shrink-0">1.</span>
                 <span>
                   {confirmationDetails.email
-                    ? 'Check your email for your ticket QR codes'
-                    : 'Your tickets are ready to view'}
+                    ? "Check your email for your ticket QR codes"
+                    : "Your tickets are ready to view"}
                 </span>
               </li>
               <li className="flex items-start gap-2">
@@ -248,8 +259,8 @@ export function PaymentSuccess({
                 flex items-center justify-center gap-2
                 ${
                   action.primary
-                    ? 'bg-primary text-white hover:bg-primary/90'
-                    : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400'
+                    ? "bg-primary text-white hover:bg-primary/90"
+                    : "bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400"
                 }
               `}
             >
@@ -263,7 +274,7 @@ export function PaymentSuccess({
       {/* Help Section */}
       <div className="mt-8 text-center text-sm text-gray-600">
         <p>
-          Need help?{' '}
+          Need help?{" "}
           <Link href="/support" className="text-primary hover:underline font-medium">
             Contact Support
           </Link>

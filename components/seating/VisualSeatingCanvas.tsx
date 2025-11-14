@@ -95,7 +95,7 @@ export default function VisualSeatingCanvas({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDragging, selectedSectionId]);
 
   // Handle section resizing
@@ -119,7 +119,7 @@ export default function VisualSeatingCanvas({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isResizing, selectedSectionId]);
 
   // Handle table dragging
@@ -144,13 +144,10 @@ export default function VisualSeatingCanvas({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDraggingTable]);
 
-  const handleSectionDragStart = (
-    e: React.MouseEvent,
-    section: Section
-  ) => {
+  const handleSectionDragStart = (e: React.MouseEvent, section: Section) => {
     e.stopPropagation();
     setIsDragging(true);
     onSectionSelect(section.id);
@@ -182,11 +179,7 @@ export default function VisualSeatingCanvas({
     setIsDragging(false);
   };
 
-  const handleResizeStart = (
-    e: React.MouseEvent,
-    section: Section,
-    corner: string
-  ) => {
+  const handleResizeStart = (e: React.MouseEvent, section: Section, corner: string) => {
     e.stopPropagation();
     setIsResizing(true);
     onSectionSelect(section.id);
@@ -243,11 +236,7 @@ export default function VisualSeatingCanvas({
     return total;
   };
 
-  const handleTableDragStart = (
-    e: React.MouseEvent,
-    sectionId: string,
-    table: Table
-  ) => {
+  const handleTableDragStart = (e: React.MouseEvent, sectionId: string, table: Table) => {
     e.stopPropagation();
     setIsDraggingTable(true);
     currentDraggingTable.current = { sectionId, tableId: table.id };
@@ -283,16 +272,17 @@ export default function VisualSeatingCanvas({
   };
 
   return (
-    <div id="seating-canvas" className="relative bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div
+      id="seating-canvas"
+      className="relative bg-white rounded-lg border border-gray-200 overflow-hidden"
+    >
       {/* Controls Bar */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
         <div className="bg-white rounded-lg shadow border border-gray-300 p-2 flex flex-col gap-2">
           <button
             onClick={() => setShowGrid(!showGrid)}
             className={`p-2 rounded transition-colors ${
-              showGrid
-                ? "bg-gray-800 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100"
+              showGrid ? "bg-gray-800 text-white" : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
             title={showGrid ? "Hide Grid" : "Show Grid"}
           >
@@ -307,11 +297,7 @@ export default function VisualSeatingCanvas({
             }`}
             title={showSectionLabels ? "Hide Labels" : "Show Labels"}
           >
-            {showSectionLabels ? (
-              <Eye className="w-5 h-5" />
-            ) : (
-              <EyeOff className="w-5 h-5" />
-            )}
+            {showSectionLabels ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
           </button>
         </div>
 
@@ -340,11 +326,13 @@ export default function VisualSeatingCanvas({
                   : "hover:bg-gray-100 text-gray-700"
               }`}
             >
-              <div
-                className="w-3 h-3 border-2 flex-shrink-0 border-foreground"
-              />
+              <div className="w-3 h-3 border-2 flex-shrink-0 border-foreground" />
               <span className="font-medium truncate">{section.name}</span>
-              <span className={`ml-auto ${selectedSectionId === section.id ? "text-gray-300" : "text-gray-500"}`}>{getTotalSeats(section)}</span>
+              <span
+                className={`ml-auto ${selectedSectionId === section.id ? "text-gray-300" : "text-gray-500"}`}
+              >
+                {getTotalSeats(section)}
+              </span>
             </button>
           ))}
         </div>
@@ -391,10 +379,10 @@ export default function VisualSeatingCanvas({
             >
               <div
                 ref={canvasRef}
-                className={`relative w-full h-full ${venueImageUrl ? '' : 'bg-gray-50'}`}
+                className={`relative w-full h-full ${venueImageUrl ? "" : "bg-gray-50"}`}
                 style={{
-                  backgroundImage: venueImageUrl ? `url(${venueImageUrl})` : 'none',
-                  backgroundColor: venueImageUrl ? 'transparent' : undefined,
+                  backgroundImage: venueImageUrl ? `url(${venueImageUrl})` : "none",
+                  backgroundColor: venueImageUrl ? "transparent" : undefined,
                   backgroundSize: "contain",
                   backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
@@ -425,8 +413,7 @@ export default function VisualSeatingCanvas({
                       <p className="text-sm text-gray-600 mb-4">
                         {venueImageUrl
                           ? "Your venue image is loaded. Now add sections to start designing your seating layout."
-                          : "No venue image needed! You can design your seating layout on this blank canvas."
-                        }
+                          : "No venue image needed! You can design your seating layout on this blank canvas."}
                       </p>
                       <div className="bg-accent border border-purple-200 rounded-lg p-3 text-left">
                         <p className="text-xs font-semibold text-foreground mb-2">📍 Next Steps:</p>
@@ -452,9 +439,7 @@ export default function VisualSeatingCanvas({
                   return (
                     <motion.div
                       key={section.id}
-                      className={`absolute cursor-move transition-all ${
-                        isSelected ? "z-10" : ""
-                      }`}
+                      className={`absolute cursor-move transition-all ${isSelected ? "z-10" : ""}`}
                       style={{
                         left: sectionX,
                         top: sectionY,
@@ -464,7 +449,11 @@ export default function VisualSeatingCanvas({
                         borderRadius: "4px",
                         transform: `rotate(${sectionRotation}deg)`,
                       }}
-                      className={isSelected ? "border-2 border-solid border-foreground" : "border-2 border-dashed border-gray-400"}
+                      className={
+                        isSelected
+                          ? "border-2 border-solid border-foreground"
+                          : "border-2 border-dashed border-gray-400"
+                      }
                       onMouseDown={(e) => handleSectionDragStart(e, section)}
                       whileHover={{ scale: isDragging ? 1 : 1.01 }}
                     >
@@ -472,12 +461,8 @@ export default function VisualSeatingCanvas({
                       {showSectionLabels && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                           <div className="bg-white bg-opacity-90 px-3 py-2 rounded-lg shadow-sm">
-                            <p className="font-bold text-gray-900 text-sm">
-                              {section.name}
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              {getTotalSeats(section)} seats
-                            </p>
+                            <p className="font-bold text-gray-900 text-sm">{section.name}</p>
+                            <p className="text-xs text-gray-600">{getTotalSeats(section)} seats</p>
                           </div>
                         </div>
                       )}

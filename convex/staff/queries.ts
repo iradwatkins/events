@@ -48,7 +48,10 @@ export const getStaffMemberDetails = query({
       .withIndex("by_staff", (q) => q.eq("soldByStaffId", args.staffId))
       .collect();
 
-    const onlineSales = tickets.filter((t) => t.paymentMethod === "ONLINE" || t.paymentMethod === "SQUARE" || t.paymentMethod === "STRIPE").length;
+    const onlineSales = tickets.filter(
+      (t) =>
+        t.paymentMethod === "ONLINE" || t.paymentMethod === "SQUARE" || t.paymentMethod === "STRIPE"
+    ).length;
     const cashSales = tickets.filter((t) => t.paymentMethod === "CASH").length;
     const cashAppSales = tickets.filter((t) => t.paymentMethod === "CASH_APP").length;
 
@@ -128,15 +131,17 @@ export const getStaffDashboard = query({
     const enrichedPositions = await Promise.all(
       staffPositions.map(async (staff) => {
         const event = staff.eventId ? await ctx.db.get(staff.eventId) : null;
-        
+
         return {
           _id: staff._id,
-          event: event ? {
-            _id: event._id,
-            name: event.name,
-            startDate: event.startDate,
-            imageUrl: event.imageUrl,
-          } : null,
+          event: event
+            ? {
+                _id: event._id,
+                name: event.name,
+                startDate: event.startDate,
+                imageUrl: event.imageUrl,
+              }
+            : null,
           role: staff.role,
           allocatedTickets: staff.allocatedTickets || 0,
           ticketsSold: staff.ticketsSold,
@@ -201,7 +206,7 @@ export const getStaffEvents = query({
       })
     );
 
-    return eventsWithStaffInfo.filter(e => e !== null);
+    return eventsWithStaffInfo.filter((e) => e !== null);
   },
 });
 
@@ -331,10 +336,7 @@ export const getMySubSellers = query({
       .query("eventStaff")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
       .filter((q) =>
-        q.and(
-          q.eq(q.field("staffUserId"), currentUser._id),
-          q.eq(q.field("isActive"), true)
-        )
+        q.and(q.eq(q.field("staffUserId"), currentUser._id), q.eq(q.field("isActive"), true))
       )
       .first();
 
@@ -480,10 +482,7 @@ export const getMyParentStaff = query({
       .query("eventStaff")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
       .filter((q) =>
-        q.and(
-          q.eq(q.field("staffUserId"), currentUser._id),
-          q.eq(q.field("isActive"), true)
-        )
+        q.and(q.eq(q.field("staffUserId"), currentUser._id), q.eq(q.field("isActive"), true))
       )
       .first();
 
@@ -599,8 +598,9 @@ export const getSubSellerBranchSales = query({
 
         return sales.map((sale) => ({
           ...sale,
-          staffName: staffRecord && 'name' in staffRecord ? staffRecord.name : undefined,
-          hierarchyLevel: staffRecord && 'hierarchyLevel' in staffRecord ? staffRecord.hierarchyLevel : undefined,
+          staffName: staffRecord && "name" in staffRecord ? staffRecord.name : undefined,
+          hierarchyLevel:
+            staffRecord && "hierarchyLevel" in staffRecord ? staffRecord.hierarchyLevel : undefined,
         }));
       })
     );
@@ -652,10 +652,7 @@ export const getGlobalStaff = query({
     const globalStaff = await ctx.db
       .query("eventStaff")
       .filter((q) =>
-        q.and(
-          q.eq(q.field("organizerId"), currentUser._id),
-          q.eq(q.field("eventId"), undefined)
-        )
+        q.and(q.eq(q.field("organizerId"), currentUser._id), q.eq(q.field("eventId"), undefined))
       )
       .collect();
 
@@ -813,10 +810,7 @@ export const getGlobalStaffWithPerformance = query({
     const globalStaff = await ctx.db
       .query("eventStaff")
       .filter((q) =>
-        q.and(
-          q.eq(q.field("organizerId"), currentUser._id),
-          q.eq(q.field("eventId"), undefined)
-        )
+        q.and(q.eq(q.field("organizerId"), currentUser._id), q.eq(q.field("eventId"), undefined))
       )
       .collect();
 
@@ -848,16 +842,13 @@ export const getGlobalStaffWithPerformance = query({
           (sum, instance) => sum + (instance.cashCollected || 0),
           0
         );
-        const activeEventCount = eventInstances.filter(
-          (instance) => instance.isActive
-        ).length;
+        const activeEventCount = eventInstances.filter((instance) => instance.isActive).length;
 
         // Get unique event IDs
         const eventIds = [...new Set(eventInstances.map((i) => i.eventId).filter(Boolean))];
 
         // Calculate average performance
-        const avgTicketsPerEvent =
-          activeEventCount > 0 ? totalTicketsSold / activeEventCount : 0;
+        const avgTicketsPerEvent = activeEventCount > 0 ? totalTicketsSold / activeEventCount : 0;
 
         return {
           ...staff,

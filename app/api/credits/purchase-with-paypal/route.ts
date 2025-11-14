@@ -42,10 +42,7 @@ export async function POST(request: NextRequest) {
     const { userId, credits, orderID } = body;
 
     if (!userId || !credits || !orderID) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     // Get access token

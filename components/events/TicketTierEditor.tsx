@@ -37,19 +37,11 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
   };
 
   const updateTier = (id: string, field: keyof TicketTier, value: string) => {
-    onChange(
-      tiers.map((tier) =>
-        tier.id === id ? { ...tier, [field]: value } : tier
-      )
-    );
+    onChange(tiers.map((tier) => (tier.id === id ? { ...tier, [field]: value } : tier)));
   };
 
   const updateTierPricing = (id: string, pricingTiers: PricingTier[]) => {
-    onChange(
-      tiers.map((tier) =>
-        tier.id === id ? { ...tier, pricingTiers } : tier
-      )
-    );
+    onChange(tiers.map((tier) => (tier.id === id ? { ...tier, pricingTiers } : tier)));
   };
 
   return (
@@ -57,9 +49,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Ticket Tiers</h3>
-          <p className="text-sm text-gray-600">
-            Add different ticket types with varying prices
-          </p>
+          <p className="text-sm text-gray-600">Add different ticket types with varying prices</p>
         </div>
         <button
           type="button"
@@ -90,14 +80,9 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
       ) : (
         <div className="space-y-4">
           {tiers.map((tier, index) => (
-            <div
-              key={tier.id}
-              className="bg-gray-50 border border-gray-200 rounded-lg p-4"
-            >
+            <div key={tier.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="flex items-start justify-between mb-3">
-                <h4 className="font-medium text-gray-900">
-                  Tier {index + 1}
-                </h4>
+                <h4 className="font-medium text-gray-900">Tier {index + 1}</h4>
                 <button
                   type="button"
                   onClick={() => removeTier(tier.id)}
@@ -200,9 +185,7 @@ export function TicketTierEditor({ tiers, onChange }: TicketTierEditorProps) {
                       }}
                       className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                     />
-                    <span className="text-sm font-medium text-gray-700">
-                      Sell as Table Package
-                    </span>
+                    <span className="text-sm font-medium text-gray-700">Sell as Table Package</span>
                   </label>
                   <p className="text-xs text-gray-500 mt-1 ml-6">
                     Customers purchase entire tables instead of individual seats

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "../_generated/server";
+import { requireEventOwnership } from "../lib/auth";
 
 /**
  * Get waitlist for an event (organizer only)
@@ -11,47 +12,11 @@ export const getEventWaitlist = query({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Allow access without authentication
-    const TESTING_MODE = process.env.CONVEX_CLOUD_URL?.includes("fearless-dragon-613");
-    if (TESTING_MODE && !identity) {
+    // Verify ownership if authenticated (TESTING MODE: skip if no identity)
+    if (identity) {
+      await requireEventOwnership(ctx, args.eventId);
+    } else {
       console.warn("[getEventWaitlist] TESTING MODE - No authentication required");
-      const waitlist = await ctx.db
-        .query("eventWaitlist")
-        .withIndex("by_event_and_status", (q) =>
-          q.eq("eventId", args.eventId).eq("status", "ACTIVE")
-        )
-        .collect();
-
-      // Get tier details for each entry
-      const waitlistWithDetails = await Promise.all(
-        waitlist.map(async (entry) => {
-          let tier = null;
-          if (entry.ticketTierId) {
-            tier = await ctx.db.get(entry.ticketTierId);
-          }
-          return {
-            ...entry,
-            tier,
-          };
-        })
-      );
-
-      return waitlistWithDetails.sort((a, b) => a.joinedAt - b.joinedAt);
-    }
-
-    if (!identity) throw new Error("Not authenticated");
-
-    // Verify user is the event organizer
-    const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user || event.organizerId !== user._id) {
-      throw new Error("Not authorized");
     }
 
     const waitlist = await ctx.db

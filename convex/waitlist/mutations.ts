@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
+import { requireEventOwnership } from "../lib/auth";
 
 /**
  * Join the waitlist for a sold-out event
@@ -107,24 +108,11 @@ export const notifyWaitlistEntry = mutation({
     waitlistId: v.id("eventWaitlist"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
     const waitlist = await ctx.db.get(args.waitlistId);
     if (!waitlist) throw new Error("Waitlist entry not found");
 
-    // Verify user is the event organizer
-    const event = await ctx.db.get(waitlist.eventId);
-    if (!event) throw new Error("Event not found");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user || event.organizerId !== user._id) {
-      throw new Error("Not authorized");
-    }
+    // Verify user is the event organizer (or admin)
+    await requireEventOwnership(ctx, waitlist.eventId);
 
     await ctx.db.patch(args.waitlistId, {
       status: "NOTIFIED",

@@ -7,11 +7,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { completeGoogleOAuth } from "@/lib/auth/google-oauth";
-import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { SignJWT } from "jose";
-
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+import { convexClient as convex } from "@/lib/auth/convex-client";
 
 export async function GET(request: NextRequest) {
   try {

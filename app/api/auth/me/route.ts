@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+import { convexClient as convex } from "@/lib/auth/convex-client";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.AUTH_SECRET || process.env.JWT_SECRET || "your-secret-key-change-this-in-production"

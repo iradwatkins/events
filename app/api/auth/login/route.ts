@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
-
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+import { convexClient as convex } from "@/lib/auth/convex-client";
 
 // JWT secret - should be in environment variable
 const JWT_SECRET = new TextEncoder().encode(

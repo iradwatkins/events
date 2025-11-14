@@ -34,11 +34,6 @@ export const processSquareRefund = action({
   },
   handler: async (ctx, args) => {
     try {
-      console.log("[Square Refund] Processing refund", {
-        paymentId: args.paymentId,
-        amountCents: args.amountCents,
-        orderId: args.orderId,
-      });
 
       // Call Square Refunds API
       const refundResult = await client.refunds.refundPayment({
@@ -51,10 +46,6 @@ export const processSquareRefund = action({
         reason: args.reason || "Customer refund requested",
       });
 
-      console.log("[Square Refund] Success", {
-        refundId: refundResult.refund?.id,
-        status: refundResult.refund?.status,
-      });
 
       return {
         success: true,

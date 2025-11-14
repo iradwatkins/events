@@ -89,9 +89,6 @@ export const createTicketTier = mutation({
         );
       }
 
-      console.log(
-        `[createTicketTier] Capacity check: ${newTotal}/${event.capacity} tickets allocated`
-      );
     }
 
     // Create ticket tier (simplified)
@@ -173,9 +170,6 @@ export const deleteTicketTier = mutation({
     // NO CREDIT REFUND - Tickets are per-event and don't transfer
     // Deleting a tier simply frees up allocation for THIS event only
     // The tickets remain allocated to this event and can be used for other tiers
-    console.log(
-      `[deleteTicketTier] Deleted tier with ${tier.quantity} tickets. These tickets remain allocated to event ${tier.eventId} and can be used for other tiers.`
-    );
 
     await ctx.db.delete(args.tierId);
 
@@ -313,9 +307,6 @@ export const updateTicketTier = mutation({
           );
         }
 
-        console.log(
-          `[updateTicketTier] Capacity check: ${newTotal}/${event.capacity} tickets allocated`
-        );
       }
     }
 
@@ -690,18 +681,11 @@ export const completeOrder = mutation({
         // Set firstSaleAt if this is the first sale for this tier
         if (tier.sold === 0 && !tier.firstSaleAt) {
           updates.firstSaleAt = now;
-          console.log(
-            `[completeOrder] First sale detected for tier ${tierId} - setting firstSaleAt`
-          );
         }
 
         // Atomic update with version check
         await ctx.db.patch(tierId as Id<"ticketTiers">, updates);
 
-        console.log(
-          `[completeOrder] Updated tier ${tier.name}: sold ${tier.sold} → ${newSold}, ` +
-            `version ${currentVersion} → ${currentVersion + 1}`
-        );
       }
     }
 
@@ -975,9 +959,6 @@ export const cancelTicket = mutation({
           updatedAt: Date.now(),
         });
 
-        console.log(
-          `[cancelTicket] Decremented sold count for tier ${tier.name} (v${currentVersion} → v${currentVersion + 1})`
-        );
       }
     }
 
@@ -1186,9 +1167,6 @@ export const completeBundleOrder = mutation({
         updatedAt: Date.now(),
       });
 
-      console.log(
-        `[completeBundleOrder] Updated tier ${tier.name}: sold ${tier.sold} → ${newSold} (v${currentVersion} → v${currentVersion + 1})`
-      );
     }
 
     // Increment bundle sold count
@@ -1216,7 +1194,6 @@ export const activateTicket = mutation({
     customerName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    console.log(`[activateTicket] Attempting to activate with code: ${args.activationCode}`);
 
     // Find ticket by activation code
     const ticket = await ctx.db
@@ -1254,9 +1231,6 @@ export const activateTicket = mutation({
     const event = await ctx.db.get(ticket.eventId);
     const ticketTier = ticket.ticketTierId ? await ctx.db.get(ticket.ticketTierId) : null;
 
-    console.log(
-      `[activateTicket] Successfully activated ticket ${ticket._id} with code ${ticketCode}`
-    );
 
     return {
       success: true,
@@ -1332,7 +1306,6 @@ export const updateTicket = mutation({
 
     await ctx.db.patch(args.ticketId, updates);
 
-    console.log(`[updateTicket] Ticket ${args.ticketId} updated successfully`);
     return { success: true, ticketId: args.ticketId };
   },
 });
@@ -1397,9 +1370,6 @@ export const deleteTicket = mutation({
           updatedAt: Date.now(),
         });
 
-        console.log(
-          `[deleteTicket] Decremented sold count for tier ${tier.name}: ${tier.sold} → ${newSold} (v${currentVersion} → v${currentVersion + 1})`
-        );
       }
     }
 
@@ -1409,7 +1379,6 @@ export const deleteTicket = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log(`[deleteTicket] Ticket ${args.ticketId} cancelled successfully`);
     return { success: true, ticketId: args.ticketId };
   },
 });
@@ -1470,7 +1439,6 @@ export const bundleTickets = mutation({
       });
     }
 
-    console.log(`[bundleTickets] Created bundle ${bundleId} with ${args.ticketIds.length} tickets`);
     return {
       success: true,
       bundleId,
@@ -1524,7 +1492,6 @@ export const unbundleTickets = mutation({
       });
     }
 
-    console.log(`[unbundleTickets] Unbundled ${args.ticketIds.length} tickets`);
     return {
       success: true,
       ticketCount: args.ticketIds.length,
@@ -1588,7 +1555,6 @@ export const duplicateTicketTier = mutation({
     // Create the new tier
     const newTierId = await ctx.db.insert("ticketTiers", newTierData);
 
-    console.log(`[duplicateTicketTier] Duplicated tier ${args.tierId} -> ${newTierId}`);
 
     return {
       success: true,

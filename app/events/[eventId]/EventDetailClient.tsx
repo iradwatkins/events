@@ -114,7 +114,6 @@ export default function EventDetailClient({ eventId }: EventDetailClientProps) {
       try {
         await navigator.share(shareData);
       } catch (err) {
-        console.log("Share cancelled or failed");
       }
     } else {
       // Fallback: copy to clipboard

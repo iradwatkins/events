@@ -37,9 +37,6 @@ export const addCreditsToOrganizer = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log(`✅ Added ${args.creditsToAdd} credits to ${args.email}`);
-    console.log(`   Previous: ${credits.creditsRemaining} remaining`);
-    console.log(`   New: ${credits.creditsRemaining + args.creditsToAdd} remaining`);
 
     return {
       success: true,
@@ -125,7 +122,6 @@ export const resetCreditsTo10000 = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log(`✅ Reset ${args.email} to 10,000 free tickets`);
 
     return {
       success: true,

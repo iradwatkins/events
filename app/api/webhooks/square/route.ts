@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
     }
 
     const event = JSON.parse(rawBody);
-    console.log("[Square Webhook] Received event:", event.type);
 
     // Handle different event types
     switch (event.type) {
@@ -75,7 +74,6 @@ export async function POST(request: NextRequest) {
         break;
 
       default:
-        console.log(`[Square Webhook] Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
@@ -89,7 +87,6 @@ export async function POST(request: NextRequest) {
 }
 
 async function handlePaymentCreated(data: any) {
-  console.log("[Square Webhook] Payment created:", data.id);
 
   const payment = data.object?.payment;
   if (!payment) {
@@ -100,7 +97,6 @@ async function handlePaymentCreated(data: any) {
   // Extract order reference from payment metadata
   const orderId = payment.note || payment.reference_id;
   if (!orderId) {
-    console.log("[Square Webhook] No order ID in payment");
     return;
   }
 
@@ -112,19 +108,16 @@ async function handlePaymentCreated(data: any) {
 
     const order = orders.find((o: any) => o.squarePaymentId === payment.id);
     if (!order) {
-      console.log(`[Square Webhook] Order not found for payment ${payment.id}`);
       return;
     }
 
     // Payment is created - typically moves to APPROVED quickly
-    console.log(`[Square Webhook] Payment created for order ${order._id}`);
   } catch (error) {
     console.error("[Square Webhook] Error handling payment created:", error);
   }
 }
 
 async function handlePaymentUpdated(data: any) {
-  console.log("[Square Webhook] Payment updated:", data.id);
 
   const payment = data.object?.payment;
   if (!payment) {
@@ -140,13 +133,11 @@ async function handlePaymentUpdated(data: any) {
 
     const order = orders.find((o: any) => o.squarePaymentId === payment.id);
     if (!order) {
-      console.log(`[Square Webhook] Order not found for payment ${payment.id}`);
       return;
     }
 
     // Check payment status
     if (payment.status === "COMPLETED") {
-      console.log(`[Square Webhook] Payment completed for order ${order._id}`);
 
       // Complete the order
       await convex.mutation(api.tickets.mutations.completeOrder, {
@@ -154,9 +145,7 @@ async function handlePaymentUpdated(data: any) {
         paymentIntentId: payment.id,
       });
 
-      console.log(`[Square Webhook] Order ${order._id} completed successfully`);
     } else if (payment.status === "FAILED" || payment.status === "CANCELED") {
-      console.log(`[Square Webhook] Payment ${payment.status} for order ${order._id}`);
 
       // Cancel the order
       await convex.mutation(api.orders.mutations.cancelOrder, {
@@ -170,7 +159,6 @@ async function handlePaymentUpdated(data: any) {
 }
 
 async function handleRefundCreated(data: any) {
-  console.log("[Square Webhook] Refund created:", data.id);
 
   const refund = data.object?.refund;
   if (!refund) {
@@ -184,11 +172,9 @@ async function handleRefundCreated(data: any) {
     const order = orders.find((o: any) => o.squarePaymentId === refund.payment_id);
 
     if (!order) {
-      console.log(`[Square Webhook] Order not found for refund ${refund.id}`);
       return;
     }
 
-    console.log(`[Square Webhook] Refund created for order ${order._id}`);
 
     // Update order status
     await convex.mutation(api.orders.mutations.updateOrderStatus, {
@@ -196,13 +182,11 @@ async function handleRefundCreated(data: any) {
       status: "refunded",
     });
 
-    console.log(`[Square Webhook] Order ${order._id} marked as refunded`);
   } catch (error) {
     console.error("[Square Webhook] Error handling refund created:", error);
   }
 }
 
 async function handleRefundUpdated(data: any) {
-  console.log("[Square Webhook] Refund updated:", data.id);
   // Similar to refund created, handle status changes
 }

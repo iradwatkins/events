@@ -78,7 +78,6 @@ export default function CheckoutPage() {
       const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID;
       const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
 
-      console.log("Initializing Square with:", { appId, locationId });
 
       if (!appId || !locationId) {
         console.error("Missing Square credentials");
@@ -90,7 +89,6 @@ export default function CheckoutPage() {
       const cardInstance = await payments.card();
       await cardInstance.attach("#card-container");
       setCard(cardInstance);
-      console.log("Square payment form initialized successfully");
     } catch (e) {
       console.error("Failed to initialize Square payment form:", e);
       // Show user-friendly error

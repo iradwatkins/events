@@ -89,7 +89,6 @@ export async function POST(request: NextRequest) {
       `,
     });
 
-    console.log(`[Password Reset] Email sent to ${email}`);
 
     return NextResponse.json({
       success: true,

@@ -114,9 +114,6 @@ export const requestTransfer = mutation({
       toStaffBalanceBefore: toStaff.allocatedTickets || 0,
     });
 
-    console.log(
-      `[requestTransfer] Created transfer request ${transferId} from ${fromStaff._id} to ${toStaff._id} for ${args.ticketQuantity} tickets`
-    );
 
     return {
       success: true,
@@ -223,9 +220,6 @@ export const acceptTransfer = mutation({
       toStaffBalanceAfter: newRecipientBalance,
     });
 
-    console.log(
-      `[acceptTransfer] Transfer ${args.transferId} accepted. ${transfer.ticketQuantity} tickets transferred from ${fromStaff._id} to ${toStaff._id}`
-    );
 
     return {
       success: true,
@@ -275,7 +269,6 @@ export const rejectTransfer = mutation({
       rejectionReason: args.reason,
     });
 
-    console.log(`[rejectTransfer] Transfer ${args.transferId} rejected by ${user._id}`);
 
     return {
       success: true,
@@ -322,7 +315,6 @@ export const cancelTransfer = mutation({
       respondedAt: Date.now(),
     });
 
-    console.log(`[cancelTransfer] Transfer ${args.transferId} cancelled by sender ${user._id}`);
 
     return {
       success: true,

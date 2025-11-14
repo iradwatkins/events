@@ -15,7 +15,6 @@ function addDays(days: number): number {
 export const createAllTestEvents = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log("🎯 Creating comprehensive test events...\n");
 
     const results = {
       event1: null as any,
@@ -27,26 +26,20 @@ export const createAllTestEvents = mutation({
 
     try {
       // EVENT 1: Single Ticket Event
-      console.log("1️⃣  Creating Single Ticket Event...");
       results.event1 = await ctx.runMutation(api.testEvents.createSingleTicketEvent, {});
 
       // EVENT 2: Multi-Day Event
-      console.log("2️⃣  Creating Multi-Day Event...");
       results.event2 = await ctx.runMutation(api.testEvents.createMultiDayEvent, {});
 
       // EVENT 3: Multi-Day Bundle Event
-      console.log("3️⃣  Creating Multi-Day Bundle Event...");
       results.event3 = await ctx.runMutation(api.testEvents.createBundleEvent, {});
 
       // EVENT 4: Early Bird Special Event
-      console.log("4️⃣  Creating Early Bird Special Event...");
       results.event4 = await ctx.runMutation(api.testEvents.createEarlyBirdEvent, {});
 
       // EVENT 5: Seating Chart Event
-      console.log("5️⃣  Creating Seating Chart Event...");
       results.event5 = await ctx.runMutation(api.testEvents.createSeatingChartEvent, {});
 
-      console.log("\n✅ All 5 test events created successfully!\n");
 
       return {
         success: true,
@@ -107,7 +100,6 @@ export const createSingleTicketEvent = mutation({
       quantity: 100,
     });
 
-    console.log("   ✅ Single Ticket Event created");
     return { eventId, name: "Summer Stepping Social" };
   },
 });
@@ -175,7 +167,6 @@ export const createMultiDayEvent = mutation({
       quantity: 50,
     });
 
-    console.log("   ✅ Multi-Day Event created with 3 day-specific tickets");
     return { eventId, name: "Stepping Weekend Workshop" };
   },
 });
@@ -267,7 +258,6 @@ export const createBundleEvent = mutation({
       ],
     });
 
-    console.log("   ✅ Multi-Day Bundle Event created with 3 tickets + bundle (saves $26)");
     return { eventId, name: "3-Day Stepping Festival" };
   },
 });
@@ -339,7 +329,6 @@ export const createEarlyBirdEvent = mutation({
       ],
     });
 
-    console.log("   ✅ Early Bird Event created with 3-tier pricing ($45 → $55 → $65)");
     return { eventId, name: "New Year's Stepping Gala" };
   },
 });
@@ -513,9 +502,6 @@ export const createSeatingChartEvent = mutation({
       ],
     });
 
-    console.log(
-      "   ✅ Seating Chart Event created with 5 tables (1 VIP, 4 Standard), 20 total seats"
-    );
     return { eventId, name: "Elegant Dinner & Set" };
   },
 });

@@ -71,7 +71,6 @@ export async function GET(request: NextRequest) {
       path: "/",
     });
 
-    console.log(`[Magic Link] Successfully verified for user: ${user.email}`);
 
     return response;
   } catch (error: any) {

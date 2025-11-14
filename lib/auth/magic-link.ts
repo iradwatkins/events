@@ -79,7 +79,6 @@ export async function sendMagicLinkEmail(
       `,
     });
 
-    console.log(`[Magic Link] Email sent to ${email}`);
   } catch (error: any) {
     console.error("[Magic Link] Failed to send email:", error);
     throw new Error(`Failed to send magic link email: ${error.message}`);

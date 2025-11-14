@@ -13,23 +13,18 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("[Login] Starting login request");
     const body = await request.json();
     const { email, password } = body;
 
-    console.log("[Login] Email:", email);
 
     if (!email || !password) {
-      console.log("[Login] Missing email or password");
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
     // Get user from Convex
-    console.log("[Login] Querying Convex for user");
     const user = await convex.query(api.auth.queries.getUserByEmail, {
       email: email.toLowerCase(),
     });
-    console.log("[Login] User found:", !!user);
 
     if (!user || !user.passwordHash) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });

@@ -75,7 +75,6 @@ async function verifyPayPalSignature(headers: Headers, body: string): Promise<bo
       return false;
     }
 
-    console.log("[PayPal Webhook] Signature verified successfully");
     return true;
   } catch (error) {
     console.error("[PayPal Webhook] Signature verification error:", error);
@@ -120,7 +119,6 @@ export async function POST(request: NextRequest) {
     }
 
     const event = JSON.parse(rawBody);
-    console.log("[PayPal Webhook] Received event:", event.event_type);
 
     // Handle different event types
     switch (event.event_type) {
@@ -141,15 +139,12 @@ export async function POST(request: NextRequest) {
         break;
 
       case "PAYMENT.PAYOUTS-ITEM.SUCCEEDED":
-        console.log("[PayPal Webhook] Payout succeeded:", event.resource.payout_item_id);
         break;
 
       case "PAYMENT.PAYOUTS-ITEM.FAILED":
-        console.log("[PayPal Webhook] Payout failed:", event.resource.payout_item_id);
         break;
 
       default:
-        console.log(`[PayPal Webhook] Unhandled event type: ${event.event_type}`);
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
@@ -163,13 +158,11 @@ export async function POST(request: NextRequest) {
 }
 
 async function handlePaymentCompleted(event: any) {
-  console.log("[PayPal Webhook] Payment completed:", event.resource.id);
 
   const resource = event.resource;
   const customId = resource.custom || resource.invoice_number;
 
   if (!customId) {
-    console.log("[PayPal Webhook] No custom ID in payment");
     return;
   }
 
@@ -177,7 +170,6 @@ async function handlePaymentCompleted(event: any) {
     // If it's a credit purchase
     if (customId.startsWith("CREDIT_")) {
       const userId = customId.replace("CREDIT_", "");
-      console.log(`[PayPal Webhook] Credit purchase completed for user ${userId}`);
       // Credits already added in capture endpoint
       return;
     }
@@ -197,7 +189,6 @@ async function handlePaymentCompleted(event: any) {
           orderId: orderId as Id<"orders">,
           paymentIntentId: resource.id,
         });
-        console.log(`[PayPal Webhook] Order ${orderId} completed`);
       }
     }
   } catch (error) {
@@ -206,7 +197,6 @@ async function handlePaymentCompleted(event: any) {
 }
 
 async function handlePaymentDenied(event: any) {
-  console.log("[PayPal Webhook] Payment denied:", event.resource.id);
 
   const resource = event.resource;
   const customId = resource.custom || resource.invoice_number;
@@ -223,14 +213,12 @@ async function handlePaymentDenied(event: any) {
       reason: "Payment denied by PayPal",
     });
 
-    console.log(`[PayPal Webhook] Order ${orderId} cancelled`);
   } catch (error) {
     console.error("[PayPal Webhook] Error handling payment denied:", error);
   }
 }
 
 async function handlePaymentRefunded(event: any) {
-  console.log("[PayPal Webhook] Payment refunded:", event.resource.sale_id);
 
   const resource = event.resource;
   const saleId = resource.sale_id;
@@ -242,7 +230,6 @@ async function handlePaymentRefunded(event: any) {
 
     if (order) {
       // Update order status to refunded (need to create this mutation)
-      console.log(`[PayPal Webhook] Refund processed for order ${order._id}`);
       // TODO: Add refund handling mutation
     }
   } catch (error) {
@@ -251,6 +238,5 @@ async function handlePaymentRefunded(event: any) {
 }
 
 async function handleDisputeCreated(event: any) {
-  console.log("[PayPal Webhook] Dispute created:", event.resource.dispute_id);
   // TODO: Add dispute handling logic (notify admin, flag order, etc.)
 }

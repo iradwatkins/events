@@ -16,16 +16,12 @@ export const runLiveTicketTests = mutation({
     testsFailed: number;
     results: any[];
   }> => {
-    console.log("🧪 RUNNING 4 REAL-TIME TICKET POSTING TESTS\n");
-    console.log("=".repeat(60) + "\n");
 
     const testResults = [];
 
     // ========================================
     // TEST 1: Single Ticket Purchase
     // ========================================
-    console.log("TEST 1: SINGLE TICKET PURCHASE");
-    console.log("-".repeat(60));
 
     try {
       // Find an event with tickets
@@ -39,7 +35,6 @@ export const runLiveTicketTests = mutation({
       }
 
       const event1 = events[0];
-      console.log(`Event: ${event1.name}`);
 
       const tiers1 = await ctx.db
         .query("ticketTiers")
@@ -51,7 +46,6 @@ export const runLiveTicketTests = mutation({
       }
 
       const tier1 = tiers1[0];
-      console.log(`Tier: ${tier1.name} ($${tier1.price / 100})`);
 
       // Create order
       const order1Id: Id<"orders"> = await ctx.runMutation(api.tickets.mutations.createOrder, {
@@ -66,7 +60,6 @@ export const runLiveTicketTests = mutation({
         totalCents: tier1.price,
       });
 
-      console.log(`Order created: ${order1Id}`);
 
       // Complete order
       await ctx.runMutation(api.tickets.mutations.completeOrder, {
@@ -81,10 +74,6 @@ export const runLiveTicketTests = mutation({
         .filter((q: any) => q.eq(q.field("orderId"), order1Id))
         .collect();
 
-      console.log(`✅ SUCCESS: ${tickets1.length} ticket created`);
-      console.log(`   Ticket Code: ${tickets1[0].ticketCode}`);
-      console.log(`   Status: ${tickets1[0].status}`);
-      console.log(`   Event ID: ${tickets1[0].eventId}\n`);
 
       testResults.push({
         test: "Test 1: Single Ticket Purchase",
@@ -93,7 +82,6 @@ export const runLiveTicketTests = mutation({
         ticketCodes: tickets1.map((t: any) => t.ticketCode),
       });
     } catch (error: any) {
-      console.log(`❌ FAILED: ${error.message}\n`);
       testResults.push({
         test: "Test 1: Single Ticket Purchase",
         status: "FAILED",
@@ -104,8 +92,6 @@ export const runLiveTicketTests = mutation({
     // ========================================
     // TEST 2: Multiple Tickets Same Event
     // ========================================
-    console.log("TEST 2: MULTIPLE TICKETS (SAME EVENT)");
-    console.log("-".repeat(60));
 
     try {
       const events = await ctx.db
@@ -114,7 +100,6 @@ export const runLiveTicketTests = mutation({
         .take(1);
 
       const event2 = events[0];
-      console.log(`Event: ${event2.name}`);
 
       const tiers2 = await ctx.db
         .query("ticketTiers")
@@ -123,7 +108,6 @@ export const runLiveTicketTests = mutation({
 
       const tier2 = tiers2[0];
       const quantity = 3;
-      console.log(`Tier: ${tier2.name} x ${quantity}`);
 
       // Create order
       const order2Id: Id<"orders"> = await ctx.runMutation(api.tickets.mutations.createOrder, {
@@ -138,7 +122,6 @@ export const runLiveTicketTests = mutation({
         totalCents: tier2.price * quantity,
       });
 
-      console.log(`Order created: ${order2Id}`);
 
       // Complete order
       await ctx.runMutation(api.tickets.mutations.completeOrder, {
@@ -153,11 +136,8 @@ export const runLiveTicketTests = mutation({
         .filter((q: any) => q.eq(q.field("orderId"), order2Id))
         .collect();
 
-      console.log(`✅ SUCCESS: ${tickets2.length} tickets created`);
       tickets2.forEach((t: any, i: number) => {
-        console.log(`   Ticket ${i + 1}: ${t.ticketCode} (${t.status})`);
       });
-      console.log("");
 
       testResults.push({
         test: "Test 2: Multiple Tickets Same Event",
@@ -166,7 +146,6 @@ export const runLiveTicketTests = mutation({
         ticketCodes: tickets2.map((t: any) => t.ticketCode),
       });
     } catch (error: any) {
-      console.log(`❌ FAILED: ${error.message}\n`);
       testResults.push({
         test: "Test 2: Multiple Tickets Same Event",
         status: "FAILED",
@@ -177,8 +156,6 @@ export const runLiveTicketTests = mutation({
     // ========================================
     // TEST 3: Single-Event Bundle
     // ========================================
-    console.log("TEST 3: SINGLE-EVENT BUNDLE PURCHASE");
-    console.log("-".repeat(60));
 
     try {
       // Find single-event bundle
@@ -195,9 +172,6 @@ export const runLiveTicketTests = mutation({
         throw new Error("No single-event bundle found");
       }
 
-      console.log(`Bundle: ${singleEventBundle.name}`);
-      console.log(`Price: $${singleEventBundle.price / 100}`);
-      console.log(`Tiers: ${singleEventBundle.includedTiers.length}`);
 
       const primaryEventId = singleEventBundle.eventId;
       if (!primaryEventId) {
@@ -220,7 +194,6 @@ export const runLiveTicketTests = mutation({
         }
       );
 
-      console.log(`Order created: ${order3Id}`);
 
       // Complete bundle order
       await ctx.runMutation(api.tickets.mutations.completeBundleOrder, {
@@ -235,11 +208,8 @@ export const runLiveTicketTests = mutation({
         .filter((q: any) => q.eq(q.field("orderId"), order3Id))
         .collect();
 
-      console.log(`✅ SUCCESS: ${tickets3.length} tickets created from bundle`);
       tickets3.forEach((t: any, i: number) => {
-        console.log(`   Ticket ${i + 1}: ${t.ticketCode} (${t.status})`);
       });
-      console.log("");
 
       testResults.push({
         test: "Test 3: Single-Event Bundle",
@@ -248,7 +218,6 @@ export const runLiveTicketTests = mutation({
         ticketCodes: tickets3.map((t: any) => t.ticketCode),
       });
     } catch (error: any) {
-      console.log(`❌ FAILED: ${error.message}\n`);
       testResults.push({
         test: "Test 3: Single-Event Bundle",
         status: "FAILED",
@@ -259,8 +228,6 @@ export const runLiveTicketTests = mutation({
     // ========================================
     // TEST 4: Multi-Event Bundle
     // ========================================
-    console.log("TEST 4: MULTI-EVENT BUNDLE PURCHASE");
-    console.log("-".repeat(60));
 
     try {
       // Find multi-event bundle
@@ -275,9 +242,6 @@ export const runLiveTicketTests = mutation({
         throw new Error("No multi-event bundle found");
       }
 
-      console.log(`Bundle: ${multiEventBundle.name}`);
-      console.log(`Events: ${multiEventBundle.eventIds?.length || 0}`);
-      console.log(`Price: $${multiEventBundle.price / 100}`);
 
       const primaryEventId = multiEventBundle.eventId || multiEventBundle.eventIds?.[0];
       if (!primaryEventId) {
@@ -300,7 +264,6 @@ export const runLiveTicketTests = mutation({
         }
       );
 
-      console.log(`Order created: ${order4Id}`);
 
       // Complete bundle order
       await ctx.runMutation(api.tickets.mutations.completeBundleOrder, {
@@ -327,19 +290,11 @@ export const runLiveTicketTests = mutation({
         })
       );
 
-      console.log(`✅ SUCCESS: ${tickets4.length} tickets created from multi-event bundle`);
       ticketDetails.forEach((t: any, i: number) => {
-        console.log(`   Ticket ${i + 1}: ${t.code}`);
-        console.log(`      Event: ${t.event}`);
-        console.log(`      Status: ${t.status}`);
       });
 
       // Verify tickets are for different events
       const uniqueEvents = new Set(tickets4.map((t: any) => t.eventId));
-      console.log(
-        `   Unique Events: ${uniqueEvents.size}/${multiEventBundle.eventIds?.length || 0}`
-      );
-      console.log("");
 
       testResults.push({
         test: "Test 4: Multi-Event Bundle",
@@ -350,7 +305,6 @@ export const runLiveTicketTests = mutation({
         ticketDetails,
       });
     } catch (error: any) {
-      console.log(`❌ FAILED: ${error.message}\n`);
       testResults.push({
         test: "Test 4: Multi-Event Bundle",
         status: "FAILED",
@@ -361,27 +315,18 @@ export const runLiveTicketTests = mutation({
     // ========================================
     // FINAL SUMMARY
     // ========================================
-    console.log("=".repeat(60));
-    console.log("FINAL TEST RESULTS\n");
 
     const passed: number = testResults.filter((r: any) => r.status === "PASSED").length;
     const failed: number = testResults.filter((r: any) => r.status === "FAILED").length;
 
-    console.log(`✅ Tests Passed: ${passed}/4`);
-    console.log(`❌ Tests Failed: ${failed}/4\n`);
 
     testResults.forEach((result, i) => {
       const icon = result.status === "PASSED" ? "✅" : "❌";
-      console.log(`${icon} ${result.test}: ${result.status}`);
       if (result.status === "PASSED") {
-        console.log(`   Tickets Created: ${result.ticketsCreated}`);
       } else {
-        console.log(`   Error: ${result.error}`);
       }
     });
 
-    console.log("\n" + "=".repeat(60));
-    console.log("🎉 ALL TESTS COMPLETE!\n");
 
     return {
       success: passed === 4,

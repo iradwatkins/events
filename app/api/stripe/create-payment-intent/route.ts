@@ -43,12 +43,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required payment details" }, { status: 400 });
     }
 
-    console.log("[Stripe Payment Intent] Creating payment:", {
-      amount,
-      platformFee,
-      connectedAccountId,
-      orderNumber,
-    });
 
     // Create Payment Intent with Destination Charges
     // Money goes to platform first, then automatically transfers to connected account
@@ -69,7 +63,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("[Stripe Payment Intent] Created:", paymentIntent.id);
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,

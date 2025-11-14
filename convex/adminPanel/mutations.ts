@@ -166,7 +166,6 @@ export const deleteEvent = action({
       flyer: boolean;
     };
   }> => {
-    console.log(`🗑️ [deleteEvent] Starting deletion for event: ${args.eventId}`);
 
     // TEMPORARY: Authentication disabled for testing
     // const identity = await ctx.auth.getUserIdentity();
@@ -183,7 +182,6 @@ export const deleteEvent = action({
 
     // Find associated flyer
     if (event.flyer) {
-      console.log(`🖼️ Found associated flyer: ${event.flyer.filename}`);
 
       // Delete physical flyer file first
       try {
@@ -207,7 +205,6 @@ export const deleteEvent = action({
             errorData
           );
         } else {
-          console.log(`✅ Physical flyer file deleted: ${event.flyer.filepath}`);
         }
       } catch (error) {
         console.warn(`⚠️ Error deleting physical flyer file:`, error);
@@ -260,7 +257,6 @@ export const deleteEventInternal = internalMutation({
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
 
-    console.log(`📄 [deleteEventInternal] Event: ${event.name}`);
 
     // ADMIN FORCE DELETE: Delete all associated data including tickets and orders
 
@@ -273,7 +269,6 @@ export const deleteEventInternal = internalMutation({
     for (const ticket of tickets) {
       await ctx.db.delete(ticket._id);
     }
-    console.log(`✅ Deleted ${tickets.length} tickets`);
 
     // Delete all orders for this event and their order items
     const orders = await ctx.db
@@ -296,7 +291,6 @@ export const deleteEventInternal = internalMutation({
 
       await ctx.db.delete(order._id);
     }
-    console.log(`✅ Deleted ${orders.length} orders and ${totalOrderItems} order items`);
 
     // Delete all staff positions for this event
     const staffPositions = await ctx.db
@@ -307,7 +301,6 @@ export const deleteEventInternal = internalMutation({
     for (const staff of staffPositions) {
       await ctx.db.delete(staff._id);
     }
-    console.log(`✅ Deleted ${staffPositions.length} staff positions`);
 
     // Delete all staff ticket transfers for this event
     const transfers = await ctx.db
@@ -318,7 +311,6 @@ export const deleteEventInternal = internalMutation({
     for (const transfer of transfers) {
       await ctx.db.delete(transfer._id);
     }
-    console.log(`✅ Deleted ${transfers.length} ticket transfers`);
 
     // Delete seating charts for this event
     const seatingCharts = await ctx.db
@@ -329,7 +321,6 @@ export const deleteEventInternal = internalMutation({
     for (const chart of seatingCharts) {
       await ctx.db.delete(chart._id);
     }
-    console.log(`✅ Deleted ${seatingCharts.length} seating charts`);
 
     // Delete seat reservations for this event
     const seatReservations = await ctx.db
@@ -340,7 +331,6 @@ export const deleteEventInternal = internalMutation({
     for (const reservation of seatReservations) {
       await ctx.db.delete(reservation._id);
     }
-    console.log(`✅ Deleted ${seatReservations.length} seat reservations`);
 
     // Delete ticket tiers
     const tiers = await ctx.db
@@ -351,7 +341,6 @@ export const deleteEventInternal = internalMutation({
     for (const tier of tiers) {
       await ctx.db.delete(tier._id);
     }
-    console.log(`✅ Deleted ${tiers.length} ticket tiers`);
 
     // Delete bundles
     const bundles = await ctx.db
@@ -362,7 +351,6 @@ export const deleteEventInternal = internalMutation({
     for (const bundle of bundles) {
       await ctx.db.delete(bundle._id);
     }
-    console.log(`✅ Deleted ${bundles.length} bundles`);
 
     // Delete event contacts (CRM data from flyer extraction)
     const contacts = await ctx.db
@@ -373,17 +361,14 @@ export const deleteEventInternal = internalMutation({
     for (const contact of contacts) {
       await ctx.db.delete(contact._id);
     }
-    console.log(`✅ Deleted ${contacts.length} contacts`);
 
     // Delete flyer database record if provided
     if (args.flyerId) {
       await ctx.db.delete(args.flyerId);
-      console.log(`✅ Deleted flyer record: ${args.flyerId}`);
     }
 
     // Delete the event itself
     await ctx.db.delete(args.eventId);
-    console.log(`✅ Deleted event: ${args.eventId}`);
 
     return {
       success: true,
@@ -451,9 +436,6 @@ export const deleteTicket = mutation({
     // Delete the ticket
     await ctx.db.delete(args.ticketId);
 
-    console.log(
-      `✅ Admin deleted ticket ${args.ticketId} with ${seatReservations.length} seat reservations`
-    );
 
     return {
       success: true,
@@ -528,9 +510,6 @@ export const deleteOrder = mutation({
     // Delete the order
     await ctx.db.delete(args.orderId);
 
-    console.log(
-      `✅ Admin deleted order ${args.orderId} with ${tickets.length} tickets and ${orderItems.length} items`
-    );
 
     return {
       success: true,
@@ -700,11 +679,6 @@ export const fixEventTimestamps = mutation({
 
     const endDate = startDate; // For now, use same as start date
 
-    console.log(`[fixEventTimestamps] Event: ${event.name}`);
-    console.log(`[fixEventTimestamps] Literal date: ${event.eventDateLiteral}`);
-    console.log(
-      `[fixEventTimestamps] Parsed startDate: ${startDate} (${startDate ? new Date(startDate).toISOString() : "undefined"})`
-    );
 
     // Update the event with parsed timestamps
     await ctx.db.patch(args.eventId, {

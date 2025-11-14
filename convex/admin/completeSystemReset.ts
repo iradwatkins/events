@@ -9,7 +9,6 @@ import { v } from "convex/values";
 export const resetAllData = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log("🔴 STARTING COMPLETE SYSTEM RESET - This will delete ALL data");
 
     let totalDeleted = 0;
 
@@ -52,7 +51,6 @@ export const resetAllData = mutation({
 
     for (const tableName of tablesToReset) {
       try {
-        console.log(`  Deleting from ${tableName}...`);
 
         // Query all documents in the table
         const documents = await ctx.db.query(tableName as any).collect();
@@ -63,14 +61,11 @@ export const resetAllData = mutation({
           totalDeleted++;
         }
 
-        console.log(`    ✓ Deleted ${documents.length} records from ${tableName}`);
       } catch (error: any) {
         // If table doesn't exist or query fails, log but continue
-        console.log(`    ⚠️  Could not delete from ${tableName}: ${error.message}`);
       }
     }
 
-    console.log(`🟢 COMPLETE SYSTEM RESET FINISHED - Total records deleted: ${totalDeleted}`);
 
     return {
       success: true,

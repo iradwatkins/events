@@ -78,9 +78,6 @@ export const setupConsignment = mutation({
       });
     }
 
-    console.log(
-      `[setupConsignment] Set up consignment for event ${args.eventId} with ${args.floatedTickets} tickets`
-    );
 
     return {
       success: true,
@@ -298,9 +295,6 @@ export const settleConsignment = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log(
-      `[settleConsignment] Settled consignment for event ${args.eventId}. Amount: ${settlementAmount} cents`
-    );
 
     return {
       success: true,

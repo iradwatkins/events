@@ -90,7 +90,6 @@ export default function CreateEventPage() {
       const hasNoCredits = !creditBalance || creditBalance.creditsRemaining === 0;
 
       if (isFirstEvent && hasNoCredits) {
-        console.log("[CreateEvent] First-time organizer detected - showing welcome popup");
         setShowWelcomePopup(true);
       }
     }
@@ -100,7 +99,6 @@ export default function CreateEventPage() {
     setShowWelcomePopup(false);
     try {
       await markWelcomePopupShown();
-      console.log("[CreateEvent] Welcome popup marked as shown");
     } catch (error) {
       console.error("[CreateEvent] Failed to mark welcome popup as shown:", error);
     }
@@ -121,9 +119,7 @@ export default function CreateEventPage() {
   // Debug: Test authentication
   const handleTestAuth = async () => {
     try {
-      console.log("[DEBUG] Testing authentication...");
       const result = await testAuth({});
-      console.log("[DEBUG] Auth test result:", result);
       alert(JSON.stringify(result, null, 2));
     } catch (error: any) {
       console.error("[DEBUG] Auth test failed:", error);
@@ -208,12 +204,6 @@ export default function CreateEventPage() {
       const eventDateLiteral = formatDate(startDateObj, "MMMM d, yyyy");
       const eventTimeLiteral = formatDate(startDateObj, "h:mm a");
 
-      console.log(`[CREATE EVENT] Converting dates:`);
-      console.log(`  Input: ${startDate}`);
-      console.log(`  Timezone: ${timezone}`);
-      console.log(`  UTC Timestamp: ${startDateUTC}`);
-      console.log(`  Literal Date: ${eventDateLiteral}`);
-      console.log(`  Literal Time: ${eventTimeLiteral}`);
 
       const eventData = {
         name: eventName,
@@ -240,27 +230,18 @@ export default function CreateEventPage() {
         images: uploadedImageId ? [uploadedImageId] : [],
       };
 
-      console.log("[CREATE EVENT] Submitting event data:", eventData);
-      console.log("[CREATE EVENT] Session status:", status);
       // console.log("[CREATE EVENT] Session user:", session?.user);
 
       const eventId = await createEvent(eventData);
 
-      console.log("[CREATE EVENT] Event created successfully:", eventId);
-      console.log("[CREATE EVENT] Event ID type:", typeof eventId);
-      console.log("[CREATE EVENT] Event ID value:", eventId);
 
       if (!eventId) {
         throw new Error("No event ID returned from server");
       }
 
       // Tickets will be created on dedicated tickets page after event creation
-      console.log("[CREATE EVENT] Event created successfully");
-      console.log("[CREATE EVENT] Event type selected:", eventType);
-      console.log("[CREATE EVENT] Event ID:", eventId);
 
       // Always redirect to events list where organizer can add tickets
-      console.log("[CREATE EVENT] Redirecting to events dashboard...");
       router.push("/organizer/events");
 
       // Reset after a delay to allow redirect to happen

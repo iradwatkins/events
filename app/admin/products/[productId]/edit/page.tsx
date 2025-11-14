@@ -68,9 +68,6 @@ export default function EditProductPage() {
   // Load product data when it becomes available
   useEffect(() => {
     if (product) {
-      console.log("📦 Loading product data:", product);
-      console.log("🖼️ Product images:", product.images);
-      console.log("🌟 Primary image:", product.primaryImage);
 
       setFormData({
         name: product.name,
@@ -92,8 +89,6 @@ export default function EditProductPage() {
       setUploadedImages(product.images || []);
       setHasVariants(product.hasVariants || false);
 
-      console.log("✅ Uploaded images state set to:", product.images || []);
-      console.log("✅ Has variants:", product.hasVariants);
     }
   }, [product]);
 
@@ -139,24 +134,18 @@ export default function EditProductPage() {
   const onAdditionalImagesDrop = async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
-    console.log("📤 Uploading additional images:", acceptedFiles.length);
     setIsUploading(true);
 
     try {
       const uploadPromises = acceptedFiles.map(async (file, index) => {
-        console.log(`📸 Uploading image ${index + 1}/${acceptedFiles.length}:`, file.name);
         setUploadProgress((prev) => ({ ...prev, [`additional-${index}`]: true }));
         const url = await uploadImage(file);
-        console.log(`✅ Image ${index + 1} uploaded:`, url);
         setUploadProgress((prev) => ({ ...prev, [`additional-${index}`]: false }));
         return url;
       });
 
       const urls = await Promise.all(uploadPromises);
-      console.log("📦 All uploaded URLs:", urls);
       const newImages = [...uploadedImages, ...urls];
-      console.log("🖼️ Current images:", uploadedImages);
-      console.log("🎨 New images array:", newImages);
       setUploadedImages(newImages);
     } catch (error) {
       console.error("❌ Upload error:", error);

@@ -12,7 +12,6 @@ export const publishAllDraftEvents = mutation({
       .withIndex("by_status", (q) => q.eq("status", "DRAFT"))
       .collect();
 
-    console.log(`[ADMIN] Found ${draftEvents.length} draft events to publish`);
 
     const results = [];
     for (const event of draftEvents) {
@@ -24,7 +23,6 @@ export const publishAllDraftEvents = mutation({
         id: event._id,
         name: event.name,
       });
-      console.log(`[ADMIN] Published: ${event.name}`);
     }
 
     return {
@@ -66,7 +64,6 @@ export const deleteEvent = mutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-    console.log(`[ADMIN] Deleting event: ${args.eventId}`);
 
     const event = await ctx.db.get(args.eventId);
     if (!event) {
@@ -75,7 +72,6 @@ export const deleteEvent = mutation({
 
     await ctx.db.delete(args.eventId);
 
-    console.log(`[ADMIN] Deleted event: ${event.name}`);
 
     return {
       success: true,

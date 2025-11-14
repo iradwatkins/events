@@ -153,7 +153,6 @@ export default function EventDashboardPage() {
           url: eventUrl,
         });
       } catch (err) {
-        console.log("Error sharing:", err);
       }
     } else {
       // Fallback: copy to clipboard

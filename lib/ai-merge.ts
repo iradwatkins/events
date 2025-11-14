@@ -203,9 +203,7 @@ function getMajorityValue(
       selected: majorityValue
     });
   } else if (maxCount === 3) {
-    console.log(`✅ [AI Verification] Field "${fieldName}" - Perfect agreement (3/3):`, majorityValue);
   } else {
-    console.log(`✓  [AI Verification] Field "${fieldName}" - Majority agreement (2/3):`, majorityValue);
   }
 
   // If all disagree and it's a string, prefer the longest
@@ -217,7 +215,6 @@ function getMajorityValue(
       return longest;
     }, nonNullValues[0]);
 
-    console.log(`   → Using longest value for "${fieldName}":`, longest);
     return longest;
   }
 

@@ -15,7 +15,6 @@ export const deleteAllUsersExcept = internalMutation({
     keepEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    console.log(`[CLEANUP] Deleting all users except: ${args.keepEmail}`);
 
     const allUsers = await ctx.db.query("users").collect();
     let deletedCount = 0;
@@ -24,11 +23,9 @@ export const deleteAllUsersExcept = internalMutation({
       if (user.email !== args.keepEmail) {
         await ctx.db.delete(user._id);
         deletedCount++;
-        console.log(`[CLEANUP] Deleted user: ${user.email}`);
       }
     }
 
-    console.log(`[CLEANUP] Deleted ${deletedCount} users, kept ${args.keepEmail}`);
     return { deletedCount, kept: args.keepEmail };
   },
 });
@@ -39,7 +36,6 @@ export const deleteAllUsersExcept = internalMutation({
 export const deleteAllEvents = internalMutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[CLEANUP] Deleting all events...");
 
     const allEvents = await ctx.db.query("events").collect();
     let deletedCount = 0;
@@ -49,7 +45,6 @@ export const deleteAllEvents = internalMutation({
       deletedCount++;
     }
 
-    console.log(`[CLEANUP] Deleted ${deletedCount} events`);
     return { deletedCount };
   },
 });
@@ -60,7 +55,6 @@ export const deleteAllEvents = internalMutation({
 export const deleteAllTickets = internalMutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[CLEANUP] Deleting all tickets...");
 
     const allTickets = await ctx.db.query("tickets").collect();
     let deletedCount = 0;
@@ -70,7 +64,6 @@ export const deleteAllTickets = internalMutation({
       deletedCount++;
     }
 
-    console.log(`[CLEANUP] Deleted ${deletedCount} tickets`);
     return { deletedCount };
   },
 });
@@ -81,7 +74,6 @@ export const deleteAllTickets = internalMutation({
 export const deleteAllOrders = internalMutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[CLEANUP] Deleting all orders...");
 
     const allOrders = await ctx.db.query("orders").collect();
     let deletedCount = 0;
@@ -91,7 +83,6 @@ export const deleteAllOrders = internalMutation({
       deletedCount++;
     }
 
-    console.log(`[CLEANUP] Deleted ${deletedCount} orders`);
     return { deletedCount };
   },
 });
@@ -102,7 +93,6 @@ export const deleteAllOrders = internalMutation({
 export const deleteAllEventStaff = internalMutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[CLEANUP] Deleting all event staff...");
 
     const allStaff = await ctx.db.query("eventStaff").collect();
     let deletedCount = 0;
@@ -112,7 +102,6 @@ export const deleteAllEventStaff = internalMutation({
       deletedCount++;
     }
 
-    console.log(`[CLEANUP] Deleted ${deletedCount} staff assignments`);
     return { deletedCount };
   },
 });
@@ -123,7 +112,6 @@ export const deleteAllEventStaff = internalMutation({
 export const deleteAllBundles = internalMutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[CLEANUP] Deleting all bundles...");
 
     const allBundles = await ctx.db.query("eventBundles").collect();
     let deletedCount = 0;
@@ -133,7 +121,6 @@ export const deleteAllBundles = internalMutation({
       deletedCount++;
     }
 
-    console.log(`[CLEANUP] Deleted ${deletedCount} bundles`);
     return { deletedCount };
   },
 });
@@ -144,7 +131,6 @@ export const deleteAllBundles = internalMutation({
 export const deleteAllSettlements = internalMutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[CLEANUP] Deleting all settlements...");
 
     const allSettlements = await ctx.db.query("settlements").collect();
     let deletedCount = 0;
@@ -154,7 +140,6 @@ export const deleteAllSettlements = internalMutation({
       deletedCount++;
     }
 
-    console.log(`[CLEANUP] Deleted ${deletedCount} settlements`);
     return { deletedCount };
   },
 });
@@ -167,9 +152,6 @@ export const completeReset = internalMutation({
     keepUserEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    console.log("[CLEANUP] ⚠️  STARTING COMPLETE DATABASE RESET ⚠️");
-    console.log(`[CLEANUP] Keeping user: ${args.keepUserEmail}`);
-    console.log("[CLEANUP] Keeping: ALL products");
 
     const results = {
       users: 0,
@@ -182,7 +164,6 @@ export const completeReset = internalMutation({
     };
 
     // Delete tickets
-    console.log("[CLEANUP] Deleting all tickets...");
     const allTickets = await ctx.db.query("tickets").collect();
     for (const ticket of allTickets) {
       await ctx.db.delete(ticket._id);
@@ -190,7 +171,6 @@ export const completeReset = internalMutation({
     }
 
     // Delete orders
-    console.log("[CLEANUP] Deleting all orders...");
     const allOrders = await ctx.db.query("orders").collect();
     for (const order of allOrders) {
       await ctx.db.delete(order._id);
@@ -198,7 +178,6 @@ export const completeReset = internalMutation({
     }
 
     // Delete event staff
-    console.log("[CLEANUP] Deleting all event staff...");
     const allStaff = await ctx.db.query("eventStaff").collect();
     for (const staff of allStaff) {
       await ctx.db.delete(staff._id);
@@ -206,7 +185,6 @@ export const completeReset = internalMutation({
     }
 
     // Delete bundles
-    console.log("[CLEANUP] Deleting all bundles...");
     const allBundles = await ctx.db.query("eventBundles").collect();
     for (const bundle of allBundles) {
       await ctx.db.delete(bundle._id);
@@ -214,7 +192,6 @@ export const completeReset = internalMutation({
     }
 
     // Delete settlements
-    console.log("[CLEANUP] Deleting all settlements...");
     const allSettlements = await ctx.db.query("settlements").collect();
     for (const settlement of allSettlements) {
       await ctx.db.delete(settlement._id);
@@ -222,7 +199,6 @@ export const completeReset = internalMutation({
     }
 
     // Delete events
-    console.log("[CLEANUP] Deleting all events...");
     const allEvents = await ctx.db.query("events").collect();
     for (const event of allEvents) {
       await ctx.db.delete(event._id);
@@ -230,27 +206,14 @@ export const completeReset = internalMutation({
     }
 
     // Delete users except the one to keep
-    console.log("[CLEANUP] Deleting all users except:", args.keepUserEmail);
     const allUsers = await ctx.db.query("users").collect();
     for (const user of allUsers) {
       if (user.email !== args.keepUserEmail) {
         await ctx.db.delete(user._id);
         results.users++;
-        console.log(`[CLEANUP] Deleted user: ${user.email}`);
       }
     }
 
-    console.log("[CLEANUP] ✅ COMPLETE RESET FINISHED");
-    console.log(`[CLEANUP] Summary:
-      - Users deleted: ${results.users}
-      - Events deleted: ${results.events}
-      - Tickets deleted: ${results.tickets}
-      - Orders deleted: ${results.orders}
-      - Staff deleted: ${results.staff}
-      - Bundles deleted: ${results.bundles}
-      - Settlements deleted: ${results.settlements}
-      - Products: KEPT (not deleted)
-    `);
 
     return results;
   },

@@ -52,7 +52,6 @@ export const createCashOrder = mutation({
     const now = Date.now();
     const holdExpiresAt = now + CASH_HOLD_DURATION;
 
-    console.log(`[createCashOrder] Creating cash order for ${args.buyerName}`);
 
     // Get event
     const event = await ctx.db.get(args.eventId);
@@ -114,9 +113,6 @@ export const createCashOrder = mutation({
       updatedAt: now,
     });
 
-    console.log(
-      `[createCashOrder] Order created: ${orderId}, expires at: ${new Date(holdExpiresAt).toISOString()}`
-    );
 
     // Create ticket placeholders (not activated yet)
     const ticketIds = [];
@@ -175,7 +171,6 @@ export const approveCashOrder = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    console.log(`[approveCashOrder] Staff ${args.staffId} approving order ${args.orderId}`);
 
     // Get order
     const order = await ctx.db.get(args.orderId);
@@ -268,9 +263,6 @@ export const approveCashOrder = mutation({
       createdAt: now,
     });
 
-    console.log(
-      `[approveCashOrder] Order approved: ${args.orderId}, ${ticketCount} tickets activated`
-    );
 
     return {
       success: true,
@@ -293,9 +285,6 @@ export const generateCashActivationCode = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    console.log(
-      `[generateCashActivationCode] Staff ${args.staffId} generating code for order ${args.orderId}`
-    );
 
     // Get order
     const order = await ctx.db.get(args.orderId);
@@ -347,9 +336,6 @@ export const generateCashActivationCode = mutation({
       updatedAt: now,
     });
 
-    console.log(
-      `[generateCashActivationCode] Code generated: ${activationCode} for ${tickets.length} tickets`
-    );
 
     return {
       success: true,

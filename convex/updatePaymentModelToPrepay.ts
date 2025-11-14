@@ -10,7 +10,6 @@ export const updateToPrepay = internalMutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-    console.log(`[updateToPrepay] Updating payment config for event: ${args.eventId}`);
 
     // Get payment config
     const paymentConfig = await ctx.db
@@ -22,7 +21,6 @@ export const updateToPrepay = internalMutation({
       throw new Error("No payment config found for this event");
     }
 
-    console.log(`[updateToPrepay] Current model: ${paymentConfig.paymentModel}`);
 
     // Update to PREPAY model
     await ctx.db.patch(paymentConfig._id, {
@@ -34,7 +32,6 @@ export const updateToPrepay = internalMutation({
       updatedAt: Date.now(),
     });
 
-    console.log(`[updateToPrepay] Updated to PREPAY model`);
 
     return {
       success: true,

@@ -328,7 +328,6 @@ export const updatePasswordHash = mutation({
     }
 
     // Log admin action for security audit
-    console.log(`[ADMIN ACTION] ${adminUser.email} updated password for user ${args.userId}`);
 
     await ctx.db.patch(args.userId, {
       passwordHash: args.passwordHash,
@@ -382,9 +381,6 @@ export const updateUserRole = mutation({
     }
 
     // Log admin action for security audit
-    console.log(
-      `[ADMIN ACTION] ${adminUser.email} changed role for user ${args.userId} to ${args.role}`
-    );
 
     await ctx.db.patch(args.userId, {
       role: args.role,
@@ -424,10 +420,6 @@ export const updateUserPermissions = mutation({
     }
 
     // Log admin action for security audit
-    console.log(
-      `[ADMIN ACTION] ${adminUser.email} ${args.canCreateTicketedEvents ? "granted" : "revoked"} ` +
-        `ticketed event creation permission for user ${args.userId}`
-    );
 
     await ctx.db.patch(args.userId, {
       canCreateTicketedEvents: args.canCreateTicketedEvents,
@@ -643,9 +635,6 @@ export const deleteUser = mutation({
     }
 
     // Log admin action for security audit
-    console.log(
-      `[ADMIN ACTION] ${adminUser.email} deleted user ${userToDelete.email} (${args.userId})`
-    );
 
     // Delete the user
     await ctx.db.delete(args.userId);

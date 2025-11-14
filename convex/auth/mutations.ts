@@ -104,7 +104,6 @@ export const storeMagicLinkToken = mutation({
         updatedAt: now,
       });
 
-      console.log(`[Magic Link] Created new user: ${args.email}`);
       return userId;
     } else {
       // Update existing user with magic link token
@@ -114,7 +113,6 @@ export const storeMagicLinkToken = mutation({
         updatedAt: now,
       });
 
-      console.log(`[Magic Link] Updated token for user: ${args.email}`);
       return user._id;
     }
   },
@@ -136,13 +134,11 @@ export const verifyMagicLinkToken = mutation({
       .first();
 
     if (!user) {
-      console.log("[Magic Link] Token not found");
       return null;
     }
 
     // Check if token is expired
     if (user.magicLinkExpiry && Date.now() > user.magicLinkExpiry) {
-      console.log("[Magic Link] Token expired");
       // Clear expired token
       await ctx.db.patch(user._id, {
         magicLinkToken: undefined,
@@ -180,7 +176,6 @@ export const verifyMagicLinkToken = mutation({
       }
     }
 
-    console.log(`[Magic Link] Successfully verified user: ${user.email}`);
     return user;
   },
 });
@@ -202,7 +197,6 @@ export const storePasswordResetToken = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log(`[Password Reset] Token stored for user ID: ${args.userId}`);
     return { success: true };
   },
 });
@@ -253,7 +247,6 @@ export const resetPassword = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log(`[Password Reset] Password reset successfully for: ${user.email}`);
 
     return {
       success: true,

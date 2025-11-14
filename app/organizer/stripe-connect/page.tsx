@@ -88,7 +88,6 @@ function StripeConnectContent() {
         throw new Error(data.error || "Failed to create Stripe account");
       }
 
-      console.log("[Stripe Connect] Account created, redirecting to onboarding...");
 
       // Redirect to Stripe onboarding
       window.location.href = data.accountLinkUrl;
@@ -119,7 +118,6 @@ function StripeConnectContent() {
         throw new Error(data.error || "Failed to refresh account link");
       }
 
-      console.log("[Stripe Connect] Account link refreshed, redirecting...");
 
       // Redirect to Stripe onboarding
       window.location.href = data.accountLinkUrl;

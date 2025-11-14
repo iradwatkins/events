@@ -27,9 +27,6 @@ export async function GET(
     const { filename } = await params;
     const storagePath = getStoragePath();
 
-    console.log(`[Product Image] Request for: ${filename}`);
-    console.log(`[Product Image] Storage path: ${storagePath}`);
-    console.log(`[Product Image] NODE_ENV: ${process.env.NODE_ENV}`);
 
     // Security: Only allow .jpg files and prevent directory traversal
     if (!filename.endsWith(".jpg") || filename.includes("..") || filename.includes("/")) {
@@ -38,7 +35,6 @@ export async function GET(
     }
 
     const filepath = path.join(storagePath, filename);
-    console.log(`[Product Image] Full path: ${filepath}`);
 
     if (!existsSync(filepath)) {
       console.error(`[Product Image] File not found: ${filepath}`);
@@ -49,7 +45,6 @@ export async function GET(
     }
 
     const imageBuffer = await readFile(filepath);
-    console.log(`[Product Image] Successfully loaded: ${filename} (${imageBuffer.length} bytes)`);
 
     return new NextResponse(imageBuffer, {
       headers: {

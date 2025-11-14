@@ -163,7 +163,6 @@ export default function BulkFlyerUploadPage() {
           extractedData = extractData.extractedData;
         }
 
-        console.log("✅ AI Extraction Complete:", extractedData);
 
         // Save extracted data to database
         await updateExtractedData({
@@ -187,9 +186,7 @@ export default function BulkFlyerUploadPage() {
         // If auto-process is enabled, automatically publish the event
         if (autoProcess) {
           try {
-            console.log("🚀 Auto-publishing event...");
             await autoCreateEvent({ flyerId: logResult.flyerId });
-            console.log("✅ Event auto-published successfully!");
           } catch (publishError) {
             console.error("❌ Auto-publish failed:", publishError);
             // Keep the flyer in draft if auto-publish fails
@@ -264,9 +261,7 @@ export default function BulkFlyerUploadPage() {
 
   const handleDeleteFlyer = async (flyerId: Id<"uploadedFlyers">) => {
     try {
-      console.log(`🗑️ Deleting flyer: ${flyerId}`);
       await deleteFlyer({ flyerId });
-      console.log(`✅ Flyer deleted successfully: ${flyerId}`);
 
       // Give the backend a moment to complete file deletion
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -275,7 +270,6 @@ export default function BulkFlyerUploadPage() {
       setDuplicateHash(null);
       setDuplicateFile(null);
 
-      console.log(`✅ Cleanup complete - ready for re-upload`);
       // Page will auto-refresh via Convex reactivity
     } catch (error) {
       console.error(`❌ Failed to delete flyer:`, error);
@@ -309,7 +303,6 @@ export default function BulkFlyerUploadPage() {
       const draftFlyer = draftFlyers?.find((f) => f._id === flyerId);
       if (!draftFlyer) return;
 
-      console.log(`🔄 Retrying AI extraction for: ${filepath}`);
 
       const extractResponse = await fetch("/api/ai/extract-flyer-data", {
         method: "POST",
@@ -337,7 +330,6 @@ export default function BulkFlyerUploadPage() {
         extractedData = extractData.extractedData;
       }
 
-      console.log("✅ AI Retry Extraction Complete:", extractedData);
 
       // Save extracted data to database
       await updateExtractedData({

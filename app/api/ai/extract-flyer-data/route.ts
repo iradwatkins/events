@@ -618,7 +618,6 @@ If you used actual newlines in the JSON string values, GO BACK and replace them 
 BEGIN TWO-PHASE EXTRACTION NOW.`;
 
     // Call Ollama Vision API
-    console.log("[Ollama] Sending request to llama3.2-vision:11b...");
     const ollamaResponse = await fetch(`${ollamaUrl}/api/generate`, {
       method: "POST",
       headers: {
@@ -649,7 +648,6 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
       throw new Error("No response from Ollama");
     }
 
-    console.log("[Ollama] Received response, length:", extractedText.length);
 
     // Parse the JSON response
     let extractedData: any;
@@ -683,11 +681,6 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
       ) {
         // The description should already have \n characters from proper JSON
         // No need to modify it - JSON.parse handles this correctly
-        console.log("[AI Extraction] Description length:", extractedData.description.length);
-        console.log(
-          "[AI Extraction] Description contains line breaks:",
-          extractedData.description.includes("\n")
-        );
       }
 
       // Check if AI returned an error response
@@ -704,7 +697,6 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
         if (isSaveTheDate) {
           // Save the Date flyers only need name and date
           if (partialData.eventName && partialData.eventDate) {
-            console.log("✅ Save the Date flyer - accepting with partial data (name + date only)");
             // Return success with partial data
             return NextResponse.json({
               success: true,
@@ -808,25 +800,7 @@ BEGIN TWO-PHASE EXTRACTION NOW.`;
       }
 
       if (isSaveTheDate) {
-        console.log("✅ [AI Extraction Success] Save the Date flyer - name + date extracted:");
-        console.log({
-          eventName: extractedData.eventName,
-          eventDate: extractedData.eventDate,
-          eventEndDate: extractedData.eventEndDate || "(single-day event)",
-          eventType: "SAVE_THE_DATE",
-        });
       } else {
-        console.log("✅ [AI Extraction Success] All required fields present:");
-        console.log({
-          eventName: extractedData.eventName,
-          eventDate: extractedData.eventDate,
-          eventEndDate: extractedData.eventEndDate || "(single-day event)",
-          eventTime: extractedData.eventTime,
-          eventEndTime: extractedData.eventEndTime || "(not specified)",
-          venueName: extractedData.venueName,
-          city: extractedData.city,
-          state: extractedData.state,
-        });
       }
     } catch (parseError) {
       console.error("❌ FAILED TO PARSE GEMINI RESPONSE");

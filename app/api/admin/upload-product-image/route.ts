@@ -54,13 +54,10 @@ export async function POST(request: NextRequest) {
     // Calculate file hash for unique naming
     const fileHash = await calculateFileHash(buffer);
     const timestamp = Date.now();
-    console.log(`📸 Uploading product image: ${file.name} (hash: ${fileHash})`);
-    console.log(`📁 Storage path: ${storagePath}`);
 
     // Ensure storage directory exists
     if (!existsSync(storagePath)) {
       await mkdir(storagePath, { recursive: true });
-      console.log(`📁 Created product images directory: ${storagePath}`);
     }
 
     // Optimize image with sharp
@@ -87,7 +84,6 @@ export async function POST(request: NextRequest) {
     const savedBytes = originalSize - optimizedSize;
     const savedPercent = ((savedBytes / originalSize) * 100).toFixed(1);
 
-    console.log(`✅ Product image uploaded: ${filename} (saved ${savedPercent}%)`);
 
     // Return relative URL (served via Next.js API route)
     const publicUrl = `/api/product-images/${filename}`;

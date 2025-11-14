@@ -7,7 +7,6 @@ import { mutation } from "./_generated/server";
 export const activateAllTickets = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[activateAllTickets] Starting ticket activation...");
 
     // Get all TICKETED_EVENT events
     const events = await ctx.db
@@ -15,7 +14,6 @@ export const activateAllTickets = mutation({
       .filter((q) => q.eq(q.field("eventType"), "TICKETED_EVENT"))
       .collect();
 
-    console.log(`[activateAllTickets] Found ${events.length} ticketed events`);
 
     let updated = 0;
     let paymentConfigsCreated = 0;
@@ -26,7 +24,6 @@ export const activateAllTickets = mutation({
         ticketsVisible: true,
       });
       updated++;
-      console.log(`[activateAllTickets] Set ticketsVisible for: ${event.name}`);
 
       // Check if payment config exists
       const paymentConfig = await ctx.db
@@ -51,7 +48,6 @@ export const activateAllTickets = mutation({
           updatedAt: Date.now(),
         });
         paymentConfigsCreated++;
-        console.log(`[activateAllTickets] Created PREPAY (cash) payment config for: ${event.name}`);
       } else if (!paymentConfig.isActive) {
         // Activate existing payment config
         await ctx.db.patch(paymentConfig._id, {
@@ -60,15 +56,10 @@ export const activateAllTickets = mutation({
           updatedAt: Date.now(),
         });
         paymentConfigsCreated++;
-        console.log(`[activateAllTickets] Activated payment config for: ${event.name}`);
       } else {
-        console.log(`[activateAllTickets] Payment config already active for: ${event.name}`);
       }
     }
 
-    console.log(
-      `[activateAllTickets] Complete: ${updated} events updated, ${paymentConfigsCreated} payment configs created/activated`
-    );
 
     return {
       success: true,

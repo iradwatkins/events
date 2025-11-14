@@ -8,7 +8,6 @@ import { v } from "convex/values";
 export const seedTestEvents = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[SEED] Starting test event creation...");
 
     // Get or create test organizer
     let testOrganizer = await ctx.db
@@ -17,7 +16,6 @@ export const seedTestEvents = mutation({
       .first();
 
     if (!testOrganizer) {
-      console.log("[SEED] Creating test organizer...");
       const organizerId = await ctx.db.insert("users", {
         email: "iradwatkins@gmail.com",
         name: "Test Organizer",
@@ -28,10 +26,8 @@ export const seedTestEvents = mutation({
       testOrganizer = await ctx.db.get(organizerId);
     }
 
-    console.log("[SEED] Test organizer:", testOrganizer?._id);
 
     // Event 1: SAVE_THE_DATE
-    console.log("[SEED] Creating SAVE_THE_DATE event...");
     const saveTheDateId = await ctx.db.insert("events", {
       name: "SteppersLife Spring Mixer 2026 - TEST",
       description:
@@ -56,10 +52,8 @@ export const seedTestEvents = mutation({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    console.log("[SEED] ✅ SAVE_THE_DATE created:", saveTheDateId);
 
     // Event 2: FREE_EVENT with Door Price
-    console.log("[SEED] Creating FREE_EVENT...");
     const freeEventId = await ctx.db.insert("events", {
       name: "Community Dance Night - TEST FREE",
       description:
@@ -85,10 +79,8 @@ export const seedTestEvents = mutation({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    console.log("[SEED] ✅ FREE_EVENT created:", freeEventId);
 
     // Event 3: TICKETED_EVENT with Multiple Tiers
-    console.log("[SEED] Creating TICKETED_EVENT...");
     const ticketedEventId = await ctx.db.insert("events", {
       name: "SteppersLife Annual Gala - TEST PAID",
       description:
@@ -116,10 +108,8 @@ export const seedTestEvents = mutation({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    console.log("[SEED] ✅ TICKETED_EVENT created:", ticketedEventId);
 
     // Create Payment Config for Ticketed Event
-    console.log("[SEED] Creating payment config...");
     const paymentConfigId = await ctx.db.insert("eventPaymentConfig", {
       eventId: ticketedEventId,
       organizerId: testOrganizer!._id,
@@ -134,10 +124,8 @@ export const seedTestEvents = mutation({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    console.log("[SEED] ✅ Payment config created:", paymentConfigId);
 
     // Create Ticket Tiers
-    console.log("[SEED] Creating ticket tiers...");
 
     const tier1Id = await ctx.db.insert("ticketTiers", {
       eventId: ticketedEventId,
@@ -150,7 +138,6 @@ export const seedTestEvents = mutation({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    console.log("[SEED] ✅ Tier 1 created: Early Bird");
 
     const tier2Id = await ctx.db.insert("ticketTiers", {
       eventId: ticketedEventId,
@@ -163,7 +150,6 @@ export const seedTestEvents = mutation({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    console.log("[SEED] ✅ Tier 2 created: General Admission");
 
     const tier3Id = await ctx.db.insert("ticketTiers", {
       eventId: ticketedEventId,
@@ -176,7 +162,6 @@ export const seedTestEvents = mutation({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    console.log("[SEED] ✅ Tier 3 created: VIP");
 
     const tier4Id = await ctx.db.insert("ticketTiers", {
       eventId: ticketedEventId,
@@ -189,23 +174,7 @@ export const seedTestEvents = mutation({
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
-    console.log("[SEED] ✅ Tier 4 created: Student");
 
-    console.log("[SEED] ========================================");
-    console.log("[SEED] ✅ ALL TEST EVENTS CREATED SUCCESSFULLY!");
-    console.log("[SEED] ========================================");
-    console.log("[SEED] SAVE_THE_DATE ID:", saveTheDateId);
-    console.log("[SEED] FREE_EVENT ID:", freeEventId);
-    console.log("[SEED] TICKETED_EVENT ID:", ticketedEventId);
-    console.log("[SEED]");
-    console.log("[SEED] 📋 View events at:");
-    console.log("[SEED] - Homepage: https://events.stepperslife.com");
-    console.log("[SEED] - SAVE_THE_DATE: https://events.stepperslife.com/events/" + saveTheDateId);
-    console.log("[SEED] - FREE_EVENT: https://events.stepperslife.com/events/" + freeEventId);
-    console.log(
-      "[SEED] - TICKETED_EVENT: https://events.stepperslife.com/events/" + ticketedEventId
-    );
-    console.log("[SEED] ========================================");
 
     return {
       success: true,
@@ -227,7 +196,6 @@ export const seedTestEvents = mutation({
 export const createShowcaseEvents = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[SHOWCASE] Creating 4 showcase events...");
 
     // Get or create test organizer
     let testOrganizer = await ctx.db
@@ -236,7 +204,6 @@ export const createShowcaseEvents = mutation({
       .first();
 
     if (!testOrganizer) {
-      console.log("[SHOWCASE] Creating test organizer...");
       const organizerId = await ctx.db.insert("users", {
         email: "iradwatkins@gmail.com",
         name: "Test Organizer",
@@ -247,10 +214,8 @@ export const createShowcaseEvents = mutation({
       testOrganizer = await ctx.db.get(organizerId);
     }
 
-    console.log("[SHOWCASE] Using organizer:", testOrganizer?._id);
 
     // EVENT 1: Intimate Jazz Night with Reserved Seating
-    console.log("[SHOWCASE] Creating Event 1: Jazz Night...");
     const jazzEventId = await ctx.db.insert("events", {
       name: "Intimate Jazz Night Under the Stars",
       description:
@@ -320,10 +285,8 @@ export const createShowcaseEvents = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log("[SHOWCASE] ✅ Jazz Night created:", jazzEventId);
 
     // EVENT 2: Tech Innovation Summit
-    console.log("[SHOWCASE] Creating Event 2: Tech Summit...");
     const techEventId = await ctx.db.insert("events", {
       name: "Tech Innovation Summit 2025",
       description:
@@ -405,10 +368,8 @@ export const createShowcaseEvents = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log("[SHOWCASE] ✅ Tech Summit created:", techEventId);
 
     // EVENT 3: Summer Music Festival
-    console.log("[SHOWCASE] Creating Event 3: Music Festival...");
     const festivalEventId = await ctx.db.insert("events", {
       name: "Sunset Music Festival 2026",
       description:
@@ -490,10 +451,8 @@ export const createShowcaseEvents = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log("[SHOWCASE] ✅ Music Festival created:", festivalEventId);
 
     // EVENT 4: Wine Tasting & Networking
-    console.log("[SHOWCASE] Creating Event 4: Wine Tasting...");
     const wineEventId = await ctx.db.insert("events", {
       name: "Executive Wine Tasting & Networking",
       description:
@@ -563,26 +522,7 @@ export const createShowcaseEvents = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log("[SHOWCASE] ✅ Wine Tasting created:", wineEventId);
 
-    console.log("[SHOWCASE] ========================================");
-    console.log("[SHOWCASE] ✅ ALL 4 SHOWCASE EVENTS CREATED!");
-    console.log("[SHOWCASE] ========================================");
-    console.log("[SHOWCASE]");
-    console.log("[SHOWCASE] 🎵 Jazz Night:", jazzEventId);
-    console.log("[SHOWCASE]    URL: https://events.stepperslife.com/events/" + jazzEventId);
-    console.log("[SHOWCASE]");
-    console.log("[SHOWCASE] 💻 Tech Summit:", techEventId);
-    console.log("[SHOWCASE]    URL: https://events.stepperslife.com/events/" + techEventId);
-    console.log("[SHOWCASE]");
-    console.log("[SHOWCASE] 🎸 Music Festival:", festivalEventId);
-    console.log("[SHOWCASE]    URL: https://events.stepperslife.com/events/" + festivalEventId);
-    console.log("[SHOWCASE]");
-    console.log("[SHOWCASE] 🍷 Wine Tasting:", wineEventId);
-    console.log("[SHOWCASE]    URL: https://events.stepperslife.com/events/" + wineEventId);
-    console.log("[SHOWCASE]");
-    console.log("[SHOWCASE] 📱 View all at: https://events.stepperslife.com");
-    console.log("[SHOWCASE] ========================================");
 
     return {
       success: true,
@@ -604,7 +544,6 @@ export const createShowcaseEvents = mutation({
 export const createDollarTest = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[SEED] Creating $1 test event...");
 
     // Get or create test organizer
     let testOrganizer = await ctx.db
@@ -613,7 +552,6 @@ export const createDollarTest = mutation({
       .first();
 
     if (!testOrganizer) {
-      console.log("[SEED] Creating test organizer...");
       const organizerId = await ctx.db.insert("users", {
         email: "iradwatkins@gmail.com",
         name: "Test Organizer",
@@ -682,10 +620,6 @@ export const createDollarTest = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log("[SEED] ✅ $1 TEST EVENT CREATED!");
-    console.log("[SEED] Event ID:", testEventId);
-    console.log("[SEED] URL: https://events.stepperslife.com/events/" + testEventId);
-    console.log("[SEED] Ticket Price: $1.00");
 
     return {
       success: true,

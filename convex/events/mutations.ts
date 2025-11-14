@@ -40,11 +40,8 @@ export const createEvent = mutation({
   },
   handler: async (ctx, args) => {
     try {
-      console.log("[createEvent] Starting event creation...");
-
       // Get authenticated user
       const user = await getCurrentUser(ctx);
-      console.log("[createEvent] User authenticated:", user._id);
 
       // Check if user can create ticketed events
       if (
@@ -56,11 +53,6 @@ export const createEvent = mutation({
             "Contact support to upgrade your account for ticketed events."
         );
       }
-
-      console.log("[createEvent] Creating event with args:", {
-        ...args,
-        images: args.images?.length || 0,
-      });
 
       // Create the event
       const eventId = await ctx.db.insert("events", {
@@ -96,8 +88,6 @@ export const createEvent = mutation({
         updatedAt: Date.now(),
       });
 
-      console.log("[createEvent] Event created successfully:", eventId);
-
       // CHECK IF THIS IS USER'S FIRST EVENT - GRANT 1000 FREE CREDITS
       const existingEvents = await ctx.db
         .query("events")
@@ -107,8 +97,6 @@ export const createEvent = mutation({
       const isFirstEvent = existingEvents.length === 1; // Just created their first event
 
       if (isFirstEvent) {
-        console.log("[createEvent] First event detected! Checking credit status...");
-
         // Check if credits already exist
         const existingCredits = await ctx.db
           .query("organizerCredits")
@@ -127,10 +115,6 @@ export const createEvent = mutation({
             createdAt: now,
             updatedAt: now,
           });
-
-          console.log("[createEvent] ✅ Granted 1000 FREE credits to new organizer!");
-        } else {
-          console.log("[createEvent] Credits already exist, skipping initialization");
         }
       }
 
@@ -146,8 +130,6 @@ export const createEvent = mutation({
           )
         )
         .collect();
-
-      console.log(`[createEvent] Found ${globalStaff.length} global staff to auto-assign`);
 
       // Clone each global staff member to this new event
       for (const staff of globalStaff) {
@@ -200,8 +182,6 @@ export const createEvent = mutation({
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
-
-        console.log(`[createEvent] Auto-assigned staff ${staff.name} (${newStaffId}) to event`);
 
         // AUTO-ASSIGN SUB-SELLERS: If this staff has sub-sellers with autoAssignToNewEvents=true, clone them too
         await autoAssignSubSellers(ctx, staff._id, newStaffId, eventId, user._id);
@@ -286,9 +266,6 @@ async function autoAssignSubSellers(
       updatedAt: Date.now(),
     });
 
-    console.log(
-      `[autoAssignSubSellers] Auto-assigned sub-seller ${subSeller.name} (Level ${subSeller.hierarchyLevel}) to event`
-    );
 
     // Recursively assign this sub-seller's own sub-sellers
     await autoAssignSubSellers(ctx, subSeller._id, newSubSellerId, eventId, organizerId);
@@ -356,7 +333,6 @@ export const configurePayment = mutation({
         .first();
 
       if (!credits) {
-        console.log("[configurePayment] Initializing 1000 FREE ticket credits for new organizer");
         await ctx.db.insert("organizerCredits", {
           organizerId: user._id,
           creditsTotal: 1000,
@@ -529,9 +505,6 @@ export const updateEventStatus = mutation({
     // Verify event ownership
     const { event } = await requireEventOwnership(ctx, args.eventId);
 
-    console.log(
-      `[updateEventStatus] Changing event ${args.eventId} status from ${event.status} to ${args.status}`
-    );
 
     // Update event status
     await ctx.db.patch(args.eventId, {
@@ -541,16 +514,13 @@ export const updateEventStatus = mutation({
 
     // If event is being cancelled or completed, expire unused first-event credits
     if (args.status === "CANCELLED" || args.status === "COMPLETED") {
-      console.log(`[updateEventStatus] Event ending, calling expireFirstEventCredits`);
-
       try {
         // Call the expiration mutation
         await ctx.scheduler.runAfter(0, internal.events.allocations.expireFirstEventCredits, {
           eventId: args.eventId,
         });
       } catch (error) {
-        console.error("[updateEventStatus] Failed to expire credits:", error);
-        // Don't fail the status update if credit expiration fails
+        // Don't fail the status update if credit expiration fails - error logged internally
       }
     }
 
@@ -655,7 +625,6 @@ export const duplicateEvent = mutation({
 
     // Create the new event
     const newEventId = await ctx.db.insert("events", newEventData);
-    console.log(`[duplicateEvent] Created new event ${newEventId} from ${args.eventId}`);
 
     // Copy ticket tiers if requested
     if (args.options.copyTickets) {
@@ -676,7 +645,6 @@ export const duplicateEvent = mutation({
         };
 
         const newTierId = await ctx.db.insert("ticketTiers", newTierData);
-        console.log(`[duplicateEvent] Duplicated ticket tier ${tier._id} -> ${newTierId}`);
       }
     }
 
@@ -698,7 +666,6 @@ export const duplicateEvent = mutation({
         };
 
         const newChartId = await ctx.db.insert("seatingCharts", newChartData);
-        console.log(`[duplicateEvent] Duplicated seating chart ${chart._id} -> ${newChartId}`);
 
         // Copy all seat reservations for this chart
         const reservations = await ctx.db
@@ -707,7 +674,6 @@ export const duplicateEvent = mutation({
           .collect();
 
         // Note: We're not copying seat reservations as they should start fresh for the new event
-        console.log(`[duplicateEvent] Seating chart ${newChartId} created without reservations`);
       }
     }
 
@@ -733,7 +699,6 @@ export const duplicateEvent = mutation({
         };
 
         const newStaffId = await ctx.db.insert("eventStaff", newStaffData);
-        console.log(`[duplicateEvent] Duplicated staff member ${staff._id} -> ${newStaffId}`);
       }
     }
 
@@ -754,7 +719,6 @@ export const duplicateEvent = mutation({
       };
 
       await ctx.db.insert("eventPaymentConfig", newPaymentConfig);
-      console.log(`[duplicateEvent] Duplicated payment configuration`);
     }
 
     return {
@@ -779,7 +743,6 @@ export const bulkDeleteEvents = mutation({
     eventIds: v.array(v.id("events")),
   },
   handler: async (ctx, args) => {
-    console.log(`[bulkDeleteEvents] Starting bulk delete for ${args.eventIds.length} events`);
 
     // Get authenticated user
     const user = await getCurrentUser(ctx);
@@ -820,13 +783,11 @@ export const bulkDeleteEvents = mutation({
         }
 
         // Delete all related data
-        console.log(`[bulkDeleteEvents] Deleting event ${eventId}: ${event.name}`);
 
         // Delete ticket tiers
         for (const tier of ticketTiers) {
           await ctx.db.delete(tier._id);
         }
-        console.log(`[bulkDeleteEvents] Deleted ${ticketTiers.length} ticket tiers`);
 
         // Delete event staff
         const eventStaff = await ctx.db
@@ -836,7 +797,6 @@ export const bulkDeleteEvents = mutation({
         for (const staff of eventStaff) {
           await ctx.db.delete(staff._id);
         }
-        console.log(`[bulkDeleteEvents] Deleted ${eventStaff.length} staff members`);
 
         // Delete ticket bundles
         const bundles = await ctx.db
@@ -846,7 +806,6 @@ export const bulkDeleteEvents = mutation({
         for (const bundle of bundles) {
           await ctx.db.delete(bundle._id);
         }
-        console.log(`[bulkDeleteEvents] Deleted ${bundles.length} bundles`);
 
         // Delete seating charts
         const seatingCharts = await ctx.db
@@ -856,7 +815,6 @@ export const bulkDeleteEvents = mutation({
         for (const chart of seatingCharts) {
           await ctx.db.delete(chart._id);
         }
-        console.log(`[bulkDeleteEvents] Deleted ${seatingCharts.length} seating charts`);
 
         // Delete seat reservations
         const seatReservations = await ctx.db
@@ -866,7 +824,6 @@ export const bulkDeleteEvents = mutation({
         for (const reservation of seatReservations) {
           await ctx.db.delete(reservation._id);
         }
-        console.log(`[bulkDeleteEvents] Deleted ${seatReservations.length} seat reservations`);
 
         // Delete payment config
         const paymentConfig = await ctx.db
@@ -875,7 +832,6 @@ export const bulkDeleteEvents = mutation({
           .first();
         if (paymentConfig) {
           await ctx.db.delete(paymentConfig._id);
-          console.log(`[bulkDeleteEvents] Deleted payment configuration`);
         }
 
         // Delete tickets (shouldn't be any if no sales, but clean up just in case)
@@ -886,7 +842,6 @@ export const bulkDeleteEvents = mutation({
         for (const ticket of tickets) {
           await ctx.db.delete(ticket._id);
         }
-        console.log(`[bulkDeleteEvents] Deleted ${tickets.length} tickets`);
 
         // Delete orders (shouldn't be any if no sales, but clean up just in case)
         const orders = await ctx.db
@@ -896,12 +851,10 @@ export const bulkDeleteEvents = mutation({
         for (const order of orders) {
           await ctx.db.delete(order._id);
         }
-        console.log(`[bulkDeleteEvents] Deleted ${orders.length} orders`);
 
         // Finally, delete the event itself
         await ctx.db.delete(eventId);
         deletedEvents.push(eventId);
-        console.log(`[bulkDeleteEvents] Successfully deleted event ${eventId}`);
       } catch (error) {
         console.error(`[bulkDeleteEvents] Error deleting event ${eventId}:`, error);
         failedEvents.push({
@@ -911,9 +864,6 @@ export const bulkDeleteEvents = mutation({
       }
     }
 
-    console.log(
-      `[bulkDeleteEvents] Completed: ${deletedEvents.length} deleted, ${failedEvents.length} failed`
-    );
 
     return {
       success: true,

@@ -45,7 +45,6 @@ export function CashAppQRPayment({
 
     const initializeCashAppPay = async () => {
       try {
-        console.log("[Cash App Pay] Initializing...", { appId, locationId, environment });
 
         // Validate credentials
         if (!appId || !locationId) {
@@ -69,13 +68,11 @@ export function CashAppQRPayment({
           throw new Error("Square SDK failed to load. Please refresh the page.");
         }
 
-        console.log("[Cash App Pay] Square SDK loaded");
 
         // Initialize payments
         const paymentsInstance = (window.Square as any).payments(appId, locationId);
         setPayments(paymentsInstance);
 
-        console.log("[Cash App Pay] Payments initialized");
 
         // Create payment request
         // IMPORTANT: Amount must be in dollars (not cents) as decimal string
@@ -90,7 +87,6 @@ export function CashAppQRPayment({
           },
         });
 
-        console.log("[Cash App Pay] Payment request created:", amountInDollars);
 
         // Create Cash App Pay options
         const options = {
@@ -98,22 +94,18 @@ export function CashAppQRPayment({
           referenceId: `order-${Date.now()}`,
         };
 
-        console.log("[Cash App Pay] Options:", options);
 
         // Initialize Cash App Pay
         const cashAppPayInstance = await paymentsInstance.cashAppPay(paymentRequest, options);
 
-        console.log("[Cash App Pay] Instance created");
 
         // Add tokenization event listener
         cashAppPayInstance.addEventListener("ontokenization", async (event: any) => {
-          console.log("[Cash App Pay] Tokenization event:", event);
           const { tokenResult } = event.detail;
           const tokenStatus = tokenResult.status;
 
           if (tokenStatus === "OK") {
             const token = tokenResult.token;
-            console.log("[Cash App Pay] Token received:", token);
 
             // Process payment with backend
             await handlePayment(token);
@@ -123,7 +115,6 @@ export function CashAppQRPayment({
           }
         });
 
-        console.log("[Cash App Pay] Event listener added");
 
         // Set isInitializing to false so the container div renders
         setIsInitializing(false);
@@ -144,7 +135,6 @@ export function CashAppQRPayment({
           throw new Error("Cash App Pay container not found");
         }
 
-        console.log("[Cash App Pay] Container found");
 
         // Attach Cash App Pay button
         const buttonOptions = {
@@ -154,7 +144,6 @@ export function CashAppQRPayment({
 
         await cashAppPayInstance.attach("#cash-app-pay", buttonOptions);
 
-        console.log("[Cash App Pay] Button attached successfully");
 
         setCashAppPay(cashAppPayInstance);
       } catch (err) {
@@ -206,13 +195,11 @@ export function CashAppQRPayment({
           ? "https://web.squarecdn.com/v1/square.js"
           : "https://sandbox.web.squarecdn.com/v1/square.js";
 
-      console.log("[Cash App Pay] Loading Square SDK from:", sdkUrl);
 
       script.src = sdkUrl;
       script.async = true;
 
       script.onload = () => {
-        console.log("[Cash App Pay] Square SDK script loaded");
         resolve(true);
       };
 
@@ -230,7 +217,6 @@ export function CashAppQRPayment({
     setError(null);
 
     try {
-      console.log("[Cash App Pay] Processing payment with token:", token);
 
       const response = await fetch("/api/checkout/process-square-payment", {
         method: "POST",
@@ -247,7 +233,6 @@ export function CashAppQRPayment({
       const result = await response.json();
 
       if (result.success) {
-        console.log("[Cash App Pay] Payment successful:", result);
         onPaymentSuccess(result);
       } else {
         throw new Error(result.error || "Payment failed");

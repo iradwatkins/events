@@ -486,10 +486,6 @@ export const expireFirstEventCredits = internalMutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-    console.log(
-      "[expireFirstEventCredits] Checking for credits to expire for event:",
-      args.eventId
-    );
 
     // Find credits linked to this event
     const creditsRecord = await ctx.db
@@ -498,13 +494,11 @@ export const expireFirstEventCredits = internalMutation({
       .first();
 
     if (!creditsRecord) {
-      console.log("[expireFirstEventCredits] No credits found for this event");
       return { success: true, expired: 0, message: "No credits linked to this event" };
     }
 
     // Check if there are any remaining credits from the first event free allocation
     if (creditsRecord.creditsRemaining <= 0) {
-      console.log("[expireFirstEventCredits] No remaining credits to expire");
       return { success: true, expired: 0, message: "No remaining credits to expire" };
     }
 
@@ -515,7 +509,6 @@ export const expireFirstEventCredits = internalMutation({
       .first();
 
     if (!config) {
-      console.log("[expireFirstEventCredits] No payment config found");
       return { success: true, expired: 0, message: "No payment config found" };
     }
 
@@ -529,7 +522,6 @@ export const expireFirstEventCredits = internalMutation({
     const unusedForThisEvent = (config.ticketsAllocated || 0) - totalAllocated;
 
     if (unusedForThisEvent <= 0) {
-      console.log("[expireFirstEventCredits] All allocated tickets were used");
       return {
         success: true,
         expired: 0,
@@ -545,10 +537,6 @@ export const expireFirstEventCredits = internalMutation({
       updatedAt: Date.now(),
     });
 
-    console.log(
-      `[expireFirstEventCredits] Expired ${expiredAmount} unused credits from first event. ` +
-        `New balance: ${creditsRecord.creditsRemaining - expiredAmount}`
-    );
 
     return {
       success: true,

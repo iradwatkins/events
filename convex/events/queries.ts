@@ -48,7 +48,6 @@ export const getOrganizerEvents = query({
   handler: async (ctx, args) => {
     // Return empty array if no userId provided
     if (!args.userId) {
-      console.log("[getOrganizerEvents] No userId provided, returning empty array");
       return [];
     }
 
@@ -60,15 +59,12 @@ export const getOrganizerEvents = query({
       return [];
     }
 
-    console.log("[getOrganizerEvents] User:", user.email, "Role:", user.role);
 
     // Admins see all events, organizers see only their events
     let events;
     if (user.role === "admin") {
-      console.log("[getOrganizerEvents] Admin user - fetching all events");
       events = await ctx.db.query("events").order("desc").collect();
     } else {
-      console.log("[getOrganizerEvents] Non-admin user - filtering by organizerId");
       // Filter events by organizerId for non-admin users
       events = await ctx.db
         .query("events")
@@ -77,7 +73,6 @@ export const getOrganizerEvents = query({
         .collect();
     }
 
-    console.log("[getOrganizerEvents] Returning", events.length, "events");
 
     // Convert storage IDs to URLs for images
     const eventsWithImageUrls = await Promise.all(

@@ -7,12 +7,8 @@ export const testAuth = mutation({
   args: {},
   handler: async (ctx) => {
     try {
-      console.log("[DEBUG] Starting auth test...");
 
       const identity = await ctx.auth.getUserIdentity();
-      console.log("[DEBUG] Raw identity:", identity);
-      console.log("[DEBUG] Identity type:", typeof identity);
-      console.log("[DEBUG] Identity JSON:", JSON.stringify(identity, null, 2));
 
       if (!identity) {
         console.error("[DEBUG] ❌ No identity - user not authenticated");
@@ -27,14 +23,12 @@ export const testAuth = mutation({
       let userInfo;
       try {
         userInfo = typeof identity === "string" ? JSON.parse(identity) : identity;
-        console.log("[DEBUG] Parsed userInfo:", JSON.stringify(userInfo, null, 2));
       } catch (e) {
         console.error("[DEBUG] Failed to parse identity:", e);
         userInfo = identity;
       }
 
       const email = userInfo.email || (identity as any).email;
-      console.log("[DEBUG] Extracted email:", email);
 
       if (!email) {
         console.error("[DEBUG] ❌ No email found in identity");
@@ -46,19 +40,14 @@ export const testAuth = mutation({
       }
 
       // Try to find user
-      console.log("[DEBUG] Looking up user with email:", email);
       const user = await ctx.db
         .query("users")
         .withIndex("by_email", (q) => q.eq("email", email))
         .first();
 
-      console.log("[DEBUG] User found:", user ? "YES" : "NO");
       if (user) {
-        console.log("[DEBUG] User ID:", user._id);
-        console.log("[DEBUG] User email:", user.email);
       }
 
-      console.log("[DEBUG] ✅ Auth test completed successfully");
 
       return {
         success: true,
@@ -90,10 +79,8 @@ export const testAuth = mutation({
 export const testQuery = query({
   args: {},
   handler: async (ctx) => {
-    console.log("[DEBUG QUERY] Testing query access...");
 
     const identity = await ctx.auth.getUserIdentity();
-    console.log("[DEBUG QUERY] Identity:", identity ? "EXISTS" : "NULL");
 
     return {
       hasIdentity: !!identity,
@@ -110,7 +97,6 @@ export const listAllEvents = query({
   handler: async (ctx) => {
     const events = await ctx.db.query("events").collect();
 
-    console.log(`[DEBUG] Found ${events.length} total events in database`);
 
     const eventsSummary = events.map((e) => ({
       id: e._id,

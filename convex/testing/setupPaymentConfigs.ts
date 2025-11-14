@@ -8,7 +8,6 @@ import { v } from "convex/values";
 export const createBasicPaymentConfigs = internalMutation({
   args: {},
   handler: async (ctx) => {
-    console.log("[createBasicPaymentConfigs] Starting...");
 
     // Get all events
     const events = await ctx.db
@@ -16,7 +15,6 @@ export const createBasicPaymentConfigs = internalMutation({
       .filter((q) => q.eq(q.field("status"), "PUBLISHED"))
       .collect();
 
-    console.log(`[createBasicPaymentConfigs] Found ${events.length} published events`);
 
     let created = 0;
     let skipped = 0;
@@ -57,10 +55,8 @@ export const createBasicPaymentConfigs = internalMutation({
       });
 
       created++;
-      console.log(`[createBasicPaymentConfigs] Created config for: ${event.name}`);
     }
 
-    console.log(`[createBasicPaymentConfigs] Done! Created: ${created}, Skipped: ${skipped}`);
 
     return { created, skipped, total: events.length };
   },

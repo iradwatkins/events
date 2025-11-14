@@ -7,7 +7,6 @@ import { mutation } from "../_generated/server";
 export const resetAllUsers = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log("🔥 Starting COMPLETE USER RESET (keeping products only)...");
 
     const deletedCounts = {
       users: 0,
@@ -204,32 +203,6 @@ export const resetAllUsers = mutation({
       deletedCounts.users++;
     }
 
-    console.log("✅ Complete user reset finished!");
-    console.log("📊 Deleted:");
-    console.log(`   - Users: ${deletedCounts.users}`);
-    console.log(`   - Organizer Credits: ${deletedCounts.organizerCredits}`);
-    console.log(`   - Credit Transactions: ${deletedCounts.creditTransactions}`);
-    console.log(`   - Events: ${deletedCounts.events}`);
-    console.log(`   - Ticket Tiers: ${deletedCounts.ticketTiers}`);
-    console.log(`   - Tickets: ${deletedCounts.tickets}`);
-    console.log(`   - Ticket Instances: ${deletedCounts.ticketInstances}`);
-    console.log(`   - Orders: ${deletedCounts.orders}`);
-    console.log(`   - Order Items: ${deletedCounts.orderItems}`);
-    console.log(`   - Product Orders: ${deletedCounts.productOrders}`);
-    console.log(`   - Payment Configs: ${deletedCounts.paymentConfigs}`);
-    console.log(`   - Seating Charts: ${deletedCounts.seatingCharts}`);
-    console.log(`   - Seat Reservations: ${deletedCounts.seatReservations}`);
-    console.log(`   - Event Staff: ${deletedCounts.eventStaff}`);
-    console.log(`   - Staff Sales: ${deletedCounts.staffSales}`);
-    console.log(`   - Staff Ticket Transfers: ${deletedCounts.staffTicketTransfers}`);
-    console.log(`   - Bundles: ${deletedCounts.bundles}`);
-    console.log(`   - Discounts: ${deletedCounts.discounts}`);
-    console.log(`   - Discount Usage: ${deletedCounts.discountUsage}`);
-    console.log(`   - Transfers: ${deletedCounts.transfers}`);
-    console.log(`   - Flyers: ${deletedCounts.flyers}`);
-    console.log(`   - CRM Contacts: ${deletedCounts.crm}`);
-    console.log(`   - Waitlist: ${deletedCounts.waitlist}`);
-    console.log(`   - Room Templates: ${deletedCounts.roomTemplates}`);
 
     return {
       success: true,
@@ -245,7 +218,6 @@ export const resetAllUsers = mutation({
 export const resetAllDataExceptProducts = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log("🗑️  Starting complete data reset (keeping products and users)...");
 
     const deletedCounts = {
       events: 0,
@@ -408,27 +380,6 @@ export const resetAllDataExceptProducts = mutation({
       deletedCounts.organizerCreditsReset++;
     }
 
-    console.log("✅ Data reset complete!");
-    console.log("📊 Deleted:");
-    console.log(`   - Events: ${deletedCounts.events}`);
-    console.log(`   - Ticket Tiers: ${deletedCounts.ticketTiers}`);
-    console.log(`   - Tickets: ${deletedCounts.tickets}`);
-    console.log(`   - Orders: ${deletedCounts.orders}`);
-    console.log(`   - Cash Payments: ${deletedCounts.cashPayments}`);
-    console.log(`   - Payment Configs: ${deletedCounts.paymentConfigs}`);
-    console.log(`   - Seating Layouts: ${deletedCounts.seatingLayouts}`);
-    console.log(`   - Seat Assignments: ${deletedCounts.seatAssignments}`);
-    console.log(`   - Event Staff: ${deletedCounts.eventStaff}`);
-    console.log(`   - Staff Allocations: ${deletedCounts.staffAllocations}`);
-    console.log(`   - Bundles: ${deletedCounts.bundles}`);
-    console.log(`   - Bundle Purchases: ${deletedCounts.bundlePurchases}`);
-    console.log(`   - Discounts: ${deletedCounts.discounts}`);
-    console.log(`   - Transfers: ${deletedCounts.transfers}`);
-    console.log(`   - Flyers: ${deletedCounts.flyers}`);
-    console.log(`   - CRM Contacts: ${deletedCounts.crm}`);
-    console.log(`   - Waitlist: ${deletedCounts.waitlist}`);
-    console.log(`   - Notifications: ${deletedCounts.notifications}`);
-    console.log(`   - Organizer Credits Reset: ${deletedCounts.organizerCreditsReset}`);
 
     return {
       success: true,

@@ -15,8 +15,6 @@ export const testActivationFlow = mutation({
     steps: any[];
     error?: string;
   }> => {
-    console.log("🧪 TESTING 4-DIGIT ACTIVATION FLOW");
-    console.log("=".repeat(60));
 
     const steps = [];
 
@@ -24,7 +22,6 @@ export const testActivationFlow = mutation({
       // ========================================
       // STEP 1: Find or create test staff member
       // ========================================
-      console.log("\n📋 STEP 1: Finding test staff member...");
 
       // Find a test event with ticket tiers
       const allEvents = await ctx.db
@@ -57,8 +54,6 @@ export const testActivationFlow = mutation({
         throw new Error("No events with ticket tiers found");
       }
 
-      console.log(`   Event: ${testEvent.name}`);
-      console.log(`   Tier: ${testTier.name} ($${testTier.price / 100})`);
 
       // Find or create staff member
       let staffMember = await ctx.db
@@ -98,9 +93,7 @@ export const testActivationFlow = mutation({
         });
 
         staffMember = await ctx.db.get(staffId);
-        console.log(`   Created test staff member`);
       } else {
-        console.log(`   Using existing staff member`);
       }
 
       steps.push({
@@ -112,7 +105,6 @@ export const testActivationFlow = mutation({
       // ========================================
       // STEP 2: Create cash sale with activation codes
       // ========================================
-      console.log("\n💵 STEP 2: Creating cash sale...");
 
       const saleResult = await ctx.runMutation(api.staff.mutations.createCashSale, {
         staffId: staffMember!._id,
@@ -124,10 +116,6 @@ export const testActivationFlow = mutation({
         paymentMethod: "CASH",
       });
 
-      console.log(`   ✅ Sale created: Order ${saleResult.orderId}`);
-      console.log(`   Activation Codes: ${saleResult.activationCodes.join(", ")}`);
-      console.log(`   Total: $${saleResult.totalPrice / 100}`);
-      console.log(`   Commission: $${saleResult.commission / 100}`);
 
       if (!saleResult.activationCodes || saleResult.activationCodes.length !== 2) {
         throw new Error("Expected 2 activation codes");
@@ -143,19 +131,14 @@ export const testActivationFlow = mutation({
       // ========================================
       // STEP 3: Verify tickets are PENDING_ACTIVATION
       // ========================================
-      console.log("\n🎫 STEP 3: Verifying tickets are pending activation...");
 
       const pendingTickets = await ctx.db
         .query("tickets")
         .filter((q) => q.eq(q.field("orderId"), saleResult.orderId as Id<"orders">))
         .collect();
 
-      console.log(`   Found ${pendingTickets.length} tickets`);
 
       for (const ticket of pendingTickets) {
-        console.log(`   - Status: ${ticket.status}`);
-        console.log(`     Activation Code: ${ticket.activationCode}`);
-        console.log(`     Ticket Code: ${ticket.ticketCode || "Not yet generated"}`);
 
         if (ticket.status !== "PENDING_ACTIVATION") {
           throw new Error(`Expected PENDING_ACTIVATION, got ${ticket.status}`);
@@ -176,7 +159,6 @@ export const testActivationFlow = mutation({
       // ========================================
       // STEP 4: Activate first ticket
       // ========================================
-      console.log("\n🔓 STEP 4: Activating first ticket...");
 
       const firstActivationCode = saleResult.activationCodes[0];
       const customerEmail = "activated@example.com";
@@ -187,11 +169,6 @@ export const testActivationFlow = mutation({
         customerName: "John Doe",
       });
 
-      console.log(`   ✅ Ticket activated!`);
-      console.log(`   Ticket Code: ${activationResult.ticketCode}`);
-      console.log(`   Event: ${activationResult.eventName}`);
-      console.log(`   Tier: ${activationResult.tierName}`);
-      console.log(`   Attendee: ${activationResult.attendeeName}`);
 
       if (!activationResult.ticketCode) {
         throw new Error("Activation should have generated a ticket code");
@@ -207,7 +184,6 @@ export const testActivationFlow = mutation({
       // ========================================
       // STEP 5: Verify ticket status updated
       // ========================================
-      console.log("\n✅ STEP 5: Verifying ticket was updated...");
 
       const activatedTicket = await ctx.db
         .query("tickets")
@@ -218,10 +194,6 @@ export const testActivationFlow = mutation({
         throw new Error("Could not find activated ticket");
       }
 
-      console.log(`   Status: ${activatedTicket.status}`);
-      console.log(`   Email: ${activatedTicket.attendeeEmail}`);
-      console.log(`   Name: ${activatedTicket.attendeeName}`);
-      console.log(`   Activated At: ${new Date(activatedTicket.activatedAt || 0).toISOString()}`);
 
       if (activatedTicket.status !== "VALID") {
         throw new Error(`Expected VALID status, got ${activatedTicket.status}`);
@@ -244,7 +216,6 @@ export const testActivationFlow = mutation({
       // ========================================
       // STEP 6: Test duplicate activation
       // ========================================
-      console.log("\n🚫 STEP 6: Testing duplicate activation prevention...");
 
       try {
         await ctx.runMutation(api.tickets.mutations.activateTicket, {
@@ -256,7 +227,6 @@ export const testActivationFlow = mutation({
         throw new Error("Should have prevented duplicate activation");
       } catch (error: any) {
         if (error.message.includes("already been activated")) {
-          console.log(`   ✅ Correctly rejected duplicate activation`);
           steps.push({
             step: 6,
             status: "PASSED",
@@ -270,7 +240,6 @@ export const testActivationFlow = mutation({
       // ========================================
       // STEP 7: Test invalid code
       // ========================================
-      console.log("\n🚫 STEP 7: Testing invalid activation code...");
 
       try {
         await ctx.runMutation(api.tickets.mutations.activateTicket, {
@@ -282,7 +251,6 @@ export const testActivationFlow = mutation({
         throw new Error("Should have rejected invalid code");
       } catch (error: any) {
         if (error.message.includes("Invalid activation code")) {
-          console.log(`   ✅ Correctly rejected invalid code`);
           steps.push({
             step: 7,
             status: "PASSED",
@@ -296,19 +264,14 @@ export const testActivationFlow = mutation({
       // ========================================
       // FINAL SUMMARY
       // ========================================
-      console.log("\n" + "=".repeat(60));
-      console.log("🎉 ALL ACTIVATION TESTS PASSED!");
-      console.log("=".repeat(60));
 
       const passedTests = steps.filter((s) => s.status === "PASSED").length;
-      console.log(`\n✅ ${passedTests}/${steps.length} tests passed`);
 
       return {
         success: true,
         steps,
       };
     } catch (error: any) {
-      console.log("\n❌ TEST FAILED:", error.message);
       steps.push({
         step: steps.length + 1,
         status: "FAILED",

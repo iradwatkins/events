@@ -9,11 +9,9 @@ export const getCurrentUser = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    console.log("[getCurrentUser] Identity:", identity ? "present" : "null");
 
     // Require authentication
     if (!identity) {
-      console.log("[getCurrentUser] No identity, returning null");
       return null;
     }
 
@@ -21,15 +19,12 @@ export const getCurrentUser = query({
     let userInfo;
     try {
       userInfo = typeof identity === "string" ? JSON.parse(identity) : identity;
-      console.log("[getCurrentUser] Parsed user info, email:", userInfo.email);
     } catch (error) {
-      console.log("[getCurrentUser] Failed to parse identity:", error);
       userInfo = identity;
     }
 
     const email = userInfo.email || identity.email;
     if (!email) {
-      console.log("[getCurrentUser] No email found, returning null");
       return null;
     }
 
@@ -38,7 +33,6 @@ export const getCurrentUser = query({
       .withIndex("by_email", (q) => q.eq("email", email))
       .first();
 
-    console.log("[getCurrentUser] Found user:", user ? user.email : "not found");
     return user;
   },
 });

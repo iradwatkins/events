@@ -157,10 +157,6 @@ export default function EditEventPage() {
   }
 
   // Debug logging
-  console.log("[Edit Page] Current User:", currentUser);
-  console.log("[Edit Page] Event Organizer ID:", event.organizerId);
-  console.log("[Edit Page] User ID:", currentUser._id);
-  console.log("[Edit Page] Role:", currentUser.role);
 
   // Check if user is the organizer (removed for now to allow access)
   // TEMPORARY: Commenting out permission check to debug

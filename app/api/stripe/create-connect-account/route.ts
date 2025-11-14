@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("[Stripe Connect] Created account:", account.id);
 
     // Create account link for onboarding
     const accountLink = await stripe.accountLinks.create({

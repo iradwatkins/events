@@ -9,7 +9,6 @@ import { api } from "./_generated/api";
 export const createTestBundles = mutation({
   args: {},
   handler: async (ctx): Promise<{ success: boolean; bundles: any[] }> => {
-    console.log("🎯 Creating test bundles...\n");
 
     const bundles = [];
 
@@ -36,12 +35,8 @@ export const createTestBundles = mutation({
       throw new Error("NYE ticket tiers not found");
     }
 
-    console.log("Found NYE event with tiers:");
-    console.log(`  VIP Package: $${vipTier.price / 100} (ID: ${vipTier._id})`);
-    console.log(`  General Admission: $${gaTier.price / 100} (ID: ${gaTier._id})\n`);
 
     // Bundle 1: Date Night Package (2× GA)
-    console.log("1️⃣  Creating Date Night Package...");
     const dateNightId = await ctx.runMutation(api.bundles.mutations.createTicketBundle, {
       eventId: nyeEvent._id,
       name: "Date Night Package",
@@ -58,10 +53,8 @@ export const createTestBundles = mutation({
       totalQuantity: 50, // 50 bundles = 100 tickets
     });
     bundles.push({ bundleId: dateNightId, name: "Date Night Package" });
-    console.log("   ✅ Date Night Package created - $190 (save $10)\n");
 
     // Bundle 2: Squad Goals (4× GA)
-    console.log("2️⃣  Creating Squad Goals bundle...");
     const squadGoalsId = await ctx.runMutation(api.bundles.mutations.createTicketBundle, {
       eventId: nyeEvent._id,
       name: "Squad Goals",
@@ -78,10 +71,8 @@ export const createTestBundles = mutation({
       totalQuantity: 30, // 30 bundles = 120 tickets
     });
     bundles.push({ bundleId: squadGoalsId, name: "Squad Goals" });
-    console.log("   ✅ Squad Goals created - $360 (save $40)\n");
 
     // Bundle 3: VIP Experience (1× VIP + 1× GA)
-    console.log("3️⃣  Creating VIP Experience bundle...");
     const vipExpId = await ctx.runMutation(api.bundles.mutations.createTicketBundle, {
       eventId: nyeEvent._id,
       name: "VIP Experience",
@@ -103,10 +94,8 @@ export const createTestBundles = mutation({
       totalQuantity: 25, // 25 bundles
     });
     bundles.push({ bundleId: vipExpId, name: "VIP Experience" });
-    console.log("   ✅ VIP Experience created - $230 (save $20)\n");
 
     // Bundle 4: Early Bird Triple (3× GA, time-limited)
-    console.log("4️⃣  Creating Early Bird Triple bundle...");
     const now = Date.now();
     const earlyBirdEnd = new Date("2025-12-15T23:59:59").getTime(); // Available until Dec 15
 
@@ -128,14 +117,7 @@ export const createTestBundles = mutation({
       saleEnd: earlyBirdEnd,
     });
     bundles.push({ bundleId: earlyBirdId, name: "Early Bird Triple" });
-    console.log("   ✅ Early Bird Triple created - $270 (save $30, expires Dec 15)\n");
 
-    console.log("✅ All 4 test bundles created successfully!\n");
-    console.log("Summary:");
-    console.log("  • Date Night Package: 2 tickets for $190 (save $10)");
-    console.log("  • Squad Goals: 4 tickets for $360 (save $40)");
-    console.log("  • VIP Experience: VIP + GA for $230 (save $20)");
-    console.log("  • Early Bird Triple: 3 tickets for $270 (save $30, time-limited)\n");
 
     return {
       success: true,

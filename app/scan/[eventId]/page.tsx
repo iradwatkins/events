@@ -76,37 +76,27 @@ export default function EventScanningPage() {
     try {
       // Set worker path for Next.js
       QrScanner.WORKER_PATH = "/qr-scanner-worker.min.js";
-      console.log("=== QR SCANNER DIAGNOSTICS ===");
-      console.log("Worker path:", QrScanner.WORKER_PATH);
 
       // Check if camera is available
-      console.log("Checking for camera availability...");
       const hasCamera = await QrScanner.hasCamera();
-      console.log("Has camera:", hasCamera);
 
       if (!hasCamera) {
         throw new Error("No camera detected on this device");
       }
 
       // List available cameras
-      console.log("Listing cameras...");
       const cameras = await QrScanner.listCameras(true);
-      console.log("Available cameras:", cameras);
 
       // Set video element attributes before initializing scanner
       if (videoRef.current) {
-        console.log("Setting video attributes...");
         videoRef.current.setAttribute("autoplay", "");
         videoRef.current.setAttribute("muted", "");
         videoRef.current.setAttribute("playsinline", "");
-        console.log("Video element before init:", videoRef.current);
       }
 
-      console.log("Creating QrScanner instance...");
       const scanner = new QrScanner(
         videoRef.current,
         (result) => {
-          console.log("✅ QR code detected:", result.data);
 
           // Extract ticket code from URL or use directly
           let ticketCode = result.data;
@@ -130,27 +120,15 @@ export default function EventScanningPage() {
         }
       );
 
-      console.log("Scanner instance created:", scanner);
 
-      console.log("Starting camera stream...");
       await scanner.start();
 
-      console.log("✅ Camera started successfully!");
-      console.log("Video element state:");
-      console.log("  - srcObject:", videoRef.current?.srcObject);
-      console.log("  - readyState:", videoRef.current?.readyState);
-      console.log("  - paused:", videoRef.current?.paused);
-      console.log("  - muted:", videoRef.current?.muted);
-      console.log("  - playsInline:", videoRef.current?.playsInline);
-      console.log("  - width:", videoRef.current?.videoWidth);
-      console.log("  - height:", videoRef.current?.videoHeight);
 
       scannerRef.current = scanner;
 
       // Expose scanner to window for debugging
       if (typeof window !== "undefined") {
         (window as any).scanner = scanner;
-        console.log("Scanner exposed to window.scanner for debugging");
       }
 
       setIsScanning(true);

@@ -28,9 +28,6 @@ export const updatePaymentModels = mutation({
           updatedAt: Date.now(),
         });
         updated++;
-        console.log(
-          `[Migration] Updated payment model for event config ${config._id}: ${config.paymentModel} → ${newModel}`
-        );
       }
     }
 

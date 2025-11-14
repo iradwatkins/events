@@ -44,19 +44,15 @@ export async function GET(request: NextRequest) {
     const callbackUrl = request.cookies.get("oauth_callback_url")?.value || "/organizer/events";
 
     // Exchange code for user info
-    console.log("[Google OAuth] Exchanging code for user info...");
     const googleUser = await completeGoogleOAuth(code);
-    console.log("[Google OAuth] Got user info:", googleUser.email);
 
     // Create or update user in Convex
-    console.log("[Google OAuth] Creating/updating user in Convex...");
     const userId = await convex.mutation(api.users.mutations.upsertUserFromGoogle, {
       googleId: googleUser.id,
       email: googleUser.email,
       name: googleUser.name,
       image: googleUser.picture,
     });
-    console.log("[Google OAuth] User ID:", userId);
 
     // Fetch the complete user data to get role
     const user = await convex.query(api.users.queries.getUserById, { userId });

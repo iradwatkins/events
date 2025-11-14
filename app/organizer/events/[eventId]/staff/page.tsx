@@ -269,11 +269,6 @@ export default function StaffManagementPage() {
   }
 
   // Debug logging
-  console.log("[Staff Page] Current User:", currentUser);
-  console.log("[Staff Page] Event Organizer ID:", event.organizerId);
-  console.log("[Staff Page] User ID:", currentUser._id);
-  console.log("[Staff Page] Role:", currentUser.role);
-  console.log("[Staff Page] Match:", event.organizerId === currentUser._id);
 
   // Check if user is the organizer (removed for now to allow access)
   // TEMPORARY: Commenting out permission check to debug

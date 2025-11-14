@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
     // Delete the physical file
     try {
       await unlink(fullPath);
-      console.log(`✅ Successfully deleted physical file: ${fullPath}`);
 
       // Verify file is actually gone
       const { existsSync } = require("fs");
@@ -45,7 +44,6 @@ export async function POST(request: NextRequest) {
         throw new Error("File deletion verification failed - file still exists");
       }
 
-      console.log(`✅ Verified: File no longer exists: ${fullPath}`);
 
       return NextResponse.json({
         success: true,
@@ -55,7 +53,6 @@ export async function POST(request: NextRequest) {
     } catch (unlinkError: any) {
       // If file doesn't exist, that's okay - it's already gone
       if (unlinkError.code === "ENOENT") {
-        console.log(`ℹ️ File already deleted or doesn't exist: ${fullPath}`);
         return NextResponse.json({
           success: true,
           message: "File already deleted or doesn't exist",

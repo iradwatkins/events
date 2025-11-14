@@ -211,15 +211,6 @@ export function logPaymentEvent(
   const timestamp = new Date().toISOString();
   const requestId = generateRequestId();
 
-  console.log(
-    JSON.stringify({
-      timestamp,
-      requestId,
-      prefix,
-      event,
-      ...data,
-    })
-  );
 }
 
 /**

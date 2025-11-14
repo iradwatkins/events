@@ -47,7 +47,6 @@ export async function POST(request: NextRequest) {
     // Update the email to include callback URL
     await sendMagicLinkEmailWithCallback(email, verificationUrl, user?.name);
 
-    console.log(`[Magic Link] Sent to ${email}, expires at ${new Date(expiry).toISOString()}`);
 
     return NextResponse.json({
       success: true,
@@ -117,7 +116,6 @@ async function sendMagicLinkEmailWithCallback(
       `,
     });
 
-    console.log(`[Magic Link] Email sent to ${email}`);
   } catch (error: any) {
     console.error("[Magic Link] Failed to send email:", error);
     throw new Error(`Failed to send magic link email: ${error.message}`);

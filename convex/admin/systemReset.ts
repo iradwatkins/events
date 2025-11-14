@@ -8,7 +8,6 @@ import { mutation } from "../_generated/server";
 export const resetSystemData = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log("🚨 SYSTEM RESET INITIATED - Deleting all data...");
 
     const deletionCount = {
       tickets: 0,
@@ -37,7 +36,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(ticket._id);
       deletionCount.tickets++;
     }
-    console.log(`✅ Deleted ${deletionCount.tickets} tickets`);
 
     // 2. Delete all ticket instances
     const ticketInstances = await ctx.db.query("ticketInstances").collect();
@@ -45,7 +43,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(instance._id);
       deletionCount.ticketInstances++;
     }
-    console.log(`✅ Deleted ${deletionCount.ticketInstances} ticket instances`);
 
     // 3. Delete all orders
     const orders = await ctx.db.query("orders").collect();
@@ -53,7 +50,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(order._id);
       deletionCount.orders++;
     }
-    console.log(`✅ Deleted ${deletionCount.orders} orders`);
 
     // 4. Delete all order items
     const orderItems = await ctx.db.query("orderItems").collect();
@@ -61,7 +57,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(item._id);
       deletionCount.orderItems++;
     }
-    console.log(`✅ Deleted ${deletionCount.orderItems} order items`);
 
     // 5. Delete all ticket tiers
     const tiers = await ctx.db.query("ticketTiers").collect();
@@ -69,7 +64,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(tier._id);
       deletionCount.ticketTiers++;
     }
-    console.log(`✅ Deleted ${deletionCount.ticketTiers} ticket tiers`);
 
     // 6. Delete all ticket bundles
     const bundles = await ctx.db.query("ticketBundles").collect();
@@ -77,7 +71,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(bundle._id);
       deletionCount.ticketBundles++;
     }
-    console.log(`✅ Deleted ${deletionCount.ticketBundles} ticket bundles`);
 
     // 7. Delete all waitlist entries
     const waitlist = await ctx.db.query("eventWaitlist").collect();
@@ -85,7 +78,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(entry._id);
       deletionCount.waitlist++;
     }
-    console.log(`✅ Deleted ${deletionCount.waitlist} waitlist entries`);
 
     // 8. Delete all seating charts
     const seatingCharts = await ctx.db.query("seatingCharts").collect();
@@ -93,7 +85,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(chart._id);
       deletionCount.seatingCharts++;
     }
-    console.log(`✅ Deleted ${deletionCount.seatingCharts} seating charts`);
 
     // 9. Delete all seat reservations
     const seatReservations = await ctx.db.query("seatReservations").collect();
@@ -101,7 +92,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(reservation._id);
       deletionCount.seatReservations++;
     }
-    console.log(`✅ Deleted ${deletionCount.seatReservations} seat reservations`);
 
     // 10. Delete all event staff
     const eventStaff = await ctx.db.query("eventStaff").collect();
@@ -109,7 +99,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(staff._id);
       deletionCount.eventStaff++;
     }
-    console.log(`✅ Deleted ${deletionCount.eventStaff} event staff`);
 
     // 11. Delete all staff sales
     const staffSales = await ctx.db.query("staffSales").collect();
@@ -117,7 +106,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(sale._id);
       deletionCount.staffSales++;
     }
-    console.log(`✅ Deleted ${deletionCount.staffSales} staff sales`);
 
     // 12. Delete all ticket transfers
     const transfers = await ctx.db.query("ticketTransfers").collect();
@@ -125,7 +113,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(transfer._id);
       deletionCount.transfers++;
     }
-    console.log(`✅ Deleted ${deletionCount.transfers} ticket transfers`);
 
     // 13. Delete all event contacts
     const eventContacts = await ctx.db.query("eventContacts").collect();
@@ -133,7 +120,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(contact._id);
       deletionCount.eventContacts++;
     }
-    console.log(`✅ Deleted ${deletionCount.eventContacts} event contacts`);
 
     // 14. Delete all discount codes
     const discountCodes = await ctx.db.query("discountCodes").collect();
@@ -141,7 +127,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(code._id);
       deletionCount.discountCodes++;
     }
-    console.log(`✅ Deleted ${deletionCount.discountCodes} discount codes`);
 
     // 15. Delete all discount code usage
     const discountUsage = await ctx.db.query("discountCodeUsage").collect();
@@ -149,7 +134,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(usage._id);
       deletionCount.discountCodeUsage++;
     }
-    console.log(`✅ Deleted ${deletionCount.discountCodeUsage} discount code usage records`);
 
     // 16. Delete all event payment configs
     const paymentConfigs = await ctx.db.query("eventPaymentConfig").collect();
@@ -157,7 +141,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(config._id);
       deletionCount.eventPaymentConfig++;
     }
-    console.log(`✅ Deleted ${deletionCount.eventPaymentConfig} payment configs`);
 
     // 7. Delete all events
     const events = await ctx.db.query("events").collect();
@@ -165,7 +148,6 @@ export const resetSystemData = mutation({
       await ctx.db.delete(event._id);
       deletionCount.events++;
     }
-    console.log(`✅ Deleted ${deletionCount.events} events`);
 
     // 8. Delete all uploaded flyers
     const flyers = await ctx.db.query("uploadedFlyers").collect();
@@ -173,10 +155,7 @@ export const resetSystemData = mutation({
       await ctx.db.delete(flyer._id);
       deletionCount.flyers++;
     }
-    console.log(`✅ Deleted ${deletionCount.flyers} flyers`);
 
-    console.log("🎉 SYSTEM RESET COMPLETE!");
-    console.log("Summary:", deletionCount);
 
     return {
       success: true,

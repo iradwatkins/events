@@ -10,12 +10,10 @@ import { api } from "./_generated/api";
 export const createRealTestEvents = mutation({
   args: {},
   handler: async (ctx): Promise<{ success: boolean; events: any[] }> => {
-    console.log("🎯 Creating realistic test events...\n");
 
     const events = [];
 
     // Event 1: Thanksgiving Weekend Steppin' Social - November 29, 2025
-    console.log("1️⃣  Creating Thanksgiving Weekend Event...");
     const event1Id: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "Thanksgiving Weekend Steppin' Social",
       description:
@@ -53,10 +51,8 @@ export const createRealTestEvents = mutation({
     });
 
     events.push({ eventId: event1Id, name: "Thanksgiving Weekend Steppin' Social" });
-    console.log("   ✅ Thanksgiving Event created\n");
 
     // Event 2: Holiday Steppin' Extravaganza - December 20, 2025
-    console.log("2️⃣  Creating Holiday Steppin' Extravaganza...");
     const event2Id: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "Holiday Steppin' Extravaganza",
       description:
@@ -115,10 +111,8 @@ export const createRealTestEvents = mutation({
     });
 
     events.push({ eventId: event2Id, name: "Holiday Steppin' Extravaganza" });
-    console.log("   ✅ Holiday Extravaganza created with early bird pricing\n");
 
     // Event 3: New Year's Eve Stepping Celebration - December 31, 2025
-    console.log("3️⃣  Creating New Year's Eve Event...");
     const event3Id: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "New Year's Eve Stepping Celebration 2026",
       description:
@@ -171,10 +165,8 @@ export const createRealTestEvents = mutation({
     );
 
     events.push({ eventId: event3Id, name: "New Year's Eve Stepping Celebration 2026" });
-    console.log("   ✅ New Year's Eve Event created with VIP and General tiers\n");
 
     // Event 4: Sunday Afternoon Steppers Set - December 7, 2025
-    console.log("4️⃣  Creating Sunday Afternoon Set...");
     const event4Id: Id<"events"> = await ctx.runMutation(api.events.mutations.createEvent, {
       name: "Sunday Afternoon Steppers Set",
       description:
@@ -212,9 +204,7 @@ export const createRealTestEvents = mutation({
     });
 
     events.push({ eventId: event4Id, name: "Sunday Afternoon Steppers Set" });
-    console.log("   ✅ Sunday Afternoon Set created\n");
 
-    console.log("✅ All 4 realistic test events created successfully!\n");
 
     return {
       success: true,

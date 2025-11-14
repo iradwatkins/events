@@ -36,7 +36,6 @@ export function OrganizerPrepayment({
   };
 
   const handleSquarePaymentSuccess = async (result: Record<string, unknown>) => {
-    console.log("[Prepayment] Square payment successful:", result);
     // TODO: Call Convex mutation to update payment config
     onPaymentSuccess();
   };
@@ -47,7 +46,6 @@ export function OrganizerPrepayment({
   };
 
   const handleCashAppPaymentSuccess = async (result: Record<string, unknown>) => {
-    console.log("[Prepayment] CashApp payment successful:", result);
     // TODO: Call Convex mutation to update payment config
     onPaymentSuccess();
   };

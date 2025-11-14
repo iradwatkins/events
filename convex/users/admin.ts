@@ -10,7 +10,6 @@ export const bulkDeleteUsers = internalMutation({
     emailsToKeep: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    console.log("🔍 Starting bulk user deletion...");
 
     // Get all users
     const allUsers = await ctx.db.query("users").collect();
@@ -22,9 +21,6 @@ export const bulkDeleteUsers = internalMutation({
       (user) => !emailsToKeepLower.includes(user.email.toLowerCase())
     );
 
-    console.log(`Found ${allUsers.length} total users`);
-    console.log(`Keeping ${allUsers.length - usersToDelete.length} users`);
-    console.log(`Deleting ${usersToDelete.length} users`);
 
     let deletedCount = 0;
 
@@ -33,7 +29,6 @@ export const bulkDeleteUsers = internalMutation({
       try {
         await ctx.db.delete(user._id);
         deletedCount++;
-        console.log(`✓ Deleted: ${user.email}`);
       } catch (error) {
         console.error(`✗ Failed to delete ${user.email}:`, error);
       }
@@ -47,7 +42,6 @@ export const bulkDeleteUsers = internalMutation({
           role: "admin",
           updatedAt: Date.now(),
         });
-        console.log(`✓ Set ${user.email} to admin role`);
       }
     }
 

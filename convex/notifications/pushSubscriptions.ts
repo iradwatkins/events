@@ -27,9 +27,6 @@ export const subscribe = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    console.log(
-      `[subscribe] Subscribing: staffId=${args.staffId}, endpoint=${args.subscription.endpoint}`
-    );
 
     // Check if subscription already exists
     const existing = await ctx.db
@@ -51,7 +48,6 @@ export const subscribe = mutation({
         updatedAt: now,
       });
 
-      console.log(`[subscribe] Updated existing subscription: ${existing._id}`);
 
       return {
         success: true,
@@ -75,7 +71,6 @@ export const subscribe = mutation({
       updatedAt: now,
     });
 
-    console.log(`[subscribe] Created new subscription: ${subscriptionId}`);
 
     return {
       success: true,
@@ -92,7 +87,6 @@ export const unsubscribe = mutation({
     endpoint: v.string(),
   },
   handler: async (ctx, args) => {
-    console.log(`[unsubscribe] Unsubscribing: ${args.endpoint}`);
 
     const subscription = await ctx.db
       .query("pushSubscriptions")
@@ -100,7 +94,6 @@ export const unsubscribe = mutation({
       .first();
 
     if (!subscription) {
-      console.log(`[unsubscribe] Subscription not found`);
       return { success: true };
     }
 
@@ -110,7 +103,6 @@ export const unsubscribe = mutation({
       updatedAt: Date.now(),
     });
 
-    console.log(`[unsubscribe] Deactivated subscription: ${subscription._id}`);
 
     return { success: true };
   },
@@ -126,7 +118,6 @@ export const updatePreferences = mutation({
     notifyOnOnlineSales: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    console.log(`[updatePreferences] Updating for staff: ${args.staffId}`);
 
     const subscriptions = await ctx.db
       .query("pushSubscriptions")
@@ -147,7 +138,6 @@ export const updatePreferences = mutation({
       await ctx.db.patch(sub._id, updates);
     }
 
-    console.log(`[updatePreferences] Updated ${subscriptions.length} subscriptions`);
 
     return {
       success: true,

@@ -19,7 +19,6 @@ import { internal } from "./_generated/api";
 export const migrateStaffRoles = internalMutation({
   args: {},
   handler: async (ctx) => {
-    console.log("Starting staff role migration...");
 
     // Get all staff records
     const allStaff = await ctx.db.query("eventStaff").collect();
@@ -40,11 +39,9 @@ export const migrateStaffRoles = internalMutation({
           role: newRole as any,
         });
         migratedCount++;
-        console.log(`Migrated ${staff.name} from ${staff.role} to ${newRole}`);
       }
     }
 
-    console.log(`✅ Migration complete! Updated ${migratedCount} staff records.`);
 
     return {
       success: true,

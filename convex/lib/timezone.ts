@@ -198,9 +198,6 @@ export function parseEventDateTime(
         } else {
           processedDateString = startDate;
         }
-        console.log(
-          `[parseEventDateTime] Extracted start date from cross-month range: "${processedDateString}"`
-        );
       }
     }
     // Otherwise, extract START date from SAME-MONTH date ranges
@@ -281,19 +278,12 @@ export function parseEventDateTime(
         // If the event month has already passed this year, use next year
         if (eventMonth < currentMonth) {
           processedDateString = `${processedDateString}, ${currentYear + 1}`;
-          console.log(
-            `[parseEventDateTime] Year not specified - month ${eventMonth + 1} has passed, using ${currentYear + 1}`
-          );
         } else {
           processedDateString = testDateStr;
-          console.log(
-            `[parseEventDateTime] Year not specified - month ${eventMonth + 1} hasn't passed, using ${currentYear}`
-          );
         }
       } else {
         // Fallback: just add current year if parsing fails
         processedDateString = `${processedDateString}, ${currentYear}`;
-        console.log(`[parseEventDateTime] Year not specified - defaulting to ${currentYear}`);
       }
     }
 
@@ -349,9 +339,6 @@ export function parseEventDateTime(
     // Adjust the timestamp by the offset difference
     const adjustedTimestamp = date.getTime() - offsetDifference * 60 * 60 * 1000;
 
-    console.log(
-      `[parseEventDateTime] Parsed "${dateTimeStr}" in ${timezone}: ${new Date(adjustedTimestamp).toISOString()}`
-    );
 
     return adjustedTimestamp;
   } catch (error) {

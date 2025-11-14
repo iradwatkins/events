@@ -14,7 +14,6 @@ export const enableTicketsForTesting = mutation({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-    console.log("[enableTicketsForTesting] Enabling tickets for event:", args.eventId);
 
     // Update event to make tickets visible
     await ctx.db.patch(args.eventId, {
@@ -48,17 +47,14 @@ export const enableTicketsForTesting = mutation({
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
-      console.log("[enableTicketsForTesting] Created payment config");
     } else {
       // Update existing config to be active
       await ctx.db.patch(existingConfig._id, {
         isActive: true,
         updatedAt: Date.now(),
       });
-      console.log("[enableTicketsForTesting] Activated existing payment config");
     }
 
-    console.log("[enableTicketsForTesting] ✅ Tickets enabled successfully");
     return { success: true };
   },
 });

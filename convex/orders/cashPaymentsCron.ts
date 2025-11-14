@@ -14,7 +14,6 @@ export const expireCashOrders = internalMutation({
   handler: async (ctx) => {
     const now = Date.now();
 
-    console.log(`[expireCashOrders] Running at ${new Date(now).toISOString()}`);
 
     // Find all pending cash orders with expired holds
     const allPendingOrders = await ctx.db
@@ -27,7 +26,6 @@ export const expireCashOrders = internalMutation({
       (order) => order.holdExpiresAt && order.holdExpiresAt < now
     );
 
-    console.log(`[expireCashOrders] Found ${expiredOrders.length} expired orders`);
 
     let expiredCount = 0;
     let ticketsReleasedCount = 0;
@@ -55,14 +53,8 @@ export const expireCashOrders = internalMutation({
       ticketsReleasedCount += tickets.length;
       expiredCount++;
 
-      console.log(
-        `[expireCashOrders] Expired order ${order._id}: ${tickets.length} tickets released`
-      );
     }
 
-    console.log(
-      `[expireCashOrders] Complete: ${expiredCount} orders expired, ${ticketsReleasedCount} tickets released`
-    );
 
     return {
       success: true,

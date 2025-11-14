@@ -19,7 +19,6 @@ export const notifyNewCashOrder = action({
     totalCents: v.number(),
   },
   handler: async (ctx, args) => {
-    console.log(`[notifyNewCashOrder] Notifying staff about cash order: ${args.orderId}`);
 
     // Get event to find staff - use runMutation since getEventStaff is a mutation
     const event = await ctx.runMutation(internal.notifications.pushNotifications.getEventStaff, {
@@ -27,7 +26,6 @@ export const notifyNewCashOrder = action({
     });
 
     if (!event || !event.staffIds || event.staffIds.length === 0) {
-      console.log(`[notifyNewCashOrder] No staff found for event`);
       return { success: true, sent: 0 };
     }
 
@@ -54,7 +52,6 @@ export const notifyNewCashOrder = action({
       }
     }
 
-    console.log(`[notifyNewCashOrder] Sent ${sentCount} notifications`);
 
     return {
       success: true,
@@ -77,9 +74,6 @@ export const notifyOnlineTicketSale = action({
     ticketCount: v.number(),
   },
   handler: async (ctx, args): Promise<{ success: boolean; sent: number }> => {
-    console.log(
-      `[notifyOnlineTicketSale] Notifying staff ${args.staffId} about online sale: ${args.orderId}`
-    );
 
     const totalDollars = (args.totalCents / 100).toFixed(2);
     const ticketText = args.ticketCount === 1 ? "ticket" : "tickets";
@@ -96,7 +90,6 @@ export const notifyOnlineTicketSale = action({
       notificationType: "ONLINE_SALE",
     });
 
-    console.log(`[notifyOnlineTicketSale] Sent ${result.sent} notifications`);
 
     return {
       success: true,
@@ -161,9 +154,6 @@ export const sendToStaff = internalMutation({
     });
 
     if (enabledSubscriptions.length === 0) {
-      console.log(
-        `[sendToStaff] No active subscriptions with enabled preferences for staff: ${args.staffId}`
-      );
       return { success: true, sent: 0 };
     }
 
@@ -177,9 +167,6 @@ export const sendToStaff = internalMutation({
       try {
         // TODO: Call external web-push service or use HTTP action
         // For now, just log the notification
-        console.log(`[sendToStaff] Would send to: ${sub.endpoint.substring(0, 50)}...`);
-        console.log(`[sendToStaff] Title: ${args.title}`);
-        console.log(`[sendToStaff] Body: ${args.body}`);
 
         // Log notification in database
         await ctx.db.insert("notificationLog", {
@@ -229,7 +216,6 @@ export const sendToStaff = internalMutation({
       }
     }
 
-    console.log(`[sendToStaff] Sent: ${sentCount}, Failed: ${failedCount}`);
 
     return {
       success: true,
@@ -247,7 +233,6 @@ export const sendTestNotification = action({
     staffId: v.id("eventStaff"),
   },
   handler: async (ctx, args): Promise<{ success: boolean; sent: number; failed: number }> => {
-    console.log(`[sendTestNotification] Sending test notification to staff: ${args.staffId}`);
 
     const result = await ctx.runMutation(internal.notifications.pushNotifications.sendToStaff, {
       staffId: args.staffId,

@@ -113,29 +113,8 @@ export const createSeatingChart = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    // PRODUCTION: Require authentication for creating seating charts
-    const identity = await ctx.auth.getUserIdentity();
-
-    if (!identity?.email) {
-      throw new Error("Authentication required. Please sign in to create seating charts.");
-    }
-
-    // Verify event exists and user is the organizer
-    const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user) {
-      throw new Error("User account not found. Please contact support.");
-    }
-
-    if (event.organizerId !== user._id) {
-      throw new Error("Not authorized. You can only create seating charts for your own events.");
-    }
+    // Verify ownership (throws if not authorized)
+    const { user, event } = await requireEventOwnership(ctx, args.eventId);
 
     // Calculate total seats (handles both rows and tables)
     let totalSeats = 0;
@@ -298,22 +277,8 @@ export const updateSeatingChart = mutation({
     const seatingChart = await ctx.db.get(args.seatingChartId);
     if (!seatingChart) throw new Error("Seating chart not found");
 
-    // Verify user is the event organizer
-    const event = await ctx.db.get(seatingChart.eventId);
-    if (!event) throw new Error("Event not found");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user) {
-      throw new Error("User account not found. Please contact support.");
-    }
-
-    if (event.organizerId !== user._id) {
-      throw new Error("Not authorized. You can only update seating charts for your own events.");
-    }
+    // Verify ownership (throws if not authorized)
+    const { user, event } = await requireEventOwnership(ctx, seatingChart.eventId);
 
     const updates: any = {
       updatedAt: Date.now(),
@@ -373,22 +338,8 @@ export const deleteSeatingChart = mutation({
     const seatingChart = await ctx.db.get(args.seatingChartId);
     if (!seatingChart) throw new Error("Seating chart not found");
 
-    // Verify user is the event organizer
-    const event = await ctx.db.get(seatingChart.eventId);
-    if (!event) throw new Error("Event not found");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user) {
-      throw new Error("User account not found. Please contact support.");
-    }
-
-    if (event.organizerId !== user._id) {
-      throw new Error("Not authorized. You can only delete seating charts for your own events.");
-    }
+    // Verify ownership (throws if not authorized)
+    const { user, event } = await requireEventOwnership(ctx, seatingChart.eventId);
 
     // Check if there are any reservations
     const reservations = await ctx.db

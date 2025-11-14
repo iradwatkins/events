@@ -34,6 +34,7 @@ export default function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Include cookies in request/response
         body: JSON.stringify({ email, password }),
       });
 
@@ -45,9 +46,8 @@ export default function LoginPage() {
         return;
       }
 
-      // Login successful, redirect to intended page
-      router.push(redirectUrl);
-      router.refresh();
+      // Login successful, use hard redirect to ensure cookies are included
+      window.location.href = redirectUrl;
     } catch (err) {
       setError("An error occurred. Please try again.");
       setIsLoading(false);

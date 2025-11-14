@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30, // 30 days
       path: "/",
+      domain: process.env.NODE_ENV === "production" ? ".stepperslife.com" : undefined,
     });
 
     return response;

@@ -88,6 +88,7 @@ export async function GET(request: NextRequest) {
       sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60, // 30 days
       path: "/",
+      domain: process.env.NODE_ENV === "production" ? ".stepperslife.com" : undefined,
     });
 
     // Clear OAuth cookies

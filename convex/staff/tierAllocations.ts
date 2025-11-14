@@ -5,6 +5,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { requireEventOwnership } from "../lib/auth";
 
 /**
  * Get authenticated user - requires valid authentication
@@ -156,13 +157,8 @@ export const getEventTierAllocations = query({
     eventId: v.id("events"),
   },
   handler: async (ctx, args) => {
-    const user = await getAuthenticatedUser(ctx);
-
-    // Verify user is organizer
-    const event = await ctx.db.get(args.eventId);
-    if (!event || event.organizerId !== user._id) {
-      throw new Error("Not authorized");
-    }
+    // Verify ownership (handles both organizers and admins)
+    await requireEventOwnership(ctx, args.eventId);
 
     const allocations = await ctx.db
       .query("staffTierAllocations")

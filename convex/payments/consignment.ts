@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { requireEventOwnership } from "../lib/auth";
 
 /**
  * Create or update consignment configuration for an event
@@ -13,24 +14,16 @@ export const setupConsignment = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // TESTING MODE: Skip authentication check
-    if (!identity) {
-      console.warn("[setupConsignment] TESTING MODE - No authentication required");
-    }
+    let event;
 
-    const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
-
-    // Check ownership (skip in testing mode)
+    // Verify ownership if authenticated (TESTING MODE: skip if no identity)
     if (identity) {
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
-
-      if (user && event.organizerId !== user._id) {
-        throw new Error("You can only setup consignment for your own events");
-      }
+      const ownership = await requireEventOwnership(ctx, args.eventId);
+      event = ownership.event;
+    } else {
+      console.warn("[setupConsignment] TESTING MODE - No authentication required");
+      event = await ctx.db.get(args.eventId);
+      if (!event) throw new Error("Event not found");
     }
 
     // Get or create payment config

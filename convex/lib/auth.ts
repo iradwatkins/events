@@ -8,15 +8,7 @@ import { Id } from "../_generated/dataModel";
 export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
 
-  console.log("[getCurrentUser] Identity:", JSON.stringify(identity, null, 2));
-
-  // TEMPORARY WORKAROUND: Since Convex auth isn't working with our custom JWT yet,
-  // we need to use a different approach. Check if there's a custom header or session.
-  // This is a TEMPORARY solution until we properly configure Convex auth.
-
   if (!identity) {
-    // For now, throw an error to indicate auth is required
-    // In the future, we'll implement proper JWT verification via Convex
     throw new Error("Not authenticated - Convex auth configuration needs to be fixed");
   }
 
@@ -25,7 +17,6 @@ export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
   const email = identity.email || identity.tokenIdentifier?.split("|")[1];
 
   if (!email || typeof email !== "string") {
-    console.error("[getCurrentUser] No email found in identity:", identity);
     throw new Error("No email found in authentication token");
   }
 
@@ -35,11 +26,9 @@ export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
     .first();
 
   if (!user) {
-    console.error("[getCurrentUser] User not found for email:", email);
     throw new Error("User not found in database");
   }
 
-  console.log("[getCurrentUser] User found:", user._id, user.email);
   return user;
 }
 

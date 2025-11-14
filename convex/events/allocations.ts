@@ -1,14 +1,15 @@
 import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
+import { mutation, query, internalMutation } from "../_generated/server";
 
 // Constants
-const FIRST_EVENT_FREE_TICKETS = 300; // First event gets 300 FREE tickets
+const FIRST_EVENT_FREE_TICKETS = 1000; // First event gets 1000 FREE tickets (ONE-TIME, EXPIRES WITH EVENT)
 const PRICE_PER_TICKET_CENTS = 30; // $0.30 per ticket for subsequent events
 
 /**
  * Allocate tickets to an event
- * - First event: Automatically gets 300 FREE tickets
+ * - First event: Automatically gets 1000 FREE tickets (EXPIRES WHEN EVENT ENDS)
  * - Subsequent events: Requires prepaid purchase
+ * - Unused first-event credits DO NOT carry over to other events
  */
 export const allocateEventTickets = mutation({
   args: {
@@ -108,11 +109,12 @@ export const allocateEventTickets = mutation({
         });
       }
 
-      // Subtract tickets from global credit balance
+      // Subtract tickets from global credit balance and link to this event
       await ctx.db.patch(credits._id, {
         creditsUsed: credits.creditsUsed + args.ticketQuantity,
         creditsRemaining: credits.creditsRemaining - args.ticketQuantity,
         firstEventFreeUsed: true,
+        firstEventId: args.eventId, // Link credits to this specific event
         updatedAt: Date.now(),
       });
 
@@ -428,7 +430,7 @@ export const confirmEventTicketPurchase = mutation({
     });
 
     // Get or create event payment config
-    let config = await ctx.db
+    const config = await ctx.db
       .query("eventPaymentConfig")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
       .first();
@@ -469,6 +471,86 @@ export const confirmEventTicketPurchase = mutation({
       success: true,
       configId: config._id,
       allocated: newAllocation,
+    };
+  },
+});
+
+/**
+ * Expire unused first-event free credits when event ends
+ * Should be called when event status changes to CANCELLED or COMPLETED
+ * INTERNAL MUTATION - called via scheduler from updateEventStatus
+ */
+export const expireFirstEventCredits = internalMutation({
+  args: {
+    eventId: v.id("events"),
+  },
+  handler: async (ctx, args) => {
+    console.log("[expireFirstEventCredits] Checking for credits to expire for event:", args.eventId);
+
+    // Find credits linked to this event
+    const creditsRecord = await ctx.db
+      .query("organizerCredits")
+      .filter((q) => q.eq(q.field("firstEventId"), args.eventId))
+      .first();
+
+    if (!creditsRecord) {
+      console.log("[expireFirstEventCredits] No credits found for this event");
+      return { success: true, expired: 0, message: "No credits linked to this event" };
+    }
+
+    // Check if there are any remaining credits from the first event free allocation
+    if (creditsRecord.creditsRemaining <= 0) {
+      console.log("[expireFirstEventCredits] No remaining credits to expire");
+      return { success: true, expired: 0, message: "No remaining credits to expire" };
+    }
+
+    // Get event payment config to see how many tickets were actually allocated
+    const config = await ctx.db
+      .query("eventPaymentConfig")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .first();
+
+    if (!config) {
+      console.log("[expireFirstEventCredits] No payment config found");
+      return { success: true, expired: 0, message: "No payment config found" };
+    }
+
+    // Calculate unused credits for this specific event
+    const tiers = await ctx.db
+      .query("ticketTiers")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .collect();
+
+    const totalAllocated = tiers.reduce((sum, tier) => sum + tier.quantity, 0);
+    const unusedForThisEvent = (config.ticketsAllocated || 0) - totalAllocated;
+
+    if (unusedForThisEvent <= 0) {
+      console.log("[expireFirstEventCredits] All allocated tickets were used");
+      return {
+        success: true,
+        expired: 0,
+        message: "All allocated tickets for this event were used"
+      };
+    }
+
+    // Expire the unused credits
+    const expiredAmount = Math.min(unusedForThisEvent, creditsRecord.creditsRemaining);
+
+    await ctx.db.patch(creditsRecord._id, {
+      creditsRemaining: creditsRecord.creditsRemaining - expiredAmount,
+      updatedAt: Date.now(),
+    });
+
+    console.log(
+      `[expireFirstEventCredits] Expired ${expiredAmount} unused credits from first event. ` +
+      `New balance: ${creditsRecord.creditsRemaining - expiredAmount}`
+    );
+
+    return {
+      success: true,
+      expired: expiredAmount,
+      remainingCredits: creditsRecord.creditsRemaining - expiredAmount,
+      message: `Expired ${expiredAmount} unused first-event credits. Event has ended.`,
     };
   },
 });

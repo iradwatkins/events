@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -20,6 +20,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { CapacityProgressBar } from "@/components/events/CapacityProgressBar";
 import { CapacityAwareTicketEditor, TicketTier as EditorTicketTier } from "@/components/events/CapacityAwareTicketEditor";
+import { FirstEventCongratsModal } from "@/components/organizer/FirstEventCongratsModal";
 
 export default function TicketTiersPage() {
   const params = useParams();
@@ -29,6 +30,7 @@ export default function TicketTiersPage() {
   const [showAddTier, setShowAddTier] = useState(false);
   const [editingTier, setEditingTier] = useState<Id<"ticketTiers"> | null>(null);
   const [showEditTier, setShowEditTier] = useState(false);
+  const [showCongratsModal, setShowCongratsModal] = useState(false);
 
   // Form state - now using CapacityAwareTicketEditor format
   const [newTiers, setNewTiers] = useState<EditorTicketTier[]>([]);
@@ -37,10 +39,45 @@ export default function TicketTiersPage() {
   const event = useQuery(api.events.queries.getEventById, { eventId });
   // Use a direct query for ticket tiers instead of the public query which requires PUBLISHED status
   const ticketTiersData = useQuery(api.tickets.queries.getTicketsByEvent, { eventId });
+  const currentUser = useQuery(api.users.queries.getCurrentUser);
+  const myEvents = useQuery(
+    api.events.queries.getOrganizerEvents,
+    currentUser ? { userId: currentUser._id } : "skip"
+  );
+  const creditBalance = useQuery(api.credits.queries.getMyCredits);
 
   const createTier = useMutation(api.tickets.mutations.createTicketTier);
   const updateTier = useMutation(api.tickets.mutations.updateTicketTier);
   const deleteTier = useMutation(api.tickets.mutations.deleteTicketTier);
+  const markPopupShown = useMutation(api.users.mutations.markFirstEventTicketPopupShown);
+
+  // Show congratulations popup for first event
+  useEffect(() => {
+    if (
+      currentUser &&
+      myEvents &&
+      creditBalance &&
+      event &&
+      !currentUser.firstEventTicketPopupShown
+    ) {
+      // Check if this is the first event AND user has 1000 free credits
+      const isFirstEvent = myEvents.length === 1 && myEvents[0]._id === eventId;
+      const hasFreeCredits = creditBalance.creditsRemaining === 1000 && !creditBalance.firstEventFreeUsed;
+
+      if (isFirstEvent && hasFreeCredits) {
+        setShowCongratsModal(true);
+      }
+    }
+  }, [currentUser, myEvents, creditBalance, event, eventId]);
+
+  const handleCloseCongratsModal = async () => {
+    setShowCongratsModal(false);
+    try {
+      await markPopupShown({});
+    } catch (error) {
+      console.error("Failed to mark popup as shown:", error);
+    }
+  };
 
   const isLoading = event === undefined;
 
@@ -180,6 +217,13 @@ export default function TicketTiersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* First Event Congratulations Modal */}
+      <FirstEventCongratsModal
+        isOpen={showCongratsModal}
+        onClose={handleCloseCongratsModal}
+        creditsRemaining={creditBalance?.creditsRemaining || 0}
+      />
+
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4 py-6">

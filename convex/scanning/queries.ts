@@ -198,7 +198,7 @@ export const getMyScannableEvents = query({
 
     if (!user) return [];
 
-    let eventIds: Set<string> = new Set();
+    const eventIds: Set<string> = new Set();
 
     // If admin, can scan all events
     if (user.role === "admin") {

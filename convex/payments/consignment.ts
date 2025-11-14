@@ -34,7 +34,7 @@ export const setupConsignment = mutation({
     }
 
     // Get or create payment config
-    let paymentConfig = await ctx.db
+    const paymentConfig = await ctx.db
       .query("eventPaymentConfig")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
       .first();

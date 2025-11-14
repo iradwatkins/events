@@ -24,14 +24,14 @@ export async function getCurrentUser(ctx: QueryCtx | MutationCtx) {
   // Convex auth identity can have different structures depending on the provider
   const email = identity.email || identity.tokenIdentifier?.split("|")[1];
 
-  if (!email) {
+  if (!email || typeof email !== 'string') {
     console.error("[getCurrentUser] No email found in identity:", identity);
     throw new Error("No email found in authentication token");
   }
 
   const user = await ctx.db
     .query("users")
-    .withIndex("by_email", (q) => q.eq("email", email))
+    .withIndex("by_email", (q) => q.eq("email", email as string))
     .first();
 
   if (!user) {

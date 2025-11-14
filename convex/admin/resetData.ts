@@ -9,7 +9,7 @@ export const resetAllUsers = mutation({
   handler: async (ctx) => {
     console.log("🔥 Starting COMPLETE USER RESET (keeping products only)...");
 
-    let deletedCounts = {
+    const deletedCounts = {
       users: 0,
       organizerCredits: 0,
       creditTransactions: 0,
@@ -247,7 +247,7 @@ export const resetAllDataExceptProducts = mutation({
   handler: async (ctx) => {
     console.log("🗑️  Starting complete data reset (keeping products and users)...");
 
-    let deletedCounts = {
+    const deletedCounts = {
       events: 0,
       ticketTiers: 0,
       tickets: 0,

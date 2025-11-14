@@ -15,7 +15,7 @@ export const getPublishedEvents = query({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    let eventsQuery = ctx.db
+    const eventsQuery = ctx.db
       .query("events")
       .withIndex("by_status", (q) => q.eq("status", "PUBLISHED"))
       .order("desc");
@@ -114,7 +114,7 @@ export const getPastEvents = query({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    let eventsQuery = ctx.db
+    const eventsQuery = ctx.db
       .query("events")
       .withIndex("by_status", (q) => q.eq("status", "PUBLISHED"))
       .order("desc");

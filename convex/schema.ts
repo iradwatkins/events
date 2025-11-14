@@ -37,7 +37,8 @@ export default defineSchema({
     acceptsPaypalPayments: v.optional(v.boolean()),
     acceptsCashPayments: v.optional(v.boolean()),
     // Onboarding
-    welcomePopupShown: v.optional(v.boolean()), // Track if user has seen the 1000 free tickets welcome popup
+    welcomePopupShown: v.optional(v.boolean()), // Track if user has seen the 1000 free tickets welcome popup on event creation
+    firstEventTicketPopupShown: v.optional(v.boolean()), // Track if user has seen the "Add Tickets" congratulations popup
     // Timestamps
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
@@ -159,6 +160,7 @@ export default defineSchema({
     creditsUsed: v.number(),
     creditsRemaining: v.number(),
     firstEventFreeUsed: v.boolean(),
+    firstEventId: v.optional(v.id("events")), // Track which event the free 1000 credits are for
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_organizer", ["organizerId"]),

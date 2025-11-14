@@ -112,7 +112,7 @@ export const confirmCreditPurchase = mutation({
     });
 
     // Get or create credit balance
-    let credits = await ctx.db
+    const credits = await ctx.db
       .query("organizerCredits")
       .withIndex("by_organizer", (q) => q.eq("organizerId", transaction.organizerId))
       .first();

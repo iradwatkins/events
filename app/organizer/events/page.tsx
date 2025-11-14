@@ -16,10 +16,16 @@ export default function OrganizerEventsPage() {
 
   // Verify user authentication
   const currentUser = useQuery(api.users.queries.getCurrentUser);
+
+  // Fetch events - pass userId if currentUser exists, otherwise pass undefined
+  // The query will return empty array if no userId is provided
   const events = useQuery(
     api.events.queries.getOrganizerEvents,
-    currentUser ? { userId: currentUser._id } : "skip"
+    {
+      userId: currentUser?._id,
+    }
   );
+
   const credits = useQuery(api.credits.queries.getMyCredits);
   const bulkDeleteEvents = useMutation(api.events.mutations.bulkDeleteEvents);
   const publishEvent = useMutation(api.events.mutations.publishEvent);
@@ -40,10 +46,10 @@ export default function OrganizerEventsPage() {
     failedEvents: Array<{ eventId: string; reason: string }>;
   } | null>(null);
 
-  const isLoading = events === undefined || credits === undefined || currentUser === undefined;
-
   // Show loading while checking auth
-  if (isLoading) {
+  // currentUser undefined = still loading
+  // currentUser null = not authenticated
+  if (currentUser === undefined) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -54,10 +60,24 @@ export default function OrganizerEventsPage() {
     );
   }
 
-  // Redirect if not authenticated
-  if (!currentUser) {
+  // Redirect if not authenticated (currentUser is null)
+  if (currentUser === null) {
     router.push("/login");
     return null;
+  }
+
+  // At this point, currentUser exists, but events might still be loading
+  const isLoading = events === undefined || credits === undefined;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading your events...</p>
+        </div>
+      </div>
+    );
   }
 
   // Calculate totals for dashboard

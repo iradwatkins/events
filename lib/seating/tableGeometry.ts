@@ -79,8 +79,8 @@ export function calculateRectangularTableSeats(
 
   let topSeats = isHorizontal ? longSideSeats : shortSideSeats;
   let bottomSeats = isHorizontal ? longSideSeats : shortSideSeats;
-  let leftSeats = isHorizontal ? shortSideSeats : longSideSeats;
-  let rightSeats = isHorizontal ? shortSideSeats : longSideSeats;
+  const leftSeats = isHorizontal ? shortSideSeats : longSideSeats;
+  const rightSeats = isHorizontal ? shortSideSeats : longSideSeats;
 
   // Distribute remaining seats
   if (remainingSeats > 0) {

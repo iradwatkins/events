@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { mutation } from "../_generated/server";
+import { mutation, internalMutation } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
 import { getCurrentUser, requireEventOwnership } from "../lib/auth";
+import { internal } from "../_generated/api";
 
 /**
  * Create a new event
@@ -115,19 +116,19 @@ export const createEvent = mutation({
           .first();
 
         if (!existingCredits) {
-          // Grant 300 FREE credits for first-time organizer
+          // Grant 1000 FREE credits for first-time organizer (FIRST EVENT ONLY)
           const now = Date.now();
           await ctx.db.insert("organizerCredits", {
             organizerId: user._id,
-            creditsTotal: 300,
+            creditsTotal: 1000,
             creditsUsed: 0,
-            creditsRemaining: 300,
+            creditsRemaining: 1000,
             firstEventFreeUsed: false,
             createdAt: now,
             updatedAt: now,
           });
 
-          console.log("[createEvent] ✅ Granted 300 FREE credits to new organizer!");
+          console.log("[createEvent] ✅ Granted 1000 FREE credits to new organizer!");
         } else {
           console.log("[createEvent] Credits already exist, skipping initialization");
         }
@@ -510,6 +511,50 @@ export const updateEvent = mutation({
     await ctx.db.patch(args.eventId, updates);
 
     return { success: true };
+  },
+});
+
+/**
+ * Update event status (publish, cancel, complete)
+ */
+export const updateEventStatus = mutation({
+  args: {
+    eventId: v.id("events"),
+    status: v.union(
+      v.literal("DRAFT"),
+      v.literal("PUBLISHED"),
+      v.literal("CANCELLED"),
+      v.literal("COMPLETED")
+    ),
+  },
+  handler: async (ctx, args) => {
+    // Verify event ownership
+    const { event } = await requireEventOwnership(ctx, args.eventId);
+
+    console.log(`[updateEventStatus] Changing event ${args.eventId} status from ${event.status} to ${args.status}`);
+
+    // Update event status
+    await ctx.db.patch(args.eventId, {
+      status: args.status,
+      updatedAt: Date.now(),
+    });
+
+    // If event is being cancelled or completed, expire unused first-event credits
+    if (args.status === "CANCELLED" || args.status === "COMPLETED") {
+      console.log(`[updateEventStatus] Event ending, calling expireFirstEventCredits`);
+
+      try {
+        // Call the expiration mutation
+        await ctx.scheduler.runAfter(0, internal.events.allocations.expireFirstEventCredits, {
+          eventId: args.eventId,
+        });
+      } catch (error) {
+        console.error("[updateEventStatus] Failed to expire credits:", error);
+        // Don't fail the status update if credit expiration fails
+      }
+    }
+
+    return { success: true, newStatus: args.status };
   },
 });
 

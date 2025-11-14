@@ -32,10 +32,10 @@ export default function AnalyticsPage() {
   const draftEvents = userEvents.filter((e) => e.status === "DRAFT").length;
 
   // Calculate totals from event statistics
-  let totalRevenue = 0;
-  let totalTicketsSold = 0;
-  let totalOrders = 0;
-  let totalAttendees = 0;
+  const totalRevenue = 0;
+  const totalTicketsSold = 0;
+  const totalOrders = 0;
+  const totalAttendees = 0;
 
   // Get event-specific data (would need to fetch statistics for each event)
   const eventsWithStats = userEvents

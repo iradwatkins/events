@@ -10,7 +10,7 @@ export const resetSystemData = mutation({
   handler: async (ctx) => {
     console.log("🚨 SYSTEM RESET INITIATED - Deleting all data...");
 
-    let deletionCount = {
+    const deletionCount = {
       tickets: 0,
       ticketInstances: 0,
       ticketTiers: 0,

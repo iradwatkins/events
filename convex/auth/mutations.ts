@@ -86,7 +86,7 @@ export const storeMagicLinkToken = mutation({
     const now = Date.now();
 
     // Check if user exists
-    let user = await ctx.db
+    const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();

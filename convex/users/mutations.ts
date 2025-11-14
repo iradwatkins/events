@@ -79,6 +79,35 @@ export const markWelcomePopupShown = mutation({
 });
 
 /**
+ * Mark first event ticket popup as shown
+ */
+export const markFirstEventTicketPopupShown = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    await ctx.db.patch(user._id, {
+      firstEventTicketPopupShown: true,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+/**
  * Create a new user with email/password registration
  */
 export const createUser = mutation({
@@ -488,7 +517,7 @@ export const storeMagicLinkToken = mutation({
     const now = Date.now();
 
     // Find or create user
-    let user = await ctx.db
+    const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();

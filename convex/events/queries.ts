@@ -43,9 +43,15 @@ export const getPaymentConfig = query({
  */
 export const getOrganizerEvents = query({
   args: {
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
+    // Return empty array if no userId provided
+    if (!args.userId) {
+      console.log("[getOrganizerEvents] No userId provided, returning empty array");
+      return [];
+    }
+
     // Get user from database (frontend passes authenticated user's ID)
     const user = await ctx.db.get(args.userId);
 

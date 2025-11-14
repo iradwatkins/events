@@ -288,31 +288,25 @@ export const configurePayment = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // Verify event exists
-    const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
-
-    // Get user (for organizerId)
     let user;
+    let event;
 
-    // Skip authentication check for anonymous users
-    if (!identity) {
-      // Use test user
+    // Verify ownership if authenticated (TESTING MODE: skip if no identity)
+    if (identity) {
+      const ownership = await requireEventOwnership(ctx, args.eventId);
+      user = ownership.user;
+      event = ownership.event;
+    } else {
+      console.warn("[configurePayment] TESTING MODE - Using test user");
+      // Use test user for development
       user = await ctx.db
         .query("users")
         .withIndex("by_email", (q) => q.eq("email", "iradwatkins@gmail.com"))
         .first();
       if (!user) throw new Error("Test user not found");
-    } else {
-      // Production mode: Verify event ownership
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", identity.email!))
-        .first();
 
-      if (!user || event.organizerId !== user._id) {
-        throw new Error("Not authorized");
-      }
+      event = await ctx.db.get(args.eventId);
+      if (!event) throw new Error("Event not found");
     }
 
     // Check if config already exists
@@ -753,16 +747,16 @@ export const bulkDeleteEvents = mutation({
     // Process each event
     for (const eventId of args.eventIds) {
       try {
-        const event = await ctx.db.get(eventId);
-
-        if (!event) {
-          failedEvents.push({ eventId, reason: "Event not found" });
-          continue;
-        }
-
-        // Verify ownership (admins can delete any event)
-        if (user.role !== "admin" && event.organizerId !== user._id) {
-          failedEvents.push({ eventId, reason: "Not authorized to delete this event" });
+        // Verify ownership (handles both organizers and admins)
+        let event;
+        try {
+          const ownership = await requireEventOwnership(ctx, eventId);
+          event = ownership.event;
+        } catch (error) {
+          failedEvents.push({
+            eventId,
+            reason: error instanceof Error ? error.message : "Not authorized to delete this event",
+          });
           continue;
         }
 

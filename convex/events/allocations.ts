@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "../_generated/server";
+import { requireEventOwnership } from "../lib/auth";
 
 // Constants
 const FIRST_EVENT_FREE_TICKETS = 1000; // First event gets 1000 FREE tickets (ONE-TIME, EXPIRES WITH EVENT)
@@ -17,22 +18,8 @@ export const allocateEventTickets = mutation({
     ticketQuantity: v.number(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
-    // Get event
-    const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
-
-    // Verify ownership
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user || event.organizerId !== user._id) {
-      throw new Error("Not authorized");
-    }
+    // Verify ownership (handles both organizers and admins)
+    const { user, event } = await requireEventOwnership(ctx, args.eventId);
 
     // Check if this is the organizer's first event
     const allOrganizerEvents = await ctx.db
@@ -314,20 +301,8 @@ export const purchaseEventTickets = mutation({
     stripePaymentIntentId: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-
-    const event = await ctx.db.get(args.eventId);
-    if (!event) throw new Error("Event not found");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .first();
-
-    if (!user || event.organizerId !== user._id) {
-      throw new Error("Not authorized");
-    }
+    // Verify ownership (handles both organizers and admins)
+    const { user } = await requireEventOwnership(ctx, args.eventId);
 
     // Calculate cost
     const totalCostCents = args.ticketQuantity * PRICE_PER_TICKET_CENTS;

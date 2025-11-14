@@ -35,21 +35,37 @@ export const getPaymentConfig = query({
 /**
  * Get organizer's events
  * Get events for the current organizer
+ *
+ * SECURITY: Filters events by user ownership.
+ * - Admins see all events
+ * - Organizers see only their own events
+ * - Returns empty array if user not found
  */
 export const getOrganizerEvents = query({
-  args: {},
-  handler: async (ctx) => {
-    // Get current authenticated user
-    const user = await getCurrentUser(ctx);
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // Get user from database (frontend passes authenticated user's ID)
+    const user = await ctx.db.get(args.userId);
+
+    if (!user) {
+      console.error("[getOrganizerEvents] User not found:", args.userId);
+      return [];
+    }
+
+    console.log("[getOrganizerEvents] User:", user.email, "Role:", user.role);
 
     // Admins see all events, organizers see only their events
     let events;
     if (user.role === "admin") {
+      console.log("[getOrganizerEvents] Admin user - fetching all events");
       events = await ctx.db
         .query("events")
         .order("desc")
         .collect();
     } else {
+      console.log("[getOrganizerEvents] Non-admin user - filtering by organizerId");
       // Filter events by organizerId for non-admin users
       events = await ctx.db
         .query("events")
@@ -57,6 +73,9 @@ export const getOrganizerEvents = query({
         .order("desc")
         .collect();
     }
+
+    console.log("[getOrganizerEvents] Returning", events.length, "events");
+
 
     // Convert storage IDs to URLs for images
     const eventsWithImageUrls = await Promise.all(

@@ -62,14 +62,19 @@ export async function GET(request: NextRequest) {
     });
     console.log("[Google OAuth] User ID:", userId);
 
+    // Fetch the complete user data to get role
+    const user = await convex.query(api.users.queries.getUserById, { userId });
+
     // Create session token (JWT)
     const secret = new TextEncoder().encode(
-      process.env.AUTH_SECRET || "development-secret-change-in-production"
+      process.env.JWT_SECRET || process.env.AUTH_SECRET || "development-secret-change-in-production"
     );
 
     const token = await new SignJWT({
       userId: userId,
       email: googleUser.email,
+      name: googleUser.name,
+      role: user?.role || "user",
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()

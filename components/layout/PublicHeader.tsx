@@ -207,27 +207,16 @@ export function PublicHeader({
               </>
             ) : (
               <>
-                {/* Logged out navigation */}
+                {/* Logged out navigation - Single Sign In button */}
                 <div
                   className="hidden sm:block"
                 >
                   <Link
                     href="/login"
-                    className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
                   >
                     <LogIn className="w-4 h-4" />
                     <span className="hidden md:inline">Sign In</span>
-                  </Link>
-                </div>
-                <div
-                  className="hidden sm:block"
-                >
-                  <Link
-                    href="/register"
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
-                  >
-                    <User className="w-4 h-4" />
-                    <span className="hidden md:inline">Sign Up</span>
                   </Link>
                 </div>
               </>
@@ -346,21 +335,14 @@ export function PublicHeader({
                 </>
               ) : (
                 <>
+                  {/* Mobile menu - Single Sign In button */}
                   <Link
                     href="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors min-h-[48px]"
+                    className="flex items-center gap-3 px-4 py-3 bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors font-medium min-h-[48px]"
                   >
                     <LogIn className="w-5 h-5" />
                     Sign In
-                  </Link>
-                  <Link
-                    href="/register"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors font-medium min-h-[48px]"
-                  >
-                    <User className="w-5 h-5" />
-                    Sign Up
                   </Link>
                 </>
               )}

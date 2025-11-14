@@ -16,7 +16,10 @@ export default function OrganizerEventsPage() {
 
   // Verify user authentication
   const currentUser = useQuery(api.users.queries.getCurrentUser);
-  const events = useQuery(api.events.queries.getOrganizerEvents);
+  const events = useQuery(
+    api.events.queries.getOrganizerEvents,
+    currentUser ? { userId: currentUser._id } : "skip"
+  );
   const credits = useQuery(api.credits.queries.getMyCredits);
   const bulkDeleteEvents = useMutation(api.events.mutations.bulkDeleteEvents);
   const publishEvent = useMutation(api.events.mutations.publishEvent);

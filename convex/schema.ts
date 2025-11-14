@@ -20,6 +20,9 @@ export default defineSchema({
     // Magic Link fields
     magicLinkToken: v.optional(v.string()), // Hashed token for magic link login
     magicLinkExpiry: v.optional(v.number()), // Expiration timestamp (15 minutes)
+    // Password Reset
+    passwordResetToken: v.optional(v.string()), // Hashed token for password reset
+    passwordResetExpiry: v.optional(v.number()), // Expiration timestamp (1 hour)
     // Permissions
     canCreateTicketedEvents: v.optional(v.boolean()), // Restrict organizers to only Save The Date/Free events
     // Stripe fields (for receiving ticket payments from customers)
@@ -46,7 +49,8 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_role", ["role"])
     .index("by_googleId", ["googleId"])
-    .index("by_magicLinkToken", ["magicLinkToken"]),
+    .index("by_magicLinkToken", ["magicLinkToken"])
+    .index("by_passwordResetToken", ["passwordResetToken"]),
 
   events: defineTable({
     // Basic info

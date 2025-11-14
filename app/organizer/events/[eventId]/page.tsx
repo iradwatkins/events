@@ -169,18 +169,19 @@ export default function EventDashboardPage() {
     }
   };
 
-  const getSeatAssignment = (ticketId: Id<"tickets">) => {
-    if (!seatReservations) return null;
-    const reservation = seatReservations.find((r) => r.ticketId === ticketId);
-    if (!reservation) return null;
-
-    if (reservation.tableId) {
-      return `Table ${reservation.tableNumber}, Seat ${reservation.seatNumber}`;
-    } else if (reservation.rowId) {
-      return `Row ${reservation.rowLabel}, Seat ${reservation.seatNumber}`;
-    }
-    return null;
-  };
+  // Seating feature disabled - getSeatAssignment function removed
+  // const getSeatAssignment = (ticketId: Id<"tickets">) => {
+  //   if (!seatReservations) return null;
+  //   const reservation = seatReservations.find((r) => r.ticketId === ticketId);
+  //   if (!reservation) return null;
+  //
+  //   if (reservation.tableId) {
+  //     return `Table ${reservation.tableNumber}, Seat ${reservation.seatNumber}`;
+  //   } else if (reservation.rowId) {
+  //     return `Row ${reservation.rowLabel}, Seat ${reservation.seatNumber}`;
+  //   }
+  //   return null;
+  // };
 
   const handleExportAttendees = () => {
     if (!attendees || attendees.length === 0) {
@@ -818,9 +819,6 @@ export default function EventDashboardPage() {
                       Tier
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Seat Assignment
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -845,11 +843,6 @@ export default function EventDashboardPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {ticket.tierName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {getSeatAssignment(ticket._id) || (
-                            <span className="text-gray-400 italic">No seat assigned</span>
-                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span

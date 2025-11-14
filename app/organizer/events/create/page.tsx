@@ -35,14 +35,13 @@ interface TicketTier {
 }
 
 const EVENT_CATEGORIES = [
-  "Steppers Set",
+  "Set",
   "Workshop",
-  "Social",
-  "Competition",
-  "Festival",
-  "Conference",
-  "Fundraiser",
-  "Other",
+  "Save the Date",
+  "Cruise",
+  "Outdoors Steppin",
+  "Holiday Event",
+  "Weekend Event",
 ];
 
 export default function CreateEventPage() {

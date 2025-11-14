@@ -12,6 +12,9 @@ const REDIRECT_URI = process.env.NEXTAUTH_URL
   ? `${process.env.NEXTAUTH_URL}/api/auth/callback/google`
   : "http://localhost:3000/api/auth/callback/google";
 
+console.log("[Google OAuth Config] REDIRECT_URI:", REDIRECT_URI);
+console.log("[Google OAuth Config] NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+
 /**
  * Generate OAuth authorization URL
  * User will be redirected here to sign in with Google
@@ -29,7 +32,9 @@ export function getGoogleAuthUrl(state?: string): string {
     prompt: "consent",
   });
 
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  console.log("[Google OAuth] Generated auth URL with redirect_uri:", REDIRECT_URI);
+  return url;
 }
 
 /**

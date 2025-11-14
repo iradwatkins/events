@@ -13,25 +13,27 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
     // Set up auth with an async function that fetches the token
     convex.setAuth(async () => {
       try {
-        const response = await fetch('/api/auth/me', {
+        console.log('[ConvexAuth] Fetching convex token...');
+        const response = await fetch('/api/auth/convex-token', {
           credentials: 'same-origin',
         });
 
+        console.log('[ConvexAuth] Response status:', response.status);
+
         if (response.ok) {
           const data = await response.json();
-          // Return user info as the auth token (Convex will receive this in ctx.auth.getUserIdentity())
-          return JSON.stringify(data.user);
+          console.log('[ConvexAuth] Got token, length:', data.token?.length);
+          // Return the JWT token that Convex can verify
+          return data.token || null;
         }
         // Return null when not authenticated (401) - this is expected and not an error
         if (response.status === 401) {
+          console.log('[ConvexAuth] Not authenticated (401)');
           return null;
         }
         throw new Error(`Auth check failed with status ${response.status}`);
       } catch (error) {
-        // Only log actual errors in development, not expected 401s
-        if (process.env.NODE_ENV === 'development' && error instanceof Error && !error.message.includes('401')) {
-          console.error('[ConvexAuth] Failed to get auth token:', error);
-        }
+        console.error('[ConvexAuth] Error getting auth token:', error);
         return null;
       }
     });

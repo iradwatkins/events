@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Trash2, Ticket, DollarSign, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { CapacityProgressBar } from "./CapacityProgressBar";
+import { PricingTierForm, PricingTier } from "./PricingTierForm";
 
 // Simplified ticket tier interface - no more allocation modes!
 export interface TicketTier {
@@ -14,6 +15,8 @@ export interface TicketTier {
   // Simple table package support
   isTablePackage?: boolean;
   seatsPerTable?: number;
+  // Early bird pricing support
+  pricingTiers?: PricingTier[];
 }
 
 interface CapacityAwareTicketEditorProps {
@@ -77,6 +80,14 @@ export function CapacityAwareTicketEditor({
     onChange(
       tiers.map((tier) =>
         tier.id === id ? { ...tier, [field]: value } : tier
+      )
+    );
+  };
+
+  const updateTierPricing = (id: string, pricingTiers: PricingTier[]) => {
+    onChange(
+      tiers.map((tier) =>
+        tier.id === id ? { ...tier, pricingTiers } : tier
       )
     );
   };
@@ -352,6 +363,15 @@ export function CapacityAwareTicketEditor({
                         </p>
                       </div>
                     )}
+                  </div>
+
+                  {/* Early Bird Pricing Section */}
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <PricingTierForm
+                      tiers={tier.pricingTiers || []}
+                      onChange={(pricingTiers) => updateTierPricing(tier.id, pricingTiers)}
+                      basePrice={tier.price}
+                    />
                   </div>
                 </div>
               )}

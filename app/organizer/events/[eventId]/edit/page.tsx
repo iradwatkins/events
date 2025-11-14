@@ -19,14 +19,13 @@ import { getTimezoneFromLocation, getTimezoneName } from "@/lib/timezone";
 import { format } from "date-fns";
 
 const EVENT_CATEGORIES = [
-  "Steppers Set",
+  "Set",
   "Workshop",
-  "Social",
-  "Competition",
-  "Festival",
-  "Conference",
-  "Fundraiser",
-  "Other",
+  "Save the Date",
+  "Cruise",
+  "Outdoors Steppin",
+  "Holiday Event",
+  "Weekend Event",
 ];
 
 export default function EditEventPage() {
@@ -144,6 +143,7 @@ export default function EditEventPage() {
           country,
         },
         capacity: capacity ? parseInt(capacity) : undefined,
+        images: uploadedImageId ? [uploadedImageId] : undefined,
       });
 
       router.push(`/organizer/events/${eventId}`);

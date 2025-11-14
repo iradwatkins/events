@@ -35,7 +35,8 @@ export default function TicketTiersPage() {
   const [editTierData, setEditTierData] = useState<EditorTicketTier[]>([]);
 
   const event = useQuery(api.events.queries.getEventById, { eventId });
-  const ticketTiers = useQuery(api.public.queries.getPublicEventDetails, { eventId });
+  // Use a direct query for ticket tiers instead of the public query which requires PUBLISHED status
+  const ticketTiersData = useQuery(api.tickets.queries.getTicketsByEvent, { eventId });
 
   const createTier = useMutation(api.tickets.mutations.createTicketTier);
   const updateTier = useMutation(api.tickets.mutations.updateTicketTier);
@@ -110,6 +111,8 @@ export default function TicketTiersPage() {
       // Simple table package support
       isTablePackage: tier.isTablePackage,
       seatsPerTable: tier.tableCapacity,
+      // Early bird pricing support
+      pricingTiers: tier.pricingTiers,
     };
 
     setEditTierData([editorTier]);
@@ -127,6 +130,15 @@ export default function TicketTiersPage() {
       const priceCents = Math.round(parseFloat(tier.price) * 100);
       const quantity = parseInt(tier.quantity);
 
+      // Convert pricing tiers to Convex format if they exist
+      const pricingTiers = tier.pricingTiers?.map(pt => ({
+        id: pt.id,
+        name: pt.name,
+        price: Math.round(parseFloat(pt.price) * 100), // Convert to cents
+        availableFrom: new Date(pt.availableFrom).getTime(),
+        availableUntil: pt.availableUntil ? new Date(pt.availableUntil).getTime() : undefined,
+      }));
+
       await updateTier({
         tierId: editingTier,
         name: tier.name,
@@ -136,6 +148,8 @@ export default function TicketTiersPage() {
         // Simple table package support
         isTablePackage: tier.isTablePackage,
         tableCapacity: tier.seatsPerTable,
+        // Early bird pricing
+        pricingTiers: pricingTiers,
       });
 
       setEditTierData([]);
@@ -162,7 +176,7 @@ export default function TicketTiersPage() {
     }
   };
 
-  const tiers = ticketTiers?.ticketTiers || [];
+  const tiers = ticketTiersData || [];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

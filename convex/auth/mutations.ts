@@ -71,3 +71,193 @@ export const updateUserPassword = mutation({
     return { success: true };
   },
 });
+
+/**
+ * Store magic link token for passwordless authentication
+ * Creates user if doesn't exist
+ */
+export const storeMagicLinkToken = mutation({
+  args: {
+    email: v.string(),
+    tokenHash: v.string(),
+    expiry: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Check if user exists
+    let user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (!user) {
+      // Create new user if doesn't exist
+      const userId = await ctx.db.insert("users", {
+        email: args.email,
+        role: "user",
+        emailVerified: false,
+        authProvider: "magic_link",
+        magicLinkToken: args.tokenHash,
+        magicLinkExpiry: args.expiry,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      console.log(`[Magic Link] Created new user: ${args.email}`);
+      return userId;
+    } else {
+      // Update existing user with magic link token
+      await ctx.db.patch(user._id, {
+        magicLinkToken: args.tokenHash,
+        magicLinkExpiry: args.expiry,
+        updatedAt: now,
+      });
+
+      console.log(`[Magic Link] Updated token for user: ${args.email}`);
+      return user._id;
+    }
+  },
+});
+
+/**
+ * Verify magic link token and return user
+ * Clears token after successful verification
+ */
+export const verifyMagicLinkToken = mutation({
+  args: {
+    tokenHash: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Find user with matching token
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_magicLinkToken", (q) => q.eq("magicLinkToken", args.tokenHash))
+      .first();
+
+    if (!user) {
+      console.log("[Magic Link] Token not found");
+      return null;
+    }
+
+    // Check if token is expired
+    if (user.magicLinkExpiry && Date.now() > user.magicLinkExpiry) {
+      console.log("[Magic Link] Token expired");
+      // Clear expired token
+      await ctx.db.patch(user._id, {
+        magicLinkToken: undefined,
+        magicLinkExpiry: undefined,
+        updatedAt: Date.now(),
+      });
+      return null;
+    }
+
+    // Token is valid - mark email as verified and clear token
+    await ctx.db.patch(user._id, {
+      emailVerified: true,
+      magicLinkToken: undefined,
+      magicLinkExpiry: undefined,
+      updatedAt: Date.now(),
+    });
+
+    // Initialize credits for new organizers
+    if ((user.role === "organizer" || user.role === "admin") && !user.createdAt) {
+      const existingCredits = await ctx.db
+        .query("organizerCredits")
+        .withIndex("by_organizerId", (q) => q.eq("organizerId", user._id))
+        .first();
+
+      if (!existingCredits) {
+        await ctx.db.insert("organizerCredits", {
+          organizerId: user._id,
+          creditsTotal: 300,
+          creditsUsed: 0,
+          creditsRemaining: 300,
+          firstEventFreeUsed: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      }
+    }
+
+    console.log(`[Magic Link] Successfully verified user: ${user.email}`);
+    return user;
+  },
+});
+
+/**
+ * Store password reset token
+ */
+export const storePasswordResetToken = mutation({
+  args: {
+    userId: v.id("users"),
+    tokenHash: v.string(),
+    expiry: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Store reset token in user record
+    await ctx.db.patch(args.userId, {
+      passwordResetToken: args.tokenHash,
+      passwordResetExpiry: args.expiry,
+      updatedAt: Date.now(),
+    });
+
+    console.log(`[Password Reset] Token stored for user ID: ${args.userId}`);
+    return { success: true };
+  },
+});
+
+/**
+ * Reset password using token
+ */
+export const resetPassword = mutation({
+  args: {
+    tokenHash: v.string(),
+    passwordHash: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Find user with matching reset token
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_passwordResetToken", (q) => q.eq("passwordResetToken", args.tokenHash))
+      .first();
+
+    if (!user) {
+      return {
+        success: false,
+        error: "Invalid reset token",
+      };
+    }
+
+    // Check if token is expired
+    if (user.passwordResetExpiry && Date.now() > user.passwordResetExpiry) {
+      // Clear expired token
+      await ctx.db.patch(user._id, {
+        passwordResetToken: undefined,
+        passwordResetExpiry: undefined,
+        updatedAt: Date.now(),
+      });
+
+      return {
+        success: false,
+        error: "Reset token has expired",
+      };
+    }
+
+    // Update password and clear reset token
+    await ctx.db.patch(user._id, {
+      passwordHash: args.passwordHash,
+      passwordResetToken: undefined,
+      passwordResetExpiry: undefined,
+      emailVerified: true, // Mark as verified since they proved email ownership
+      updatedAt: Date.now(),
+    });
+
+    console.log(`[Password Reset] Password reset successfully for: ${user.email}`);
+
+    return {
+      success: true,
+      email: user.email,
+    };
+  },
+});

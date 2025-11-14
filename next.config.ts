@@ -121,6 +121,11 @@ const nextConfig: NextConfig = {
         hostname: "events.stepperslife.com",
         pathname: "/api/**",
       },
+      {
+        protocol: "https",
+        hostname: "fearless-dragon-613.convex.cloud",
+        pathname: "/api/storage/**",
+      },
     ],
   },
 };

@@ -10,6 +10,11 @@ import { ProductsSection } from "@/components/homepage/ProductsSection";
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
 const convex = new ConvexHttpClient(convexUrl);
 
+// Force dynamic rendering - always fetch fresh data (no static caching)
+// This ensures events appear immediately after being published
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable ISR caching
+
 // Server Component - fetches data at build time or on request
 export default async function Home() {
   // Fetch upcoming events on the server

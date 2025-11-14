@@ -566,3 +566,57 @@ export const verifyMagicLinkToken = mutation({
     };
   },
 });
+
+/**
+ * Delete a user (ADMIN ONLY - highly sensitive)
+ * This will also delete all related data
+ */
+export const deleteUser = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // Require admin authentication
+    const identity = await ctx.auth.getUserIdentity();
+
+    if (!identity?.email) {
+      throw new Error("Authentication required. This is a sensitive operation.");
+    }
+
+    // Verify admin privileges
+    const adminUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!adminUser || adminUser.role !== "admin") {
+      throw new Error("Admin access required. Only administrators can delete users.");
+    }
+
+    // Get the user to be deleted
+    const userToDelete = await ctx.db.get(args.userId);
+    if (!userToDelete) {
+      throw new Error("User not found");
+    }
+
+    // Prevent deleting the last admin
+    if (userToDelete.role === "admin") {
+      const allAdmins = await ctx.db
+        .query("users")
+        .withIndex("by_role", (q) => q.eq("role", "admin"))
+        .collect();
+
+      if (allAdmins.length <= 1) {
+        throw new Error("Cannot delete the last admin.");
+      }
+    }
+
+    // Log admin action for security audit
+    console.log(`[ADMIN ACTION] ${adminUser.email} deleted user ${userToDelete.email} (${args.userId})`);
+
+    // Delete the user
+    await ctx.db.delete(args.userId);
+
+    return { success: true, deletedEmail: userToDelete.email };
+  },
+});

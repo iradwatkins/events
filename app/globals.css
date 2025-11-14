@@ -161,39 +161,36 @@
   --shadow-2xl: var(--shadow-2xl);
 }
 
-/* Force light mode on mobile - override all dark theme variables */
-@media (max-width: 768px) {
-  :root,
-  :root.dark,
-  .dark {
-    --background: oklch(1.0000 0 0) !important;
-    --foreground: oklch(0.1884 0.0128 248.5103) !important;
-    --card: oklch(0.9784 0.0011 197.1387) !important;
-    --card-foreground: oklch(0.1884 0.0128 248.5103) !important;
-    --popover: oklch(1.0000 0 0) !important;
-    --popover-foreground: oklch(0.1884 0.0128 248.5103) !important;
-    --primary: oklch(0.6723 0.1606 244.9955) !important;
-    --primary-foreground: oklch(1.0000 0 0) !important;
-    --secondary: oklch(0.1884 0.0128 248.5103) !important;
-    --secondary-foreground: oklch(1.0000 0 0) !important;
-    --muted: oklch(0.9222 0.0013 286.3737) !important;
-    --muted-foreground: oklch(0.1884 0.0128 248.5103) !important;
-    --accent: oklch(0.9392 0.0166 250.8453) !important;
-    --accent-foreground: oklch(0.6723 0.1606 244.9955) !important;
-    --destructive: oklch(0.6188 0.2376 25.7658) !important;
-    --destructive-foreground: oklch(1.0000 0 0) !important;
-    --border: oklch(0.9317 0.0118 231.6594) !important;
-    --input: oklch(0.9809 0.0025 228.7836) !important;
-    --ring: oklch(0.6818 0.1584 243.3540) !important;
-    --sidebar: oklch(0.9784 0.0011 197.1387) !important;
-    --sidebar-foreground: oklch(0.1884 0.0128 248.5103) !important;
-    --sidebar-primary: oklch(0.6723 0.1606 244.9955) !important;
-    --sidebar-primary-foreground: oklch(1.0000 0 0) !important;
-    --sidebar-accent: oklch(0.9392 0.0166 250.8453) !important;
-    --sidebar-accent-foreground: oklch(0.6723 0.1606 244.9955) !important;
-    --sidebar-border: oklch(0.9271 0.0101 238.5177) !important;
-    --sidebar-ring: oklch(0.6818 0.1584 243.3540) !important;
-  }
+/* Force light mode - override all dark theme variables */
+:root.dark,
+.dark {
+  --background: oklch(1.0000 0 0) !important;
+  --foreground: oklch(0.1884 0.0128 248.5103) !important;
+  --card: oklch(0.9784 0.0011 197.1387) !important;
+  --card-foreground: oklch(0.1884 0.0128 248.5103) !important;
+  --popover: oklch(1.0000 0 0) !important;
+  --popover-foreground: oklch(0.1884 0.0128 248.5103) !important;
+  --primary: oklch(0.6723 0.1606 244.9955) !important;
+  --primary-foreground: oklch(1.0000 0 0) !important;
+  --secondary: oklch(0.1884 0.0128 248.5103) !important;
+  --secondary-foreground: oklch(1.0000 0 0) !important;
+  --muted: oklch(0.9222 0.0013 286.3737) !important;
+  --muted-foreground: oklch(0.1884 0.0128 248.5103) !important;
+  --accent: oklch(0.9392 0.0166 250.8453) !important;
+  --accent-foreground: oklch(0.6723 0.1606 244.9955) !important;
+  --destructive: oklch(0.6188 0.2376 25.7658) !important;
+  --destructive-foreground: oklch(1.0000 0 0) !important;
+  --border: oklch(0.9317 0.0118 231.6594) !important;
+  --input: oklch(0.9809 0.0025 228.7836) !important;
+  --ring: oklch(0.6818 0.1584 243.3540) !important;
+  --sidebar: oklch(0.9784 0.0011 197.1387) !important;
+  --sidebar-foreground: oklch(0.1884 0.0128 248.5103) !important;
+  --sidebar-primary: oklch(0.6723 0.1606 244.9955) !important;
+  --sidebar-primary-foreground: oklch(1.0000 0 0) !important;
+  --sidebar-accent: oklch(0.9392 0.0166 250.8453) !important;
+  --sidebar-accent-foreground: oklch(0.6723 0.1606 244.9955) !important;
+  --sidebar-border: oklch(0.9271 0.0101 238.5177) !important;
+  --sidebar-ring: oklch(0.6818 0.1584 243.3540) !important;
 }
 
 body {
@@ -202,89 +199,87 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Force light mode backgrounds on mobile */
-@media (max-width: 768px) {
-  body,
-  body.dark,
-  .dark body {
-    background: #ffffff !important;
-    color: #0f1419 !important;
-  }
+/* Force light mode backgrounds - ALL screen sizes */
+body,
+body.dark,
+.dark body {
+  background: #ffffff !important;
+  color: #0f1419 !important;
+}
 
-  /* Override ALL background classes on mobile - force light theme */
-  .bg-gray-50,
-  .dark .bg-gray-50,
-  .dark\:bg-gray-900 {
-    background-color: #f9fafb !important;
-  }
+/* Override ALL background classes - force light theme */
+.bg-gray-50,
+.dark .bg-gray-50,
+.dark\:bg-gray-900 {
+  background-color: #f9fafb !important;
+}
 
-  .bg-gray-100,
-  .dark .bg-gray-100 {
-    background-color: #f3f4f6 !important;
-  }
+.bg-gray-100,
+.dark .bg-gray-100 {
+  background-color: #f3f4f6 !important;
+}
 
-  .bg-gray-200,
-  .dark .bg-gray-200,
-  .dark\:bg-gray-700 {
-    background-color: #e5e7eb !important;
-  }
+.bg-gray-200,
+.dark .bg-gray-200,
+.dark\:bg-gray-700 {
+  background-color: #e5e7eb !important;
+}
 
-  .bg-white,
-  .dark .bg-white,
-  .dark\:bg-gray-800 {
-    background-color: #ffffff !important;
-  }
+.bg-white,
+.dark .bg-white,
+.dark\:bg-gray-800 {
+  background-color: #ffffff !important;
+}
 
-  .bg-gray-800,
-  .dark .bg-gray-800 {
-    background-color: #f7f8f8 !important;
-  }
+.bg-gray-800,
+.dark .bg-gray-800 {
+  background-color: #f7f8f8 !important;
+}
 
-  .bg-gray-900,
-  .dark .bg-gray-900 {
-    background-color: #ffffff !important;
-  }
+.bg-gray-900,
+.dark .bg-gray-900 {
+  background-color: #ffffff !important;
+}
 
-  /* Override text colors on mobile */
-  .text-gray-300,
-  .dark .text-gray-300,
-  .dark\:text-gray-300 {
-    color: #4b5563 !important;
-  }
+/* Override text colors */
+.text-gray-300,
+.dark .text-gray-300,
+.dark\:text-gray-300 {
+  color: #4b5563 !important;
+}
 
-  .text-gray-400,
-  .dark .text-gray-400,
-  .dark\:text-gray-400 {
-    color: #6b7280 !important;
-  }
+.text-gray-400,
+.dark .text-gray-400,
+.dark\:text-gray-400 {
+  color: #6b7280 !important;
+}
 
-  .text-gray-500,
-  .dark .text-gray-500 {
-    color: #6b7280 !important;
-  }
+.text-gray-500,
+.dark .text-gray-500 {
+  color: #6b7280 !important;
+}
 
-  .text-gray-600,
-  .dark .text-gray-600 {
-    color: #4b5563 !important;
-  }
+.text-gray-600,
+.dark .text-gray-600 {
+  color: #4b5563 !important;
+}
 
-  .text-gray-700,
-  .dark .text-gray-700,
-  .dark\:text-gray-700 {
-    color: #374151 !important;
-  }
+.text-gray-700,
+.dark .text-gray-700,
+.dark\:text-gray-700 {
+  color: #374151 !important;
+}
 
-  .text-white,
-  .dark .text-white,
-  .dark\:text-white {
-    color: #0f1419 !important;
-  }
+.text-white,
+.dark .text-white,
+.dark\:text-white {
+  color: #0f1419 !important;
+}
 
-  /* Force header to white background */
-  header,
-  .dark header {
-    background-color: #ffffff !important;
-  }
+/* Force header to white background */
+header,
+.dark header {
+  background-color: #ffffff !important;
 }
 
 /* PWA Safe Area Support */

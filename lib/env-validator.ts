@@ -6,12 +6,21 @@
 
 const requiredEnvVars = [
   'NEXT_PUBLIC_CONVEX_URL',
-  // Note: JWT_SECRET and payment keys should be required after testing
-  // Uncomment these when ready for production:
-  // 'JWT_SECRET',
-  // 'SQUARE_ACCESS_TOKEN',
-  // 'SQUARE_APPLICATION_ID',
-  // 'SQUARE_LOCATION_ID',
+  'CONVEX_DEPLOY_KEY',
+  'JWT_SECRET',
+  'AUTH_SECRET',
+  'NEXTAUTH_URL',
+  'AUTH_GOOGLE_CLIENT_ID',
+  'AUTH_GOOGLE_CLIENT_SECRET',
+  'RESEND_API_KEY',
+  'NEXT_PUBLIC_SQUARE_APPLICATION_ID',
+  'NEXT_PUBLIC_SQUARE_LOCATION_ID',
+  'NEXT_PUBLIC_SQUARE_ENVIRONMENT',
+  'SQUARE_ACCESS_TOKEN',
+  'SQUARE_LOCATION_ID',
+  'SQUARE_ENVIRONMENT',
+  'STRIPE_SECRET_KEY',
+  'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
 ] as const;
 
 const optionalEnvVars = [
@@ -54,20 +63,65 @@ export function validateEnv() {
     );
   }
 
-  // Validate JWT_SECRET strength (when set)
-  if (process.env.JWT_SECRET) {
-    const secret = process.env.JWT_SECRET;
-    if (secret === 'your-secret-key-change-this-in-production') {
+  // Validate JWT_SECRET strength
+  const jwtSecret = process.env.JWT_SECRET;
+  if (jwtSecret) {
+    if (jwtSecret === 'your-secret-key-change-this-in-production') {
       throw new Error(
         'JWT_SECRET is using the default insecure value. ' +
         'Please set a strong random secret in production.'
       );
     }
-    if (secret.length < 32) {
-      console.warn(
-        '⚠️  JWT_SECRET should be at least 32 characters long for security. ' +
-        'Current length:', secret.length
+    if (jwtSecret.length < 32) {
+      throw new Error(
+        `JWT_SECRET must be at least 32 characters long for security. Current length: ${jwtSecret.length}`
       );
+    }
+  }
+
+  // Validate AUTH_SECRET strength
+  const authSecret = process.env.AUTH_SECRET;
+  if (authSecret && authSecret.length < 32) {
+    throw new Error(
+      `AUTH_SECRET must be at least 32 characters long for security. Current length: ${authSecret.length}`
+    );
+  }
+
+  // Validate Square environment consistency
+  const squarePublicEnv = process.env.NEXT_PUBLIC_SQUARE_ENVIRONMENT;
+  const squareServerEnv = process.env.SQUARE_ENVIRONMENT;
+  if (squarePublicEnv && squareServerEnv && squarePublicEnv !== squareServerEnv) {
+    throw new Error(
+      `Square environment mismatch: NEXT_PUBLIC_SQUARE_ENVIRONMENT="${squarePublicEnv}" but SQUARE_ENVIRONMENT="${squareServerEnv}". These must match.`
+    );
+  }
+
+  // Validate API key formats
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey && !resendKey.startsWith('re_')) {
+    throw new Error('RESEND_API_KEY must start with "re_" (invalid format)');
+  }
+
+  const squareToken = process.env.SQUARE_ACCESS_TOKEN;
+  if (squareToken && !squareToken.startsWith('EAAA')) {
+    console.warn('⚠️  SQUARE_ACCESS_TOKEN may have invalid format (expected to start with "EAAA")');
+  }
+
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  if (stripeKey && !stripeKey.startsWith('sk_')) {
+    throw new Error('STRIPE_SECRET_KEY must start with "sk_" (invalid format)');
+  }
+
+  const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  if (stripePublicKey && !stripePublicKey.startsWith('pk_')) {
+    throw new Error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must start with "pk_" (invalid format)');
+  }
+
+  // Log successful validation in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('✅ Environment validation passed');
+    if (warnings.length > 0) {
+      console.warn(`⚠️  ${warnings.length} optional variable(s) not set`);
     }
   }
 

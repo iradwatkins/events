@@ -8,6 +8,21 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { CartProvider } from "@/contexts/CartContext";
 import { ShoppingCart } from "@/components/ShoppingCart";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { validateEnv } from "@/lib/env-validator";
+
+// Validate environment variables at startup (server-side only)
+if (typeof window === "undefined") {
+  try {
+    validateEnv();
+  } catch (error) {
+    console.error("❌ Environment validation failed:", error);
+    // In development, show the error but don't crash
+    // In production, this will prevent the app from starting with invalid config
+    if (process.env.NODE_ENV === "production") {
+      throw error;
+    }
+  }
+}
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
